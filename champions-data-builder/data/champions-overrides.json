@@ -1,0 +1,527 @@
+{
+    "_meta": {
+        "description": "포켓몬 챔피언스 Regulation A (2026년 4월) 한정 변경사항",
+        "lastUpdated": "2026-04-26",
+        "sources": [
+            "https://game8.co/games/Pokemon-Champions/archives/593893",
+            "https://www.serebii.net/pokemonchampions/",
+            "https://game8.co/games/Pokemon-Champions/archives/589171",
+            "https://insider-gaming.com/every-new-mega-evolution-ability-in-pokemon-champions/"
+        ]
+    },
+    "_documentedRules": [
+        "Lv.50 고정 (자동 레벨 조정)",
+        "능력 포인트 66점 (1점 = 실수치 +1, 스탯당 최대 32)",
+        "개체값 (IVs) 시스템 제거",
+        "성격 보정 ±10% 유지",
+        "더블배틀 기본",
+        "동일 도구 중복 불가",
+        "동일 종족번호 포켓몬 중복 불가",
+        "타임아웃 시 남은 포켓몬 수만 카운트 (HP %는 무시)"
+    ],
+    "statusChanges": {
+        "paralysis": {
+            "fullParalysisChance": 0.125,
+            "speedMod": 0.5,
+            "_note": "이전 25%→12.5%"
+        },
+        "freeze": {
+            "thawChancePerTurn": 0.25,
+            "guaranteedThawTurn": 3,
+            "_note": "3턴 후 자동 해제 보장"
+        },
+        "rest": {
+            "sleepTurns": 3,
+            "_note": "2턴→3턴"
+        }
+    },
+    "moveChanges": {
+        "appleacid": {
+            "basePower": 90,
+            "_was": 80,
+            "_note": "위력 80→90"
+        },
+        "hurricane": {
+            "basePower": 120,
+            "_was": 100,
+            "_note": "위력 100→120"
+        },
+        "bulldoze": {
+            "basePower": 30,
+            "_was": 25,
+            "_note": "위력 25→30"
+        },
+        "aquatail": {
+            "accuracy": 95,
+            "_was": 90,
+            "_note": "명중 90→95"
+        },
+        "dragonclaw": {
+            "flags": {
+                "slicing": true
+            },
+            "_note": "Slicing 기술 추가"
+        },
+        "shadowclaw": {
+            "flags": {
+                "slicing": true
+            },
+            "_note": "Slicing 기술 추가"
+        },
+        "lavaplume": {
+            "basePower": 90,
+            "_was": 80,
+            "_note": "위력 80→90"
+        },
+        "bugbuzz": {
+            "basePower": 100,
+            "_was": 90,
+            "_note": "위력 90→100"
+        },
+        "leafblade": {
+            "basePower": 90,
+            "_was": 80,
+            "_note": "위력 80→90"
+        },
+        "trailblaze": {
+            "type": "Grass",
+            "_was": "Normal",
+            "_note": "노말→풀 타입"
+        },
+        "shadowsneak": {
+            "basePower": 65,
+            "_was": 60,
+            "_note": "위력 60→65"
+        },
+        "knockoff": {
+            "basePower": 65,
+            "_was": 65,
+            "_note": "Mega Stone에도 효과 적용"
+        },
+        "darkpulse": {
+            "basePower": 90,
+            "_was": 85,
+            "_note": "위력 85→90"
+        },
+        "iciclecrash": {
+            "basePower": 120,
+            "_was": 100,
+            "_note": "위력 100→120"
+        },
+        "psyshock": {
+            "basePower": 90,
+            "_was": 70,
+            "_note": "위력 70→90"
+        },
+        "behemothblade": {
+            "flags": {
+                "slicing": true
+            },
+            "_note": "Slicing 기술 추가"
+        },
+        "behemothbash": {
+            "flags": {
+                "slicing": true
+            },
+            "_note": "Slicing 기술 추가"
+        },
+        "leafstorm": {
+            "basePower": 130,
+            "_was": 130
+        },
+        "powerwhip": {
+            "basePower": 90,
+            "_was": 80,
+            "_note": "위력 80→90"
+        },
+        "leechseed": {
+            "accuracy": 90,
+            "_was": 90
+        },
+        "shadowforce": {
+            "basePower": 90,
+            "_was": 80,
+            "_note": "위력 80→90"
+        },
+        "leaftornado": {
+            "accuracy": 90,
+            "_was": 85,
+            "_note": "명중 85→90"
+        },
+        "saltcure": {
+            "_note": "잔여 대미지 1/8→1/16 (물/강철은 1/4→1/8)"
+        },
+        "direclaw": {
+            "_note": "독/마비/잠 부여 50%→30%"
+        },
+        "moonblast": {
+            "_note": "특공 -1 부여 30%→10%"
+        },
+        "ironhead": {
+            "_note": "주춤 30%→20%"
+        },
+        "blizzard": {
+            "_note": "얼음 부여 효과 제거 (10%→0%)"
+        },
+        "krabhammer": {
+            "basePower": 90,
+            "_was": 75,
+            "_note": "위력 75→90"
+        },
+        "geargrind": {
+            "type": "Steel",
+            "_was": "Steel",
+            "_note": "강철 타입 유지"
+        }
+    },
+    "abilityChanges": {
+        "unseenfist": {
+            "_note": "방어 관통 시 25% 대미지만 (이전: 풀 대미지)",
+            "protectPiercingDamageMult": 0.25
+        }
+    },
+    "newMegaEvolutions": {
+        "_description": "Pokémon Legends: Z-A 도입 + 챔피언스에서 능력치 공개된 신규 메가",
+        "meganium": {
+            "stone": "meganiumite",
+            "stoneKo": "메가니움나이트",
+            "name": "Meganium-Mega",
+            "koName": "메가메가니움",
+            "types": [
+                "Grass",
+                "Fairy"
+            ],
+            "baseStats": {
+                "hp": 80,
+                "atk": 92,
+                "def": 122,
+                "spa": 113,
+                "spd": 130,
+                "spe": 80
+            },
+            "ability": "megasol",
+            "abilityName": "Mega Sol",
+            "abilityKo": "메가솔",
+            "abilityDesc": "항상 쾌청 효과 (실제 날씨 미변경) + 솔라빔 충전 없음 + 합성 회복 강화"
+        },
+        "feraligatr": {
+            "stone": "feraligatrite",
+            "stoneKo": "장크로다일나이트",
+            "name": "Feraligatr-Mega",
+            "koName": "메가장크로다일",
+            "types": [
+                "Water",
+                "Dragon"
+            ],
+            "baseStats": {
+                "hp": 85,
+                "atk": 145,
+                "def": 100,
+                "spa": 89,
+                "spd": 103,
+                "spe": 88
+            },
+            "ability": "dragonize",
+            "abilityName": "Dragonize",
+            "abilityKo": "드래고나이즈",
+            "abilityDesc": "노말 기술이 드래곤 타입으로 변경 + 위력 ×1.2"
+        },
+        "excadrill": {
+            "stone": "excadrillite",
+            "stoneKo": "몰드비스트나이트",
+            "name": "Excadrill-Mega",
+            "koName": "메가몰드비스트",
+            "types": [
+                "Ground",
+                "Steel"
+            ],
+            "baseStats": {
+                "hp": 110,
+                "atk": 165,
+                "def": 80,
+                "spa": 50,
+                "spd": 95,
+                "spe": 108
+            },
+            "ability": "piercingdrill",
+            "abilityName": "Piercing Drill",
+            "abilityKo": "피어싱드릴",
+            "abilityDesc": "접촉기가 방어/막아내기 등 보호 기술을 관통하며 25% 대미지 적용"
+        },
+        "scovillain": {
+            "stone": "scovillainite",
+            "stoneKo": "스코빌레인나이트",
+            "name": "Scovillain-Mega",
+            "koName": "메가스코빌레인",
+            "types": [
+                "Fire",
+                "Grass"
+            ],
+            "baseStats": {
+                "hp": 65,
+                "atk": 128,
+                "def": 75,
+                "spa": 128,
+                "spd": 75,
+                "spe": 105
+            },
+            "ability": "spicyspray",
+            "abilityName": "Spicy Spray",
+            "abilityKo": "스파이시스프레이",
+            "abilityDesc": "공격받았을 때 상대를 화상 상태로 (확정 부여)"
+        }
+    },
+    "newAbilities": {
+        "megasol": {
+            "name": "Mega Sol",
+            "koName": "메가솔",
+            "shortDesc": "항상 쾌청 효과로 간주 (실제 날씨 변경 X). 자기 불꽃 ×1.5, 물 ×0.5, 솔라빔 충전 없음, 합성 회복 강화",
+            "effects": {
+                "selfWeather": "Sun",
+                "doesNotChangeWeather": true,
+                "ignoreOpponentWeather": true
+            }
+        },
+        "dragonize": {
+            "name": "Dragonize",
+            "koName": "드래고나이즈",
+            "shortDesc": "노말 기술이 드래곤 타입으로 변환 + 위력 ×1.2",
+            "effects": {
+                "normalToType": "Dragon",
+                "powerMultiplier": 1.2
+            }
+        },
+        "piercingdrill": {
+            "name": "Piercing Drill",
+            "koName": "피어싱드릴",
+            "shortDesc": "접촉기로 방어/막아내기 관통, 단 위력 25%로 감소",
+            "effects": {
+                "piercesProtect": true,
+                "protectPiercingDamageMult": 0.25,
+                "contactOnly": true
+            }
+        },
+        "spicyspray": {
+            "name": "Spicy Spray",
+            "koName": "스파이시스프레이",
+            "shortDesc": "공격받으면 상대를 확정 화상 상태로",
+            "effects": {
+                "burnOnHit": true,
+                "burnChance": 1.0
+            }
+        }
+    },
+    "moveAccessChanges": {
+        "_description": "포켓몬별 기술 학습 변경 (제거/추가)",
+        "incineroar": {
+            "removed": [
+                "knockoff",
+                "uturn"
+            ],
+            "_note": "어흥염: 탁쳐서떨구기, U턴 박탈 (메이저 너프)"
+        },
+        "gengar": {
+            "removed": [
+                "encore",
+                "haze"
+            ],
+            "_note": "팬텀: 앙코르, 환생불꽃 박탈"
+        },
+        "kangaskhan": {
+            "removed": [
+                "fakeout"
+            ],
+            "_note": "캥카: 페인트 박탈"
+        },
+        "rotom": {
+            "removed": [
+                "nastyplot",
+                "thunderwave"
+            ],
+            "_note": "로토무: 나쁜음모, 전자파 박탈"
+        },
+        "machamp": {
+            "removed": [
+                "earthquake",
+                "closecombat"
+            ],
+            "_note": "괴력몬: 지진, 인파이트 박탈"
+        },
+        "blastoise": {
+            "removed": [
+                "scald"
+            ],
+            "_note": "거북왕: 열탕 박탈"
+        },
+        "greninja": {
+            "removed": [
+                "knockoff"
+            ],
+            "_note": "개굴닌자: 탁쳐서떨구기 박탈"
+        },
+        "milotic": {
+            "removed": [
+                "mirrorcoat"
+            ],
+            "_note": "밀로틱: 미러코트 박탈"
+        },
+        "gliscor": {
+            "removed": [
+                "knockoff"
+            ],
+            "_note": "글라이온: 탁쳐서떨구기 박탈"
+        },
+        "archaludon": {
+            "removed": [
+                "bodypress"
+            ],
+            "_note": "장크로다일(?)/Archaludon: 바디프레스 박탈"
+        },
+        "blastoisemega": {
+            "added": [
+                "icebeam"
+            ],
+            "_note": "메가거북왕: 냉동빔 추가 학습"
+        },
+        "lopunnymega": {
+            "added": [
+                "closecombat",
+                "highjumpkick",
+                "uturn",
+                "icepunch"
+            ],
+            "removed": [
+                "return"
+            ],
+            "_note": "메가이어롭: 인파이트, 트리플악셀, U턴, 아이스펀치 추가"
+        },
+        "aegislash": {
+            "added": [
+                "spectralthief"
+            ],
+            "relearned": [
+                "aerialace"
+            ],
+            "_note": "킬가르도: 스펙트럴씨프 추가"
+        },
+        "armarouge": {
+            "added": [
+                "mysticalfire"
+            ],
+            "removed": [
+                "psyshock"
+            ],
+            "_note": "무장조: 마법의불꽃 추가, 사이코쇼크 제거"
+        },
+        "ceruledge": {
+            "added": [
+                "mysticalfire"
+            ],
+            "_note": "파라블레이즈: 마법의불꽃 추가"
+        },
+        "charizard": {
+            "relearned": [
+                "bravebird",
+                "darkpulse"
+            ],
+            "removed": [
+                "fireblast",
+                "airslash"
+            ],
+            "_note": "리자몽: 브레이브버드, 악의파동 재학습"
+        },
+        "tyranitar": {
+            "relearned": [
+                "closecombat",
+                "ironhead"
+            ],
+            "_note": "마기라스: 인파이트, 아이언헤드 재학습"
+        },
+        "dragonite": {
+            "relearned": [
+                "closecombat",
+                "ironhead"
+            ],
+            "_note": "망나뇽: 인파이트, 아이언헤드 재학습"
+        },
+        "sylveon": {
+            "relearned": [
+                "mysticalfire",
+                "hyperbeam"
+            ],
+            "_note": "님피아: 마법의불꽃 재학습"
+        },
+        "whimsicott": {
+            "relearned": [
+                "fakeout"
+            ],
+            "_note": "토게데마루: 페인트 재학습"
+        }
+    },
+    "itemsBanned": {
+        "_description": "챔피언스 Regulation A에서 사용 불가 도구",
+        "_note": "출처: 경향게임스 + Bulbagarden Wolfe Glick 조사",
+        "lifeorb": "생명의구슬",
+        "rockyhelmet": "울퉁불퉁멧",
+        "heavydutyboots": "두꺼운장갑",
+        "powerherb": "파워풀허브",
+        "lightclay": "빛의점토",
+        "redcard": "레드카드",
+        "ejectbutton": "탈출버튼",
+        "ejectpack": "탈출팩",
+        "weaknesspolicy": "약점보험",
+        "throatspray": "스로트스프레이",
+        "shellbell": "조개껍질방울",
+        "bigroot": "큰뿌리",
+        "muscleband": "힘의머리띠",
+        "wiseglasses": "박식안경",
+        "metronome": "메트로놈",
+        "bindingband": "구속의띠",
+        "scopelens": "초점렌즈",
+        "luckypunch": "행운의펀치",
+        "zoomlens": "줌렌즈",
+        "widelens": "광각렌즈",
+        "brightpowder": "반짝이가루",
+        "quickclaw": "빠른발톱",
+        "kingsrock": "왕의징표석",
+        "razorclaw": "예리한발톱",
+        "razorfang": "예리한이빨",
+        "stickybarb": "끈적이가시",
+        "ironball": "강철구슬",
+        "laggingtail": "느림보꼬리",
+        "destinyknot": "운명의매듭",
+        "ringtarget": "조준기",
+        "_starterPack": "초기 환경에서 다수의 도구가 비활성화됨",
+        "abilityshield": "챔피언스에 존재하지 않음"
+    },
+    "itemsAvailable": {
+        "_description": "챔피언스 Regulation A 확정 사용 가능 도구",
+        "sitrusberry": "자뭉열매",
+        "choiceband": "구애머리띠",
+        "choicescarf": "구애스카프",
+        "choicespecs": "구애안경",
+        "assaultvest": "돌격조끼",
+        "eviolite": "진화의휘석",
+        "expertbelt": "달인의띠",
+        "leftovers": "먹고남은음식",
+        "focussash": "기합의띠",
+        "blackglasses": "검은안경",
+        "covertcloak": "커버트클록",
+        "clearamulet": "클리어부적",
+        "boosterenergy": "부스트에너지",
+        "airballoon": "풍선",
+        "blacksludge": "까만진흙",
+        "toxicorb": "맹독구슬",
+        "flameorb": "화염구슬",
+        "loadeddice": "로드다이스",
+        "punchingglove": "펀치글러브",
+        "mirrorherb": "미러허브",
+        "safetygoggles": "세이프티고글",
+        "luminousmoss": "빛나는이끼",
+        "cellbattery": "충전지",
+        "whiteherb": "하양허브",
+        "mentalherb": "멘탈허브",
+        "_typeBoosters": "타입강화 도구 18종 모두 사용 가능",
+        "_megaStones": "모든 메가스톤 사용 가능 (신규 4종 포함)"
+    }
+}
