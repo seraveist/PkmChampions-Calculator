@@ -1,12 +1,9 @@
 {
   "name": "pkmchampions-calculator",
   "version": "2.0.0",
-  "description": "Pokemon Champions Damage Calculator V2",
+  "description": "Pokemon Champions Damage Calculator",
   "type": "module",
   "scripts": {
     "build": "node build.mjs"
-  },
-  "dependencies": {
-    "@pkmn/dex": "^0.10.7"
   }
 }

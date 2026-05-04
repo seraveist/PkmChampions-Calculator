@@ -1794,15 +1794,8 @@ function renderSide(sideKey) {
       <div class="combobox-options"></div>
       <div class="types-display">
         ${types.map(t => `<span class="type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}
-        <span class="tera-ring ${side.tera ? 'active' : ''}" data-action="teraToggle" data-side="${sideKey}">
-          ⬢ 테라${side.tera ? ` ${TYPE_KO[side.teraType]}` : ''}
-        </span>
+        <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 (data/mods/champions/scripts.ts: canTerastallize → null) -->
       </div>
-      ${side.tera ? `
-        <select class="tera-select" data-action="teraType" data-side="${sideKey}" style="margin-top:6px; font-size: 12px;">
-          ${Object.keys(TYPE_KO).map(t => `<option value="${t}" ${side.teraType === t ? 'selected' : ''}>${TYPE_KO[t]} (${t})</option>`).join('')}
-        </select>
-      ` : ''}
     </div>
 
     <div class="section-divider"></div>
