@@ -199,6 +199,13 @@
           <label class="checkbox-label" style="color: var(--tera);"><input type="checkbox" id="ruinTablet"> ⚔️ 목간의재앙 (공격 ×0.75)</label>
           <label class="checkbox-label" style="color: var(--tera);"><input type="checkbox" id="ruinBeads"> ⚔️ 구슬의재앙 (특방 ×0.75)</label>
           <label class="checkbox-label" style="color: var(--tera);"><input type="checkbox" id="ruinVessel"> ⚔️ 그릇의재앙 (특공 ×0.75)</label>
+          <label class="checkbox-label"><input type="checkbox" id="defStealthRock"> 🪨 방어측 스텔스록</label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="defSpikes"> 🛡️ 방어측 압정뿌리기
+            <select id="defSpikesLayers" style="margin-left: 4px; font-size: 11px;">
+              <option value="1">1층</option><option value="2">2층</option><option value="3">3층</option>
+            </select>
+          </label>
           <label class="checkbox-label" style="color: var(--ok); grid-column: 1/-1;"><input type="checkbox" id="autoEntry" checked> 📋 자동 진입 효과 (위협, 가뭄, 다운로드 등)</label>
         </div>
       </div>
@@ -733,10 +740,151 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field) {
 }
 
 /* ════════════════════════════════════════════════════════════
+   가변 위력 기술 (basePowerCallback)
+   본가의 callback 로직을 챔피언스 환경에 맞게 재현.
+   side.hpPct (0~1, 기본 1.0), side.lastMoveFailed, side.wasHit, side.fallenAllies,
+   side.timesHit, field.atkMovesFirst, field.atkMovesSecond 등의 보조 플래그를 읽는다.
+   ════════════════════════════════════════════════════════════ */
+function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
+  if (!move) return 0;
+  const id = move.id;
+  const atkP = PokemonById[atkSide.pokemonIdx];
+  const defP = PokemonById[defSide.pokemonIdx];
+  const baseBp = move.bp || 0;
+
+  switch (id) {
+    case 'gyroball': {
+      // 25 × defSpe / atkSpe, 최소 1, 최대 150
+      const aS = applyBoost(atkStats.spe, atkSide.ranks?.spe || 0);
+      const dS = applyBoost(defStats.spe, defSide.ranks?.spe || 0);
+      if (aS <= 0) return 1;
+      return Math.min(150, Math.max(1, Math.floor(25 * dS / aS)));
+    }
+    case 'electroball': {
+      const aS = applyBoost(atkStats.spe, atkSide.ranks?.spe || 0);
+      const dS = applyBoost(defStats.spe, defSide.ranks?.spe || 0);
+      if (dS <= 0) return 150;
+      const r = aS / dS;
+      if (r >= 4) return 150;
+      if (r >= 3) return 120;
+      if (r >= 2) return 80;
+      if (r >= 1) return 60;
+      return 40;
+    }
+    case 'heatcrash':
+    case 'heavyslam': {
+      const aw = atkP?.weightkg || 1;
+      const dw = Math.max(0.1, defP?.weightkg || 1);
+      const r = aw / dw;
+      if (r >= 5) return 120;
+      if (r >= 4) return 100;
+      if (r >= 3) return 80;
+      if (r >= 2) return 60;
+      return 40;
+    }
+    case 'lowkick':
+    case 'grassknot': {
+      const w = defP?.weightkg || 1;
+      if (w >= 200) return 120;
+      if (w >= 100) return 100;
+      if (w >= 50) return 80;
+      if (w >= 25) return 60;
+      if (w >= 10) return 40;
+      return 20;
+    }
+    case 'eruption':
+    case 'waterspout': {
+      // 150 × HP / maxHP. 기본 가정: 풀피
+      const hp = atkSide.hpPct ?? 1.0;
+      return Math.max(1, Math.floor(150 * hp));
+    }
+    case 'flail':
+    case 'reversal': {
+      // 48분의 X 단위 비례
+      const hp = atkSide.hpPct ?? 1.0;
+      const p = Math.floor(hp * 48);
+      if (p < 2) return 200;
+      if (p < 5) return 150;
+      if (p < 10) return 100;
+      if (p < 17) return 80;
+      if (p < 33) return 40;
+      return 20;
+    }
+    case 'hardpress': {
+      // 1 + floor(99 × targetHP / maxHP). 풀피 기본: 100
+      const hp = defSide.hpPct ?? 1.0;
+      return Math.max(1, 1 + Math.floor(99 * hp));
+    }
+    case 'hex':
+    case 'infernalparade':
+    case 'barbbarrage': {
+      // 대상이 상태이상이면 ×2
+      const st = defSide.status;
+      return (st && st !== 'none') ? baseBp * 2 : baseBp;
+    }
+    case 'venoshock': {
+      // 대상이 독/맹독이면 ×2
+      return ['Poison','Toxic','poison','toxic','psn','tox'].includes(defSide.status) ? baseBp * 2 : baseBp;
+    }
+    case 'boltbeak':
+    case 'fishiousrend': {
+      // 사용자가 먼저 행동하면 ×2
+      return field.atkMovesFirst ? baseBp * 2 : baseBp;
+    }
+    case 'payback': {
+      // 사용자가 나중에 행동하면 ×2
+      return field.atkMovesSecond ? baseBp * 2 : baseBp;
+    }
+    case 'avalanche':
+    case 'revenge':
+      return atkSide.wasHit ? baseBp * 2 : baseBp;
+    case 'assurance':
+      return defSide.wasHit ? baseBp * 2 : baseBp;
+    case 'wakeupslap':
+      return ['Sleep','sleep','slp'].includes(defSide.status) ? baseBp * 2 : baseBp;
+    case 'smellingsalts':
+      return ['Paralysis','paralysis','par'].includes(defSide.status) ? baseBp * 2 : baseBp;
+    case 'risingvoltage': {
+      const grounded = (typeof isGrounded === 'function') ? isGrounded(defSide, field) : true;
+      return field.terrain === 'Electric' && grounded ? baseBp * 2 : baseBp;
+    }
+    case 'storedpower':
+    case 'powertrip': {
+      let total = 0;
+      for (const k of ['atk','def','spa','spd','spe','accuracy','evasion']) {
+        const r = atkSide.ranks?.[k] || 0;
+        if (r > 0) total += r;
+      }
+      return 20 + 20 * total;
+    }
+    case 'lastrespects': {
+      const fa = atkSide.fallenAllies || 0;
+      return Math.min(350, 50 + 50 * fa);
+    }
+    case 'ragefist': {
+      const t = atkSide.timesHit || 0;
+      return Math.min(350, 50 + 50 * t);
+    }
+    case 'temperflare':
+    case 'stompingtantrum':
+      return atkSide.lastMoveFailed ? baseBp * 2 : baseBp;
+    case 'acrobatics':
+      // 도구 미보유 시 ×2 (55 → 110)
+      return !atkSide.item ? baseBp * 2 : baseBp;
+    case 'tripleaxel':
+    case 'triplekick':
+      // 1/2/3타에 BP 20/40/60 누적. 다단히트 평균 처리에선 (20+40+60)/3 = 40
+      return 40;
+    default:
+      return baseBp;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
    메인 대미지 계산 (Gen 9 공식 방식)
    ════════════════════════════════════════════════════════════ */
 function calculateDamage(atkSide, defSide, move, field) {
-  if (!move || move.cat === 'Status' || move.bp === 0) return null;
+  if (!move || move.cat === 'Status') return null;
   
   const mods = [];  // trace
   const atkP = PokemonById[atkSide.pokemonIdx];
@@ -761,9 +909,11 @@ function calculateDamage(atkSide, defSide, move, field) {
   
   // ─ 기술 타입 결정 ─
   let moveType = move.type;
-  let bp = move.bp;
+  // 가변 위력 기술은 callback 으로 실제 BP 계산
+  let bp = computeVariableBp(move, atkSide, defSide, field, atkStats, defStats);
+  if (bp === 0) return null;  // 위력 0 (대부분 status/계산 불가)
   let category = move.cat;
-  
+
   // Aerilate / Refrigerate / Pixilate / Galvanize / Dragonize: 노말 → 타입 변경
   let typeChangeMod = null;
   if (moveType === 'Normal') {
@@ -1342,10 +1492,32 @@ function calculateDamage(atkSide, defSide, move, field) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   확정 N타 계산 (자뭉열매 반영)
+   진입 위험 (스텔스록 / 압정뿌리기) 데미지 계산
    ════════════════════════════════════════════════════════════ */
-function simulateKO(dmg, hp, defItem, defAb) {
-  let cur = hp;
+function calcHazardDamage(defSide, field) {
+  let total = 0;
+  const hp = calcStats(defSide).hp;
+  // 스텔스록: 바위 약점 비율 ×기본 1/8
+  if (field.defStealthRock) {
+    const types = effectiveTypes(defSide);
+    const eff = typeEff('Rock', types); // 0/0.25/0.5/1/2/4 중 하나
+    if (eff > 0) total += Math.floor(hp * eff / 8);
+  }
+  // 압정뿌리기: 지면에 닿은 포켓몬에게만
+  if (field.defSpikesLayers > 0 && isGrounded(defSide, field)) {
+    const layerDmg = [0, 1/8, 1/6, 1/4][field.defSpikesLayers] || 0;
+    total += Math.floor(hp * layerDmg);
+  }
+  return Math.max(0, total);
+}
+
+/* ════════════════════════════════════════════════════════════
+   확정 N타 계산 (자뭉열매 반영)
+   startHp: 시뮬레이션 시작 HP (스텔스록 등 반영). 미지정 시 풀피.
+   ════════════════════════════════════════════════════════════ */
+function simulateKO(dmg, hp, defItem, defAb, startHp) {
+  let cur = (typeof startHp === 'number' && startHp > 0) ? startHp : hp;
+  if (cur <= 0) return 1;
   const halfHP = Math.floor(hp / 2);
   const sitrusHeal = Math.floor(hp / 4);
   const lefto = Math.floor(hp / 16);
@@ -1355,24 +1527,30 @@ function simulateKO(dmg, hp, defItem, defAb) {
     if (cur <= 0) return n;
     if (!berryUsed && cur <= halfHP) { cur = Math.min(hp, cur + sitrusHeal); berryUsed = true; }
     if (defItem === 'leftovers') cur = Math.min(hp, cur + lefto);
-    if (defAb === 'poisonheal' && (defAb === 'poisonheal')) cur = Math.min(hp, cur + Math.floor(hp/8));
+    if (defAb === 'poisonheal') cur = Math.min(hp, cur + Math.floor(hp / 8));
   }
   return 11;
 }
 
-function hkoLabel(damages, hp, defSide) {
+function hkoLabel(damages, hp, defSide, field) {
   const max = damages[15];
   const min = damages[0];
   if (max <= 0) return { label: "대미지", turns: "없음", pct: "", cls: "no" };
   const defItem = effectiveItem(defSide);
   const defAb = effectiveAbility(defSide);
 
-  // 기합의띠: HP 풀일 때 1타에 죽으면 HP 1 남기기
-  const hasFocusSash = defItem === 'focussash' && defSide.fullHP;
-  const hasSturdy = defAb === 'sturdy' && defSide.fullHP;
+  // 진입 위험 (스텔스록/압정뿌리기) 데미지를 시작 HP 에서 차감
+  const hazardDmg = field ? calcHazardDamage(defSide, field) : 0;
+  const startHp = Math.max(1, hp - hazardDmg);
+  const hazardActive = hazardDmg > 0;
+
+  // 기합의띠/옹골참은 HP 풀피일 때만 발동. 진입 위험으로 1HP 라도 깎였다면 무효.
+  const hasFocusSash = defItem === 'focussash' && defSide.fullHP && !hazardActive;
+  const hasSturdy = defAb === 'sturdy' && defSide.fullHP && !hazardActive;
   const survives1HKO = hasFocusSash || hasSturdy;
 
-  const oneHits = damages.filter(d => d >= hp).length;
+  // 1타 판정은 진입 위험 후의 startHp 기준
+  const oneHits = damages.filter(d => d >= startHp).length;
 
   // 확정 1타 (기합의띠 없을 때만)
   if (oneHits === 16 && !survives1HKO) {
@@ -1388,30 +1566,38 @@ function hkoLabel(damages, hp, defSide) {
 
   if (oneHits > 0) {
     const pct = (oneHits / 16 * 100).toFixed(1);
-    let sub = '';
-    if (survives1HKO) {
-      sub = hasFocusSash ? '기합의띠로 1타 회피 가능' : '옹골참으로 1타 회피 가능';
-    } else if (hasSitrus) {
-      const minKOs = simulateKO(min, hp, defItem, defAb);
-      sub = `자뭉 시 확정 ${minKOs}타`;
+    const subParts = [];
+    if (hazardActive) {
+      const hpct = Math.round(hazardDmg / hp * 100);
+      subParts.push(`진입 위험 -${hpct}%`);
     }
-    return { label: "난수", turns: "1타", pct: `${pct}%`, cls: "ohko", sub };
+    if (survives1HKO) {
+      subParts.push(hasFocusSash ? '기합의띠로 1타 회피 가능' : '옹골참으로 1타 회피 가능');
+    } else if (hasSitrus) {
+      const minKOs = simulateKO(min, hp, defItem, defAb, startHp);
+      subParts.push(`자뭉 시 확정 ${minKOs}타`);
+    }
+    return { label: "난수", turns: "1타", pct: `${pct}%`, cls: "ohko", sub: subParts.join(' · ') };
   }
 
-  // 자뭉/회복 아이템 반영한 N타
-  const minKOs = simulateKO(min, hp, defItem, defAb);
-  const maxKOs = simulateKO(max, hp, defItem, defAb);
+  // 자뭉/회복 아이템 반영한 N타 (진입 위험 후 startHp 기준)
+  const minKOs = simulateKO(min, hp, defItem, defAb, startHp);
+  const maxKOs = simulateKO(max, hp, defItem, defAb, startHp);
 
   const isFixed = (minKOs === maxKOs);
   const label = isFixed ? "확정" : "난수";
   const turns = `${maxKOs}타`;
 
-  let sub = '';
-  if (defItem === 'sitrusberry') sub = '자뭉 반영';
-  else if (defItem === 'leftovers') sub = '먹남 반영';
-  else if (defAb === 'poisonheal') sub = '포이즌힐 반영';
+  const subParts = [];
+  if (hazardActive) {
+    const pct = Math.round(hazardDmg / hp * 100);
+    subParts.push(`진입 위험 -${pct}%`);
+  }
+  if (defItem === 'sitrusberry') subParts.push('자뭉 반영');
+  else if (defItem === 'leftovers') subParts.push('먹남 반영');
+  else if (defAb === 'poisonheal') subParts.push('포이즌힐 반영');
 
-  return { label, turns, pct: "", cls: minKOs <= 2 ? "ohko" : "", sub };
+  return { label, turns, pct: "", cls: minKOs <= 2 ? "ohko" : "", sub: subParts.join(' · ') };
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -1504,7 +1690,10 @@ const state = {
     ruinSword: false,    // 검의재앙 (방어측 방어 0.75×)
     ruinTablet: false,   // 목간의재앙 (방어측 공격 0.75×) ← 공격측 입장에선 자기 공격 0.75×
     ruinBeads: false,    // 구슬의재앙 (방어측 특방 0.75×)
-    ruinVessel: false    // 그릇의재앙 (방어측 특공 0.75×)
+    ruinVessel: false,   // 그릇의재앙 (방어측 특공 0.75×)
+    // 진입 위험 (방어측이 교체 진입 시 받는 데미지). HKO 시뮬레이션의 시작 HP 에 반영.
+    defStealthRock: false,
+    defSpikesLayers: 0,  // 0~3
   }
 };
 
@@ -1614,14 +1803,18 @@ const MOLD_BREAKER_IGNORED_ABILITIES = [
 //   ※ 타입 상성, 방어측 보정은 제외
 //   예: 파이어로 고집 A32 + 구애머리띠 → 브레이브버드 = 146 × 120 × 1.5 × 1.5 = 39420
 function estimateMovePower(side, move) {
-  if (!move || move.cat === 'Status' || !move.bp) return { bp: '—', eff: '—' };
+  if (!move || move.cat === 'Status') return { bp: '—', eff: '—' };
   const types = effectiveTypes(side);
   const ab = side.ability;
   const item = side.item;
   const stats = calcStats(side);
+  // 가변 위력 기술 위력은 자기 자신을 상대로 가정한 추정치로 보여준다 (estimate 용도)
+  const defStats = calcStats(state.def);
+  const variableBp = computeVariableBp(move, side, state.def, state.field, stats, defStats);
 
   let moveType = move.type;
-  let bp = move.bp;
+  let bp = variableBp || move.bp;
+  if (!bp) return { bp: '—', eff: '—' };
 
   // 타입 변환 특성 + BP 보정
   let typeMult = 1.0;
@@ -2308,18 +2501,24 @@ function runCalc() {
   
   const atkSpe = effectiveSpeed(state.atk, state.field);
   const defSpe = effectiveSpeed(state.def, state.field);
-  
+
+  // 가변 위력 기술이 참조하는 행동 순서 플래그를 필드에 복사 (priority 0 기준)
+  // 우선도가 다른 기술은 기술별로 calculateDamage 가 firstMover 결과로 보정해야 정확하지만
+  // 대부분의 가변 위력 기술 (boltbeak, fishiousrend, payback) 은 priority 0 이므로 단순화.
+  state.field.atkMovesFirst = atkSpe > defSpe;
+  state.field.atkMovesSecond = atkSpe < defSpe;
+
   // 각 기술 계산
   const moveResults = state.atk.moves.map((mvId, i) => {
     if (!mvId) return { empty: true, slot: i+1 };
     const move = MoveById[mvId];
     if (!move) return { empty: true, slot: i+1 };
-    if (move.cat === 'Status' || move.bp === 0) {
+    if (move.cat === 'Status') {
       return { empty: true, slot: i+1, move, statusMove: true };
     }
     const result = calculateDamage(state.atk, state.def, move, state.field);
     if (!result) return { empty: true, slot: i+1, move };
-    const hko = hkoLabel(result.damages, result.defHP, state.def);
+    const hko = hkoLabel(result.damages, result.defHP, state.def, state.field);
     const first = firstMover(move.pri, atkSpe, defSpe, state.field);
     return { ...result, hko, first, slot: i+1, move };
   });
@@ -2599,6 +2798,18 @@ document.getElementById('ruinSword').addEventListener('change', e => { state.fie
 document.getElementById('ruinTablet').addEventListener('change', e => { state.field.ruinTablet = e.target.checked; triggerCalc(); });
 document.getElementById('ruinBeads').addEventListener('change', e => { state.field.ruinBeads = e.target.checked; triggerCalc(); });
 document.getElementById('ruinVessel').addEventListener('change', e => { state.field.ruinVessel = e.target.checked; triggerCalc(); });
+// 진입 위험 (스텔스록 / 압정뿌리기)
+document.getElementById('defStealthRock').addEventListener('change', e => { state.field.defStealthRock = e.target.checked; triggerCalc(); });
+document.getElementById('defSpikes').addEventListener('change', e => {
+  state.field.defSpikesLayers = e.target.checked ? parseInt(document.getElementById('defSpikesLayers').value, 10) || 1 : 0;
+  triggerCalc();
+});
+document.getElementById('defSpikesLayers').addEventListener('change', e => {
+  if (document.getElementById('defSpikes').checked) {
+    state.field.defSpikesLayers = parseInt(e.target.value, 10) || 1;
+    triggerCalc();
+  }
+});
 // 자동 진입 효과 토글
 document.getElementById('autoEntry').addEventListener('change', e => {
   autoEntryEffects = e.target.checked;
