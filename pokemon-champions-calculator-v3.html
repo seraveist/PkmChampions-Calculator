@@ -1280,6 +1280,92 @@
   .learnset-type-header .count { color: var(--text-dim); font-weight: 600; }
   .learnset-filter-row { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; padding: 6px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 3px; }
 
+  /* ════════════════════════════════════════════════════════════
+     7  상성표 (matchup)
+     ════════════════════════════════════════════════════════════ */
+  .matchup-intro { font-size: 12px; color: var(--text-dim); margin-bottom: 12px; }
+  .matchup-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .matchup-slot {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px;
+    position: relative;
+  }
+  .matchup-slot.filled { border-color: var(--border-bright); }
+  .matchup-slot-num {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-elev); color: var(--text-faint);
+    border-radius: 50%; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 700;
+  }
+  .matchup-slot.filled .matchup-slot-num { background: var(--warn); color: var(--bg); }
+  .matchup-slot .combobox { flex: 1; min-width: 0; }
+  .matchup-slot-types { display: flex; gap: 3px; flex-shrink: 0; }
+  .matchup-slot-clear {
+    background: transparent; border: none; color: var(--text-faint);
+    cursor: pointer; padding: 2px 6px; font-size: 12px;
+    border-radius: 2px;
+  }
+  .matchup-slot-clear:hover { color: var(--atk); background: rgba(255,71,102,0.1); }
+
+  .matchup-table-wrap { overflow-x: auto; }
+  .matchup-table {
+    width: 100%; border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    min-width: 600px;
+  }
+  .matchup-table th, .matchup-table td {
+    padding: 6px 8px; border: 1px solid var(--border);
+    text-align: center;
+  }
+  .matchup-table thead th {
+    background: var(--bg-elev); color: var(--text-dim);
+    font-weight: 600; font-size: 11px;
+    position: sticky; top: 0; z-index: 1;
+    white-space: nowrap;
+  }
+  .matchup-table thead th.summary { color: var(--warn); }
+  .matchup-table tbody td:first-child {
+    background: var(--bg-elev);
+    text-align: left;
+    padding: 4px 8px;
+    white-space: nowrap;
+  }
+  .matchup-table tbody tr:hover td { background: rgba(255, 181, 71, 0.04); }
+  .matchup-table tbody td.summary {
+    background: var(--bg-elev); color: var(--text-faint); font-weight: 700;
+  }
+  .matchup-table tbody td.summary.weak { color: var(--atk); }
+  .matchup-table tbody td.summary.immune { color: var(--text-dim); }
+  /* 셀 효과 색상 */
+  .matchup-table td.eff-4 { background: rgba(255, 71, 102, 0.25); color: #ff4766; font-weight: 700; }
+  .matchup-table td.eff-2 { background: rgba(255, 71, 102, 0.12); color: #ff4766; font-weight: 600; }
+  .matchup-table td.eff-1 { color: var(--text-faint); }
+  .matchup-table td.eff-05 { background: rgba(74, 222, 128, 0.12); color: var(--ok); }
+  .matchup-table td.eff-025 { background: rgba(74, 222, 128, 0.25); color: var(--ok); font-weight: 700; }
+  .matchup-table td.eff-0 { background: rgba(82, 90, 120, 0.3); color: var(--text-dim); font-weight: 700; }
+  .matchup-table td.empty { color: var(--text-faint); }
+
+  .matchup-legend {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    margin-top: 10px; padding: 8px 10px;
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: 3px;
+    font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text-dim);
+  }
+  .matchup-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .matchup-legend .cell-demo {
+    display: inline-block;
+    min-width: 20px; padding: 2px 4px; text-align: center;
+    border: 1px solid var(--border); border-radius: 2px;
+    font-weight: 700;
+  }
+
   /* 풀페이지 상세 (도감 탭 내부) */
   #dexFullPageDetail { padding: 0; }
   .dex-fullpage-back {
@@ -1618,6 +1704,7 @@
   <nav class="main-nav">
     <button class="nav-tab active" data-page="calc">⚔️ 대미지 계산기</button>
     <button class="nav-tab" data-page="dex">📖 도감</button>
+    <button class="nav-tab" data-page="matchup">📊 상성표</button>
   </nav>
   <div class="header-status" id="data-status">데이터 로딩 중...</div>
 </header>
@@ -1708,6 +1795,38 @@
   <div class="dex-content" id="dex-items"><div class="dex-table-wrap"><table class="dex-table" id="dexTableItems"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>영문명</th><th>설명</th><th>상태</th></tr></thead><tbody id="dexBodyItems"></tbody></table></div></div>
   <!-- 포켓몬/기술/특성 상세 풀페이지 (도감 탭 내부에서 표시) -->
   <div class="dex-content" id="dexFullPageDetail"></div>
+</main>
+
+<!-- 상성표 페이지 -->
+<main id="page-matchup" class="page">
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">상성표</div>
+      <span class="panel-tag" style="background: var(--warn);">MATCHUP</span>
+    </div>
+    <div class="panel-body">
+      <div class="matchup-intro">최대 6마리의 포켓몬을 선택하면 18가지 공격 타입에 대한 방어 상성을 한눈에 비교할 수 있습니다.</div>
+      <div class="matchup-slots" id="matchupSlots"></div>
+    </div>
+  </section>
+  <section class="panel" style="margin-top: 14px;">
+    <div class="panel-body">
+      <div class="matchup-table-wrap">
+        <table class="matchup-table" id="matchupTable">
+          <thead id="matchupHead"></thead>
+          <tbody id="matchupBody"></tbody>
+        </table>
+      </div>
+      <div class="matchup-legend">
+        <span><span class="cell-demo eff-4">◎</span> 4배 약점</span>
+        <span><span class="cell-demo eff-2">○</span> 2배 약점</span>
+        <span><span class="cell-demo eff-1">—</span> 1배</span>
+        <span><span class="cell-demo eff-05">△</span> 1/2 저항</span>
+        <span><span class="cell-demo eff-025">△△</span> 1/4 저항</span>
+        <span><span class="cell-demo eff-0">✕</span> 무효</span>
+      </div>
+    </div>
+  </section>
 </main>
 
 <!-- 모달 다이얼로그 -->
@@ -4484,6 +4603,143 @@ function renderItemsDex(query) {
 }
 
 /* ════════════════════════════════════════════════════════════
+   상성표 (matchup) — 6슬롯 포켓몬 × 18 공격 타입
+   ════════════════════════════════════════════════════════════ */
+const matchupSlots = [null, null, null, null, null, null];
+
+const EFF_SYMBOL = {
+  4: '◎',
+  2: '○',
+  1: '',
+  0.5: '△',
+  0.25: '△△',
+  0: '✕',
+};
+const EFF_CLASS = {
+  4: 'eff-4',
+  2: 'eff-2',
+  1: 'eff-1',
+  0.5: 'eff-05',
+  0.25: 'eff-025',
+  0: 'eff-0',
+};
+
+function renderMatchupSlots() {
+  const container = document.getElementById('matchupSlots');
+  if (!container) return;
+  container.innerHTML = matchupSlots.map((id, i) => {
+    const p = id ? PokemonById[id] : null;
+    return `
+      <div class="matchup-slot ${p ? 'filled' : ''}" data-slot="${i}">
+        <div class="matchup-slot-num">${i + 1}</div>
+        <div class="combobox">
+          <input type="text" class="cb-input matchup-cb-input" data-slot="${i}"
+                 value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="포켓몬 검색...">
+          <div class="combobox-options"></div>
+        </div>
+        <div class="matchup-slot-types">
+          ${p ? p.types.map(t => `<span class="type-pill t-${t}" style="font-size:9px;padding:1px 5px;">${TYPE_KO[t]}</span>`).join('') : ''}
+        </div>
+        ${p ? `<button class="matchup-slot-clear" data-slot="${i}" title="비우기">✕</button>` : ''}
+      </div>
+    `;
+  }).join('');
+  wireMatchupSlots();
+}
+
+function wireMatchupSlots() {
+  const container = document.getElementById('matchupSlots');
+  if (!container) return;
+  container.querySelectorAll('.matchup-cb-input').forEach(input => {
+    const slot = parseInt(input.dataset.slot, 10);
+    const cbParent = input.closest('.combobox');
+    const optsEl = cbParent.querySelector('.combobox-options');
+
+    const showOptions = (query) => {
+      const s = (query || '').toLowerCase();
+      const matches = POKEMON.filter(p =>
+        (p.koName || '').toLowerCase().includes(s) || p.name.toLowerCase().includes(s)
+      ).slice(0, 30);
+      optsEl.innerHTML = matches.map(p =>
+        `<div class="combobox-option" data-id="${p.id}">
+          <b>${escapeHTML(pkName(p))}</b>
+          <small>${p.types.join(', ')} · BST ${p.bst}</small>
+        </div>`
+      ).join('');
+      optsEl.classList.add('open');
+      requestAnimationFrame(() => {
+        const rect = optsEl.getBoundingClientRect();
+        const sw = window.innerWidth;
+        if (rect.right > sw - 8) { optsEl.style.left = 'auto'; optsEl.style.right = '0'; }
+        else { optsEl.style.left = ''; optsEl.style.right = ''; }
+      });
+    };
+
+    input.addEventListener('focus', e => showOptions(e.target.value));
+    input.addEventListener('input', e => showOptions(e.target.value));
+    input.addEventListener('blur', () => setTimeout(() => optsEl.classList.remove('open'), 200));
+
+    optsEl.addEventListener('mousedown', e => {
+      const opt = e.target.closest('.combobox-option');
+      if (!opt) return;
+      e.preventDefault();
+      matchupSlots[slot] = opt.dataset.id;
+      renderMatchupSlots();
+      renderMatchupTable();
+    });
+  });
+  container.querySelectorAll('.matchup-slot-clear').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const slot = parseInt(btn.dataset.slot, 10);
+      matchupSlots[slot] = null;
+      renderMatchupSlots();
+      renderMatchupTable();
+    });
+  });
+}
+
+function renderMatchupTable() {
+  const head = document.getElementById('matchupHead');
+  const body = document.getElementById('matchupBody');
+  if (!head || !body) return;
+
+  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
+
+  // 헤더: 공격 타입 컬럼 + 6 슬롯 + 무효/약점 요약
+  head.innerHTML = `
+    <tr>
+      <th style="text-align:left;">공격 타입</th>
+      ${pokes.map((p, i) => `<th>${p ? escapeHTML(pkName(p)) : `<span style="color:var(--text-faint)">슬롯 ${i+1}</span>`}</th>`).join('')}
+      <th class="summary">무효</th>
+      <th class="summary">약점</th>
+    </tr>
+  `;
+
+  // 본문: 18 행 × 6 셀 + 요약
+  body.innerHTML = BATTLE_TYPES.map(t => {
+    const cells = pokes.map(p => {
+      if (!p) return `<td class="empty">—</td>`;
+      const eff = typeEff(t, p.types);
+      const sym = EFF_SYMBOL[eff] !== undefined ? EFF_SYMBOL[eff] : eff + '×';
+      const cls = EFF_CLASS[eff] || '';
+      return `<td class="${cls}">${sym}</td>`;
+    }).join('');
+
+    const valid = pokes.filter(Boolean);
+    const immuneCount = valid.filter(p => typeEff(t, p.types) === 0).length;
+    const weakCount = valid.filter(p => typeEff(t, p.types) > 1).length;
+
+    return `
+      <tr>
+        <td><span class="type-pill t-${t}" style="font-size:11px;padding:2px 8px;">${TYPE_KO[t]}</span></td>
+        ${cells}
+        <td class="summary immune">${immuneCount > 0 ? immuneCount : ''}</td>
+        <td class="summary weak">${weakCount > 0 ? weakCount : ''}</td>
+      </tr>
+    `;
+  }).join('');
+}
+/* ════════════════════════════════════════════════════════════
    도감 상세 모달 — Cross-reference 인덱스 + 렌더러
    ════════════════════════════════════════════════════════════ */
 function abilityIdNorm(name) { return (name || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
@@ -5085,6 +5341,8 @@ updateFieldSummary();
 triggerCalc();
 renderTypeFilter();
 renderDexContent('');
+renderMatchupSlots();
+renderMatchupTable();
 </script>
 </body>
 </html>
