@@ -4148,11 +4148,6 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
   });
 });
 
-// 패널 접기
-document.getElementById('field-head')?.addEventListener('click', function() {
-  this.parentElement.classList.toggle('collapsed');
-});
-
 // 도감 렌더링 함수들
 function renderDexContent(query = '') {
   const q = query.toLowerCase();
