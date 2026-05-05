@@ -8,6 +8,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ════════════════════════════════════════════════════════════
+ * 01-base.css — 글로벌, 헤더, 네비게이션, 레이아웃, 패널/폼/모달 공통
+ * (build.mjs 가 src/styles/*.css 를 알파벳순 concat 후 calc-template.html 에 주입)
+ * ════════════════════════════════════════════════════════════ */
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --bg: #0b0d14; --bg-elev: #131621; --bg-panel: #181c2a; --bg-input: #0f1220;
@@ -726,6 +730,12 @@
   }
   .calc-state b { color: var(--ok); }
 
+
+
+/* ════════════════════════════════════════════════════════════
+ * 02-pages.css — 계산기/도감/상성표 페이지별 + 반응형
+ * (build.mjs 가 src/styles/*.css 를 알파벳순 concat 후 calc-template.html 에 주입)
+ * ════════════════════════════════════════════════════════════ */
   /* Results */
   .results {
     background: var(--bg-panel); border: 1px solid var(--border);
@@ -1879,6 +1889,10 @@
 
 <script>
 "use strict";
+/* ════════════════════════════════════════════════════════════
+ * 01-core.js — 데이터 로드, helper, 타입 상성, 스탯, effective-*, STAB, 타입 효과
+ * (build.mjs 가 src/js/*.js 를 알파벳순 concat 후 calc-template.html 에 주입)
+ * ════════════════════════════════════════════════════════════ */
 
 const POKEMON   = JSON.parse(document.getElementById('data-pokemon').textContent);
 const MOVES     = JSON.parse(document.getElementById('data-moves').textContent);
@@ -1921,6 +1935,24 @@ document.getElementById('koCancel')?.addEventListener('click', () => koModal?.cl
 function pokeRound(n) {
   return n % 1 > 0.5 ? Math.ceil(n) : Math.floor(n);
 }
+
+// Q12.12 고정소수점 modifier 상수 (4096 = ×1.0).
+// 게임 내 거의 모든 곱셈 보정은 이 단위를 거친다.
+const MOD = {
+  x0_1: 410,        // ×0.1   (총대장 한 단계)
+  x0_25: 1024,      // ×0.25  (방어 관통 + 연격의태세 / 부자유친 보조타)
+  x0_5: 2048,       // ×0.5   (반감, 화상)
+  x0_67: 2732,      // ×2/3   (더블 배틀 스크린)
+  x0_75: 3072,      // ×0.75  (재앙)
+  x0_8: 3277,       // ×0.8   (Solid Rock / Filter / Prism Armor)
+  x1_1: 4505,       // ×1.1   (근육띠, 박식안경)
+  x1_1g: 4506,      // ×1.1015625 (펀치글러브 정확값)
+  x1_2: 4915,       // ×1.2   (Aerilate-family, 플레이트, 1.2x 도구)
+  x1_3: 5325,       // ×1.3   (Tough Claws, Life Orb, terrain 부스트)
+  x1_5: 6144,       // ×1.5   (테크니션, STAB, 강한턱 등)
+  x2_0: 8192,       // ×2.0   (Tera STAB, Adaptability)
+  x2_25: 9216,      // ×2.25  (Tera + Adaptability)
+};
 
 // Modifier 체이닝 (Q12.12 fixed-point)
 function chainMods(mods, lo = 410, hi = 131172) {
@@ -2214,6 +2246,12 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field) {
   return eff;
 }
 
+
+
+/* ════════════════════════════════════════════════════════════
+ * 02-engine.js — 계산 엔진: 가변 BP, calculateDamage, 진입 위험, simulateKO/hkoLabel, 속도
+ * (build.mjs 가 src/js/*.js 를 알파벳순 concat 후 calc-template.html 에 주입)
+ * ════════════════════════════════════════════════════════════ */
 /* ════════════════════════════════════════════════════════════
    가변 위력 기술 (basePowerCallback)
    본가의 callback 로직을 챔피언스 환경에 맞게 재현.
@@ -2401,10 +2439,29 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
 
 /* ════════════════════════════════════════════════════════════
    메인 대미지 계산 (Gen 9 공식 방식)
+   ────────────────────────────────────────────────────────────
+   처리 순서 (각 STAGE 는 함수 본문에 그대로 표기되어 있음):
+
+     prelude  : 입력 검증, 디스가이즈 / 무효 타입 / 방어 등 조기 종료 분기
+                기술 타입 결정 (Aerilate-family, Weather Ball 등)
+     STAGE 1  : BP modifiers
+                  - 특성 (Technician, Tough Claws 등)
+                  - 도구 (1.2× 도구, 플레이트, 펀치글러브 등)
+                  - 필드 (Electric / Grassy / Psychic 부스트 등)
+     STAGE 2  : Atk 보정 (스탯 단계, 위협, Huge Power, Choice Band 등)
+                + 화상 ×0.5 (Facade / Guts 예외)
+     STAGE 3  : Def 보정 (스탯 단계, 모래/눈 weather defense, 도구, Ruin)
+     STAGE 4  : Base Damage = floor(((2*Lv/5+2) * BP * Atk / Def) / 50 + 2)
+                + 날씨 / 도우미 / 부자유친 / 스프레드 등 baseDamage 직접 보정
+     STAGE 5  : Final modifiers + 16-roll randomizer
+                STAB → 타입 효과 → final mod → 다단/부자유친 hit 수 곱
+
+   반환: { damages[16], rawDamages, multihitCount, minPct, maxPct,
+           effectiveness, moveType, category, bp, atk, def, defHP, mods }
    ════════════════════════════════════════════════════════════ */
 function calculateDamage(atkSide, defSide, move, field) {
   if (!move || move.cat === 'Status') return null;
-  
+
   const mods = [];  // trace
   const atkP = PokemonById[atkSide.pokemonIdx];
   const defP = PokemonById[defSide.pokemonIdx];
@@ -2526,28 +2583,28 @@ function calculateDamage(atkSide, defSide, move, field) {
   const bpMods = [];
   
   // 특성 BP modifiers
-  if (atkAb === 'technician' && bp <= 60) { bpMods.push(6144); mods.push('테크니션×1.5'); }
-  if (atkAb === 'toughclaws' && move.flags?.contact) { bpMods.push(5325); mods.push('단단한발톱×1.3'); }
-  if (atkAb === 'ironfist' && move.flags?.punch) { bpMods.push(4915); mods.push('철주먹×1.2'); }
-  if (atkAb === 'strongjaw' && move.flags?.bite) { bpMods.push(6144); mods.push('강한턱×1.5'); }
-  if (atkAb === 'megalauncher' && move.flags?.pulse) { bpMods.push(6144); mods.push('메가런처×1.5'); }
-  if (atkAb === 'sharpness' && move.flags?.slicing) { bpMods.push(6144); mods.push('예리함×1.5'); }
+  if (atkAb === 'technician' && bp <= 60) { bpMods.push(MOD.x1_5); mods.push('테크니션×1.5'); }
+  if (atkAb === 'toughclaws' && move.flags?.contact) { bpMods.push(MOD.x1_3); mods.push('단단한발톱×1.3'); }
+  if (atkAb === 'ironfist' && move.flags?.punch) { bpMods.push(MOD.x1_2); mods.push('철주먹×1.2'); }
+  if (atkAb === 'strongjaw' && move.flags?.bite) { bpMods.push(MOD.x1_5); mods.push('강한턱×1.5'); }
+  if (atkAb === 'megalauncher' && move.flags?.pulse) { bpMods.push(MOD.x1_5); mods.push('메가런처×1.5'); }
+  if (atkAb === 'sharpness' && move.flags?.slicing) { bpMods.push(MOD.x1_5); mods.push('예리함×1.5'); }
   if (atkAb === 'reckless' && (move.recoil || move.id === 'jumpkick' || move.id === 'highjumpkick')) {
-    bpMods.push(4915); mods.push('이판사판×1.2');
+    bpMods.push(MOD.x1_2); mods.push('이판사판×1.2');
   }
-  if (atkAb === 'punkrock' && move.flags?.sound) { bpMods.push(5325); mods.push('펑크록×1.3'); }
-  if (atkAb === 'steelworker' && moveType === 'Steel') { bpMods.push(6144); mods.push('강철술사×1.5'); }
-  if (atkAb === 'steelyspirit' && moveType === 'Steel') { bpMods.push(6144); mods.push('강철의의지×1.5'); }
-  if (atkAb === 'dragonsmaw' && moveType === 'Dragon') { bpMods.push(6144); mods.push('용의턱×1.5'); }
-  if (atkAb === 'transistor' && moveType === 'Electric') { bpMods.push(5325); mods.push('트랜지스터×1.3'); }
-  if (atkAb === 'rockypayload' && moveType === 'Rock') { bpMods.push(6144); mods.push('바위적재×1.5'); }
-  if (atkAb === 'sheerforce' && move.sec) { bpMods.push(5325); mods.push('우격다짐×1.3'); }
+  if (atkAb === 'punkrock' && move.flags?.sound) { bpMods.push(MOD.x1_3); mods.push('펑크록×1.3'); }
+  if (atkAb === 'steelworker' && moveType === 'Steel') { bpMods.push(MOD.x1_5); mods.push('강철술사×1.5'); }
+  if (atkAb === 'steelyspirit' && moveType === 'Steel') { bpMods.push(MOD.x1_5); mods.push('강철의의지×1.5'); }
+  if (atkAb === 'dragonsmaw' && moveType === 'Dragon') { bpMods.push(MOD.x1_5); mods.push('용의턱×1.5'); }
+  if (atkAb === 'transistor' && moveType === 'Electric') { bpMods.push(MOD.x1_3); mods.push('트랜지스터×1.3'); }
+  if (atkAb === 'rockypayload' && moveType === 'Rock') { bpMods.push(MOD.x1_5); mods.push('바위적재×1.5'); }
+  if (atkAb === 'sheerforce' && move.sec) { bpMods.push(MOD.x1_3); mods.push('우격다짐×1.3'); }
   if (atkAb === 'sandforce' && field.weather === 'Sand' && ['Rock','Ground','Steel'].includes(moveType)) {
-    bpMods.push(5325); mods.push('모래의힘×1.3');
+    bpMods.push(MOD.x1_3); mods.push('모래의힘×1.3');
   }
-  if (atkAb === 'normalize') { moveType = 'Normal'; bpMods.push(4915); mods.push('노말스킨×1.2'); }
+  if (atkAb === 'normalize') { moveType = 'Normal'; bpMods.push(MOD.x1_2); mods.push('노말스킨×1.2'); }
   if (typeChangeMod) bpMods.push(typeChangeMod);  // Aerilate 등
-  if (atkAb === 'analytic' && field.atkMovesSecond) { bpMods.push(5325); mods.push('애널라이즈×1.3'); }
+  if (atkAb === 'analytic' && field.atkMovesSecond) { bpMods.push(MOD.x1_3); mods.push('애널라이즈×1.3'); }
 
   // 총대장 (Supreme Overlord): 쓰러진 동료 수에 따라 1.1~1.5× (state.atk.fallenAllies 사용)
   if (atkAb === 'supremeoverlord' && atkSide.fallenAllies) {
@@ -2573,7 +2630,7 @@ function calculateDamage(atkSide, defSide, move, field) {
       'spelltag': 'Ghost', 'dragonfang': 'Dragon', 'blackglasses': 'Dark',
       'metalcoat': 'Steel', 'fairyfeather': 'Fairy', 'silkscarf': 'Normal'
     };
-    if (typeBoostItems[atkItem] === moveType) { bpMods.push(4915); mods.push(`${atkItemData.koName}×1.2`); }
+    if (typeBoostItems[atkItem] === moveType) { bpMods.push(MOD.x1_2); mods.push(`${atkItemData.koName}×1.2`); }
     
     // Plate
     if (atkItem.endsWith('plate')) {
@@ -2584,51 +2641,51 @@ function calculateDamage(atkSide, defSide, move, field) {
         'spookyplate':'Ghost','dracoplate':'Dragon','dreadplate':'Dark','ironplate':'Steel',
         'pixieplate':'Fairy'
       };
-      if (plateType[atkItem] === moveType) { bpMods.push(4915); mods.push(`${atkItemData.koName}×1.2`); }
+      if (plateType[atkItem] === moveType) { bpMods.push(MOD.x1_2); mods.push(`${atkItemData.koName}×1.2`); }
     }
     
     // Muscle Band (물리 ×1.1) / Wise Glasses (특수 ×1.1)
-    if (atkItem === 'muscleband' && isPhysical) { bpMods.push(4505); mods.push('근육띠×1.1'); }
-    if (atkItem === 'wiseglasses' && !isPhysical) { bpMods.push(4505); mods.push('박식안경×1.1'); }
+    if (atkItem === 'muscleband' && isPhysical) { bpMods.push(MOD.x1_1); mods.push('근육띠×1.1'); }
+    if (atkItem === 'wiseglasses' && !isPhysical) { bpMods.push(MOD.x1_1); mods.push('박식안경×1.1'); }
     
     // Punching Glove
-    if (atkItem === 'punchingglove' && move.flags?.punch) { bpMods.push(4506); mods.push('펀치글러브×1.1'); }
+    if (atkItem === 'punchingglove' && move.flags?.punch) { bpMods.push(MOD.x1_1g); mods.push('펀치글러브×1.1'); }
     
     // Primal Orbs (원시회귀 전용)
-    if (atkItem === 'redorb' && atkP.id === 'groudonprimal' && moveType === 'Fire') { bpMods.push(4915); }
-    if (atkItem === 'blueorb' && atkP.id === 'kyogreprimal' && moveType === 'Water') { bpMods.push(4915); }
+    if (atkItem === 'redorb' && atkP.id === 'groudonprimal' && moveType === 'Fire') { bpMods.push(MOD.x1_2); }
+    if (atkItem === 'blueorb' && atkP.id === 'kyogreprimal' && moveType === 'Water') { bpMods.push(MOD.x1_2); }
     
     // Adamant/Lustrous/Griseous Orb (조건부)
     if (atkItem === 'adamant orb' && atkP.id === 'dialga' && (moveType === 'Dragon' || moveType === 'Steel')) {
-      bpMods.push(4915); mods.push('아다만트구슬×1.2');
+      bpMods.push(MOD.x1_2); mods.push('아다만트구슬×1.2');
     }
     if (atkItem === 'lustrous orb' && atkP.id === 'palkia' && (moveType === 'Dragon' || moveType === 'Water')) {
-      bpMods.push(4915); mods.push('하얀구슬×1.2');
+      bpMods.push(MOD.x1_2); mods.push('하얀구슬×1.2');
     }
     if (atkItem === 'griseousorb' && atkP.baseSpecies === 'Giratina' && (moveType === 'Dragon' || moveType === 'Ghost')) {
-      bpMods.push(4915); mods.push('깨어진구슬×1.2');
+      bpMods.push(MOD.x1_2); mods.push('깨어진구슬×1.2');
     }
   }
   
   // Field BP modifiers
   if (field.terrain === 'Electric' && moveType === 'Electric' && isGrounded(atkSide, field)) {
-    bpMods.push(5325); mods.push('일렉트릭필드×1.3');
+    bpMods.push(MOD.x1_3); mods.push('일렉트릭필드×1.3');
   }
   if (field.terrain === 'Grassy' && moveType === 'Grass' && isGrounded(atkSide, field)) {
-    bpMods.push(5325); mods.push('그래스필드×1.3');
+    bpMods.push(MOD.x1_3); mods.push('그래스필드×1.3');
   }
   if (field.terrain === 'Psychic' && moveType === 'Psychic' && isGrounded(atkSide, field)) {
-    bpMods.push(5325); mods.push('사이코필드×1.3');
+    bpMods.push(MOD.x1_3); mods.push('사이코필드×1.3');
   }
   if (field.terrain === 'Misty' && moveType === 'Dragon' && isGrounded(defSide, field)) {
-    bpMods.push(2048); mods.push('미스트필드 드래곤×0.5');
+    bpMods.push(MOD.x0_5); mods.push('미스트필드 드래곤×0.5');
   }
   if (field.terrain === 'Grassy' && ['earthquake','bulldoze','magnitude'].includes(move.id)) {
-    bpMods.push(2048); mods.push('그래스필드 지진×0.5');
+    bpMods.push(MOD.x0_5); mods.push('그래스필드 지진×0.5');
   }
   
   // 도우미 (Helping Hand)
-  if (field.atkHelpingHand) { bpMods.push(6144); mods.push('도우미×1.5'); }
+  if (field.atkHelpingHand) { bpMods.push(MOD.x1_5); mods.push('도우미×1.5'); }
   
   // 응용: 챔피언스 신규 메가 특성 "메가솔라" — 항상 쾌청 효과로 간주
   // 이건 실제 날씨를 세팅하지 않으므로 BP 단계에서 불꽃 ×1.5 추가하지 않고 Weather에서 처리
@@ -2653,16 +2710,16 @@ function calculateDamage(atkSide, defSide, move, field) {
 
   // 특성 공격 modifiers
   if (atkAb === 'hugepower' || atkAb === 'purepower') {
-    if (isPhysical) { atkMods.push(8192); mods.push('순수한힘×2'); }
+    if (isPhysical) { atkMods.push(MOD.x2_0); mods.push('순수한힘×2'); }
   }
   if (atkAb === 'guts' && atkSide.status !== 'none' && isPhysical) {
-    atkMods.push(6144); mods.push('의기양양×1.5');
+    atkMods.push(MOD.x1_5); mods.push('의기양양×1.5');
   }
   if (atkAb === 'solarpower' && field.weather === 'Sun' && !isPhysical) {
-    atkMods.push(6144); mods.push('선파워×1.5');
+    atkMods.push(MOD.x1_5); mods.push('선파워×1.5');
   }
   if (atkAb === 'flowergift' && field.weather === 'Sun' && isPhysical) {
-    atkMods.push(6144); mods.push('꽃선물×1.5');
+    atkMods.push(MOD.x1_5); mods.push('꽃선물×1.5');
   }
 
   // 챔피언스 핵심: 진홍빛고동 (코라이돈) / 하드론엔진 (미라이돈)
@@ -2687,7 +2744,7 @@ function calculateDamage(atkSide, defSide, move, field) {
     const boostStat = candidates[0].stat;
 
     if ((isPhysical && boostStat === 'atk') || (!isPhysical && boostStat === 'spa')) {
-      atkMods.push(5325); // ×1.3
+      atkMods.push(MOD.x1_3); // ×1.3
       const name = isProtoActive ? '고대활성' : '쿼크차지';
       mods.push(`${name}×1.3 (${STAT_LABEL[boostStat]})`);
     }
@@ -2696,25 +2753,25 @@ function calculateDamage(atkSide, defSide, move, field) {
   // 맹화/격류/심록/벌레의알림 (저HP 조건)
   const pinchAbilities = {'blaze':'Fire','torrent':'Water','overgrow':'Grass','swarm':'Bug'};
   if (pinchAbilities[atkAb] === moveType && atkSide.pinch) {
-    atkMods.push(6144); mods.push(`${pinchAbilities[atkAb] === 'Fire' ? '맹화' : pinchAbilities[atkAb] === 'Water' ? '격류' : pinchAbilities[atkAb] === 'Grass' ? '심록' : '벌레의알림'}×1.5`);
+    atkMods.push(MOD.x1_5); mods.push(`${pinchAbilities[atkAb] === 'Fire' ? '맹화' : pinchAbilities[atkAb] === 'Water' ? '격류' : pinchAbilities[atkAb] === 'Grass' ? '심록' : '벌레의알림'}×1.5`);
   }
   if (atkAb === 'defeatist' && atkSide.pinch) {
-    atkMods.push(2048); mods.push('약한마음×0.5');
+    atkMods.push(MOD.x0_5); mods.push('약한마음×0.5');
   }
   if (atkAb === 'flashfire' && atkSide.flashFireActive && moveType === 'Fire') {
-    atkMods.push(6144); mods.push('불꽃몸×1.5');
+    atkMods.push(MOD.x1_5); mods.push('불꽃몸×1.5');
   }
-  if (atkAb === 'hustle' && isPhysical) { atkMods.push(6144); mods.push('근성×1.5'); }
-  if (atkAb === 'gorillatactics' && isPhysical) { atkMods.push(6144); mods.push('고릴라전법×1.5'); }
+  if (atkAb === 'hustle' && isPhysical) { atkMods.push(MOD.x1_5); mods.push('근성×1.5'); }
+  if (atkAb === 'gorillatactics' && isPhysical) { atkMods.push(MOD.x1_5); mods.push('고릴라전법×1.5'); }
 
   // 재앙 적용 (Atk 단계)
   // 목간의재앙: 자기가 아닌 타 포켓몬의 공격 ×0.75 (자기 자신 효과 X)
   // 그릇의재앙: 자기가 아닌 타 포켓몬의 특공 ×0.75
   if (state.field.ruinTablet && atkAb !== 'tabletsofruin' && isPhysical) {
-    atkMods.push(3072); mods.push('목간의재앙×0.75');
+    atkMods.push(MOD.x0_75); mods.push('목간의재앙×0.75');
   }
   if (state.field.ruinVessel && atkAb !== 'vesselofruin' && !isPhysical) {
-    atkMods.push(3072); mods.push('그릇의재앙×0.75');
+    atkMods.push(MOD.x0_75); mods.push('그릇의재앙×0.75');
   }
 
   // 챔피언스 신규: 메가장크로다일 드래곤스킨 (노말→드래곤)
@@ -2724,21 +2781,21 @@ function calculateDamage(atkSide, defSide, move, field) {
   // (별도 적용 필요 없음, 단순 rank 처리)
   
   // 아이템 공격 modifiers
-  if (atkItem === 'choiceband' && isPhysical) { atkMods.push(6144); mods.push('구애머리띠×1.5'); }
-  if (atkItem === 'choicespecs' && !isPhysical) { atkMods.push(6144); mods.push('구애안경×1.5'); }
+  if (atkItem === 'choiceband' && isPhysical) { atkMods.push(MOD.x1_5); mods.push('구애머리띠×1.5'); }
+  if (atkItem === 'choicespecs' && !isPhysical) { atkMods.push(MOD.x1_5); mods.push('구애안경×1.5'); }
   if (atkItem === 'thickclub' && ['cubone','marowak','marowakalola'].includes(atkP.id) && isPhysical) {
-    atkMods.push(8192); mods.push('두꺼운뼈×2');
+    atkMods.push(MOD.x2_0); mods.push('두꺼운뼈×2');
   }
   if (atkItem === 'lightball' && atkP.baseSpecies === 'Pikachu') {
-    atkMods.push(8192); mods.push('전기구슬×2');
+    atkMods.push(MOD.x2_0); mods.push('전기구슬×2');
   }
   if (atkItem === 'deepseatooth' && atkP.id === 'clamperl' && !isPhysical) {
-    atkMods.push(8192); mods.push('심해의이빨×2');
+    atkMods.push(MOD.x2_0); mods.push('심해의이빨×2');
   }
   
   // 화상: Facade / Guts 예외
   const isBurned = atkSide.status === 'Burn' && isPhysical && atkAb !== 'guts' && move.id !== 'facade';
-  if (isBurned) { atkMods.push(2048); mods.push('화상 물리½'); }
+  if (isBurned) { atkMods.push(MOD.x0_5); mods.push('화상 물리½'); }
   
   atkStat = OF16(Math.max(1, pokeRound(atkStat * chainMods(atkMods, 410, 131072) / 4096)));
   
@@ -2771,13 +2828,13 @@ function calculateDamage(atkSide, defSide, move, field) {
   
   // 특성 방어 modifiers
   if (defAb === 'marvelscale' && defSide.status !== 'none' && isPhysical) {
-    defMods.push(6144); mods.push('이상한비늘×1.5');
+    defMods.push(MOD.x1_5); mods.push('이상한비늘×1.5');
   }
   if (defAb === 'grasspelt' && field.terrain === 'Grassy' && isPhysical) {
-    defMods.push(6144); mods.push('털가죽(풀)×1.5');
+    defMods.push(MOD.x1_5); mods.push('털가죽(풀)×1.5');
   }
-  if (defAb === 'furcoat' && isPhysical) { defMods.push(8192); mods.push('털가죽×2'); }
-  if (defAb === 'icescales' && !isPhysical) { defMods.push(8192); mods.push('얼음비늘×2'); }
+  if (defAb === 'furcoat' && isPhysical) { defMods.push(MOD.x2_0); mods.push('털가죽×2'); }
+  if (defAb === 'icescales' && !isPhysical) { defMods.push(MOD.x2_0); mods.push('얼음비늘×2'); }
 
   // 고대활성/쿼크차지 방어 부스트 (방어/특방이 최고 스탯일 때)
   const defIsProtoActive = defAb === 'protosynthesis' && (field.weather === 'Sun' || defItem === 'boosterenergy');
@@ -2787,7 +2844,7 @@ function calculateDamage(atkSide, defSide, move, field) {
     dCandidates.sort((a, b) => b.val - a.val);
     const boostStat = dCandidates[0].stat;
     if ((isPhysical && boostStat === 'def') || (!isPhysical && boostStat === 'spd')) {
-      defMods.push(5325);
+      defMods.push(MOD.x1_3);
       const name = defIsProtoActive ? '고대활성' : '쿼크차지';
       mods.push(`${name}(방어)×1.3 (${STAT_LABEL[boostStat]})`);
     }
@@ -2797,20 +2854,20 @@ function calculateDamage(atkSide, defSide, move, field) {
   // 검의재앙: 자기가 아닌 타 포켓몬의 방어 ×0.75
   // 구슬의재앙: 자기가 아닌 타 포켓몬의 특방 ×0.75
   if (state.field.ruinSword && defAb !== 'swordofruin' && isPhysical) {
-    defMods.push(3072); mods.push('검의재앙×0.75');
+    defMods.push(MOD.x0_75); mods.push('검의재앙×0.75');
   }
   if (state.field.ruinBeads && defAb !== 'beadsofruin' && !isPhysical) {
-    defMods.push(3072); mods.push('구슬의재앙×0.75');
+    defMods.push(MOD.x0_75); mods.push('구슬의재앙×0.75');
   }
   
   // 아이템 방어 modifiers
-  if (defItem === 'eviolite' && defP.nfe) { defMods.push(6144); mods.push('진화의휘석×1.5'); }
-  if (defItem === 'assaultvest' && !isPhysical) { defMods.push(6144); mods.push('돌격조끼×1.5'); }
+  if (defItem === 'eviolite' && defP.nfe) { defMods.push(MOD.x1_5); mods.push('진화의휘석×1.5'); }
+  if (defItem === 'assaultvest' && !isPhysical) { defMods.push(MOD.x1_5); mods.push('돌격조끼×1.5'); }
   if (defItem === 'metalpowder' && defP.id === 'ditto' && isPhysical) {
-    defMods.push(8192); mods.push('메탈파우더×2');
+    defMods.push(MOD.x2_0); mods.push('메탈파우더×2');
   }
   if (defItem === 'deepseascale' && defP.id === 'clamperl' && !isPhysical) {
-    defMods.push(8192); mods.push('심해의비늘×2');
+    defMods.push(MOD.x2_0); mods.push('심해의비늘×2');
   }
   
   defStat = OF16(Math.max(1, pokeRound(defStat * chainMods(defMods, 410, 131072) / 4096)));
@@ -2891,18 +2948,18 @@ function calculateDamage(atkSide, defSide, move, field) {
   
   // Multiscale / Shadow Shield (HP 풀일 때)
   if ((defAb === 'multiscale' || defAb === 'shadowshield') && defSide.fullHP) {
-    finalMods.push(2048); mods.push(defAb === 'multiscale' ? '멀티스케일×0.5' : '섀도실드×0.5');
+    finalMods.push(MOD.x0_5); mods.push(defAb === 'multiscale' ? '멀티스케일×0.5' : '섀도실드×0.5');
   }
   
   // Fluffy: 접촉기 0.5× / 불꽃 2×
   if (defAb === 'fluffy') {
-    if (move.flags?.contact) { finalMods.push(2048); mods.push('플러피 접촉×0.5'); }
-    if (moveType === 'Fire') { finalMods.push(8192); mods.push('플러피 불꽃×2'); }
+    if (move.flags?.contact) { finalMods.push(MOD.x0_5); mods.push('플러피 접촉×0.5'); }
+    if (moveType === 'Fire') { finalMods.push(MOD.x2_0); mods.push('플러피 불꽃×2'); }
   }
   
   // Punk Rock (방어): 소리 기술 0.5×
   if (defAb === 'punkrock' && move.flags?.sound) {
-    finalMods.push(2048); mods.push('펑크록 방어×0.5');
+    finalMods.push(MOD.x0_5); mods.push('펑크록 방어×0.5');
   }
   
   // Ice Scales: 특수 0.5× (이미 Def에서 처리했지만 공식은 Final)
@@ -2910,12 +2967,12 @@ function calculateDamage(atkSide, defSide, move, field) {
   
   // Thick Fat (공격 타입이 불꽃/얼음이면 공격 절반, 여기선 defMod 대신 final로 처리해도 됨)
   if (defAb === 'thickfat' && (moveType === 'Fire' || moveType === 'Ice')) {
-    finalMods.push(2048); mods.push('두꺼운지방×0.5');
+    finalMods.push(MOD.x0_5); mods.push('두꺼운지방×0.5');
   }
   
   // Heatproof: 불꽃 0.5×
   if (defAb === 'heatproof' && moveType === 'Fire') {
-    finalMods.push(2048); mods.push('내열×0.5');
+    finalMods.push(MOD.x0_5); mods.push('내열×0.5');
   }
   
   // Dry Skin: 불꽃 1.25×
@@ -2925,7 +2982,7 @@ function calculateDamage(atkSide, defSide, move, field) {
   
   // Filter / Prism Armor / Solid Rock: 효과굉장 0.75×
   if ((defAb === 'filter' || defAb === 'prismarmor' || defAb === 'solidrock') && effectiveness > 1) {
-    finalMods.push(3072);
+    finalMods.push(MOD.x0_75);
     const name = defAb === 'filter' ? '필터' : defAb === 'prismarmor' ? '프리즘아머' : '단단한바위';
     mods.push(`${name}×0.75`);
   }
@@ -2937,24 +2994,24 @@ function calculateDamage(atkSide, defSide, move, field) {
   
   // Sniper (급소 시 추가 1.5×)
   if (atkAb === 'sniper' && field.isCritical) {
-    finalMods.push(6144); mods.push('스나이퍼×1.5');
+    finalMods.push(MOD.x1_5); mods.push('스나이퍼×1.5');
   }
   
   // Tinted Lens: 반감 이하일 때 2×
   if (atkAb === 'tintedlens' && effectiveness < 1) {
-    finalMods.push(8192); mods.push('색안경×2');
+    finalMods.push(MOD.x2_0); mods.push('색안경×2');
   }
   
   // Aerilate/Refrigerate etc. already applied in BP stage
   
   // 아이템
   if (atkItem === 'lifeorb') { finalMods.push(5324); mods.push('생명의구슬×1.3'); }
-  if (atkItem === 'expertbelt' && effectiveness > 1) { finalMods.push(4915); mods.push('달인의띠×1.2'); }
+  if (atkItem === 'expertbelt' && effectiveness > 1) { finalMods.push(MOD.x1_2); mods.push('달인의띠×1.2'); }
   if (atkItem === 'metronome') { /* 기술 연속 사용 카운트, 생략 */ }
 
   // 여보먹열매 (효과굉장 시 0.5×) — 단발 계산이라 단순 적용
   if (defItem === 'roseliberry' && moveType === 'Fairy' && effectiveness > 1) {
-    finalMods.push(2048); mods.push('로세리열매×0.5');
+    finalMods.push(MOD.x0_5); mods.push('로세리열매×0.5');
   }
 
   // ─ 방어 관통 메커니즘 ─
@@ -2967,7 +3024,7 @@ function calculateDamage(atkSide, defSide, move, field) {
       // 피어싱드릴 (메가몰드비스트): 접촉기로 방어 관통, 25% 대미지
       // 연격의태세 (Unseen Fist): 접촉기로 방어 관통, 25% 대미지 (챔피언스 너프)
       if ((atkAb === 'piercingdrill' || atkAb === 'unseenfist') && move.flags?.contact) {
-        finalMods.push(1024);
+        finalMods.push(MOD.x0_25);
         const abName = atkAb === 'piercingdrill' ? '피어싱드릴' : '연격의태세';
         mods.push(`${abName} ×0.25 (방어 관통)`);
       } else {
@@ -3170,18 +3227,18 @@ function effectiveSpeed(side, field) {
   const speMods = [];
   
   // 특성
-  if (ab === 'swiftswim' && (field.weather === 'Rain' || field.weather === 'Heavy Rain')) speMods.push(8192);
-  if (ab === 'chlorophyll' && (field.weather === 'Sun' || field.weather === 'Harsh Sunshine')) speMods.push(8192);
-  if (ab === 'sandrush' && field.weather === 'Sand') speMods.push(8192);
-  if (ab === 'slushrush' && field.weather === 'Snow') speMods.push(8192);
-  if (ab === 'surgesurfer' && field.terrain === 'Electric') speMods.push(8192);
-  if (ab === 'unburden' && side.unburdenActive) speMods.push(8192);
-  if (ab === 'quickfeet' && side.status !== 'none') speMods.push(6144);
+  if (ab === 'swiftswim' && (field.weather === 'Rain' || field.weather === 'Heavy Rain')) speMods.push(MOD.x2_0);
+  if (ab === 'chlorophyll' && (field.weather === 'Sun' || field.weather === 'Harsh Sunshine')) speMods.push(MOD.x2_0);
+  if (ab === 'sandrush' && field.weather === 'Sand') speMods.push(MOD.x2_0);
+  if (ab === 'slushrush' && field.weather === 'Snow') speMods.push(MOD.x2_0);
+  if (ab === 'surgesurfer' && field.terrain === 'Electric') speMods.push(MOD.x2_0);
+  if (ab === 'unburden' && side.unburdenActive) speMods.push(MOD.x2_0);
+  if (ab === 'quickfeet' && side.status !== 'none') speMods.push(MOD.x1_5);
   
   // 아이템
-  if (item === 'choicescarf') speMods.push(6144);
-  if (item === 'ironball') speMods.push(2048);
-  if (item === 'quickpowder' && side.pokemonIdx === 'ditto') speMods.push(8192);
+  if (item === 'choicescarf') speMods.push(MOD.x1_5);
+  if (item === 'ironball') speMods.push(MOD.x0_5);
+  if (item === 'quickpowder' && side.pokemonIdx === 'ditto') speMods.push(MOD.x2_0);
   
   spe = pokeRound(spe * chainMods(speMods, 410, 131172) / 4096);
   
@@ -3214,6 +3271,12 @@ function firstMover(movePri, atkSpe, defSpe, field) {
   return "tie";
 }
 
+
+
+/* ════════════════════════════════════════════════════════════
+ * 03-calc-ui.js — 계산기 페이지 UI: state, ENTRY_EFFECTS, renderSide, runCalc, 필드 이벤트, swap, autoCalc
+ * (build.mjs 가 src/js/*.js 를 알파벳순 concat 후 calc-template.html 에 주입)
+ * ════════════════════════════════════════════════════════════ */
 /* ════════════════════════════════════════════════════════════
    State
    ════════════════════════════════════════════════════════════ */
@@ -3499,8 +3562,7 @@ function makeCombobox(sideKey, type, onSelect) {
     return dataset.filter(d => {
       const ko = (d.koName || '').toLowerCase();
       const en = (d.name || '').toLowerCase();
-      // 챔피언스 모드: banned 도구 제외
-      if (championsMode && type === 'item' && d._championsBanned) return false;
+      // 챔피언스 빌드는 build 단계에서 이미 Past 아이템을 걸러내므로 런타임 필터 불필요.
       return ko.includes(s) || en.includes(s);
     }).slice(0, 30);
   };
@@ -3751,10 +3813,7 @@ function wireSide(sideKey) {
         let sub = cbType === 'move' ? `${m.type} ${m.cat} ${m.bp}` :
                     cbType === 'pokemon' ? `BST ${m.bst}` :
                     cbType === 'item' ? (m.desc || '').slice(0, 40) : '';
-        // 챔피언스 신규 마크
-        const newMark = m._championsNew ? ' <span style="color: var(--tera);">[Reg.A 신규]</span>' : '';
-        const bannedMark = m._championsBanned ? ' <span style="color: var(--text-faint);">[Reg.A 금지]</span>' : '';
-        return `<div class="combobox-option" data-id="${id}"><b>${label}</b>${newMark}${bannedMark} <small>${sub}</small></div>`;
+        return `<div class="combobox-option" data-id="${id}"><b>${label}</b> <small>${sub}</small></div>`;
       }).join('');
       if (cbType === 'item') {
         optsEl.insertAdjacentHTML('afterbegin',
@@ -3801,10 +3860,10 @@ function wireSide(sideKey) {
           state[side].teraType = p.types[0];
           state[side].tera = false;
           // 메가 폼 직접 선택 시 메가스톤 자동 매칭
-          if (p.req) {
-            const stoneId = p.req.toLowerCase().replace(/[\s'\-()]/g, '');
-            // 챔피언스 사용 가능한 도구만 적용
-            if (ItemById[stoneId] && !ItemById[stoneId]._championsBanned) {
+          // (build 단계에서 Past 아이템은 이미 걸러졌으므로 존재만 확인)
+          if (p.requiredItem) {
+            const stoneId = p.requiredItem.toLowerCase().replace(/[\s'\-()]/g, '');
+            if (ItemById[stoneId]) {
               state[side].item = stoneId;
             } else {
               state[side].item = '';
@@ -3950,17 +4009,16 @@ function applyEntryEffects() {
     const ab = side.ability;
     const effect = ENTRY_EFFECTS[ab];
 
-    // 이전 자동 적용 해제
+    // 이전 자동 적용 해제 — 우리가 바꾼 값과 현재 값이 같을 때만 이전 값으로 복원.
+    // (사용자가 그 사이 수동으로 다시 바꿨다면 그대로 둠)
     const last = lastAutoEntry[sideKey];
-    if (last.weather && state.field.weather === last.weather) {
-      // 사용자가 수동으로 바꾸지 않았으면 해제
-      state.field.weather = 'none';
+    if (last.weather && state.field.weather === last.weather.applied) {
+      state.field.weather = last.weather.prev;
     }
-    if (last.terrain && state.field.terrain === last.terrain) {
-      state.field.terrain = 'none';
+    if (last.terrain && state.field.terrain === last.terrain.applied) {
+      state.field.terrain = last.terrain.prev;
     }
     for (const r of Object.keys(last.ranks)) {
-      // 자동 적용한 만큼 차감
       side.ranks[r] = (side.ranks[r] || 0) - last.ranks[r];
     }
     for (const r of Object.keys(last.ranks).filter(k => k.startsWith('opp_'))) {
@@ -3968,6 +4026,7 @@ function applyEntryEffects() {
       other.ranks[stat] = (other.ranks[stat] || 0) - last.ranks[r];
     }
     if (last.ruin) {
+      // 우리가 켰던 재앙만 끈다 (사용자가 수동으로 켰던 경우는 last.ruin = null 이라 통과)
       state.field['ruin' + last.ruin.charAt(0).toUpperCase() + last.ruin.slice(1)] = false;
     }
     // reset
@@ -3975,16 +4034,16 @@ function applyEntryEffects() {
 
     if (!effect) continue;
 
-    // 날씨
-    if (effect.weather) {
+    // 날씨 — 이미 같은 날씨면 변경/추적 안 함 (사용자 수동 설정 보존)
+    if (effect.weather && state.field.weather !== effect.weather) {
+      lastAutoEntry[sideKey].weather = { prev: state.field.weather, applied: effect.weather };
       state.field.weather = effect.weather;
-      lastAutoEntry[sideKey].weather = effect.weather;
       log.push(`${sideKey === 'atk' ? '공격측' : '방어측'} 진입: ${effect.label}`);
     }
-    // 필드
-    if (effect.terrain) {
+    // 필드 — 동일 처리
+    if (effect.terrain && state.field.terrain !== effect.terrain) {
+      lastAutoEntry[sideKey].terrain = { prev: state.field.terrain, applied: effect.terrain };
       state.field.terrain = effect.terrain;
-      lastAutoEntry[sideKey].terrain = effect.terrain;
       if (!effect.weather) log.push(`${sideKey === 'atk' ? '공격측' : '방어측'} 진입: ${effect.label}`);
     }
     // 자기 능력치 +
@@ -4017,13 +4076,12 @@ function applyEntryEffects() {
       lastAutoEntry[sideKey].ranks[stat] = 1;
       log.push(`${sideKey === 'atk' ? '공격측' : '방어측'} 다운로드: 자기 ${STAT_LABEL[stat]} +1`);
     }
-    // 재앙
+    // 재앙 — 매핑: spd → ruinBeads, atk → ruinTablet, def → ruinSword, spa → ruinVessel
     if (effect.ruin) {
-      const ruinKey = 'ruin' + effect.ruin.charAt(0).toUpperCase() + effect.ruin.slice(1);
-      // 매핑: spd → ruinBeads, atk → ruinTablet, def → ruinSword, spa → ruinVessel
-      const ruinMap = { spd: 'ruinBeads', atk: 'ruinTablet', def: 'ruinSword', spa: 'ruinVessel' };
-      const fieldKey = ruinMap[effect.ruin];
-      if (fieldKey) {
+      const RUIN_MAP = { spd: 'ruinBeads', atk: 'ruinTablet', def: 'ruinSword', spa: 'ruinVessel' };
+      const fieldKey = RUIN_MAP[effect.ruin];
+      // 이미 켜져 있으면 (사용자 수동 또는 다른 자동 효과) 우리가 끄지 않도록 추적 안 함
+      if (fieldKey && !state.field[fieldKey]) {
         state.field[fieldKey] = true;
         lastAutoEntry[sideKey].ruin = fieldKey.replace('ruin', '');
         log.push(`${sideKey === 'atk' ? '공격측' : '방어측'} 진입: ${effect.label}`);
@@ -4373,13 +4431,13 @@ document.getElementById('gravity').addEventListener('change', e => { state.field
 // 자동 진입 효과 토글
 document.getElementById('autoEntry').addEventListener('change', e => {
   autoEntryEffects = e.target.checked;
-  // 토글 OFF 시 마지막 자동 적용 효과 해제
+  // 토글 OFF 시 마지막 자동 적용 효과 해제 (applyEntryEffects 와 같은 의미론)
   if (!autoEntryEffects) {
     for (const sk of ['atk', 'def']) {
       const last = lastAutoEntry[sk];
       const other = state[sk === 'atk' ? 'def' : 'atk'];
-      if (last.weather && state.field.weather === last.weather) state.field.weather = 'none';
-      if (last.terrain && state.field.terrain === last.terrain) state.field.terrain = 'none';
+      if (last.weather && state.field.weather === last.weather.applied) state.field.weather = last.weather.prev;
+      if (last.terrain && state.field.terrain === last.terrain.applied) state.field.terrain = last.terrain.prev;
       for (const r of Object.keys(last.ranks)) {
         if (r.startsWith('opp_')) {
           other.ranks[r.replace('opp_','')] = (other.ranks[r.replace('opp_','')] || 0) - last.ranks[r];
@@ -4387,7 +4445,10 @@ document.getElementById('autoEntry').addEventListener('change', e => {
           state[sk].ranks[r] = (state[sk].ranks[r] || 0) - last.ranks[r];
         }
       }
-      if (last.ruin) state.field['ruin' + last.ruin] = false;
+      if (last.ruin) {
+        const fieldKey = 'ruin' + last.ruin.charAt(0).toUpperCase() + last.ruin.slice(1);
+        state.field[fieldKey] = false;
+      }
       lastAutoEntry[sk] = { weather: null, terrain: null, ranks: {}, ruin: null };
     }
     document.getElementById('weather').value = state.field.weather;
@@ -4431,6 +4492,12 @@ document.getElementById('btnSwapSides')?.addEventListener('click', () => {
    ⬆️ 원본 로직 끝 ⬆️
    ════════════════════════════════════════════════════════════ */
 
+
+
+/* ════════════════════════════════════════════════════════════
+ * 04-views.js — 도감(렌더/필터/상세 모달·풀페이지/네비게이션) + 상성표 + 탭 전환
+ * (build.mjs 가 src/js/*.js 를 알파벳순 concat 후 calc-template.html 에 주입)
+ * ════════════════════════════════════════════════════════════ */
 // 도감 탭 및 검색 제어
 let currentDex = 'pokemon';
 let dexTypeFilter = [];          // 빈 배열 = 전체. 포켓몬 탭은 최대 2개, 기술 탭은 최대 1개.
@@ -5345,6 +5412,12 @@ document.getElementById('dexFullPageDetail')?.addEventListener('click', e => {
   }
 });
 
+
+
+/* ════════════════════════════════════════════════════════════
+ * 05-init.js — 페이지 로드 시 초기 렌더 호출
+ * (build.mjs 가 src/js/*.js 를 알파벳순 concat 후 calc-template.html 에 주입)
+ * ════════════════════════════════════════════════════════════ */
 /* ════════════════════════════════════════════════════════════
    초기 렌더링 — 페이지 로드 시 양측 패널, 결과 영역, 도감 첫 탭을
    즉시 채운다. (이전 버전엔 이 블록이 빠져 있어 사용자가 토글이나

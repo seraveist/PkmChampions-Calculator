@@ -238,7 +238,20 @@ async function build() {
   if (!fs.existsSync(templatePath)) throw new Error(`Template not found: ${templatePath}`);
   const template = fs.readFileSync(templatePath, 'utf8');
 
+  // 분할된 src/styles/*.css, src/js/*.js 를 알파벳순으로 concat 한다.
+  // 파일명 접두사(01-, 02-, ...)가 곧 의존성 순서를 결정하므로 Array.sort() 면 충분.
+  function concatDir(dir, ext) {
+    if (!fs.existsSync(dir)) return '';
+    const files = fs.readdirSync(dir).filter(f => f.endsWith(ext) && !f.startsWith('.')).sort();
+    return files.map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n\n');
+  }
+  const inlineCss = concatDir(path.join(ROOT, 'src', 'styles'), '.css');
+  const inlineJs = concatDir(path.join(ROOT, 'src', 'js'), '.js');
+  console.log(`  styles: ${inlineCss.length} bytes, js: ${inlineJs.length} bytes`);
+
   const replacements = {
+    '/* __INLINE_CSS__ */': inlineCss,
+    '// __INLINE_JS__': inlineJs,
     '__POKEMON_DATA__': JSON.stringify(finalPokemon),
     '__MOVES_DATA__': JSON.stringify(finalMoves),
     '__ABILITIES_DATA__': JSON.stringify(finalAbilities),
