@@ -4245,33 +4245,60 @@ document.getElementById('championsMode').addEventListener('change', e => {
 
 // 도감 탭 및 검색 제어
 let currentDex = 'pokemon';
-let dexTypeFilter = null;  // null = 전체, 'Fire' 등 단일 타입
+let dexTypeFilter = null;        // 포켓몬/기술 탭의 타입 필터 (null = 전체)
+let dexItemCategory = null;      // 도구 탭의 카테고리 필터 (null = 전체, 'equip'/'berry'/'mega')
 const BATTLE_TYPES = ['Normal','Fire','Water','Electric','Grass','Ice','Fighting','Poison','Ground','Flying','Psychic','Bug','Rock','Ghost','Dragon','Dark','Steel','Fairy'];
+
+function itemCategoryOf(it) {
+  if (it.ms) return 'mega';
+  if (it.isBerry) return 'berry';
+  return 'equip';
+}
+const ITEM_CATEGORY_ORDER = ['equip', 'berry', 'mega'];
+const ITEM_CATEGORY_LABEL = { equip: '장착형', berry: '열매', mega: '메가스톤' };
 
 function renderTypeFilter() {
   const el = document.getElementById('dexTypeFilter');
   if (!el) return;
-  // 포켓몬 / 기술 탭에서만 노출
-  if (currentDex !== 'pokemon' && currentDex !== 'moves') {
+  // 탭별로 다른 필터 노출
+  if (currentDex === 'pokemon' || currentDex === 'moves') {
+    el.style.display = 'flex';
+    const all = `<button class="type-filter-btn ${dexTypeFilter === null ? 'active' : ''}" data-filter-type="">전체</button>`;
+    const buttons = BATTLE_TYPES.map(t => {
+      const active = dexTypeFilter === t;
+      return `<button class="type-filter-btn type-pill-mini ${active ? 'active t-' + t : ''}" data-filter-type="${t}" title="${TYPE_KO[t]}">${TYPE_KO[t]}</button>`;
+    }).join('');
+    el.innerHTML = `<span class="label">타입</span>${all}${buttons}`;
+  } else if (currentDex === 'items') {
+    el.style.display = 'flex';
+    const all = `<button class="type-filter-btn ${dexItemCategory === null ? 'active' : ''}" data-filter-itemcat="">전체</button>`;
+    const buttons = ITEM_CATEGORY_ORDER.map(cat => {
+      const active = dexItemCategory === cat;
+      return `<button class="type-filter-btn ${active ? 'active' : ''}" data-filter-itemcat="${cat}">${ITEM_CATEGORY_LABEL[cat]}</button>`;
+    }).join('');
+    el.innerHTML = `<span class="label">분류</span>${all}${buttons}`;
+  } else {
     el.style.display = 'none';
-    return;
   }
-  el.style.display = 'flex';
-  const all = `<button class="type-filter-btn ${dexTypeFilter === null ? 'active' : ''}" data-filter-type="">전체</button>`;
-  const buttons = BATTLE_TYPES.map(t => {
-    const active = dexTypeFilter === t;
-    return `<button class="type-filter-btn type-pill-mini ${active ? 'active t-' + t : ''}" data-filter-type="${t}" title="${TYPE_KO[t]}">${TYPE_KO[t]}</button>`;
-  }).join('');
-  el.innerHTML = `<span class="label">타입</span>${all}${buttons}`;
 }
 
 document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
-  const btn = e.target.closest('[data-filter-type]');
-  if (!btn) return;
-  const t = btn.dataset.filterType;
-  dexTypeFilter = t === '' ? null : t;
-  renderTypeFilter();
-  renderDexContent(dexSearchEl?.value || '');
+  const typeBtn = e.target.closest('[data-filter-type]');
+  if (typeBtn) {
+    const t = typeBtn.dataset.filterType;
+    dexTypeFilter = t === '' ? null : t;
+    renderTypeFilter();
+    renderDexContent(dexSearchEl?.value || '');
+    return;
+  }
+  const catBtn = e.target.closest('[data-filter-itemcat]');
+  if (catBtn) {
+    const c = catBtn.dataset.filterItemcat;
+    dexItemCategory = c === '' ? null : c;
+    renderTypeFilter();
+    renderDexContent(dexSearchEl?.value || '');
+    return;
+  }
 });
 
 const dexSearchEl = document.getElementById('dexSearch');
@@ -4287,7 +4314,8 @@ document.querySelectorAll('.dex-tab').forEach(tab => {
     document.querySelectorAll('.dex-content').forEach(c => c.classList.remove('active'));
     document.getElementById('dex-' + tab.dataset.dex).classList.add('active');
     currentDex = tab.dataset.dex;
-    dexTypeFilter = null;  // 탭 전환 시 타입 필터 초기화
+    dexTypeFilter = null;        // 탭 전환 시 필터 초기화
+    dexItemCategory = null;
     renderTypeFilter();
     if(dexSearchEl) dexSearchEl.value = '';
     renderDexContent('');
@@ -4338,9 +4366,33 @@ function renderAbilitiesDex(query) {
 function renderItemsDex(query) {
   let data = [...ITEMS];
   if (query) data = data.filter(i => (i.koName||'').toLowerCase().includes(query) || i.name.toLowerCase().includes(query));
+  if (dexItemCategory) data = data.filter(i => itemCategoryOf(i) === dexItemCategory);
+  // 카테고리 → 이름 정렬 (장착형 → 열매 → 메가스톤)
+  data.sort((a, b) => {
+    const ca = ITEM_CATEGORY_ORDER.indexOf(itemCategoryOf(a));
+    const cb = ITEM_CATEGORY_ORDER.indexOf(itemCategoryOf(b));
+    if (ca !== cb) return ca - cb;
+    return (a.koName || a.name).localeCompare(b.koName || b.name, 'ko');
+  });
   const tbody = document.getElementById('dexBodyItems');
   if(!tbody) return;
-  tbody.innerHTML = data.map(i => `<tr data-dex-id="${i.id}"><td>${escapeHTML(i.koName || i.name)}</td><td class="dim">${i.name}</td><td class="desc-cell">${escapeHTML(i.desc || '')}</td><td>${i.ms ? '<span style="color:var(--tera);font-size:10px;">[메가스톤]</span>' : ''}</td></tr>`).join('');
+  // 카테고리별 그룹 헤더가 있는 단일 테이블 — 행 사이에 헤더 row 삽입
+  const rows = [];
+  let lastCat = null;
+  for (const i of data) {
+    const cat = itemCategoryOf(i);
+    if (cat !== lastCat) {
+      rows.push(`<tr class="dex-cat-header"><td colspan="4" style="background:var(--bg-elev);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--warn);letter-spacing:0.15em;padding:6px 10px;cursor:default;">▼ ${ITEM_CATEGORY_LABEL[cat]}</td></tr>`);
+      lastCat = cat;
+    }
+    const tag = cat === 'mega' ? '<span style="color:var(--tera);font-size:10px;">메가스톤</span>'
+      : cat === 'berry' ? '<span style="color:var(--ok);font-size:10px;">열매</span>'
+      : (i.isChoice ? '<span style="color:var(--warn);font-size:10px;">고집계</span>'
+        : i.isGem ? '<span style="color:var(--def);font-size:10px;">젬</span>'
+        : '<span style="color:var(--text-faint);font-size:10px;">장착형</span>');
+    rows.push(`<tr data-dex-id="${i.id}"><td>${escapeHTML(i.koName || i.name)}</td><td class="dim">${i.name}</td><td class="desc-cell">${escapeHTML(i.desc || '')}</td><td>${tag}</td></tr>`);
+  }
+  tbody.innerHTML = rows.join('');
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -4630,8 +4682,19 @@ function renderAbilityDetail(a) {
     ? `<div class="dex-link-list">${owners.map(p => `<button class="dex-link" data-dex-link="pokemon" data-id="${p.id}">${escapeHTML(pkName(p))}</button>`).join('')}</div>`
     : '<div style="color:var(--text-faint);font-size:12px;">보유 포켓몬 없음</div>';
 
+  // 평가 (Pokemon Showdown rating: -1~5)
+  const ratingHtml = (typeof a.rating === 'number')
+    ? (() => {
+        const r = a.rating;
+        const label = r < 0 ? '해로움' : r === 0 ? '효과 없음' : r <= 1 ? '제한적' : r <= 2 ? '유용' : r <= 3 ? '효과적' : r <= 4 ? '매우 유용' : '필수급';
+        const color = r < 0 ? '#ff4766' : r >= 4 ? 'var(--ok)' : r >= 3 ? 'var(--warn)' : 'var(--text-dim)';
+        return `<div class="dex-modal-row"><span class="label">평가</span><b style="color:${color}">${r.toFixed(1)} / 5</b><span style="color:var(--text-dim);font-size:11px;">— ${label}</span></div>`;
+      })()
+    : '';
+
   const body = `
-    ${a.desc ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div><div style="font-size:13px;line-height:1.5;">${escapeHTML(a.desc)}</div></div>` : ''}
+    ${ratingHtml ? `<div class="dex-modal-section">${ratingHtml}</div>` : ''}
+    ${a.desc ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div><div style="font-size:13px;line-height:1.5;">${escapeHTML(a.desc)}</div></div>` : '<div class="dex-modal-section"><div style="color:var(--text-faint);font-size:12px;">설명 데이터 없음 (PS의 data/text/abilities.ts 가 업로드되지 않았습니다)</div></div>'}
     <div class="dex-modal-section">
       <div class="dex-modal-section-title">보유 포켓몬 (${owners.length})</div>
       ${ownerList}
@@ -4651,6 +4714,16 @@ function renderAbilityDetail(a) {
 
 // 도구 상세
 function renderItemDetail(it) {
+  // 카테고리 / 서브타입 배지
+  const cat = itemCategoryOf(it);
+  const subTags = [];
+  if (cat === 'mega') subTags.push('<span class="dex-modal-flag" style="color:var(--tera);border-color:var(--tera);">메가스톤</span>');
+  if (cat === 'berry') subTags.push('<span class="dex-modal-flag" style="color:var(--ok);border-color:var(--ok);">열매</span>');
+  if (it.isChoice) subTags.push('<span class="dex-modal-flag" style="color:var(--warn);">고집계</span>');
+  if (it.isGem) subTags.push('<span class="dex-modal-flag" style="color:var(--def);">젬</span>');
+  if (it.isPrimalOrb) subTags.push('<span class="dex-modal-flag" style="color:var(--warn);">원시구슬</span>');
+  if (cat === 'equip' && subTags.length === 0) subTags.push('<span class="dex-modal-flag">장착형</span>');
+
   let megaInfo = '';
   if (it.ms) {
     // ms = { "Charizard": "Charizard-Mega-X" } 형태
@@ -4660,7 +4733,6 @@ function renderItemDetail(it) {
         <div class="dex-modal-section-title">메가스톤 — 변환 대상</div>
         <div class="dex-link-list">
           ${targets.map(([orig, mega]) => {
-            // 메가폼 ID 추정 (소문자, 공백/하이픈 제거)
             const megaId = mega.toLowerCase().replace(/[^a-z0-9]/g, '');
             return PokemonById[megaId]
               ? `<button class="dex-link" data-dex-link="pokemon" data-id="${megaId}">${escapeHTML(orig)} → ${escapeHTML(mega)}</button>`
@@ -4670,8 +4742,22 @@ function renderItemDetail(it) {
       </div>
     `;
   }
+
+  // 베리 자연의은혜 정보
+  let berryInfo = '';
+  if (it.isBerry && it.naturalGift) {
+    berryInfo = `<div class="dex-modal-row"><span class="label">자연의은혜</span><span class="type-pill t-${it.naturalGift.type}" style="font-size:10px;padding:2px 7px;">${TYPE_KO[it.naturalGift.type] || it.naturalGift.type}</span> <b>${it.naturalGift.basePower || '—'}</b></div>`;
+  }
+
   const body = `
-    ${it.desc ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div><div style="font-size:13px;line-height:1.5;">${escapeHTML(it.desc)}</div></div>` : ''}
+    <div class="dex-modal-section">
+      <div class="dex-modal-flag-row">${subTags.join(' ')}</div>
+    </div>
+    ${it.desc
+      ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div><div style="font-size:13px;line-height:1.5;">${escapeHTML(it.desc)}</div></div>`
+      : '<div class="dex-modal-section"><div style="color:var(--text-faint);font-size:12px;">설명 데이터 없음 (PS의 data/text/items.ts 가 업로드되지 않았습니다)</div></div>'}
+    ${berryInfo ? `<div class="dex-modal-section">${berryInfo}</div>` : ''}
+    ${it.flingBp ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">던지기 위력</span><b>${it.flingBp}</b></div></div>` : ''}
     ${megaInfo}
     ${it.itemUser ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">전용</span>${it.itemUser.map(u => `<span class="dex-modal-flag">${escapeHTML(u)}</span>`).join(' ')}</div></div>` : ''}
   `;

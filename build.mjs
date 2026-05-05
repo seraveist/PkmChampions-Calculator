@@ -140,6 +140,7 @@ async function build() {
       id,
       name: a.name,
       koName: a.name,
+      rating: typeof a.rating === 'number' ? a.rating : undefined,
       desc: a.shortDesc || a.desc || '',
     });
   }
@@ -155,6 +156,12 @@ async function build() {
       koName: it.name,
       ms: it.megaStone || undefined,
       itemUser: it.itemUser || undefined,
+      isBerry: it.isBerry || undefined,
+      isChoice: it.isChoice || undefined,
+      isGem: it.isGem || undefined,
+      isPrimalOrb: it.isPrimalOrb || undefined,
+      flingBp: it.fling?.basePower || undefined,
+      naturalGift: it.naturalGift || undefined,
       desc: it.shortDesc || it.desc || '',
     });
   }
