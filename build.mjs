@@ -12,9 +12,12 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { loadTsModule, applyModOverrides } from './scripts/ts-loader.mjs';
 
-const ROOT = path.dirname(new URL(import.meta.url).pathname);
+// Windows 호환: file:// URL → 네이티브 경로 변환을 fileURLToPath 로 처리.
+// (URL.pathname 만 사용하면 Windows 에서 'C:\C:\...' 처럼 드라이브가 중복된다)
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.join(ROOT, 'data');
 const CHAMP = path.join(DATA, 'mods', 'champions');
 
