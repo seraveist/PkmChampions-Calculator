@@ -1209,6 +1209,58 @@
   .dex-modal-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .dex-table tbody tr { cursor: pointer; }
 
+  /* 타입 필터 (도감 검색 영역 아래) */
+  .dex-type-filter { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; align-items: center; }
+  .dex-type-filter .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); letter-spacing: 0.15em; margin-right: 6px; }
+  .type-filter-btn {
+    background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim);
+    padding: 4px 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    cursor: pointer; border-radius: 3px; transition: all 0.15s;
+  }
+  .type-filter-btn:hover { color: var(--text); border-color: var(--border-bright); }
+  .type-filter-btn.active { background: var(--bg-elev); border-color: var(--warn); color: var(--warn); font-weight: 600; }
+  .type-filter-btn.type-pill-mini { padding: 3px 9px; }
+  .type-filter-btn.type-pill-mini.active { color: white; font-weight: 700; }
+  /* 활성 시 타입 색을 적용하기 위한 보조 클래스 */
+  .type-filter-btn.active.t-Normal { background: #aab09f; border-color: #aab09f; color: white; }
+  .type-filter-btn.active.t-Fire { background: #ff5733; border-color: #ff5733; color: white; }
+  .type-filter-btn.active.t-Water { background: #4592c4; border-color: #4592c4; color: white; }
+  .type-filter-btn.active.t-Grass { background: #6cc36c; border-color: #6cc36c; color: white; }
+  .type-filter-btn.active.t-Electric { background: #f6d33b; border-color: #f6d33b; color: #1a1a1a; }
+  .type-filter-btn.active.t-Ice { background: #6dd6d6; border-color: #6dd6d6; color: #1a1a1a; }
+  .type-filter-btn.active.t-Fighting { background: #c64242; border-color: #c64242; color: white; }
+  .type-filter-btn.active.t-Poison { background: #a060a0; border-color: #a060a0; color: white; }
+  .type-filter-btn.active.t-Ground { background: #d4a85a; border-color: #d4a85a; color: white; }
+  .type-filter-btn.active.t-Flying { background: #8aa9d4; border-color: #8aa9d4; color: white; }
+  .type-filter-btn.active.t-Psychic { background: #f86a85; border-color: #f86a85; color: white; }
+  .type-filter-btn.active.t-Bug { background: #a8b836; border-color: #a8b836; color: white; }
+  .type-filter-btn.active.t-Rock { background: #b8a262; border-color: #b8a262; color: white; }
+  .type-filter-btn.active.t-Ghost { background: #735797; border-color: #735797; color: white; }
+  .type-filter-btn.active.t-Dragon { background: #7058f8; border-color: #7058f8; color: white; }
+  .type-filter-btn.active.t-Dark { background: #6f5848; border-color: #6f5848; color: white; }
+  .type-filter-btn.active.t-Steel { background: #adadc4; border-color: #adadc4; color: white; }
+  .type-filter-btn.active.t-Fairy { background: #f0a8d8; border-color: #f0a8d8; color: white; }
+
+  /* 방어 타입 매치업 (포켓몬 상세) */
+  .matchup-grid { display: grid; grid-template-columns: 70px 1fr; gap: 6px 10px; align-items: start; }
+  .matchup-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; padding-top: 3px; }
+  .matchup-label.x4 { color: #ff4766; }
+  .matchup-label.x2 { color: #ff8a65; }
+  .matchup-label.x05 { color: #4ade80; }
+  .matchup-label.x025 { color: #22c55e; }
+  .matchup-label.x0 { color: var(--text-faint); }
+  .matchup-types { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  /* 학습기 그룹 (포켓몬 상세) */
+  .learnset-type-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0 4px 0; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text-faint);
+    border-bottom: 1px dashed var(--border); margin-top: 8px; margin-bottom: 4px;
+  }
+  .learnset-type-header:first-child { margin-top: 0; }
+  .learnset-type-header .count { color: var(--text-dim); font-weight: 600; }
+  .learnset-filter-row { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; padding: 6px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 3px; }
+
   .ko-modal-result {
     background: var(--bg-input);
     border: 1px solid var(--border);
@@ -1599,6 +1651,7 @@
     <input type="text" id="dexSearch" placeholder="이름 또는 영문명으로 검색..." autocomplete="off">
     <span class="dex-count" id="dexCount"></span>
   </div>
+  <div class="dex-type-filter" id="dexTypeFilter"></div>
   <div class="dex-content active" id="dex-pokemon"><div class="dex-table-wrap"><table class="dex-table" id="dexTablePokemon"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>타입</th><th class="sortable num" data-sort="hp">HP</th><th class="sortable num" data-sort="atk">공격</th><th class="sortable num" data-sort="def">방어</th><th class="sortable num" data-sort="spa">특공</th><th class="sortable num" data-sort="spd">특방</th><th class="sortable num" data-sort="spe">속도</th><th class="sortable num" data-sort="bst">합계</th><th>특성</th></tr></thead><tbody id="dexBodyPokemon"></tbody></table></div></div>
   <div class="dex-content" id="dex-moves"><div class="dex-table-wrap"><table class="dex-table" id="dexTableMoves"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>타입</th><th>분류</th><th class="sortable num" data-sort="bp">위력</th><th class="sortable num" data-sort="acc">명중</th><th class="sortable num" data-sort="pp">PP</th><th class="sortable num" data-sort="pri">우선</th><th>설명</th></tr></thead><tbody id="dexBodyMoves"></tbody></table></div></div>
   <div class="dex-content" id="dex-abilities"><div class="dex-table-wrap"><table class="dex-table" id="dexTableAbilities"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>영문명</th><th>설명</th></tr></thead><tbody id="dexBodyAbilities"></tbody></table></div></div>
@@ -4192,6 +4245,35 @@ document.getElementById('championsMode').addEventListener('change', e => {
 
 // 도감 탭 및 검색 제어
 let currentDex = 'pokemon';
+let dexTypeFilter = null;  // null = 전체, 'Fire' 등 단일 타입
+const BATTLE_TYPES = ['Normal','Fire','Water','Electric','Grass','Ice','Fighting','Poison','Ground','Flying','Psychic','Bug','Rock','Ghost','Dragon','Dark','Steel','Fairy'];
+
+function renderTypeFilter() {
+  const el = document.getElementById('dexTypeFilter');
+  if (!el) return;
+  // 포켓몬 / 기술 탭에서만 노출
+  if (currentDex !== 'pokemon' && currentDex !== 'moves') {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'flex';
+  const all = `<button class="type-filter-btn ${dexTypeFilter === null ? 'active' : ''}" data-filter-type="">전체</button>`;
+  const buttons = BATTLE_TYPES.map(t => {
+    const active = dexTypeFilter === t;
+    return `<button class="type-filter-btn type-pill-mini ${active ? 'active t-' + t : ''}" data-filter-type="${t}" title="${TYPE_KO[t]}">${TYPE_KO[t]}</button>`;
+  }).join('');
+  el.innerHTML = `<span class="label">타입</span>${all}${buttons}`;
+}
+
+document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
+  const btn = e.target.closest('[data-filter-type]');
+  if (!btn) return;
+  const t = btn.dataset.filterType;
+  dexTypeFilter = t === '' ? null : t;
+  renderTypeFilter();
+  renderDexContent(dexSearchEl?.value || '');
+});
+
 const dexSearchEl = document.getElementById('dexSearch');
 if (dexSearchEl) {
   const handleDexSearch = debounce((query) => renderDexContent(query), 200);
@@ -4205,6 +4287,8 @@ document.querySelectorAll('.dex-tab').forEach(tab => {
     document.querySelectorAll('.dex-content').forEach(c => c.classList.remove('active'));
     document.getElementById('dex-' + tab.dataset.dex).classList.add('active');
     currentDex = tab.dataset.dex;
+    dexTypeFilter = null;  // 탭 전환 시 타입 필터 초기화
+    renderTypeFilter();
     if(dexSearchEl) dexSearchEl.value = '';
     renderDexContent('');
   });
@@ -4231,16 +4315,18 @@ function renderDexContent(query = '') {
 function renderPokemonDex(query) {
   let data = [...POKEMON];
   if (query) data = data.filter(p => (p.koName||'').toLowerCase().includes(query) || p.name.toLowerCase().includes(query));
+  if (dexTypeFilter) data = data.filter(p => p.types.includes(dexTypeFilter));
   const tbody = document.getElementById('dexBodyPokemon');
   if(!tbody) return;
-  tbody.innerHTML = data.slice(0, 200).map(p => `<tr data-dex-id="${p.id}"><td>${p.mega ? '<span class="badge-mega" style="color:var(--tera);font-size:10px;">[메가]</span> ' : ''}${escapeHTML(p.koName || p.name)}</td><td>${p.types.join(', ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num" style="font-weight:700; color:var(--warn);">${p.bst}</td><td class="dim" style="font-size:10px;">${Object.values(p.ab).join(', ')}</td></tr>`).join('');
+  tbody.innerHTML = data.slice(0, 200).map(p => `<tr data-dex-id="${p.id}"><td>${p.mega ? '<span class="badge-mega" style="color:var(--tera);font-size:10px;">[메가]</span> ' : ''}${escapeHTML(p.koName || p.name)}</td><td>${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join(' ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num" style="font-weight:700; color:var(--warn);">${p.bst}</td><td class="dim" style="font-size:10px;">${Object.values(p.ab).join(', ')}</td></tr>`).join('');
 }
 function renderMovesDex(query) {
   let data = [...MOVES];
   if (query) data = data.filter(m => (m.koName||'').toLowerCase().includes(query) || m.name.toLowerCase().includes(query));
+  if (dexTypeFilter) data = data.filter(m => m.type === dexTypeFilter);
   const tbody = document.getElementById('dexBodyMoves');
   if(!tbody) return;
-  tbody.innerHTML = data.slice(0, 300).map(m => `<tr data-dex-id="${m.id}"><td>${escapeHTML(m.koName || m.name)}</td><td>${m.type}</td><td>${m.cat}</td><td class="num">${m.bp || '—'}</td><td class="num">${m.acc || '—'}</td><td class="num">${m.pp || '—'}</td><td class="num">${m.pri || 0}</td><td class="desc-cell">${escapeHTML(m.desc || '')}</td></tr>`).join('');
+  tbody.innerHTML = data.slice(0, 300).map(m => `<tr data-dex-id="${m.id}"><td>${escapeHTML(m.koName || m.name)}</td><td><span class="type-pill t-${m.type}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[m.type] || m.type}</span></td><td>${m.cat}</td><td class="num">${m.bp || '—'}</td><td class="num">${m.acc || '—'}</td><td class="num">${m.pp || '—'}</td><td class="num">${m.pri || 0}</td><td class="desc-cell">${escapeHTML(m.desc || '')}</td></tr>`).join('');
 }
 function renderAbilitiesDex(query) {
   let data = [...ABILITIES];
@@ -4319,8 +4405,11 @@ function openDexDetail(type, id) {
   if (!modal.open) modal.showModal();
 }
 
-// 포켓몬 상세
+// 포켓몬 상세 — 모달 내 학습기 타입 필터 상태 (포켓몬 단위로 reset)
+let pokemonDetailTypeFilter = null;
+
 function renderPokemonDetail(p) {
+  pokemonDetailTypeFilter = null; // 새 포켓몬 열 때마다 초기화
   const stats = ['hp','atk','def','spa','spd','spe'];
   const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
   const maxStat = Math.max(...stats.map(s => p.bs[s]));
@@ -4340,11 +4429,12 @@ function renderPokemonDetail(p) {
     return `<button class="dex-link" data-dex-link="ability" data-id="${id}">${label}${tag}</button>`;
   }).join('');
 
-  // 학습 가능 기술 (id 만 있고 정렬 필요)
-  const learnable = (p.ls || []).map(mid => MoveById[mid]).filter(Boolean).sort((a, b) => (a.koName||a.name).localeCompare(b.koName||b.name, 'ko'));
-  const learnList = learnable.length > 0
-    ? `<div class="dex-link-list">${learnable.map(m => `<button class="dex-link" data-dex-link="move" data-id="${m.id}">${escapeHTML(mvName(m))}</button>`).join('')}</div>`
-    : '<div style="color:var(--text-faint);font-size:12px;">학습 정보 없음</div>';
+  // 방어 타입 매치업 (각 공격 타입에 대한 효과 배율)
+  const matchupHtml = renderDefensiveMatchup(p.types);
+
+  // 학습 가능 기술 — 타입별 그룹화
+  const learnable = (p.ls || []).map(mid => MoveById[mid]).filter(Boolean);
+  const learnsetHtml = renderLearnsetByType(learnable);
 
   const flags = [];
   if (p.mega) flags.push('<span style="color:var(--tera)">메가진화</span>');
@@ -4368,8 +4458,12 @@ function renderPokemonDetail(p) {
       <div class="dex-modal-flag-row">${abEntries || '<span style="color:var(--text-faint)">없음</span>'}</div>
     </div>
     <div class="dex-modal-section">
+      <div class="dex-modal-section-title">방어 타입 상성</div>
+      ${matchupHtml}
+    </div>
+    <div class="dex-modal-section">
       <div class="dex-modal-section-title">학습 가능 기술 (${learnable.length})</div>
-      ${learnList}
+      <div id="learnsetWrap">${learnsetHtml}</div>
     </div>
     ${p.requiredItem ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">필요 도구</span><b>${escapeHTML(p.requiredItem)}</b></div></div>` : ''}
   `;
@@ -4379,6 +4473,79 @@ function renderPokemonDetail(p) {
     <button class="dex-modal-btn def" data-dex-apply="pokemon-def">🛡️ 방어측으로 가져가기</button>
   `;
   return [body, actions];
+}
+
+// 방어 타입 매치업 (18 타입 각각의 공격이 들어왔을 때 받는 배율)
+function renderDefensiveMatchup(defTypes) {
+  const buckets = { x4: [], x2: [], x05: [], x025: [], x0: [] };
+  // 1× (보통 효과) 는 표시 생략 (시각적 노이즈 감소)
+  for (const t of BATTLE_TYPES) {
+    const eff = typeEff(t, defTypes);
+    if (eff === 4) buckets.x4.push(t);
+    else if (eff === 2) buckets.x2.push(t);
+    else if (eff === 0.5) buckets.x05.push(t);
+    else if (eff === 0.25) buckets.x025.push(t);
+    else if (eff === 0) buckets.x0.push(t);
+  }
+  const row = (label, key, types) => types.length === 0 ? '' : `
+    <div class="matchup-label ${key}">${label}</div>
+    <div class="matchup-types">${types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:2px 7px;">${TYPE_KO[t]}</span>`).join('')}</div>
+  `;
+  const html = `
+    ${row('×4', 'x4', buckets.x4)}
+    ${row('×2', 'x2', buckets.x2)}
+    ${row('×0.5', 'x05', buckets.x05)}
+    ${row('×0.25', 'x025', buckets.x025)}
+    ${row('무효', 'x0', buckets.x0)}
+  `;
+  if (!html.trim()) return '<div style="color:var(--text-faint);font-size:12px;">모든 타입 1배 (특이 상성 없음)</div>';
+  return `<div class="matchup-grid">${html}</div>`;
+}
+
+// 학습 기술을 타입별로 그룹화 + 모달 내 타입 필터
+function renderLearnsetByType(learnable) {
+  if (learnable.length === 0) {
+    return '<div style="color:var(--text-faint);font-size:12px;">학습 정보 없음</div>';
+  }
+  // 타입별 분류
+  const byType = {};
+  for (const m of learnable) {
+    (byType[m.type] = byType[m.type] || []).push(m);
+  }
+  // 각 타입 내부 한글 가나다순
+  for (const t of Object.keys(byType)) {
+    byType[t].sort((a,b) => (a.koName||a.name).localeCompare(b.koName||b.name, 'ko'));
+  }
+  // 표시용 타입 순서 (배틀 타입 순)
+  const presentTypes = BATTLE_TYPES.filter(t => byType[t]);
+
+  // 필터 버튼 (이 포켓몬이 학습 가능한 타입만 표시)
+  const filterButtons = `
+    <div class="learnset-filter-row">
+      <button class="type-filter-btn ${pokemonDetailTypeFilter === null ? 'active' : ''}" data-learnset-filter="">전체 (${learnable.length})</button>
+      ${presentTypes.map(t => {
+        const active = pokemonDetailTypeFilter === t;
+        return `<button class="type-filter-btn type-pill-mini ${active ? 'active t-' + t : ''}" data-learnset-filter="${t}" title="${TYPE_KO[t]}">${TYPE_KO[t]} ${byType[t].length}</button>`;
+      }).join('')}
+    </div>
+  `;
+
+  // 그룹 렌더 — 필터 적용
+  const showTypes = pokemonDetailTypeFilter ? presentTypes.filter(t => t === pokemonDetailTypeFilter) : presentTypes;
+  const groups = showTypes.map(t => {
+    const moves = byType[t];
+    return `
+      <div class="learnset-type-header">
+        <span class="type-pill t-${t}" style="font-size:10px;padding:2px 7px;">${TYPE_KO[t]}</span>
+        <span class="count">${moves.length}개</span>
+      </div>
+      <div class="dex-link-list" style="max-height:none;">
+        ${moves.map(m => `<button class="dex-link" data-dex-link="move" data-id="${m.id}" title="${escapeHTML(m.cat)} ${m.bp || '—'}/${m.acc || '—'}">${escapeHTML(mvName(m))}</button>`).join('')}
+      </div>
+    `;
+  }).join('');
+
+  return filterButtons + groups;
 }
 
 // 기술 상세
@@ -4578,6 +4745,20 @@ document.querySelectorAll('.dex-content tbody').forEach(tbody => {
 
 // 모달 내부 cross-link 및 적용 버튼 (이벤트 위임)
 document.getElementById('dexDetailBody')?.addEventListener('click', e => {
+  // 학습기 타입 필터 클릭
+  const filterBtn = e.target.closest('[data-learnset-filter]');
+  if (filterBtn) {
+    const t = filterBtn.dataset.learnsetFilter;
+    pokemonDetailTypeFilter = t === '' ? null : t;
+    // 학습기 영역만 다시 그린다
+    const p = PokemonById[dexDetailCtx.id];
+    if (p) {
+      const learnable = (p.ls || []).map(mid => MoveById[mid]).filter(Boolean);
+      const wrap = document.getElementById('learnsetWrap');
+      if (wrap) wrap.innerHTML = renderLearnsetByType(learnable);
+    }
+    return;
+  }
   const link = e.target.closest('[data-dex-link]');
   if (!link) return;
   openDexDetail(link.dataset.dexLink, link.dataset.id);
@@ -4602,6 +4783,7 @@ renderSide('atk');
 renderSide('def');
 updateFieldSummary();
 triggerCalc();
+renderTypeFilter();
 renderDexContent('');
 </script>
 </body>
