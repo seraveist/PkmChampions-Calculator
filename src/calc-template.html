@@ -1261,6 +1261,33 @@
   .learnset-type-header .count { color: var(--text-dim); font-weight: 600; }
   .learnset-filter-row { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; padding: 6px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 3px; }
 
+  /* 풀페이지 상세 (도감 탭 내부) */
+  #dexFullPageDetail { padding: 0; }
+  .dex-fullpage-back {
+    background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim);
+    padding: 7px 14px; font-family: inherit; font-size: 12px; cursor: pointer; border-radius: 3px; margin-bottom: 14px;
+  }
+  .dex-fullpage-back:hover { color: var(--text); border-color: var(--border-bright); }
+  .dex-fullpage-head {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    padding: 18px 22px; background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 4px 4px 0 0; border-bottom: none;
+  }
+  .dex-fullpage-title { font-family: 'Black Han Sans', sans-serif; font-size: 26px; line-height: 1.1; }
+  .dex-fullpage-title-en { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-dim); }
+  .dex-fullpage-body {
+    padding: 18px 22px; background: var(--bg-panel); border: 1px solid var(--border);
+    border-bottom: none;
+  }
+  /* 풀페이지에선 학습기 목록 높이 제한 해제 */
+  .dex-fullpage-body .dex-link-list { max-height: none; }
+  /* 종족값 그리드 컬럼을 풀페이지에선 더 넓게 */
+  .dex-fullpage-body .dex-modal-stat-grid { grid-template-columns: 80px 1fr 60px; gap: 6px 14px; }
+  .dex-fullpage-actions {
+    padding: 14px 22px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
+    background: var(--bg-elev); border: 1px solid var(--border); border-radius: 0 0 4px 4px;
+  }
+
   .ko-modal-result {
     background: var(--bg-input);
     border: 1px solid var(--border);
@@ -1656,6 +1683,8 @@
   <div class="dex-content" id="dex-moves"><div class="dex-table-wrap"><table class="dex-table" id="dexTableMoves"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>타입</th><th>분류</th><th class="sortable num" data-sort="bp">위력</th><th class="sortable num" data-sort="acc">명중</th><th class="sortable num" data-sort="pp">PP</th><th class="sortable num" data-sort="pri">우선</th><th>설명</th></tr></thead><tbody id="dexBodyMoves"></tbody></table></div></div>
   <div class="dex-content" id="dex-abilities"><div class="dex-table-wrap"><table class="dex-table" id="dexTableAbilities"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>영문명</th><th>설명</th></tr></thead><tbody id="dexBodyAbilities"></tbody></table></div></div>
   <div class="dex-content" id="dex-items"><div class="dex-table-wrap"><table class="dex-table" id="dexTableItems"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>영문명</th><th>설명</th><th>상태</th></tr></thead><tbody id="dexBodyItems"></tbody></table></div></div>
+  <!-- 포켓몬/기술/특성 상세 풀페이지 (도감 탭 내부에서 표시) -->
+  <div class="dex-content" id="dexFullPageDetail"></div>
 </main>
 
 <!-- 모달 다이얼로그 -->
@@ -4245,7 +4274,7 @@ document.getElementById('championsMode').addEventListener('change', e => {
 
 // 도감 탭 및 검색 제어
 let currentDex = 'pokemon';
-let dexTypeFilter = null;        // 포켓몬/기술 탭의 타입 필터 (null = 전체)
+let dexTypeFilter = [];          // 빈 배열 = 전체. 포켓몬 탭은 최대 2개, 기술 탭은 최대 1개.
 let dexItemCategory = null;      // 도구 탭의 카테고리 필터 (null = 전체, 'equip'/'berry'/'mega')
 const BATTLE_TYPES = ['Normal','Fire','Water','Electric','Grass','Ice','Fighting','Poison','Ground','Flying','Psychic','Bug','Rock','Ghost','Dragon','Dark','Steel','Fairy'];
 
@@ -4257,21 +4286,36 @@ function itemCategoryOf(it) {
 const ITEM_CATEGORY_ORDER = ['equip', 'berry', 'mega'];
 const ITEM_CATEGORY_LABEL = { equip: '장착형', berry: '열매', mega: '메가스톤' };
 
+// 타입 필터 토글 — 포켓몬은 최대 2개 (FIFO), 기술은 단일.
+function toggleTypeFilter(t) {
+  if (currentDex === 'pokemon') {
+    const i = dexTypeFilter.indexOf(t);
+    if (i >= 0) dexTypeFilter.splice(i, 1);
+    else if (dexTypeFilter.length < 2) dexTypeFilter.push(t);
+    else { dexTypeFilter.shift(); dexTypeFilter.push(t); } // 가장 오래된 항목 교체
+  } else if (currentDex === 'moves') {
+    if (dexTypeFilter.includes(t)) dexTypeFilter = [];   // 같은 타입 다시 누르면 해제 → 전체
+    else dexTypeFilter = [t];                              // 다른 타입은 단일 교체
+  }
+}
+
 function renderTypeFilter() {
   const el = document.getElementById('dexTypeFilter');
   if (!el) return;
-  // 탭별로 다른 필터 노출
   if (currentDex === 'pokemon' || currentDex === 'moves') {
     el.style.display = 'flex';
-    const all = `<button class="type-filter-btn ${dexTypeFilter === null ? 'active' : ''}" data-filter-type="">전체</button>`;
+    const isAll = dexTypeFilter.length === 0;
+    const all = `<button class="type-filter-btn ${isAll ? 'active' : ''}" data-filter-type="">전체</button>`;
     const buttons = BATTLE_TYPES.map(t => {
-      const active = dexTypeFilter === t;
+      const active = dexTypeFilter.includes(t);
       return `<button class="type-filter-btn type-pill-mini ${active ? 'active t-' + t : ''}" data-filter-type="${t}" title="${TYPE_KO[t]}">${TYPE_KO[t]}</button>`;
     }).join('');
-    el.innerHTML = `<span class="label">타입</span>${all}${buttons}`;
+    const limit = currentDex === 'pokemon' ? '<span class="label" style="margin-left:auto;color:var(--text-faint);">최대 2개</span>' : '';
+    el.innerHTML = `<span class="label">타입</span>${all}${buttons}${limit}`;
   } else if (currentDex === 'items') {
     el.style.display = 'flex';
-    const all = `<button class="type-filter-btn ${dexItemCategory === null ? 'active' : ''}" data-filter-itemcat="">전체</button>`;
+    const isAll = dexItemCategory === null;
+    const all = `<button class="type-filter-btn ${isAll ? 'active' : ''}" data-filter-itemcat="">전체</button>`;
     const buttons = ITEM_CATEGORY_ORDER.map(cat => {
       const active = dexItemCategory === cat;
       return `<button class="type-filter-btn ${active ? 'active' : ''}" data-filter-itemcat="${cat}">${ITEM_CATEGORY_LABEL[cat]}</button>`;
@@ -4286,7 +4330,8 @@ document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
   const typeBtn = e.target.closest('[data-filter-type]');
   if (typeBtn) {
     const t = typeBtn.dataset.filterType;
-    dexTypeFilter = t === '' ? null : t;
+    if (t === '') dexTypeFilter = [];   // 전체 클릭 → 모두 해제
+    else toggleTypeFilter(t);
     renderTypeFilter();
     renderDexContent(dexSearchEl?.value || '');
     return;
@@ -4294,7 +4339,9 @@ document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
   const catBtn = e.target.closest('[data-filter-itemcat]');
   if (catBtn) {
     const c = catBtn.dataset.filterItemcat;
-    dexItemCategory = c === '' ? null : c;
+    // 같은 카테고리를 다시 누르면 해제 (전체로 자동 복귀)
+    if (c === '' || dexItemCategory === c) dexItemCategory = null;
+    else dexItemCategory = c;
     renderTypeFilter();
     renderDexContent(dexSearchEl?.value || '');
     return;
@@ -4314,8 +4361,9 @@ document.querySelectorAll('.dex-tab').forEach(tab => {
     document.querySelectorAll('.dex-content').forEach(c => c.classList.remove('active'));
     document.getElementById('dex-' + tab.dataset.dex).classList.add('active');
     currentDex = tab.dataset.dex;
-    dexTypeFilter = null;        // 탭 전환 시 필터 초기화
+    dexTypeFilter = [];          // 탭 전환 시 필터 초기화
     dexItemCategory = null;
+    closeDexFullPage();           // 탭 전환 시 풀페이지 상세 닫기
     renderTypeFilter();
     if(dexSearchEl) dexSearchEl.value = '';
     renderDexContent('');
@@ -4343,7 +4391,8 @@ function renderDexContent(query = '') {
 function renderPokemonDex(query) {
   let data = [...POKEMON];
   if (query) data = data.filter(p => (p.koName||'').toLowerCase().includes(query) || p.name.toLowerCase().includes(query));
-  if (dexTypeFilter) data = data.filter(p => p.types.includes(dexTypeFilter));
+  // 멀티 타입: 선택된 타입을 모두 가져야(AND)
+  if (dexTypeFilter.length > 0) data = data.filter(p => dexTypeFilter.every(t => p.types.includes(t)));
   const tbody = document.getElementById('dexBodyPokemon');
   if(!tbody) return;
   tbody.innerHTML = data.slice(0, 200).map(p => `<tr data-dex-id="${p.id}"><td>${p.mega ? '<span class="badge-mega" style="color:var(--tera);font-size:10px;">[메가]</span> ' : ''}${escapeHTML(p.koName || p.name)}</td><td>${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join(' ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num" style="font-weight:700; color:var(--warn);">${p.bst}</td><td class="dim" style="font-size:10px;">${Object.values(p.ab).join(', ')}</td></tr>`).join('');
@@ -4351,7 +4400,7 @@ function renderPokemonDex(query) {
 function renderMovesDex(query) {
   let data = [...MOVES];
   if (query) data = data.filter(m => (m.koName||'').toLowerCase().includes(query) || m.name.toLowerCase().includes(query));
-  if (dexTypeFilter) data = data.filter(m => m.type === dexTypeFilter);
+  if (dexTypeFilter.length > 0) data = data.filter(m => dexTypeFilter.includes(m.type));
   const tbody = document.getElementById('dexBodyMoves');
   if(!tbody) return;
   tbody.innerHTML = data.slice(0, 300).map(m => `<tr data-dex-id="${m.id}"><td>${escapeHTML(m.koName || m.name)}</td><td><span class="type-pill t-${m.type}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[m.type] || m.type}</span></td><td>${m.cat}</td><td class="num">${m.bp || '—'}</td><td class="num">${m.acc || '—'}</td><td class="num">${m.pp || '—'}</td><td class="num">${m.pri || 0}</td><td class="desc-cell">${escapeHTML(m.desc || '')}</td></tr>`).join('');
@@ -4425,36 +4474,75 @@ const PokemonByMove = (() => {
   return idx;
 })();
 
-// 모달 컨텍스트 (현재 표시 중인 항목의 type/id 보관)
-let dexDetailCtx = { type: null, id: null };
+// 컨텍스트 — 풀페이지와 모달을 분리해서 추적 (적용 버튼이 어떤 항목을 가리키는지)
+let dexFullPageCtx = { type: null, id: null };
+let dexModalCtx = { type: null, id: null };
 
+// 공통: 타입+id 로 표시용 컨텐츠 생성
+function buildDexContent(type, id) {
+  if (type === 'pokemon') {
+    const p = PokemonById[id]; if (!p) return null;
+    const [body, actions] = renderPokemonDetail(p);
+    return { titleKo: pkName(p), titleEn: p.name, body, actions };
+  } else if (type === 'move') {
+    const m = MoveById[id]; if (!m) return null;
+    const [body, actions] = renderMoveDetail(m);
+    return { titleKo: mvName(m), titleEn: m.name, body, actions };
+  } else if (type === 'ability') {
+    const a = AbilityById[id]; if (!a) return null;
+    const [body, actions] = renderAbilityDetail(a);
+    return { titleKo: abName(a), titleEn: a.name, body, actions };
+  } else if (type === 'item') {
+    const it = ItemById[id]; if (!it) return null;
+    const [body, actions] = renderItemDetail(it);
+    return { titleKo: itName(it), titleEn: it.name, body, actions };
+  }
+  return null;
+}
+
+// 모달로 상세 열기 (도구 행 / 모든 cross-reference 클릭)
 function openDexDetail(type, id) {
   const modal = document.getElementById('dexDetailModal');
   if (!modal) return;
-  dexDetailCtx = { type, id };
-  let titleKo = '', titleEn = '', body = '', actions = '';
-  if (type === 'pokemon') {
-    const p = PokemonById[id]; if (!p) return;
-    titleKo = pkName(p); titleEn = p.name;
-    [body, actions] = renderPokemonDetail(p);
-  } else if (type === 'move') {
-    const m = MoveById[id]; if (!m) return;
-    titleKo = mvName(m); titleEn = m.name;
-    [body, actions] = renderMoveDetail(m);
-  } else if (type === 'ability') {
-    const a = AbilityById[id]; if (!a) return;
-    titleKo = abName(a); titleEn = a.name;
-    [body, actions] = renderAbilityDetail(a);
-  } else if (type === 'item') {
-    const it = ItemById[id]; if (!it) return;
-    titleKo = itName(it); titleEn = it.name;
-    [body, actions] = renderItemDetail(it);
-  }
-  document.getElementById('dexDetailTitle').textContent = titleKo;
-  document.getElementById('dexDetailTitleEn').textContent = titleEn !== titleKo ? `(${titleEn})` : '';
-  document.getElementById('dexDetailBody').innerHTML = body;
-  document.getElementById('dexDetailActions').innerHTML = actions;
+  const content = buildDexContent(type, id);
+  if (!content) return;
+  dexModalCtx = { type, id };
+  document.getElementById('dexDetailTitle').textContent = content.titleKo;
+  document.getElementById('dexDetailTitleEn').textContent = content.titleEn !== content.titleKo ? `(${content.titleEn})` : '';
+  document.getElementById('dexDetailBody').innerHTML = content.body;
+  document.getElementById('dexDetailActions').innerHTML = content.actions;
   if (!modal.open) modal.showModal();
+}
+
+// 풀페이지로 상세 열기 (포켓몬/기술/특성 행 클릭)
+function openDexDetailPage(type, id) {
+  const content = buildDexContent(type, id);
+  if (!content) return;
+  dexFullPageCtx = { type, id };
+  const container = document.getElementById('dexFullPageDetail');
+  if (!container) return;
+  container.innerHTML = `
+    <button class="dex-fullpage-back" id="dexFullPageBack">← 목록으로</button>
+    <div class="dex-fullpage-head">
+      <span class="dex-fullpage-title">${escapeHTML(content.titleKo)}</span>
+      ${content.titleEn !== content.titleKo ? `<span class="dex-fullpage-title-en">${escapeHTML(content.titleEn)}</span>` : ''}
+    </div>
+    <div class="dex-fullpage-body" id="dexFullPageBody">${content.body}</div>
+    <div class="dex-fullpage-actions" id="dexFullPageActions">${content.actions}</div>
+  `;
+  document.querySelectorAll('.dex-content').forEach(c => c.classList.remove('active'));
+  container.classList.add('active');
+}
+
+function closeDexFullPage() {
+  const container = document.getElementById('dexFullPageDetail');
+  if (!container) return;
+  container.innerHTML = '';
+  container.classList.remove('active');
+  dexFullPageCtx = { type: null, id: null };
+  // currentDex 의 원래 컨텐츠 다시 표시
+  const target = document.getElementById('dex-' + currentDex);
+  if (target) target.classList.add('active');
 }
 
 // 포켓몬 상세 — 모달 내 학습기 타입 필터 상태 (포켓몬 단위로 reset)
@@ -4791,10 +4879,11 @@ function renderItemDetail(it) {
   return [body, actions];
 }
 
-// 적용 액션 처리
-function applyDexAction(action) {
-  const { type, id } = dexDetailCtx;
+// 적용 액션 처리 — ctx 는 호출 측에서 풀페이지/모달 중 어느 곳의 항목인지 명시
+function applyDexAction(action, ctx) {
+  const { type, id } = ctx || {};
   if (!type || !id) return;
+  let touched = false;
   if (action === 'pokemon-atk' || action === 'pokemon-def') {
     const sk = action === 'pokemon-atk' ? 'atk' : 'def';
     const p = PokemonById[id]; if (!p) return;
@@ -4802,29 +4891,21 @@ function applyDexAction(action) {
     state[sk].ability = abilityIdNorm(p.ab['0'] || p.ab['H'] || '');
     state[sk].teraType = p.types[0];
     if (sk === 'atk') state[sk].moves = [];
-    renderSide(sk);
-    triggerCalc();
-    closeDexDetail();
-    switchToCalcTab();
+    renderSide(sk); triggerCalc(); touched = true;
   } else if (action.startsWith('move-')) {
     const slot = parseInt(action.split('-')[1], 10);
     state.atk.moves[slot] = id;
-    renderSide('atk');
-    triggerCalc();
-    closeDexDetail();
-    switchToCalcTab();
+    renderSide('atk'); triggerCalc(); touched = true;
   } else if (action === 'ability-atk' || action === 'ability-def') {
     const sk = action === 'ability-atk' ? 'atk' : 'def';
     state[sk].ability = id;
-    renderSide(sk);
-    triggerCalc();
-    closeDexDetail();
-    switchToCalcTab();
+    renderSide(sk); triggerCalc(); touched = true;
   } else if (action === 'item-atk' || action === 'item-def') {
     const sk = action === 'item-atk' ? 'atk' : 'def';
     state[sk].item = id;
-    renderSide(sk);
-    triggerCalc();
+    renderSide(sk); triggerCalc(); touched = true;
+  }
+  if (touched) {
     closeDexDetail();
     switchToCalcTab();
   }
@@ -4840,47 +4921,66 @@ function switchToCalcTab() {
   if (calcTab) calcTab.click();
 }
 
-// 도감 행 클릭 → 모달 열기 (이벤트 위임)
+// 도감 행 클릭 — 포켓몬/기술/특성은 풀페이지, 도구는 모달
 document.querySelectorAll('.dex-content tbody').forEach(tbody => {
   tbody.addEventListener('click', e => {
     const tr = e.target.closest('tr[data-dex-id]');
     if (!tr) return;
     const id = tr.dataset.dexId;
-    // 어느 탭이냐 (currentDex 와 동일: 'pokemon'/'moves'/'abilities'/'items')
     const typeMap = { pokemon: 'pokemon', moves: 'move', abilities: 'ability', items: 'item' };
-    openDexDetail(typeMap[currentDex], id);
+    const t = typeMap[currentDex];
+    if (currentDex === 'items') openDexDetail(t, id);
+    else openDexDetailPage(t, id);
   });
 });
 
-// 모달 내부 cross-link 및 적용 버튼 (이벤트 위임)
-document.getElementById('dexDetailBody')?.addEventListener('click', e => {
-  // 학습기 타입 필터 클릭
+// 학습기 타입 필터 — 풀페이지/모달 어느 쪽이든 처리 (학습기 영역만 다시 그림)
+function handleLearnsetFilterClick(e, scopeRoot, ctx) {
   const filterBtn = e.target.closest('[data-learnset-filter]');
-  if (filterBtn) {
-    const t = filterBtn.dataset.learnsetFilter;
-    pokemonDetailTypeFilter = t === '' ? null : t;
-    // 학습기 영역만 다시 그린다
-    const p = PokemonById[dexDetailCtx.id];
-    if (p) {
-      const learnable = (p.ls || []).map(mid => MoveById[mid]).filter(Boolean);
-      const wrap = document.getElementById('learnsetWrap');
-      if (wrap) wrap.innerHTML = renderLearnsetByType(learnable);
-    }
-    return;
+  if (!filterBtn) return false;
+  const t = filterBtn.dataset.learnsetFilter;
+  pokemonDetailTypeFilter = t === '' ? null : t;
+  const p = PokemonById[ctx.id];
+  if (p) {
+    const learnable = (p.ls || []).map(mid => MoveById[mid]).filter(Boolean);
+    const wrap = scopeRoot.querySelector('#learnsetWrap');
+    if (wrap) wrap.innerHTML = renderLearnsetByType(learnable);
   }
+  return true;
+}
+
+// 모달 내부 — cross-link / 학습기 필터 / 적용 버튼
+document.getElementById('dexDetailBody')?.addEventListener('click', e => {
+  if (handleLearnsetFilterClick(e, document.getElementById('dexDetailBody'), dexModalCtx)) return;
   const link = e.target.closest('[data-dex-link]');
   if (!link) return;
+  // cross-reference 는 항상 모달로 (풀페이지 위에 모달이 떠도 무방)
   openDexDetail(link.dataset.dexLink, link.dataset.id);
 });
 document.getElementById('dexDetailActions')?.addEventListener('click', e => {
   const btn = e.target.closest('[data-dex-apply]');
   if (!btn || btn.disabled) return;
-  applyDexAction(btn.dataset.dexApply);
+  applyDexAction(btn.dataset.dexApply, dexModalCtx);
 });
 document.getElementById('dexDetailClose')?.addEventListener('click', closeDexDetail);
-// 배경(::backdrop) 클릭으로 닫기
 document.getElementById('dexDetailModal')?.addEventListener('click', e => {
   if (e.target.id === 'dexDetailModal') closeDexDetail();
+});
+
+// 풀페이지 — 뒤로 가기 / cross-link / 학습기 필터 / 적용 버튼 (이벤트 위임)
+document.getElementById('dexFullPageDetail')?.addEventListener('click', e => {
+  if (e.target.closest('#dexFullPageBack')) { closeDexFullPage(); return; }
+  if (handleLearnsetFilterClick(e, document.getElementById('dexFullPageDetail'), dexFullPageCtx)) return;
+  const link = e.target.closest('[data-dex-link]');
+  if (link) {
+    // 풀페이지 내부 cross-reference 는 모달로 띄움 (요청사항 4)
+    openDexDetail(link.dataset.dexLink, link.dataset.id);
+    return;
+  }
+  const btn = e.target.closest('[data-dex-apply]');
+  if (btn && !btn.disabled) {
+    applyDexAction(btn.dataset.dexApply, dexFullPageCtx);
+  }
 });
 
 /* ════════════════════════════════════════════════════════════
