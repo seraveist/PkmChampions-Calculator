@@ -4659,7 +4659,7 @@ function renderMoveDetail(m) {
       ${multihit ? `<div class="dex-modal-row"><span class="label">다단히트</span><b>${multihit}</b></div>` : ''}
     </div>
     ${flagsHtml ? `<div class="dex-modal-section"><div class="dex-modal-section-title">플래그</div><div class="dex-modal-flag-row">${flagsHtml}</div></div>` : ''}
-    ${m.desc ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div><div style="font-size:13px;line-height:1.5;color:var(--text-dim);">${escapeHTML(m.desc)}</div></div>` : ''}
+    ${(m.desc || m.descLong) ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div>${m.desc ? `<div style="font-size:13px;line-height:1.5;font-weight:600;">${escapeHTML(m.desc)}</div>` : ''}${m.descLong && m.descLong !== m.desc ? `<div style="font-size:12px;line-height:1.55;color:var(--text-dim);margin-top:6px;">${escapeHTML(m.descLong)}</div>` : ''}</div>` : ''}
     <div class="dex-modal-section">
       <div class="dex-modal-section-title">사용 가능 포켓몬 (${users.length})</div>
       ${userList}
@@ -4692,9 +4692,22 @@ function renderAbilityDetail(a) {
       })()
     : '';
 
+  // 긴 설명이 있으면 짧은 설명과 함께 표시
+  const descBlock = (() => {
+    if (!a.desc && !a.descLong) {
+      return '<div style="color:var(--text-faint);font-size:12px;">설명 데이터 없음</div>';
+    }
+    let html = '';
+    if (a.desc) html += `<div style="font-size:13px;line-height:1.5;font-weight:600;">${escapeHTML(a.desc)}</div>`;
+    if (a.descLong && a.descLong !== a.desc) {
+      html += `<div style="font-size:12px;line-height:1.55;color:var(--text-dim);margin-top:6px;">${escapeHTML(a.descLong)}</div>`;
+    }
+    return html;
+  })();
+
   const body = `
     ${ratingHtml ? `<div class="dex-modal-section">${ratingHtml}</div>` : ''}
-    ${a.desc ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div><div style="font-size:13px;line-height:1.5;">${escapeHTML(a.desc)}</div></div>` : '<div class="dex-modal-section"><div style="color:var(--text-faint);font-size:12px;">설명 데이터 없음 (PS의 data/text/abilities.ts 가 업로드되지 않았습니다)</div></div>'}
+    <div class="dex-modal-section"><div class="dex-modal-section-title">설명</div>${descBlock}</div>
     <div class="dex-modal-section">
       <div class="dex-modal-section-title">보유 포켓몬 (${owners.length})</div>
       ${ownerList}
@@ -4749,13 +4762,23 @@ function renderItemDetail(it) {
     berryInfo = `<div class="dex-modal-row"><span class="label">자연의은혜</span><span class="type-pill t-${it.naturalGift.type}" style="font-size:10px;padding:2px 7px;">${TYPE_KO[it.naturalGift.type] || it.naturalGift.type}</span> <b>${it.naturalGift.basePower || '—'}</b></div>`;
   }
 
+  const descBlock = (() => {
+    if (!it.desc && !it.descLong) {
+      return '<div style="color:var(--text-faint);font-size:12px;">설명 데이터 없음</div>';
+    }
+    let html = '';
+    if (it.desc) html += `<div style="font-size:13px;line-height:1.5;font-weight:600;">${escapeHTML(it.desc)}</div>`;
+    if (it.descLong && it.descLong !== it.desc) {
+      html += `<div style="font-size:12px;line-height:1.55;color:var(--text-dim);margin-top:6px;">${escapeHTML(it.descLong)}</div>`;
+    }
+    return html;
+  })();
+
   const body = `
     <div class="dex-modal-section">
       <div class="dex-modal-flag-row">${subTags.join(' ')}</div>
     </div>
-    ${it.desc
-      ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div><div style="font-size:13px;line-height:1.5;">${escapeHTML(it.desc)}</div></div>`
-      : '<div class="dex-modal-section"><div style="color:var(--text-faint);font-size:12px;">설명 데이터 없음 (PS의 data/text/items.ts 가 업로드되지 않았습니다)</div></div>'}
+    <div class="dex-modal-section"><div class="dex-modal-section-title">설명</div>${descBlock}</div>
     ${berryInfo ? `<div class="dex-modal-section">${berryInfo}</div>` : ''}
     ${it.flingBp ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">던지기 위력</span><b>${it.flingBp}</b></div></div>` : ''}
     ${megaInfo}

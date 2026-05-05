@@ -52,6 +52,14 @@ async function build() {
   const Natures = readBase('natures.ts', 'Natures');
   const FormatsData = readBase('formats-data.ts', 'FormatsData');
 
+  console.log('📚 텍스트 설명(text/) 로드');
+  const textDir = path.join(DATA, 'text');
+  const hasText = fs.existsSync(textDir);
+  const MovesText = hasText ? loadTsModule(path.join(textDir, 'moves.ts')).MovesText || {} : {};
+  const AbilitiesText = hasText ? loadTsModule(path.join(textDir, 'abilities.ts')).AbilitiesText || {} : {};
+  const ItemsText = hasText ? loadTsModule(path.join(textDir, 'items.ts')).ItemsText || {} : {};
+  if (!hasText) console.log('  (data/text/ 폴더가 없어 설명을 비웁니다)');
+
   console.log('📦 champions 모드 오버라이드 로드');
   const champPokedex = readChamp('pokedex.ts', 'Pokedex'); // 보통 비어 있음
   const champMoves = readChamp('moves.ts', 'Moves');
@@ -69,6 +77,19 @@ async function build() {
   // formats-data 는 base 가 9세대 본가 기준이라 champions 쪽이 진실의 원천.
   // champions formats-data 에 명시된 항목만 사용한다.
   const mergedFormats = champFormatsData;
+
+  // 설명 우선순위: 모드 오버라이드 → 베이스 text/ → 빈 문자열
+  // text/ 항목엔 desc(긴 설명) 와 shortDesc(짧은 설명) 가 모두 존재. shortDesc 우선.
+  function pickText(modEntry, textEntry) {
+    return modEntry?.shortDesc || modEntry?.desc
+      || textEntry?.shortDesc || textEntry?.desc
+      || '';
+  }
+  function pickLongText(modEntry, textEntry) {
+    return modEntry?.desc || textEntry?.desc
+      || modEntry?.shortDesc || textEntry?.shortDesc
+      || '';
+  }
 
   console.log('⚙️ 챔피언스 필터링');
 
@@ -126,7 +147,8 @@ async function build() {
         flags: m.flags || {},
         mh: m.multihit || undefined,
         target: m.target,
-        desc: m.shortDesc || m.desc || '',
+        desc: pickText(m, MovesText[id]),
+        descLong: pickLongText(m, MovesText[id]),
       });
     }
   }
@@ -141,7 +163,8 @@ async function build() {
       name: a.name,
       koName: a.name,
       rating: typeof a.rating === 'number' ? a.rating : undefined,
-      desc: a.shortDesc || a.desc || '',
+      desc: pickText(a, AbilitiesText[id]),
+      descLong: pickLongText(a, AbilitiesText[id]),
     });
   }
 
@@ -162,7 +185,8 @@ async function build() {
       isPrimalOrb: it.isPrimalOrb || undefined,
       flingBp: it.fling?.basePower || undefined,
       naturalGift: it.naturalGift || undefined,
-      desc: it.shortDesc || it.desc || '',
+      desc: pickText(it, ItemsText[id]),
+      descLong: pickLongText(it, ItemsText[id]),
     });
   }
 
