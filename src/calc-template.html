@@ -1316,37 +1316,38 @@
 
   .matchup-table-wrap { overflow-x: auto; }
   .matchup-table {
-    width: 100%; border-collapse: collapse;
+    border-collapse: collapse;
     font-family: 'JetBrains Mono', monospace; font-size: 12px;
-    min-width: 600px;
+    table-layout: fixed;
+    /* min-width 는 colgroup 에서 합산된 열폭을 충족시키기 위한 가드 */
+    min-width: 740px;
   }
   .matchup-table th, .matchup-table td {
     padding: 6px 8px; border: 1px solid var(--border);
     text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .matchup-table thead th {
     background: var(--bg-elev); color: var(--text-dim);
     font-weight: 600; font-size: 11px;
     position: sticky; top: 0; z-index: 1;
-    white-space: nowrap;
   }
   .matchup-table thead th.summary { color: var(--warn); }
   .matchup-table tbody td:first-child {
     background: var(--bg-elev);
     text-align: left;
     padding: 4px 8px;
-    white-space: nowrap;
   }
-  .matchup-table tbody tr:hover td { background: rgba(255, 181, 71, 0.04); }
   .matchup-table tbody td.summary {
     background: var(--bg-elev); color: var(--text-faint); font-weight: 700;
   }
   .matchup-table tbody td.summary.weak { color: var(--atk); }
   .matchup-table tbody td.summary.immune { color: var(--text-dim); }
-  /* 셀 효과 색상 */
+  /* 셀 효과 색상 (1× 는 색상 변경 없음 — 기본 셀과 동일) */
   .matchup-table td.eff-4 { background: rgba(255, 71, 102, 0.25); color: #ff4766; font-weight: 700; }
   .matchup-table td.eff-2 { background: rgba(255, 71, 102, 0.12); color: #ff4766; font-weight: 600; }
-  .matchup-table td.eff-1 { color: var(--text-faint); }
   .matchup-table td.eff-05 { background: rgba(74, 222, 128, 0.12); color: var(--ok); }
   .matchup-table td.eff-025 { background: rgba(74, 222, 128, 0.25); color: var(--ok); font-weight: 700; }
   .matchup-table td.eff-0 { background: rgba(82, 90, 120, 0.3); color: var(--text-dim); font-weight: 700; }
@@ -4618,11 +4619,13 @@ const EFF_SYMBOL = {
 const EFF_CLASS = {
   4: 'eff-4',
   2: 'eff-2',
-  1: 'eff-1',
+  1: '',           // 1× 는 클래스 부여 안 함 (색깔 변경 없음)
   0.5: 'eff-05',
   0.25: 'eff-025',
   0: 'eff-0',
 };
+// 매치업 테이블 고정 열 너비 (px). table-layout: fixed 와 함께 사용.
+const MATCHUP_COL = { type: 110, slot: 90, summary: 56 };
 
 function renderMatchupSlots() {
   const container = document.getElementById('matchupSlots');
@@ -4699,17 +4702,29 @@ function wireMatchupSlots() {
 }
 
 function renderMatchupTable() {
+  const tbl = document.getElementById('matchupTable');
   const head = document.getElementById('matchupHead');
   const body = document.getElementById('matchupBody');
-  if (!head || !body) return;
+  if (!tbl || !head || !body) return;
 
   const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
+
+  // colgroup 으로 고정 열 너비 강제 (table-layout: fixed 와 함께)
+  // 슬롯 채워지든 비어 있든 동일한 폭을 유지한다.
+  const oldCG = tbl.querySelector('colgroup');
+  if (oldCG) oldCG.remove();
+  const cg = document.createElement('colgroup');
+  cg.innerHTML =
+    `<col style="width:${MATCHUP_COL.type}px">` +
+    pokes.map(() => `<col style="width:${MATCHUP_COL.slot}px">`).join('') +
+    `<col style="width:${MATCHUP_COL.summary}px"><col style="width:${MATCHUP_COL.summary}px">`;
+  tbl.insertBefore(cg, tbl.firstChild);
 
   // 헤더: 공격 타입 컬럼 + 6 슬롯 + 무효/약점 요약
   head.innerHTML = `
     <tr>
       <th style="text-align:left;">공격 타입</th>
-      ${pokes.map((p, i) => `<th>${p ? escapeHTML(pkName(p)) : `<span style="color:var(--text-faint)">슬롯 ${i+1}</span>`}</th>`).join('')}
+      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span style="color:var(--text-faint)">슬롯 ${i+1}</span>`}</th>`).join('')}
       <th class="summary">무효</th>
       <th class="summary">약점</th>
     </tr>
