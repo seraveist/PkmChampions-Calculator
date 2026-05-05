@@ -1509,6 +1509,8 @@
               <option value="1">1층</option><option value="2">2층</option><option value="3">3층</option>
             </select>
           </label>
+          <label class="checkbox-label"><input type="checkbox" id="trickRoom"> 🔄 트릭룸 (느린 쪽 선공)</label>
+          <label class="checkbox-label"><input type="checkbox" id="gravity"> 🌐 중력장 (Ground 면역 무효 / Sapple ×1.5)</label>
           <label class="checkbox-label" style="color: var(--ok); grid-column: 1/-1;"><input type="checkbox" id="autoEntry" checked> 📋 자동 진입 효과 (위협, 가뭄, 다운로드 등)</label>
         </div>
       </div>
@@ -2050,7 +2052,7 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
       return field.terrain === 'Misty' && grounded ? Math.floor(baseBp * 1.5) : baseBp;
     }
     case 'gravapple': {
-      // 중력장 시 ×1.5 (현재 field.isGravity 토글 미존재 → 기본 false)
+      // 중력장 시 ×1.5
       return field.isGravity ? Math.floor(baseBp * 1.5) : baseBp;
     }
     case 'solarbeam':
@@ -2947,7 +2949,6 @@ const state = {
   field: {
     weather: "none", terrain: "none", gameType: "Singles",
     isCritical: false, isTrickRoom: false, isGravity: false,
-    atkReflect: false, atkLightScreen: false,
     defReflect: false, defLightScreen: false,
     atkHelpingHand: false, defProtect: false,
     // 재앙 시리즈 (수동 토글, 진입 효과로도 자동 활성화 가능)
@@ -4074,6 +4075,9 @@ document.getElementById('defSpikesLayers').addEventListener('change', e => {
     triggerCalc();
   }
 });
+// 트릭룸 / 중력장
+document.getElementById('trickRoom').addEventListener('change', e => { state.field.isTrickRoom = e.target.checked; triggerCalc(); });
+document.getElementById('gravity').addEventListener('change', e => { state.field.isGravity = e.target.checked; triggerCalc(); });
 // 자동 진입 효과 토글
 document.getElementById('autoEntry').addEventListener('change', e => {
   autoEntryEffects = e.target.checked;
