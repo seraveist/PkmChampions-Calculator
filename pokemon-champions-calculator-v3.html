@@ -1152,6 +1152,63 @@
   }
   .ko-modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+  /* ════════════════════════════════════════════════════════════
+     6.5  도감 상세 모달
+     ════════════════════════════════════════════════════════════ */
+  .dex-modal {
+    margin: auto;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-bright);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 0;
+    max-width: 720px;
+    width: 92%;
+    max-height: 85vh;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+  }
+  .dex-modal::backdrop { background: rgba(11, 13, 20, 0.85); backdrop-filter: blur(6px); }
+  .dex-modal-head {
+    padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg-elev); border-bottom: 1px solid var(--border);
+  }
+  .dex-modal-title { font-family: 'Black Han Sans', sans-serif; font-size: 20px; }
+  .dex-modal-title-en { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-dim); margin-left: 8px; }
+  .dex-modal-close { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 4px 10px; cursor: pointer; border-radius: 3px; font-size: 14px; }
+  .dex-modal-close:hover { color: var(--text); border-color: var(--border-bright); }
+  .dex-modal-body { padding: 16px 20px; overflow-y: auto; max-height: calc(85vh - 130px); }
+  .dex-modal-actions {
+    padding: 12px 20px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
+    background: var(--bg-elev); border-top: 1px solid var(--border);
+  }
+  .dex-modal-section { margin-bottom: 16px; }
+  .dex-modal-section:last-child { margin-bottom: 0; }
+  .dex-modal-section-title { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 6px; }
+  .dex-modal-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; font-size: 13px; }
+  .dex-modal-row b { color: var(--text); font-weight: 600; }
+  .dex-modal-row span.label { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; min-width: 64px; }
+  .dex-modal-stat-grid { display: grid; grid-template-columns: 60px 1fr 50px; gap: 4px 10px; align-items: center; }
+  .dex-modal-stat-grid .stat-name { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); }
+  .dex-modal-stat-grid .stat-bar { height: 8px; background: var(--bg-input); border-radius: 4px; overflow: hidden; }
+  .dex-modal-stat-grid .stat-bar-fill { height: 100%; background: linear-gradient(90deg, var(--def), var(--ok)); }
+  .dex-modal-stat-grid .stat-val { font-family: 'JetBrains Mono', monospace; font-weight: 600; text-align: right; }
+  .dex-modal-stat-grid .total .stat-name { color: var(--warn); font-weight: 700; }
+  .dex-modal-stat-grid .total .stat-val { color: var(--warn); font-weight: 700; }
+  .dex-link-list { display: flex; flex-wrap: wrap; gap: 4px; max-height: 200px; overflow-y: auto; padding: 8px; background: var(--bg-input); border-radius: 4px; border: 1px solid var(--border); }
+  .dex-link-list .dex-link { background: var(--bg-panel); border: 1px solid var(--border); color: var(--text); padding: 3px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; cursor: pointer; border-radius: 2px; }
+  .dex-link-list .dex-link:hover { background: var(--bg-elev); border-color: var(--border-bright); color: var(--warn); }
+  .dex-modal-flag-row { display: flex; flex-wrap: wrap; gap: 4px; }
+  .dex-modal-flag { background: var(--bg-input); border: 1px solid var(--border); padding: 2px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; border-radius: 2px; color: var(--text-dim); }
+  .dex-modal-btn { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim); padding: 7px 14px; font-family: inherit; font-size: 12px; border-radius: 3px; cursor: pointer; }
+  .dex-modal-btn:hover { color: var(--text); border-color: var(--border-bright); }
+  .dex-modal-btn.atk { color: var(--atk); border-color: var(--atk-deep); }
+  .dex-modal-btn.atk:hover { background: rgba(255, 71, 102, 0.1); }
+  .dex-modal-btn.def { color: var(--def); border-color: var(--def-deep); }
+  .dex-modal-btn.def:hover { background: rgba(51, 183, 255, 0.1); }
+  .dex-modal-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .dex-table tbody tr { cursor: pointer; }
+
   .ko-modal-result {
     background: var(--bg-input);
     border: 1px solid var(--border);
@@ -1577,6 +1634,16 @@
     <button class="ko-modal-btn" id="koCancel">닫기</button>
     <button class="ko-modal-btn primary" id="koStart">시작</button>
   </div>
+</dialog>
+
+<!-- 도감 상세 모달 -->
+<dialog class="dex-modal" id="dexDetailModal">
+  <div class="dex-modal-head">
+    <div><span class="dex-modal-title" id="dexDetailTitle"></span><span class="dex-modal-title-en" id="dexDetailTitleEn"></span></div>
+    <button class="dex-modal-close" id="dexDetailClose">✕ 닫기</button>
+  </div>
+  <div class="dex-modal-body" id="dexDetailBody"></div>
+  <div class="dex-modal-actions" id="dexDetailActions"></div>
 </dialog>
 
 <!-- 데이터 주입부 (빌드 스크립트가 JSON으로 교체함) -->
@@ -4166,29 +4233,365 @@ function renderPokemonDex(query) {
   if (query) data = data.filter(p => (p.koName||'').toLowerCase().includes(query) || p.name.toLowerCase().includes(query));
   const tbody = document.getElementById('dexBodyPokemon');
   if(!tbody) return;
-  tbody.innerHTML = data.slice(0, 200).map(p => `<tr><td>${p.mega ? '<span class="badge-mega" style="color:var(--tera);font-size:10px;">[메가]</span> ' : ''}${escapeHTML(p.koName || p.name)}</td><td>${p.types.join(', ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num" style="font-weight:700; color:var(--warn);">${p.bst}</td><td class="dim" style="font-size:10px;">${Object.values(p.ab).join(', ')}</td></tr>`).join('');
+  tbody.innerHTML = data.slice(0, 200).map(p => `<tr data-dex-id="${p.id}"><td>${p.mega ? '<span class="badge-mega" style="color:var(--tera);font-size:10px;">[메가]</span> ' : ''}${escapeHTML(p.koName || p.name)}</td><td>${p.types.join(', ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num" style="font-weight:700; color:var(--warn);">${p.bst}</td><td class="dim" style="font-size:10px;">${Object.values(p.ab).join(', ')}</td></tr>`).join('');
 }
 function renderMovesDex(query) {
   let data = [...MOVES];
   if (query) data = data.filter(m => (m.koName||'').toLowerCase().includes(query) || m.name.toLowerCase().includes(query));
   const tbody = document.getElementById('dexBodyMoves');
   if(!tbody) return;
-  tbody.innerHTML = data.slice(0, 300).map(m => `<tr><td>${escapeHTML(m.koName || m.name)}</td><td>${m.type}</td><td>${m.cat}</td><td class="num">${m.bp || '—'}</td><td class="num">${m.acc || '—'}</td><td class="num">${m.pp || '—'}</td><td class="num">${m.pri || 0}</td><td class="desc-cell">${escapeHTML(m.desc || '')}</td></tr>`).join('');
+  tbody.innerHTML = data.slice(0, 300).map(m => `<tr data-dex-id="${m.id}"><td>${escapeHTML(m.koName || m.name)}</td><td>${m.type}</td><td>${m.cat}</td><td class="num">${m.bp || '—'}</td><td class="num">${m.acc || '—'}</td><td class="num">${m.pp || '—'}</td><td class="num">${m.pri || 0}</td><td class="desc-cell">${escapeHTML(m.desc || '')}</td></tr>`).join('');
 }
 function renderAbilitiesDex(query) {
   let data = [...ABILITIES];
   if (query) data = data.filter(a => (a.koName||'').toLowerCase().includes(query) || a.name.toLowerCase().includes(query));
   const tbody = document.getElementById('dexBodyAbilities');
   if(!tbody) return;
-  tbody.innerHTML = data.map(a => `<tr><td>${escapeHTML(a.koName || a.name)}</td><td class="dim">${a.name}</td><td class="desc-cell">${escapeHTML(a.desc || '')}</td></tr>`).join('');
+  tbody.innerHTML = data.map(a => `<tr data-dex-id="${a.id}"><td>${escapeHTML(a.koName || a.name)}</td><td class="dim">${a.name}</td><td class="desc-cell">${escapeHTML(a.desc || '')}</td></tr>`).join('');
 }
 function renderItemsDex(query) {
   let data = [...ITEMS];
   if (query) data = data.filter(i => (i.koName||'').toLowerCase().includes(query) || i.name.toLowerCase().includes(query));
   const tbody = document.getElementById('dexBodyItems');
   if(!tbody) return;
-  tbody.innerHTML = data.map(i => `<tr><td>${escapeHTML(i.koName || i.name)}</td><td class="dim">${i.name}</td><td class="desc-cell">${escapeHTML(i.desc || '')}</td><td></td></tr>`).join('');
+  tbody.innerHTML = data.map(i => `<tr data-dex-id="${i.id}"><td>${escapeHTML(i.koName || i.name)}</td><td class="dim">${i.name}</td><td class="desc-cell">${escapeHTML(i.desc || '')}</td><td>${i.ms ? '<span style="color:var(--tera);font-size:10px;">[메가스톤]</span>' : ''}</td></tr>`).join('');
 }
+
+/* ════════════════════════════════════════════════════════════
+   도감 상세 모달 — Cross-reference 인덱스 + 렌더러
+   ════════════════════════════════════════════════════════════ */
+function abilityIdNorm(name) { return (name || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+// 특성 → 보유 포켓몬 인덱스 (한 번만 빌드)
+const PokemonByAbility = (() => {
+  const idx = {};
+  for (const p of POKEMON) {
+    for (const abName of Object.values(p.ab || {})) {
+      const aId = abilityIdNorm(abName);
+      if (!aId) continue;
+      (idx[aId] = idx[aId] || []).push(p);
+    }
+  }
+  return idx;
+})();
+
+// 기술 → 사용 가능 포켓몬 인덱스 (learnset 기반)
+const PokemonByMove = (() => {
+  const idx = {};
+  for (const p of POKEMON) {
+    if (!p.ls) continue;
+    for (const moveId of p.ls) {
+      (idx[moveId] = idx[moveId] || []).push(p);
+    }
+  }
+  return idx;
+})();
+
+// 모달 컨텍스트 (현재 표시 중인 항목의 type/id 보관)
+let dexDetailCtx = { type: null, id: null };
+
+function openDexDetail(type, id) {
+  const modal = document.getElementById('dexDetailModal');
+  if (!modal) return;
+  dexDetailCtx = { type, id };
+  let titleKo = '', titleEn = '', body = '', actions = '';
+  if (type === 'pokemon') {
+    const p = PokemonById[id]; if (!p) return;
+    titleKo = pkName(p); titleEn = p.name;
+    [body, actions] = renderPokemonDetail(p);
+  } else if (type === 'move') {
+    const m = MoveById[id]; if (!m) return;
+    titleKo = mvName(m); titleEn = m.name;
+    [body, actions] = renderMoveDetail(m);
+  } else if (type === 'ability') {
+    const a = AbilityById[id]; if (!a) return;
+    titleKo = abName(a); titleEn = a.name;
+    [body, actions] = renderAbilityDetail(a);
+  } else if (type === 'item') {
+    const it = ItemById[id]; if (!it) return;
+    titleKo = itName(it); titleEn = it.name;
+    [body, actions] = renderItemDetail(it);
+  }
+  document.getElementById('dexDetailTitle').textContent = titleKo;
+  document.getElementById('dexDetailTitleEn').textContent = titleEn !== titleKo ? `(${titleEn})` : '';
+  document.getElementById('dexDetailBody').innerHTML = body;
+  document.getElementById('dexDetailActions').innerHTML = actions;
+  if (!modal.open) modal.showModal();
+}
+
+// 포켓몬 상세
+function renderPokemonDetail(p) {
+  const stats = ['hp','atk','def','spa','spd','spe'];
+  const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
+  const maxStat = Math.max(...stats.map(s => p.bs[s]));
+  const statRows = stats.map(s => {
+    const v = p.bs[s];
+    const pct = Math.round(v / Math.max(maxStat, 200) * 100);
+    return `<div class="stat-name">${STAT_KO[s]}</div><div class="stat-bar"><div class="stat-bar-fill" style="width:${pct}%"></div></div><div class="stat-val">${v}</div>`;
+  }).join('');
+  const totalRow = `<div class="total"><div class="stat-name">합계</div></div><div></div><div class="total"><div class="stat-val">${p.bst}</div></div>`;
+
+  // 특성 표시
+  const abEntries = Object.entries(p.ab || {}).map(([slot, abN]) => {
+    const id = abilityIdNorm(abN);
+    const data = AbilityById[id];
+    const label = data ? `${abName(data)}${data.koName && data.name !== data.koName ? ` <small style="color:var(--text-faint)">${data.name}</small>` : ''}` : abN;
+    const tag = slot === 'H' ? ' <span style="color:var(--warn);font-size:10px;">[숨겨진]</span>' : '';
+    return `<button class="dex-link" data-dex-link="ability" data-id="${id}">${label}${tag}</button>`;
+  }).join('');
+
+  // 학습 가능 기술 (id 만 있고 정렬 필요)
+  const learnable = (p.ls || []).map(mid => MoveById[mid]).filter(Boolean).sort((a, b) => (a.koName||a.name).localeCompare(b.koName||b.name, 'ko'));
+  const learnList = learnable.length > 0
+    ? `<div class="dex-link-list">${learnable.map(m => `<button class="dex-link" data-dex-link="move" data-id="${m.id}">${escapeHTML(mvName(m))}</button>`).join('')}</div>`
+    : '<div style="color:var(--text-faint);font-size:12px;">학습 정보 없음</div>';
+
+  const flags = [];
+  if (p.mega) flags.push('<span style="color:var(--tera)">메가진화</span>');
+  if (p.primal) flags.push('<span style="color:var(--warn)">원시회귀</span>');
+  if (p.tier) flags.push(`티어: <b>${p.tier}</b>`);
+  if (p.weightkg) flags.push(`무게: <b>${p.weightkg}</b>kg`);
+
+  const body = `
+    <div class="dex-modal-section">
+      <div class="dex-modal-row">
+        ${p.types.map(t => `<span class="type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}
+        <span style="color:var(--text-dim);font-size:12px;">${flags.join(' · ')}</span>
+      </div>
+    </div>
+    <div class="dex-modal-section">
+      <div class="dex-modal-section-title">종족값</div>
+      <div class="dex-modal-stat-grid">${statRows}${totalRow}</div>
+    </div>
+    <div class="dex-modal-section">
+      <div class="dex-modal-section-title">특성</div>
+      <div class="dex-modal-flag-row">${abEntries || '<span style="color:var(--text-faint)">없음</span>'}</div>
+    </div>
+    <div class="dex-modal-section">
+      <div class="dex-modal-section-title">학습 가능 기술 (${learnable.length})</div>
+      ${learnList}
+    </div>
+    ${p.requiredItem ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">필요 도구</span><b>${escapeHTML(p.requiredItem)}</b></div></div>` : ''}
+  `;
+
+  const actions = `
+    <button class="dex-modal-btn atk" data-dex-apply="pokemon-atk">⚔️ 공격측으로 가져가기</button>
+    <button class="dex-modal-btn def" data-dex-apply="pokemon-def">🛡️ 방어측으로 가져가기</button>
+  `;
+  return [body, actions];
+}
+
+// 기술 상세
+function renderMoveDetail(m) {
+  const flagLabels = {
+    contact: '접촉', protect: '보호 가능', mirror: '미러 카피', sound: '소리', punch: '펀치', bite: '깨물기',
+    pulse: '파동', slicing: '베기', bullet: '탄환', powder: '가루', dance: '춤', wind: '바람',
+    snatch: '가로채기', heal: '회복', authentic: '실체화', defrost: '해동', gravity: '중력 무효',
+    metronome: '메트로놈', mustpressure: '프레셔', failmimic: '미믹 실패', allyanim: '아군 애니',
+    failencore: '앙코르 실패', bypasssub: '대타출동 무시', failinstruct: 'Instruct 실패', futuremove: '미래 기술',
+    nonsky: '하늘 미사용', nosleeptalk: '잠꼬대 불가', failmefirst: '미퍼스트 실패', noassist: '어시스트 불가',
+    failcopycat: '카피캣 실패',
+  };
+  const flagsHtml = Object.entries(m.flags || {}).filter(([_, v]) => v)
+    .map(([k]) => `<span class="dex-modal-flag">${flagLabels[k] || k}</span>`).join(' ');
+  // 다단히트
+  let multihit = '';
+  if (m.mh) multihit = Array.isArray(m.mh) ? `${m.mh[0]}~${m.mh[1]}타` : `${m.mh}타`;
+  // 가변 BP 안내
+  const VARIABLE_BP_NOTE = {
+    gyroball: '느릴수록 위력 ↑', electroball: '빠를수록 위력 ↑',
+    heatcrash: '무거울수록 위력 ↑', heavyslam: '무거울수록 위력 ↑',
+    lowkick: '대상이 무거울수록', grassknot: '대상이 무거울수록',
+    eruption: 'HP 비율에 비례', waterspout: 'HP 비율에 비례',
+    flail: 'HP 적을수록', reversal: 'HP 적을수록', hardpress: '대상 HP 적을수록 ↓',
+    hex: '상태이상 시 ×2', infernalparade: '상태이상 시 ×2',
+    venoshock: '독 상태 시 ×2', facade: '화상/마비/독 시 ×2',
+    knockoff: '도구 보유 시 ×1.5', boltbeak: '선공 시 ×2', fishiousrend: '선공 시 ×2',
+    payback: '후공 시 ×2', avalanche: '피격 시 ×2', assurance: '대상 피격 시 ×2',
+    risingvoltage: '일렉트릭필드 ×2', expandingforce: '사이코필드 ×1.5',
+    mistyexplosion: '미스트필드 ×1.5', gravapple: '중력장 ×1.5',
+    solarbeam: '쾌청 외 ×0.5', solarblade: '쾌청 외 ×0.5',
+    weatherball: '날씨 → 타입+위력 변경', terrainpulse: '필드 → 타입+위력 변경',
+    storedpower: '+부스트 단계당 +20', powertrip: '+부스트 단계당 +20',
+    lastrespects: '쓰러진 동료당 +50', acrobatics: '도구 미보유 시 ×2',
+    tripleaxel: '1/2/3타 BP 20/40/60', temperflare: '직전 실패 시 ×2',
+    stompingtantrum: '직전 실패 시 ×2',
+  };
+  const variableNote = VARIABLE_BP_NOTE[m.id];
+
+  // 사용 가능 포켓몬
+  const users = (PokemonByMove[m.id] || []).slice().sort((a,b) => (a.koName||a.name).localeCompare(b.koName||b.name, 'ko'));
+  const userList = users.length > 0
+    ? `<div class="dex-link-list">${users.map(p => `<button class="dex-link" data-dex-link="pokemon" data-id="${p.id}">${escapeHTML(pkName(p))}</button>`).join('')}</div>`
+    : '<div style="color:var(--text-faint);font-size:12px;">학습 가능 포켓몬 정보 없음</div>';
+
+  const body = `
+    <div class="dex-modal-section">
+      <div class="dex-modal-row">
+        <span class="type-pill t-${m.type}">${TYPE_KO[m.type] || m.type}</span>
+        <span class="cat-badge ${m.cat === 'Physical' ? 'cat-phys' : m.cat === 'Special' ? 'cat-spec' : 'cat-stat'}">${m.cat === 'Physical' ? '물리' : m.cat === 'Special' ? '특수' : '변화'}</span>
+        ${m.pri && m.pri !== 0 ? `<span style="color:var(--warn);font-family:'JetBrains Mono';font-size:11px;">우선도 ${m.pri > 0 ? '+' : ''}${m.pri}</span>` : ''}
+      </div>
+    </div>
+    <div class="dex-modal-section">
+      <div class="dex-modal-row"><span class="label">위력</span><b>${m.bp || '—'}</b>${variableNote ? `<span style="color:var(--warn);font-size:11px;">(${variableNote})</span>` : ''}</div>
+      <div class="dex-modal-row"><span class="label">명중</span><b>${m.acc === 0 || m.acc === true ? '필중' : (m.acc || '—')}</b></div>
+      <div class="dex-modal-row"><span class="label">PP</span><b>${m.pp || '—'}</b></div>
+      ${multihit ? `<div class="dex-modal-row"><span class="label">다단히트</span><b>${multihit}</b></div>` : ''}
+    </div>
+    ${flagsHtml ? `<div class="dex-modal-section"><div class="dex-modal-section-title">플래그</div><div class="dex-modal-flag-row">${flagsHtml}</div></div>` : ''}
+    ${m.desc ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div><div style="font-size:13px;line-height:1.5;color:var(--text-dim);">${escapeHTML(m.desc)}</div></div>` : ''}
+    <div class="dex-modal-section">
+      <div class="dex-modal-section-title">사용 가능 포켓몬 (${users.length})</div>
+      ${userList}
+    </div>
+  `;
+
+  const actions = m.cat === 'Status'
+    ? '<button class="dex-modal-btn" disabled>변화기는 데미지 계산 불가</button>'
+    : `
+      <span style="color:var(--text-dim);font-size:11px;align-self:center;margin-right:auto;">공격측 슬롯에 적용:</span>
+      ${[1,2,3,4].map(i => `<button class="dex-modal-btn atk" data-dex-apply="move-${i-1}">슬롯 ${i}</button>`).join('')}
+    `;
+  return [body, actions];
+}
+
+// 특성 상세
+function renderAbilityDetail(a) {
+  const owners = (PokemonByAbility[a.id] || []).slice().sort((x,y) => (x.koName||x.name).localeCompare(y.koName||y.name, 'ko'));
+  const ownerList = owners.length > 0
+    ? `<div class="dex-link-list">${owners.map(p => `<button class="dex-link" data-dex-link="pokemon" data-id="${p.id}">${escapeHTML(pkName(p))}</button>`).join('')}</div>`
+    : '<div style="color:var(--text-faint);font-size:12px;">보유 포켓몬 없음</div>';
+
+  const body = `
+    ${a.desc ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div><div style="font-size:13px;line-height:1.5;">${escapeHTML(a.desc)}</div></div>` : ''}
+    <div class="dex-modal-section">
+      <div class="dex-modal-section-title">보유 포켓몬 (${owners.length})</div>
+      ${ownerList}
+    </div>
+  `;
+  // 현재 양측 포켓몬이 이 특성을 가질 수 있는지 체크
+  const atkP = PokemonById[state.atk.pokemonIdx];
+  const defP = PokemonById[state.def.pokemonIdx];
+  const atkCanHave = atkP && Object.values(atkP.ab || {}).some(n => abilityIdNorm(n) === a.id);
+  const defCanHave = defP && Object.values(defP.ab || {}).some(n => abilityIdNorm(n) === a.id);
+  const actions = `
+    <button class="dex-modal-btn atk" data-dex-apply="ability-atk" ${atkCanHave ? '' : 'disabled'} title="${atkCanHave ? '' : '현재 공격측 포켓몬이 이 특성을 가질 수 없음'}">⚔️ 공격측에 적용</button>
+    <button class="dex-modal-btn def" data-dex-apply="ability-def" ${defCanHave ? '' : 'disabled'} title="${defCanHave ? '' : '현재 방어측 포켓몬이 이 특성을 가질 수 없음'}">🛡️ 방어측에 적용</button>
+  `;
+  return [body, actions];
+}
+
+// 도구 상세
+function renderItemDetail(it) {
+  let megaInfo = '';
+  if (it.ms) {
+    // ms = { "Charizard": "Charizard-Mega-X" } 형태
+    const targets = Object.entries(it.ms);
+    megaInfo = `
+      <div class="dex-modal-section">
+        <div class="dex-modal-section-title">메가스톤 — 변환 대상</div>
+        <div class="dex-link-list">
+          ${targets.map(([orig, mega]) => {
+            // 메가폼 ID 추정 (소문자, 공백/하이픈 제거)
+            const megaId = mega.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return PokemonById[megaId]
+              ? `<button class="dex-link" data-dex-link="pokemon" data-id="${megaId}">${escapeHTML(orig)} → ${escapeHTML(mega)}</button>`
+              : `<span class="dex-modal-flag">${escapeHTML(orig)} → ${escapeHTML(mega)}</span>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+  const body = `
+    ${it.desc ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div><div style="font-size:13px;line-height:1.5;">${escapeHTML(it.desc)}</div></div>` : ''}
+    ${megaInfo}
+    ${it.itemUser ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">전용</span>${it.itemUser.map(u => `<span class="dex-modal-flag">${escapeHTML(u)}</span>`).join(' ')}</div></div>` : ''}
+  `;
+  const actions = `
+    <button class="dex-modal-btn atk" data-dex-apply="item-atk">⚔️ 공격측에 장착</button>
+    <button class="dex-modal-btn def" data-dex-apply="item-def">🛡️ 방어측에 장착</button>
+  `;
+  return [body, actions];
+}
+
+// 적용 액션 처리
+function applyDexAction(action) {
+  const { type, id } = dexDetailCtx;
+  if (!type || !id) return;
+  if (action === 'pokemon-atk' || action === 'pokemon-def') {
+    const sk = action === 'pokemon-atk' ? 'atk' : 'def';
+    const p = PokemonById[id]; if (!p) return;
+    state[sk].pokemonIdx = id;
+    state[sk].ability = abilityIdNorm(p.ab['0'] || p.ab['H'] || '');
+    state[sk].teraType = p.types[0];
+    if (sk === 'atk') state[sk].moves = [];
+    renderSide(sk);
+    triggerCalc();
+    closeDexDetail();
+    switchToCalcTab();
+  } else if (action.startsWith('move-')) {
+    const slot = parseInt(action.split('-')[1], 10);
+    state.atk.moves[slot] = id;
+    renderSide('atk');
+    triggerCalc();
+    closeDexDetail();
+    switchToCalcTab();
+  } else if (action === 'ability-atk' || action === 'ability-def') {
+    const sk = action === 'ability-atk' ? 'atk' : 'def';
+    state[sk].ability = id;
+    renderSide(sk);
+    triggerCalc();
+    closeDexDetail();
+    switchToCalcTab();
+  } else if (action === 'item-atk' || action === 'item-def') {
+    const sk = action === 'item-atk' ? 'atk' : 'def';
+    state[sk].item = id;
+    renderSide(sk);
+    triggerCalc();
+    closeDexDetail();
+    switchToCalcTab();
+  }
+}
+
+function closeDexDetail() {
+  const modal = document.getElementById('dexDetailModal');
+  if (modal && modal.open) modal.close();
+}
+
+function switchToCalcTab() {
+  const calcTab = document.querySelector('.nav-tab[data-page="calc"]');
+  if (calcTab) calcTab.click();
+}
+
+// 도감 행 클릭 → 모달 열기 (이벤트 위임)
+document.querySelectorAll('.dex-content tbody').forEach(tbody => {
+  tbody.addEventListener('click', e => {
+    const tr = e.target.closest('tr[data-dex-id]');
+    if (!tr) return;
+    const id = tr.dataset.dexId;
+    // 어느 탭이냐 (currentDex 와 동일: 'pokemon'/'moves'/'abilities'/'items')
+    const typeMap = { pokemon: 'pokemon', moves: 'move', abilities: 'ability', items: 'item' };
+    openDexDetail(typeMap[currentDex], id);
+  });
+});
+
+// 모달 내부 cross-link 및 적용 버튼 (이벤트 위임)
+document.getElementById('dexDetailBody')?.addEventListener('click', e => {
+  const link = e.target.closest('[data-dex-link]');
+  if (!link) return;
+  openDexDetail(link.dataset.dexLink, link.dataset.id);
+});
+document.getElementById('dexDetailActions')?.addEventListener('click', e => {
+  const btn = e.target.closest('[data-dex-apply]');
+  if (!btn || btn.disabled) return;
+  applyDexAction(btn.dataset.dexApply);
+});
+document.getElementById('dexDetailClose')?.addEventListener('click', closeDexDetail);
+// 배경(::backdrop) 클릭으로 닫기
+document.getElementById('dexDetailModal')?.addEventListener('click', e => {
+  if (e.target.id === 'dexDetailModal') closeDexDetail();
+});
 
 /* ════════════════════════════════════════════════════════════
    초기 렌더링 — 페이지 로드 시 양측 패널, 결과 영역, 도감 첫 탭을
