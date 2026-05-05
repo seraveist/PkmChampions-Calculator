@@ -127,12 +127,31 @@
     max-width: 1800px;
     margin: 0 auto;
   }
-  /* 1행: 공격 + 수비 (2열) */
+  /* 1행: 공격 + 교대버튼 + 수비 (3열, 가운데는 auto) */
   .battle-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr auto 1fr;
     gap: 16px;
     margin-bottom: 14px;
+    align-items: stretch;
+  }
+  .swap-sides {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim);
+    padding: 0 14px; cursor: pointer; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; transition: all 0.15s;
+    min-width: 56px;
+  }
+  .swap-sides:hover { color: var(--warn); border-color: var(--warn); background: var(--bg-elev); }
+  .swap-sides:active { transform: scale(0.96); }
+  .swap-sides .icon { font-size: 22px; line-height: 1; }
+  .swap-sides .label { font-size: 9px; letter-spacing: 0.15em; color: var(--text-faint); margin-top: 4px; }
+  .swap-sides:hover .label { color: var(--warn); }
+  @media (max-width: 900px) {
+    .swap-sides {
+      flex-direction: row; gap: 8px; padding: 10px 16px; min-width: 0;
+    }
+    .swap-sides .label { margin-top: 0; }
   }
 
   /* 2행: 필드 (접이식, 폭 100%) */
@@ -1610,6 +1629,10 @@
       <div class="panel-head"><div class="panel-title">공격측</div><span class="panel-tag">ATK</span></div>
       <div class="panel-body" id="atk-body"></div>
     </section>
+    <button class="swap-sides" id="btnSwapSides" type="button" title="공격측과 방어측 교대">
+      <span class="icon">⇄</span>
+      <span class="label">교대</span>
+    </button>
     <section class="panel def">
       <div class="panel-head"><div class="panel-title">방어측</div><span class="panel-tag">DEF</span></div>
       <div class="panel-body" id="def-body"></div>
@@ -4268,6 +4291,22 @@ document.getElementById('championsMode').addEventListener('change', e => {
   renderSide('def');
   triggerCalc();
 });
+
+// 공격측 ↔ 방어측 교대 (사이드 객체 전체를 통째로 교환)
+document.getElementById('btnSwapSides')?.addEventListener('click', () => {
+  const tmp = state.atk;
+  state.atk = state.def;
+  state.def = tmp;
+  // 진입 효과로 적용된 last-applied 정보도 함께 교대 (잘못된 자동 해제 방지)
+  if (typeof lastAutoEntry === 'object' && lastAutoEntry) {
+    const tmp2 = lastAutoEntry.atk;
+    lastAutoEntry.atk = lastAutoEntry.def;
+    lastAutoEntry.def = tmp2;
+  }
+  renderSide('atk');
+  renderSide('def');
+  triggerCalc();
+});
 /* ════════════════════════════════════════════════════════════
    ⬆️ 원본 로직 끝 ⬆️
    ════════════════════════════════════════════════════════════ */
@@ -4501,12 +4540,14 @@ function buildDexContent(type, id) {
 }
 
 // 모달로 상세 열기 (도구 행 / 모든 cross-reference 클릭)
-function openDexDetail(type, id) {
+// parentCtx: 모달이 풀페이지 cross-reference 로 열린 경우, 부모(풀페이지)의 항목 정보.
+// 적용 액션 시 부모 항목까지 함께 가져갈지 결정하는 데 사용된다.
+function openDexDetail(type, id, parentCtx = null) {
   const modal = document.getElementById('dexDetailModal');
   if (!modal) return;
   const content = buildDexContent(type, id);
   if (!content) return;
-  dexModalCtx = { type, id };
+  dexModalCtx = { type, id, parent: parentCtx };
   document.getElementById('dexDetailTitle').textContent = content.titleKo;
   document.getElementById('dexDetailTitleEn').textContent = content.titleEn !== content.titleKo ? `(${content.titleEn})` : '';
   document.getElementById('dexDetailBody').innerHTML = content.body;
@@ -4560,13 +4601,12 @@ function renderPokemonDetail(p) {
   }).join('');
   const totalRow = `<div class="total"><div class="stat-name">합계</div></div><div></div><div class="total"><div class="stat-val">${p.bst}</div></div>`;
 
-  // 특성 표시
+  // 특성 표시 (모든 슬롯을 동일하게 표기 — 0/1/H 구분 없음)
   const abEntries = Object.entries(p.ab || {}).map(([slot, abN]) => {
     const id = abilityIdNorm(abN);
     const data = AbilityById[id];
     const label = data ? `${abName(data)}${data.koName && data.name !== data.koName ? ` <small style="color:var(--text-faint)">${data.name}</small>` : ''}` : abN;
-    const tag = slot === 'H' ? ' <span style="color:var(--warn);font-size:10px;">[숨겨진]</span>' : '';
-    return `<button class="dex-link" data-dex-link="ability" data-id="${id}">${label}${tag}</button>`;
+    return `<button class="dex-link" data-dex-link="ability" data-id="${id}">${label}</button>`;
   }).join('');
 
   // 방어 타입 매치업 (각 공격 타입에 대한 효과 배율)
@@ -4579,7 +4619,6 @@ function renderPokemonDetail(p) {
   const flags = [];
   if (p.mega) flags.push('<span style="color:var(--tera)">메가진화</span>');
   if (p.primal) flags.push('<span style="color:var(--warn)">원시회귀</span>');
-  if (p.tier) flags.push(`티어: <b>${p.tier}</b>`);
   if (p.weightkg) flags.push(`무게: <b>${p.weightkg}</b>kg`);
 
   const body = `
@@ -4879,33 +4918,61 @@ function renderItemDetail(it) {
   return [body, actions];
 }
 
-// 적용 액션 처리 — ctx 는 호출 측에서 풀페이지/모달 중 어느 곳의 항목인지 명시
+// 헬퍼: 포켓몬을 한 사이드에 적용 (기본 특성 / 테라타입 자동 설정, atk 면 기존 기술 슬롯 초기화)
+function applyPokemonToSide(pokemonId, sideKey) {
+  const p = PokemonById[pokemonId]; if (!p) return false;
+  state[sideKey].pokemonIdx = pokemonId;
+  state[sideKey].ability = abilityIdNorm(p.ab['0'] || p.ab['H'] || '');
+  state[sideKey].teraType = p.types[0];
+  if (sideKey === 'atk') state[sideKey].moves = [];
+  return true;
+}
+
+// 적용 액션 처리 — ctx 는 풀페이지/모달 어느 곳의 항목인지 명시.
+// ctx.parent (풀페이지 → 모달로 열린 경우) 가 있으면 부모 항목도 함께 가져온다.
 function applyDexAction(action, ctx) {
-  const { type, id } = ctx || {};
+  const { type, id, parent } = ctx || {};
   if (!type || !id) return;
   let touched = false;
+  const sidesTouched = new Set();
+
   if (action === 'pokemon-atk' || action === 'pokemon-def') {
     const sk = action === 'pokemon-atk' ? 'atk' : 'def';
-    const p = PokemonById[id]; if (!p) return;
-    state[sk].pokemonIdx = id;
-    state[sk].ability = abilityIdNorm(p.ab['0'] || p.ab['H'] || '');
-    state[sk].teraType = p.types[0];
-    if (sk === 'atk') state[sk].moves = [];
-    renderSide(sk); triggerCalc(); touched = true;
+    if (applyPokemonToSide(id, sk)) {
+      sidesTouched.add(sk); touched = true;
+      // 부모가 기술이고 공격측에 적용 중이면 → 기술도 슬롯 1 에 함께 배치
+      // (수비측은 기술 의미 없으므로 공격측 한정 — 사용자 요청사항 #3)
+      if (sk === 'atk' && parent && parent.type === 'move') {
+        state.atk.moves[0] = parent.id;
+      }
+    }
   } else if (action.startsWith('move-')) {
     const slot = parseInt(action.split('-')[1], 10);
     state.atk.moves[slot] = id;
-    renderSide('atk'); triggerCalc(); touched = true;
+    sidesTouched.add('atk'); touched = true;
+    // 부모가 포켓몬이면 → 공격측에도 포켓몬 함께 배치 (사용자 요청사항 #2)
+    if (parent && parent.type === 'pokemon') {
+      // 단, 이미 같은 포켓몬이면 기술 슬롯이 초기화되지 않도록 가드
+      if (state.atk.pokemonIdx !== parent.id) {
+        // applyPokemonToSide 가 atk.moves 를 비우니, 우리가 방금 넣은 슬롯 값을 보존해서 복원
+        const savedMove = state.atk.moves[slot];
+        applyPokemonToSide(parent.id, 'atk');
+        state.atk.moves[slot] = savedMove;
+      }
+    }
   } else if (action === 'ability-atk' || action === 'ability-def') {
     const sk = action === 'ability-atk' ? 'atk' : 'def';
     state[sk].ability = id;
-    renderSide(sk); triggerCalc(); touched = true;
+    sidesTouched.add(sk); touched = true;
   } else if (action === 'item-atk' || action === 'item-def') {
     const sk = action === 'item-atk' ? 'atk' : 'def';
     state[sk].item = id;
-    renderSide(sk); triggerCalc(); touched = true;
+    sidesTouched.add(sk); touched = true;
   }
+
   if (touched) {
+    sidesTouched.forEach(sk => renderSide(sk));
+    triggerCalc();
     closeDexDetail();
     switchToCalcTab();
   }
@@ -4954,8 +5021,9 @@ document.getElementById('dexDetailBody')?.addEventListener('click', e => {
   if (handleLearnsetFilterClick(e, document.getElementById('dexDetailBody'), dexModalCtx)) return;
   const link = e.target.closest('[data-dex-link]');
   if (!link) return;
-  // cross-reference 는 항상 모달로 (풀페이지 위에 모달이 떠도 무방)
-  openDexDetail(link.dataset.dexLink, link.dataset.id);
+  // 모달 안에서 또 다른 모달을 열 때는 현재 모달의 부모 컨텍스트(있다면)를 그대로 승계.
+  // 부모가 없으면 현재 모달 자신을 부모로 두지 않는다 (cross-ref 의 cross-ref 까지 자동 전달은 과함).
+  openDexDetail(link.dataset.dexLink, link.dataset.id, dexModalCtx.parent || null);
 });
 document.getElementById('dexDetailActions')?.addEventListener('click', e => {
   const btn = e.target.closest('[data-dex-apply]');
@@ -4973,8 +5041,8 @@ document.getElementById('dexFullPageDetail')?.addEventListener('click', e => {
   if (handleLearnsetFilterClick(e, document.getElementById('dexFullPageDetail'), dexFullPageCtx)) return;
   const link = e.target.closest('[data-dex-link]');
   if (link) {
-    // 풀페이지 내부 cross-reference 는 모달로 띄움 (요청사항 4)
-    openDexDetail(link.dataset.dexLink, link.dataset.id);
+    // 풀페이지 내부 cross-reference 는 모달로 띄움 + 부모(풀페이지) 컨텍스트 전달
+    openDexDetail(link.dataset.dexLink, link.dataset.id, { ...dexFullPageCtx });
     return;
   }
   const btn = e.target.closest('[data-dex-apply]');
