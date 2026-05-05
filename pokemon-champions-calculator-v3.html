@@ -4586,6 +4586,29 @@ function closeDexFullPage() {
   if (target) target.classList.add('active');
 }
 
+// 모달 → 풀페이지로 이동 (현재 모달 닫고, 필요 시 서브탭 전환 후 풀페이지 표시).
+// 도구는 풀페이지가 없으므로 fallback 으로 모달을 새로 띄운다.
+function navigateToDexDetailPage(type, id) {
+  if (type === 'item') {
+    // 도구는 풀페이지가 없으므로 그대로 모달로 (parent ctx 없이)
+    closeDexDetail();
+    openDexDetail(type, id);
+    return;
+  }
+  closeDexDetail();
+  // dex 탭 페이지로 강제 이동 (사용자가 계산기 탭에 있더라도)
+  const dexNavTab = document.querySelector('.nav-tab[data-page="dex"]');
+  if (dexNavTab && !dexNavTab.classList.contains('active')) dexNavTab.click();
+  // 서브탭(포켓몬/기술/특성) 동기화
+  const subTabMap = { pokemon: 'pokemon', move: 'moves', ability: 'abilities' };
+  const wantSub = subTabMap[type];
+  if (wantSub && wantSub !== currentDex) {
+    const subTabBtn = document.querySelector(`.dex-tab[data-dex="${wantSub}"]`);
+    if (subTabBtn) subTabBtn.click(); // 탭 클릭 핸들러가 currentDex / 필터 / 풀페이지 정리까지 수행
+  }
+  openDexDetailPage(type, id);
+}
+
 // 포켓몬 상세 — 모달 내 학습기 타입 필터 상태 (포켓몬 단위로 reset)
 let pokemonDetailTypeFilter = null;
 
@@ -5021,9 +5044,9 @@ document.getElementById('dexDetailBody')?.addEventListener('click', e => {
   if (handleLearnsetFilterClick(e, document.getElementById('dexDetailBody'), dexModalCtx)) return;
   const link = e.target.closest('[data-dex-link]');
   if (!link) return;
-  // 모달 안에서 또 다른 모달을 열 때는 현재 모달의 부모 컨텍스트(있다면)를 그대로 승계.
-  // 부모가 없으면 현재 모달 자신을 부모로 두지 않는다 (cross-ref 의 cross-ref 까지 자동 전달은 과함).
-  openDexDetail(link.dataset.dexLink, link.dataset.id, dexModalCtx.parent || null);
+  // 모달의 cross-reference 클릭 → 모달을 닫고 풀페이지 상세로 이동
+  // (사용자 요청: 모달→모달이 아닌 모달→풀페이지)
+  navigateToDexDetailPage(link.dataset.dexLink, link.dataset.id);
 });
 document.getElementById('dexDetailActions')?.addEventListener('click', e => {
   const btn = e.target.closest('[data-dex-apply]');
