@@ -62,22 +62,43 @@ async function build() {
 
   console.log('🇰🇷 한국어 캐시(data/ko/) 로드');
   const koDir = path.join(DATA, 'ko');
-  function readKoJson(name) {
+  function readKoJsonRaw(name) {
     const fp = path.join(koDir, `${name}.json`);
     if (!fs.existsSync(fp)) return {};
     try { return JSON.parse(fs.readFileSync(fp, 'utf8')); }
     catch (e) { console.warn(`  ⚠️ ${fp} parse 실패:`, e.message); return {}; }
   }
-  const koPokemon = readKoJson('pokemon');
-  const koMoves = readKoJson('moves');
-  const koAbilities = readKoJson('abilities');
-  const koItems = readKoJson('items');
+  // 수동 번역 파일 (사용자 편집). 메타 키(_README, _NOTE 등) 와 빈 문자열은 무시.
+  function readManualKo(name) {
+    const raw = readKoJsonRaw(`${name}.manual`);
+    const clean = {};
+    for (const [k, v] of Object.entries(raw)) {
+      if (k.startsWith('_')) continue;
+      if (v && typeof v === 'string' && v.trim()) clean[k] = v;
+    }
+    return clean;
+  }
+  // auto > manual 우선. PokéAPI 가 추후 항목을 추가하면 자동값이 수동값을 덮음.
+  // (Object spread 는 뒤쪽이 이김 → ...manual 먼저, ...auto 나중)
+  function loadKo(name) {
+    return { ...readManualKo(name), ...readKoJsonRaw(name) };
+  }
+  const koPokemon = loadKo('pokemon');
+  const koMoves = loadKo('moves');
+  const koAbilities = loadKo('abilities');
+  const koItems = loadKo('items');
   // 설명 (PokéAPI flavor text 한국어 — 최신 게임 버전 우선)
-  const koDescMoves = readKoJson('desc-moves');
-  const koDescAbilities = readKoJson('desc-abilities');
-  const koDescItems = readKoJson('desc-items');
-  console.log(`  이름  포켓몬:${Object.keys(koPokemon).length} 기술:${Object.keys(koMoves).length} 특성:${Object.keys(koAbilities).length} 도구:${Object.keys(koItems).length}`);
-  console.log(`  설명  기술:${Object.keys(koDescMoves).length} 특성:${Object.keys(koDescAbilities).length} 도구:${Object.keys(koDescItems).length}`);
+  const koDescMoves = loadKo('desc-moves');
+  const koDescAbilities = loadKo('desc-abilities');
+  const koDescItems = loadKo('desc-items');
+  // 진단 출력 (auto / manual 분리 표시)
+  function manualCount(name) { return Object.keys(readManualKo(name)).length; }
+  const m1 = manualCount('pokemon'), m2 = manualCount('moves'), m3 = manualCount('abilities'), m4 = manualCount('items');
+  const d1 = manualCount('desc-moves'), d2 = manualCount('desc-abilities'), d3 = manualCount('desc-items');
+  const fmt = (auto, manual) => manual > 0 ? `${auto}+${manual}` : `${auto}`;
+  console.log(`  이름  포켓몬:${fmt(Object.keys(readKoJsonRaw('pokemon')).length, m1)} 기술:${fmt(Object.keys(readKoJsonRaw('moves')).length, m2)} 특성:${fmt(Object.keys(readKoJsonRaw('abilities')).length, m3)} 도구:${fmt(Object.keys(readKoJsonRaw('items')).length, m4)}`);
+  console.log(`  설명  기술:${fmt(Object.keys(readKoJsonRaw('desc-moves')).length, d1)} 특성:${fmt(Object.keys(readKoJsonRaw('desc-abilities')).length, d2)} 도구:${fmt(Object.keys(readKoJsonRaw('desc-items')).length, d3)}`);
+  if (m1+m2+m3+m4+d1+d2+d3 > 0) console.log(`  (형식: 자동+수동, 자동 우선 적용)`);
 
   console.log('📦 champions 모드 오버라이드 로드');
   const champPokedex = readChamp('pokedex.ts', 'Pokedex'); // 보통 비어 있음

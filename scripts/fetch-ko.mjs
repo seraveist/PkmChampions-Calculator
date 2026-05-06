@@ -239,28 +239,65 @@ async function main() {
     { key: 'desc-items',     total: targets.items.length,     run: () => fetchKoFlavor(targets.items, { tableCsv: 'items.csv', flavorCsv: 'item_flavor_text.csv', idColumn: 'item_id' }) },
   ];
 
+  // 수동 번역 파일을 미리 읽어서, missing 목록에서 빼기 위한 set 으로 보관.
+  // 우선순위는 build.mjs 에서 적용 (auto > manual). 여기선 진단용 missing 만 정확히 산출.
+  function readManual(key) {
+    const fp = path.join(KO_DIR, `${key}.manual.json`);
+    if (!fs.existsSync(fp)) return {};
+    try {
+      const data = JSON.parse(fs.readFileSync(fp, 'utf8'));
+      // _README, _NOTE 등 메타 키는 무시
+      const clean = {};
+      for (const [k, v] of Object.entries(data)) {
+        if (k.startsWith('_')) continue;
+        if (v && typeof v === 'string' && v.trim()) clean[k] = v;
+      }
+      return clean;
+    } catch (e) {
+      console.warn(`   ⚠️ ${fp} parse 실패: ${e.message}`);
+      return {};
+    }
+  }
+
   const summary = {};
   for (const t of tasks) {
     console.log(`\n📦 [${t.key}] 대상 ${t.total}개`);
-    const { cache, missing } = await t.run();
+    const { cache, missing: rawMissing } = await t.run();
     fs.writeFileSync(path.join(KO_DIR, `${t.key}.json`),
       JSON.stringify(cache, null, 2) + '\n');
-    if (missing.length > 0) {
+
+    // 수동 번역 적용 후 진짜 missing 만 남김
+    const manual = readManual(t.key);
+    const stillMissing = rawMissing.filter(id => !manual[id]);
+    const filledByManual = rawMissing.length - stillMissing.length;
+
+    // missing.json 을 "수동 번역 템플릿" 형태로 작성 — 사용자가 그대로 manual.json 에 복사해
+    // 값만 채우면 되도록 { id: "" } 객체로 출력.
+    if (stillMissing.length > 0) {
+      const tmpl = {};
+      for (const id of stillMissing) tmpl[id] = '';
       fs.writeFileSync(path.join(KO_DIR, `${t.key}.missing.json`),
-        JSON.stringify(missing, null, 2) + '\n');
+        JSON.stringify(tmpl, null, 2) + '\n');
     } else {
-      // 이전 missing 파일 삭제
       const f = path.join(KO_DIR, `${t.key}.missing.json`);
       if (fs.existsSync(f)) fs.rmSync(f);
     }
-    summary[t.key] = { ok: Object.keys(cache).length, missing: missing.length, total: t.total };
-    console.log(`   ✓ ${t.key}.json: ${Object.keys(cache).length}/${t.total} 매칭${missing.length ? `, 누락 ${missing.length}개` : ''}`);
+
+    summary[t.key] = {
+      auto: Object.keys(cache).length,
+      manual: filledByManual,
+      missing: stillMissing.length,
+      total: t.total,
+    };
+    const detail = filledByManual > 0 ? ` (수동 ${filledByManual}개)` : '';
+    console.log(`   ✓ ${t.key}.json: ${Object.keys(cache).length}/${t.total} 자동 매칭${detail}${stillMissing.length ? `, 누락 ${stillMissing.length}개` : ''}`);
   }
 
   console.log('\n📊 요약');
   console.table(summary);
-  console.log('\n💡 누락된 항목은 data/ko/<카테고리>.missing.json 에 기록되어 있습니다.');
-  console.log('   수동 번역해서 data/ko/<카테고리>.json 에 직접 추가해도 됩니다.');
+  console.log('\n💡 누락된 항목은 data/ko/<카테고리>.missing.json 에 템플릿 형태로 기록됩니다.');
+  console.log('   해당 파일의 항목을 data/ko/<카테고리>.manual.json 에 옮기고 한글값을 채우면');
+  console.log('   다음 빌드부터 표시됩니다. PokéAPI 가 추후 같은 항목을 추가하면 자동값이 우선합니다.');
 }
 
 main().catch(err => { console.error('❌ fetcher 실패:', err); process.exit(1); });
