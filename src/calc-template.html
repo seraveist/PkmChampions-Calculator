@@ -29,6 +29,7 @@
     <button class="nav-tab" data-page="dex">📖 도감</button>
     <button class="nav-tab" data-page="matchup">📊 상성표</button>
     <button class="nav-tab" data-page="finetune">🔧 세부조정</button>
+    <button class="nav-tab" data-page="revcalc">🔍 내구역계산</button>
   </nav>
   <div class="header-status" id="data-status">데이터 로딩 중...</div>
 </header>
@@ -153,6 +154,44 @@
       </div>
     </div>
     <div class="panel-body" id="ft-speed-body"></div>
+  </section>
+</main>
+
+<!-- 내구 역계산 페이지 -->
+<main id="page-revcalc" class="page">
+  <div class="rc-grid">
+    <section class="panel rc-my">
+      <div class="panel-head">
+        <div class="panel-title">내 포켓몬 (공격자)</div>
+      </div>
+      <div class="panel-body" id="rc-my-body"></div>
+    </section>
+    <section class="panel rc-opp">
+      <div class="panel-head">
+        <div class="panel-title">상대 포켓몬 (역계산 대상)</div>
+        <span class="ft-hint">EV/성격/도구는 분석 결과로 추정</span>
+      </div>
+      <div class="panel-body" id="rc-opp-body"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">관측 데이터 · 필드 상태</div>
+    </div>
+    <div class="panel-body" id="rc-input-body"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">분석 결과</div>
+      <div class="panel-head-actions">
+        <button class="rc-analyze-btn" id="rcAnalyze">🔍 분석 시작</button>
+      </div>
+    </div>
+    <div class="panel-body" id="rc-results-body">
+      <div class="empty-state">위에 데이터를 입력하고 "분석 시작" 버튼을 눌러주세요.</div>
+    </div>
   </section>
 </main>
 

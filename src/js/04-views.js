@@ -1428,3 +1428,775 @@ function loadSideToFineTune(sideKey) {
   renderFineTuneAll();
 }
 window.loadSideToFineTune = loadSideToFineTune; // 다른 모듈에서 호출 가능
+
+
+/* ════════════════════════════════════════════════════════════
+   내구 역계산 (Reverse Calc) 탭
+   ────────────────────────────────────────────────────────────
+   알고리즘:
+     Stage 1 (def): 내가 친 기술 + 관측 → 상대 HP+Def(or SpD) 추정
+     Stage 2     : 잔존 EV 계산 (66 - 내구합)
+     Stage 3 (atk): 상대 친 기술 + 관측 → 상대 Atk(or SpA), 잔존 내에서
+     Stage 4     : 도구 추론 (Stage 3 매치 안 될 때 type-boost / 메가스톤 시도)
+   부분 입력:
+     - 내 기술만 입력 → Stage 1 결과만
+     - 상대 기술만 입력 → Stage 3 결과만 (HP/Def 검색 안 함)
+   ════════════════════════════════════════════════════════════ */
+
+const revCalcState = {
+  my: makeSideState('incineroar'),
+  opp: {
+    pokemonIdx: PokemonById['amoonguss'] ? 'amoonguss' : (PokemonById['azumarill'] ? 'azumarill' : Object.keys(PokemonById)[0]),
+    ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    status: 'none',
+  },
+  myMove: '',
+  myMoveBp: '',         // 빈 문자열 = move data의 default 사용
+  observedTheirPct: '',
+  oppMove: '',
+  oppMoveBp: '',
+  observedMyPct: '',
+  field: {
+    weather: 'none', terrain: 'none', isCritical: false,
+    defReflect: false, defLightScreen: false, gameType: 'Singles',
+    isTrickRoom: false, isGravity: false,
+    ruinSword: false, ruinTablet: false, ruinBeads: false, ruinVessel: false,
+    defStealthRock: false, defSpikesLayers: 0,
+    atkHelpingHand: false, defProtect: false,
+  },
+  // 도구 후보 — 기본은 모든 type-boost 도구 + 빈 도구. 사용자가 추가/제거 가능.
+  itemCandidates: ['', 'silkscarf', 'charcoal', 'mysticwater', 'magnet', 'miracleseed',
+                   'nevermeltice', 'blackbelt', 'poisonbarb', 'softsand', 'sharpbeak',
+                   'twistedspoon', 'silverpowder', 'hardstone', 'spelltag', 'dragonfang',
+                   'blackglasses', 'metalcoat', 'fairyfeather'],
+  results: null,
+  analyzing: false,
+};
+
+// 방어 nature 7개 (Hardy = 무보정)
+const RC_DEF_NATURES = ['bold', 'impish', 'calm', 'careful', 'relaxed', 'sassy', 'hardy'];
+// 공격 nature 7개 (Atk 또는 SpA 보정 + 무보정)
+const RC_ATK_NATURES = ['adamant', 'naive', 'lonely', 'brave', 'modest', 'rash', 'mild', 'quiet', 'hardy'];
+
+function rcMatchingRolls(rolls, observedPct, defenderHp) {
+  let matches = 0;
+  for (const d of rolls) {
+    if (d <= 0) continue;
+    const remaining = Math.max(0, defenderHp - d);
+    const remPct = Math.floor(remaining / defenderHp * 100);
+    if (remPct === observedPct) matches++;
+  }
+  return matches;
+}
+
+// 베이스 defender state 빌드 (역계산 검색 중간 단계용)
+function rcBuildDefState(oppP, oppOverrides) {
+  return {
+    pokemonIdx: oppP.id,
+    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(oppOverrides.evs || {}) },
+    nature: oppOverrides.nature || 'hardy',
+    ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(revCalcState.opp.ranks || {}) },
+    status: revCalcState.opp.status || 'none',
+    ability: oppOverrides.ability || (oppP.ab && (oppP.ab['0'] || oppP.ab['H']))?.toLowerCase().replace(/[\s'\-()]/g, '') || '',
+    item: oppOverrides.item || '',
+    tera: false,
+    teraType: oppP.types[0],
+    pinch: false, fullHP: true,
+    moves: [],
+  };
+}
+
+// Stage 1: 내구 검색
+function rcStage1Defense(my, oppP, myMove, observedPct, field, defStat) {
+  const candidates = [];
+  for (const natureId of RC_DEF_NATURES) {
+    const nature = NATURE_BY_ID[natureId];
+    // 방어 nature 검증: nature.up 이 검색 대상 stat 또는 무보정만
+    if (nature.up && nature.up !== defStat) {
+      // 다른 방어 stat 보정도 허용 (Bold→Def, Calm→SpD, ...)
+      // 단 검색 대상 stat 의 보정이 아니라도 nature 자체는 가능 (분리해서 본 후보)
+      // 예: 검색이 def 인데 nature 가 calm(spd+) 이면 def 에는 보정 없음 = neutral 처리
+    }
+    for (let hpEv = 0; hpEv <= 32; hpEv++) {
+      for (let defEv = 0; defEv <= 32; defEv++) {
+        if (hpEv + defEv > 64) continue;
+        const oppState = rcBuildDefState(oppP, {
+          evs: { hp: hpEv, [defStat]: defEv },
+          nature: natureId,
+        });
+        const result = calculateDamage(my, oppState, myMove, field);
+        if (!result || !result.damages) continue;
+        const oppHp = calcStats(oppState).hp;
+        const matches = rcMatchingRolls(result.damages, observedPct, oppHp);
+        if (matches > 0) {
+          candidates.push({
+            nature: natureId,
+            hpEv, defEv, defStat,
+            defScore: matches / 16,
+            oppHp,
+            oppDef: calcStats(oppState)[defStat],
+            damages: result.damages,
+          });
+        }
+      }
+    }
+  }
+  return candidates;
+}
+
+// Stage 3: 공격 검색 (Stage 1 candidates 와 함께 정제)
+function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedPct, field, atkStat) {
+  const refined = [];
+  const myHp = calcStats(my).hp;
+
+  for (const c of defCandidates) {
+    const remainingEv = 66 - c.hpEv - c.defEv;
+    let bestForCand = null;
+
+    for (let atkEv = 0; atkEv <= Math.min(32, remainingEv); atkEv++) {
+      // 도구 후보 시도 ('' = 도구 없음, 첫 번째)
+      for (const item of revCalcState.itemCandidates) {
+        const oppState = rcBuildDefState(oppP, {
+          evs: { hp: c.hpEv, [c.defStat]: c.defEv, [atkStat]: atkEv },
+          nature: c.nature,
+          item,
+        });
+        const result = calculateDamage(oppState, my, oppMove, field);
+        if (!result || !result.damages) continue;
+        const matches = rcMatchingRolls(result.damages, observedPct, myHp);
+        if (matches > 0) {
+          const atkScore = matches / 16;
+          const totalScore = c.defScore * atkScore;
+          const cand = {
+            ...c,
+            atkEv, atkStat, item: item || '',
+            atkScore, totalScore,
+            oppAtk: calcStats(oppState)[atkStat],
+            myDamages: result.damages,
+          };
+          if (!bestForCand || cand.totalScore > bestForCand.totalScore) bestForCand = cand;
+          // 첫 번째 매칭하는 도구 (없음 우선) 만 기록
+          if (item === '') break;
+        }
+      }
+      if (bestForCand && bestForCand.atkEv === atkEv && bestForCand.item === '') break;
+    }
+    if (bestForCand) refined.push(bestForCand);
+  }
+  return refined;
+}
+
+// 공격만 입력된 경우 — defensive 정보 없이 Atk 만 검색
+function rcStage3OffenseOnly(my, oppP, oppMove, observedPct, field, atkStat) {
+  const candidates = [];
+  const myHp = calcStats(my).hp;
+  for (const natureId of RC_ATK_NATURES) {
+    for (let atkEv = 0; atkEv <= 32; atkEv++) {
+      for (const item of revCalcState.itemCandidates) {
+        const oppState = rcBuildDefState(oppP, {
+          evs: { [atkStat]: atkEv },
+          nature: natureId, item,
+        });
+        const result = calculateDamage(oppState, my, oppMove, field);
+        if (!result || !result.damages) continue;
+        const matches = rcMatchingRolls(result.damages, observedPct, myHp);
+        if (matches > 0) {
+          candidates.push({
+            nature: natureId,
+            hpEv: 0, defEv: 0, defStat: null,
+            atkEv, atkStat, item: item || '',
+            atkScore: matches / 16, totalScore: matches / 16,
+            oppAtk: calcStats(oppState)[atkStat],
+          });
+          if (item === '') break;
+        }
+      }
+    }
+  }
+  return candidates;
+}
+
+// 분석 메인
+function rcAnalyze() {
+  const my = revCalcState.my;
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  if (!oppP) return { error: '상대 포켓몬을 선택해주세요.' };
+  if (!PokemonById[my.pokemonIdx]) return { error: '내 포켓몬을 선택해주세요.' };
+
+  const myMoveData = revCalcState.myMove ? MoveById[revCalcState.myMove] : null;
+  const oppMoveData = revCalcState.oppMove ? MoveById[revCalcState.oppMove] : null;
+  const observedTheir = parseInt(revCalcState.observedTheirPct, 10);
+  const observedMy = parseInt(revCalcState.observedMyPct, 10);
+
+  const hasDef = myMoveData && myMoveData.cat !== 'Status' && observedTheir >= 0 && observedTheir <= 99;
+  const hasAtk = oppMoveData && oppMoveData.cat !== 'Status' && observedMy >= 0 && observedMy <= 99;
+
+  if (!hasDef && !hasAtk) {
+    return { error: '내 기술 또는 상대 기술 중 하나는 입력해야 합니다 (변화기 제외).' };
+  }
+
+  // 위력 override 적용
+  const myMove = hasDef ? { ...myMoveData, bp: parseInt(revCalcState.myMoveBp, 10) || myMoveData.bp } : null;
+  const oppMove = hasAtk ? { ...oppMoveData, bp: parseInt(revCalcState.oppMoveBp, 10) || oppMoveData.bp } : null;
+
+  let candidates = [];
+  let mode = 'unknown';
+
+  if (hasDef && hasAtk) {
+    // Full 모드
+    mode = 'full';
+    const defStat = myMove.cat === 'Physical' ? 'def' : 'spd';
+    const atkStat = oppMove.cat === 'Physical' ? 'atk' : 'spa';
+    const stage1 = rcStage1Defense(my, oppP, myMove, observedTheir, revCalcState.field, defStat);
+    candidates = rcStage3OffenseRefine(stage1, my, oppP, oppMove, observedMy, revCalcState.field, atkStat);
+  } else if (hasDef) {
+    mode = 'def-only';
+    const defStat = myMove.cat === 'Physical' ? 'def' : 'spd';
+    const stage1 = rcStage1Defense(my, oppP, myMove, observedTheir, revCalcState.field, defStat);
+    candidates = stage1.map(c => ({ ...c, totalScore: c.defScore }));
+  } else {
+    mode = 'atk-only';
+    const atkStat = oppMove.cat === 'Physical' ? 'atk' : 'spa';
+    candidates = rcStage3OffenseOnly(my, oppP, oppMove, observedMy, revCalcState.field, atkStat);
+  }
+
+  // 정렬 + Top 5
+  candidates.sort((a, b) => {
+    if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+    // tie-break: EV 합 작은 우선 (단순한 spread 우선)
+    const aSum = (a.hpEv || 0) + (a.defEv || 0) + (a.atkEv || 0);
+    const bSum = (b.hpEv || 0) + (b.defEv || 0) + (b.atkEv || 0);
+    return aSum - bSum;
+  });
+
+  return { results: candidates.slice(0, 5), total: candidates.length, mode };
+}
+
+// === UI 렌더링 ===
+
+function renderRevCalcMy() {
+  const container = document.getElementById('rc-my-body');
+  if (!container) return;
+  const my = revCalcState.my;
+  const p = PokemonById[my.pokemonIdx];
+  if (!p) { container.innerHTML = '<div class="empty-state">포켓몬 선택 필요</div>'; return; }
+  const stats = calcStats(my);
+  const totalEV = ['hp','atk','def','spa','spd','spe'].reduce((a,s) => a + (my.evs[s]||0), 0);
+  const overEV = totalEV > 66;
+
+  const abOptions = Object.values(p.ab || {}).map(abN => {
+    const id = abilityIdNorm(abN);
+    return `<option value="${id}" ${my.ability === id ? 'selected' : ''}>${escapeHTML(abName(AbilityById[id] || { name: abN }))}</option>`;
+  }).join('');
+
+  const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
+  const RANK_STATS = ['atk','def','spa','spd','spe'];
+  const statRows = ['hp', ...RANK_STATS].map(s => {
+    const ev = my.evs[s] || 0;
+    const final = stats[s];
+    const nature = NATURE_BY_ID?.[my.nature];
+    const isUp = nature?.up === s, isDown = nature?.down === s;
+    const natureMark = isUp ? '<span style="color:#ff6b85;">▲</span>' : isDown ? '<span style="color:#7e9eff;">▼</span>' : '';
+    const rank = my.ranks?.[s] || 0;
+    const rankCtrl = s === 'hp' ? '' : `
+      <div class="ft-rank">
+        <button class="ft-rank-btn" data-rc-rank="${s}" data-rc-dir="-1">−</button>
+        <span class="ft-rank-val ${rank > 0 ? 'pos' : rank < 0 ? 'neg' : ''}">${rank > 0 ? '+' + rank : rank}</span>
+        <button class="ft-rank-btn" data-rc-rank="${s}" data-rc-dir="1">+</button>
+      </div>
+    `;
+    return `
+      <div class="ft-stat-row">
+        <div class="ft-stat-name">${STAT_KO[s]} ${natureMark}</div>
+        <div class="ft-stat-base">${p.bs[s]}</div>
+        <div class="ft-stat-ev">
+          <button class="ft-ev-quick" data-rc-evset="${s}" data-rc-evval="0">0</button>
+          <input type="number" class="ft-ev-input" data-rc-ev="${s}" value="${ev}" min="0" max="32">
+          <button class="ft-ev-quick" data-rc-evset="${s}" data-rc-evval="32">32</button>
+        </div>
+        <div class="ft-stat-final">${final}</div>
+        ${rankCtrl}
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="ft-poke-row">
+      <div class="ft-pickname">
+        <span class="ft-section-title">포켓몬</span>
+        <div class="combobox" style="flex:1;">
+          <input type="text" class="cb-input rc-cb-input" data-rc-pick="my" value="${escapeHTML(pkName(p))}">
+          <div class="combobox-options"></div>
+        </div>
+        <div class="types-display" style="margin-left:8px;">
+          ${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="ft-controls-row">
+      <label class="field"><span class="field-label">성격</span>
+        <select data-rc-action="myNature">
+          ${(typeof NATURES !== 'undefined' ? NATURES : []).map(n => `<option value="${n.id}" ${my.nature === n.id ? 'selected' : ''}>${n.ko}</option>`).join('')}
+        </select>
+      </label>
+      <label class="field"><span class="field-label">특성</span>
+        <select data-rc-action="myAbility">${abOptions}</select>
+      </label>
+      <label class="field"><span class="field-label">도구</span>
+        <div class="combobox">
+          <input type="text" class="cb-input rc-cb-input" data-rc-pick="myitem" value="${my.item ? escapeHTML(itName(ItemById[my.item] || { name: my.item })) : '없음'}">
+          <div class="combobox-options"></div>
+        </div>
+      </label>
+    </div>
+    <div class="ft-stats-grid" style="grid-template-columns: 60px 50px 130px 50px 80px;">
+      <div class="ft-stats-head"><div>스탯</div><div>종족값</div><div>노력치</div><div>실수치</div><div>랭크</div></div>
+      ${statRows}
+    </div>
+    <div class="ft-ev-total ${overEV ? 'over' : ''}">
+      노력치 합계: <b>${totalEV}</b> / 66 ${overEV ? '<span style="color:var(--atk);"> 초과!</span>' : ''}
+    </div>
+  `;
+  rcWireMyComboboxes();
+}
+
+function renderRevCalcOpp() {
+  const container = document.getElementById('rc-opp-body');
+  if (!container) return;
+  const opp = revCalcState.opp;
+  const p = PokemonById[opp.pokemonIdx];
+  const STAT_KO = { atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
+
+  const rankRows = ['atk','def','spa','spd','spe'].map(s => {
+    const r = opp.ranks?.[s] || 0;
+    return `
+      <div class="rc-opp-rank">
+        <span>${STAT_KO[s]}</span>
+        <div class="ft-rank">
+          <button class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="-1">−</button>
+          <span class="ft-rank-val ${r > 0 ? 'pos' : r < 0 ? 'neg' : ''}">${r > 0 ? '+' + r : r}</span>
+          <button class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="1">+</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="ft-poke-row">
+      <div class="ft-pickname">
+        <span class="ft-section-title">포켓몬</span>
+        <div class="combobox" style="flex:1;">
+          <input type="text" class="cb-input rc-cb-input" data-rc-pick="opp" value="${p ? escapeHTML(pkName(p)) : ''}">
+          <div class="combobox-options"></div>
+        </div>
+        ${p ? `<div class="types-display" style="margin-left:8px;">
+          ${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join('')}
+        </div>` : ''}
+      </div>
+    </div>
+    ${p ? `
+      <div class="ft-section-title">종족값</div>
+      <div class="rc-base-stats">
+        ${['hp','atk','def','spa','spd','spe'].map(s => `<span class="rc-base"><small>${({hp:'HP',atk:'공',def:'방',spa:'특공',spd:'특방',spe:'속'})[s]}</small><b>${p.bs[s]}</b></span>`).join('')}
+      </div>
+      <div class="ft-section-title">상대 측 랭크 (위협 받음, 자가 부스트 등)</div>
+      <div class="rc-opp-ranks">${rankRows}</div>
+      <div class="ft-controls-row" style="margin-top: 8px;">
+        <label class="field"><span class="field-label">상대 상태이상</span>
+          <select data-rc-action="oppStatus">
+            <option value="none" ${opp.status === 'none' ? 'selected' : ''}>없음</option>
+            <option value="Burn" ${opp.status === 'Burn' ? 'selected' : ''}>화상</option>
+            <option value="Paralysis" ${opp.status === 'Paralysis' ? 'selected' : ''}>마비</option>
+            <option value="Poison" ${opp.status === 'Poison' ? 'selected' : ''}>독</option>
+            <option value="Toxic" ${opp.status === 'Toxic' ? 'selected' : ''}>맹독</option>
+            <option value="Sleep" ${opp.status === 'Sleep' ? 'selected' : ''}>수면</option>
+            <option value="Freeze" ${opp.status === 'Freeze' ? 'selected' : ''}>동결</option>
+          </select>
+        </label>
+      </div>
+    ` : ''}
+  `;
+  rcWireOppComboboxes();
+}
+
+function renderRevCalcInputs() {
+  const container = document.getElementById('rc-input-body');
+  if (!container) return;
+  const my = revCalcState.my;
+  const myP = PokemonById[my.pokemonIdx];
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+
+  // 내 포켓몬의 learnset 으로 기술 필터 (가능한 경우)
+  const myLearnable = myP?.ls?.length > 0
+    ? MOVES.filter(m => myP.ls.includes(m.id) && m.cat !== 'Status')
+    : MOVES.filter(m => m.cat !== 'Status');
+  const oppLearnable = oppP?.ls?.length > 0
+    ? MOVES.filter(m => oppP.ls.includes(m.id) && m.cat !== 'Status')
+    : MOVES.filter(m => m.cat !== 'Status');
+
+  const myMoveData = revCalcState.myMove ? MoveById[revCalcState.myMove] : null;
+  const oppMoveData = revCalcState.oppMove ? MoveById[revCalcState.oppMove] : null;
+
+  const myMoveBpValue = revCalcState.myMoveBp !== '' ? revCalcState.myMoveBp : (myMoveData?.bp || '');
+  const oppMoveBpValue = revCalcState.oppMoveBp !== '' ? revCalcState.oppMoveBp : (oppMoveData?.bp || '');
+
+  // 도구 후보 체크박스 (type-boost 도구 + 그외 사용 가능 도구)
+  const itemMaster = ITEMS.filter(i => !i.ms && !i.isBerry);
+  const itemBoxes = itemMaster.map(i => `
+    <label class="rc-item-chk">
+      <input type="checkbox" data-rc-item="${i.id}" ${revCalcState.itemCandidates.includes(i.id) ? 'checked' : ''}>
+      ${escapeHTML(itName(i))}
+    </label>
+  `).join('');
+
+  container.innerHTML = `
+    <div class="rc-input-grid">
+      <div class="rc-input-block">
+        <div class="ft-section-title">내 기술 (상대에게 줌)</div>
+        <div class="ft-controls-row">
+          <label class="field" style="flex:2;">
+            <span class="field-label">기술</span>
+            <select data-rc-action="myMove">
+              <option value="">선택…</option>
+              ${myLearnable.map(m => `<option value="${m.id}" ${revCalcState.myMove === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))} (${m.type}/${m.cat}/${m.bp || '-'})</option>`).join('')}
+            </select>
+          </label>
+          <label class="field" style="flex:1;">
+            <span class="field-label">위력 (자동)</span>
+            <input type="number" data-rc-action="myMoveBp" value="${myMoveBpValue}" min="0" max="999" placeholder="자동">
+          </label>
+          <label class="field" style="flex:1;">
+            <span class="field-label">상대 남은 HP %</span>
+            <input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="99" placeholder="0~99">
+          </label>
+        </div>
+      </div>
+
+      <div class="rc-input-block">
+        <div class="ft-section-title">상대 기술 (내가 받음)</div>
+        <div class="ft-controls-row">
+          <label class="field" style="flex:2;">
+            <span class="field-label">기술</span>
+            <select data-rc-action="oppMove">
+              <option value="">선택…</option>
+              ${oppLearnable.map(m => `<option value="${m.id}" ${revCalcState.oppMove === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))} (${m.type}/${m.cat}/${m.bp || '-'})</option>`).join('')}
+            </select>
+          </label>
+          <label class="field" style="flex:1;">
+            <span class="field-label">위력 (자동)</span>
+            <input type="number" data-rc-action="oppMoveBp" value="${oppMoveBpValue}" min="0" max="999" placeholder="자동">
+          </label>
+          <label class="field" style="flex:1;">
+            <span class="field-label">내 남은 HP %</span>
+            <input type="number" data-rc-action="observedMyPct" value="${revCalcState.observedMyPct}" min="0" max="99" placeholder="0~99">
+          </label>
+        </div>
+      </div>
+
+      <div class="rc-input-block">
+        <div class="ft-section-title">필드 상태</div>
+        <div class="ft-controls-row">
+          <label class="field"><span class="field-label">날씨</span>
+            <select data-rc-field="weather">
+              <option value="none">없음</option><option value="Sun" ${revCalcState.field.weather === 'Sun' ? 'selected' : ''}>쾌청</option>
+              <option value="Rain" ${revCalcState.field.weather === 'Rain' ? 'selected' : ''}>비</option>
+              <option value="Sand" ${revCalcState.field.weather === 'Sand' ? 'selected' : ''}>모래</option>
+              <option value="Snow" ${revCalcState.field.weather === 'Snow' ? 'selected' : ''}>눈</option>
+            </select>
+          </label>
+          <label class="field"><span class="field-label">필드</span>
+            <select data-rc-field="terrain">
+              <option value="none">없음</option><option value="Electric" ${revCalcState.field.terrain === 'Electric' ? 'selected' : ''}>일렉트릭</option>
+              <option value="Grassy" ${revCalcState.field.terrain === 'Grassy' ? 'selected' : ''}>그래스</option>
+              <option value="Psychic" ${revCalcState.field.terrain === 'Psychic' ? 'selected' : ''}>사이코</option>
+              <option value="Misty" ${revCalcState.field.terrain === 'Misty' ? 'selected' : ''}>미스트</option>
+            </select>
+          </label>
+          <label class="checkbox-label"><input type="checkbox" data-rc-field="defReflect" ${revCalcState.field.defReflect ? 'checked' : ''}> 리플렉터</label>
+          <label class="checkbox-label"><input type="checkbox" data-rc-field="defLightScreen" ${revCalcState.field.defLightScreen ? 'checked' : ''}> 빛의장막</label>
+          <label class="checkbox-label"><input type="checkbox" data-rc-field="isCritical" ${revCalcState.field.isCritical ? 'checked' : ''}> 급소</label>
+        </div>
+      </div>
+
+      <div class="rc-input-block">
+        <div class="ft-section-title">도구 후보 (분석 시 시도할 상대 보유 도구) — ${revCalcState.itemCandidates.length}개 선택됨</div>
+        <div class="rc-item-grid">${itemBoxes}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderRevCalcResults() {
+  const container = document.getElementById('rc-results-body');
+  if (!container) return;
+  if (revCalcState.analyzing) {
+    container.innerHTML = '<div class="empty-state">⏳ 분석 중…</div>';
+    return;
+  }
+  const r = revCalcState.results;
+  if (!r) {
+    container.innerHTML = '<div class="empty-state">위에 데이터를 입력하고 "분석 시작" 버튼을 눌러주세요.</div>';
+    return;
+  }
+  if (r.error) {
+    container.innerHTML = `<div class="empty-state" style="color:var(--atk);">⚠️ ${escapeHTML(r.error)}</div>`;
+    return;
+  }
+  const modeLabel = { 'full': '전체 (내구 + 공격)', 'def-only': '내구만', 'atk-only': '공격만' }[r.mode] || r.mode;
+  if (r.results.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">매칭되는 spread 없음.</div>
+      <div class="rc-hint">입력값 확인 — 기술 위력, 필드 상태, 랭크, 도구 후보 등</div>
+    `;
+    return;
+  }
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  const STAT_LABEL = { hp: 'H', atk: 'A', def: 'B', spa: 'C', spd: 'D', spe: 'S' };
+
+  const rows = r.results.map((c, i) => {
+    const stars = '⭐'.repeat(Math.max(1, Math.min(5, Math.round(c.totalScore * 5))));
+    const evDesc = [];
+    if (c.hpEv > 0) evDesc.push(`H${c.hpEv}`);
+    if (c.defEv > 0) evDesc.push(STAT_LABEL[c.defStat] + c.defEv);
+    if (c.atkEv > 0) evDesc.push(STAT_LABEL[c.atkStat] + c.atkEv);
+    const natureKo = NATURE_BY_ID[c.nature]?.ko || c.nature;
+    const itemTag = c.item ? `<span class="rc-result-item">${escapeHTML(itName(ItemById[c.item] || { name: c.item }))}</span>`
+                            : '<span class="rc-result-item rc-no-item">도구 없음</span>';
+    const statsLine = [];
+    if (c.oppHp) statsLine.push(`HP ${c.oppHp}`);
+    if (c.oppDef) statsLine.push(STAT_LABEL[c.defStat] + ' ' + c.oppDef);
+    if (c.oppAtk) statsLine.push(STAT_LABEL[c.atkStat] + ' ' + c.oppAtk);
+    return `
+      <div class="rc-result-row">
+        <div class="rc-result-rank">#${i + 1}</div>
+        <div class="rc-result-stars">${stars}<small>${(c.totalScore * 100).toFixed(0)}%</small></div>
+        <div class="rc-result-spread">
+          <b>${evDesc.join(' / ') || '무투자'}</b>
+          <span class="rc-result-nature">(${natureKo})</span>
+          ${itemTag}
+        </div>
+        <div class="rc-result-stats">${statsLine.join(' · ')}</div>
+        <div class="rc-result-action">
+          <button class="rc-apply-btn" data-rc-applyresult="${i}" title="이 spread를 계산기 방어측에 적용">📋 계산기 적용</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="rc-results-summary">
+      모드: <b>${modeLabel}</b> · 후보 <b>${r.total}</b>개 중 상위 ${r.results.length}개 표시
+    </div>
+    <div class="rc-results-list">${rows}</div>
+    <div class="rc-hint">
+      ※ HP + (방어 또는 특방) 1종 풀투자 가정 · 합리적 nature 7~9개 검색 · 도구 후보는 위에서 선택한 것만<br>
+      ※ 잔류 데미지(독·풀씨·화상)나 다단히트는 단일 hit 데미지 기준이라 약간의 오차 가능
+    </div>
+  `;
+}
+
+function renderRevCalcAll() {
+  renderRevCalcMy();
+  renderRevCalcOpp();
+  renderRevCalcInputs();
+  renderRevCalcResults();
+}
+
+// === 콤보박스 / 이벤트 ===
+
+function rcWireMyComboboxes() {
+  document.getElementById('rc-my-body').querySelectorAll('.rc-cb-input').forEach(input => {
+    const target = input.dataset.rcPick;
+    const cb = input.closest('.combobox');
+    const optsEl = cb.querySelector('.combobox-options');
+    const showOpts = q => {
+      const s = (q || '').toLowerCase();
+      const data = target === 'my' ? POKEMON : ITEMS;
+      const matches = data.filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s)).slice(0, 30);
+      const items = matches.map(m => {
+        const label = target === 'my' ? pkName(m) : itName(m);
+        const sub = target === 'my' ? `${m.types.join('/')} BST ${m.bst}` : (m.desc || '').slice(0, 30);
+        return `<div class="combobox-option" data-id="${m.id}"><b>${escapeHTML(label)}</b> <small>${escapeHTML(sub)}</small></div>`;
+      });
+      if (target === 'myitem') items.unshift('<div class="combobox-option" data-id=""><b>없음</b></div>');
+      optsEl.innerHTML = items.join('');
+      optsEl.classList.add('open');
+    };
+    input.addEventListener('focus', e => showOpts(e.target.value));
+    input.addEventListener('input', e => showOpts(e.target.value));
+    input.addEventListener('blur', () => setTimeout(() => optsEl.classList.remove('open'), 200));
+    optsEl.addEventListener('mousedown', e => {
+      const opt = e.target.closest('.combobox-option');
+      if (!opt) return;
+      e.preventDefault();
+      const id = opt.dataset.id;
+      if (target === 'my') {
+        const p = PokemonById[id];
+        revCalcState.my.pokemonIdx = id;
+        if (p) {
+          revCalcState.my.ability = abilityIdNorm(p.ab['0'] || p.ab['H'] || '');
+          revCalcState.my.teraType = p.types[0];
+        }
+        revCalcState.myMove = '';
+        revCalcState.myMoveBp = '';
+      } else {
+        revCalcState.my.item = id || '';
+      }
+      renderRevCalcAll();
+    });
+  });
+}
+
+function rcWireOppComboboxes() {
+  document.getElementById('rc-opp-body').querySelectorAll('.rc-cb-input').forEach(input => {
+    const cb = input.closest('.combobox');
+    const optsEl = cb.querySelector('.combobox-options');
+    const showOpts = q => {
+      const s = (q || '').toLowerCase();
+      const matches = POKEMON.filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s)).slice(0, 30);
+      optsEl.innerHTML = matches.map(m =>
+        `<div class="combobox-option" data-id="${m.id}"><b>${escapeHTML(pkName(m))}</b> <small>${m.types.join('/')} BST ${m.bst}</small></div>`
+      ).join('');
+      optsEl.classList.add('open');
+    };
+    input.addEventListener('focus', e => showOpts(e.target.value));
+    input.addEventListener('input', e => showOpts(e.target.value));
+    input.addEventListener('blur', () => setTimeout(() => optsEl.classList.remove('open'), 200));
+    optsEl.addEventListener('mousedown', e => {
+      const opt = e.target.closest('.combobox-option');
+      if (!opt) return;
+      e.preventDefault();
+      revCalcState.opp.pokemonIdx = opt.dataset.id;
+      revCalcState.oppMove = '';
+      revCalcState.oppMoveBp = '';
+      renderRevCalcAll();
+    });
+  });
+}
+
+// 위임 이벤트 핸들러
+document.getElementById('page-revcalc')?.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.rcEv) {
+    revCalcState.my.evs[t.dataset.rcEv] = Math.max(0, Math.min(32, parseInt(t.value, 10) || 0));
+    renderRevCalcMy();
+    return;
+  }
+  if (t.dataset.rcAction === 'myNature') { revCalcState.my.nature = t.value; renderRevCalcMy(); return; }
+  if (t.dataset.rcAction === 'myAbility') { revCalcState.my.ability = t.value; return; }
+  if (t.dataset.rcAction === 'oppStatus') { revCalcState.opp.status = t.value; return; }
+  if (t.dataset.rcAction === 'myMove') {
+    revCalcState.myMove = t.value;
+    revCalcState.myMoveBp = '';   // 자동 채움
+    renderRevCalcInputs();
+    return;
+  }
+  if (t.dataset.rcAction === 'oppMove') {
+    revCalcState.oppMove = t.value;
+    revCalcState.oppMoveBp = '';
+    renderRevCalcInputs();
+    return;
+  }
+  if (t.dataset.rcAction === 'myMoveBp') { revCalcState.myMoveBp = t.value; return; }
+  if (t.dataset.rcAction === 'oppMoveBp') { revCalcState.oppMoveBp = t.value; return; }
+  if (t.dataset.rcAction === 'observedTheirPct') { revCalcState.observedTheirPct = t.value; return; }
+  if (t.dataset.rcAction === 'observedMyPct') { revCalcState.observedMyPct = t.value; return; }
+  if (t.dataset.rcField) {
+    const k = t.dataset.rcField;
+    const v = t.type === 'checkbox' ? t.checked : t.value;
+    revCalcState.field[k] = v;
+    return;
+  }
+  if (t.dataset.rcItem !== undefined) {
+    const id = t.dataset.rcItem;
+    if (t.checked && !revCalcState.itemCandidates.includes(id)) revCalcState.itemCandidates.push(id);
+    if (!t.checked) revCalcState.itemCandidates = revCalcState.itemCandidates.filter(x => x !== id);
+    renderRevCalcInputs();
+    return;
+  }
+});
+document.getElementById('page-revcalc')?.addEventListener('click', e => {
+  const t = e.target;
+  if (t.dataset.rcEvset !== undefined) {
+    revCalcState.my.evs[t.dataset.rcEvset] = parseInt(t.dataset.rcEvval, 10) || 0;
+    renderRevCalcMy();
+    return;
+  }
+  if (t.dataset.rcRank) {
+    const stat = t.dataset.rcRank;
+    const dir = parseInt(t.dataset.rcDir, 10);
+    revCalcState.my.ranks[stat] = Math.max(-6, Math.min(6, (revCalcState.my.ranks[stat] || 0) + dir));
+    renderRevCalcMy();
+    return;
+  }
+  if (t.dataset.rcOpprank) {
+    const stat = t.dataset.rcOpprank;
+    const dir = parseInt(t.dataset.rcDir, 10);
+    revCalcState.opp.ranks[stat] = Math.max(-6, Math.min(6, (revCalcState.opp.ranks[stat] || 0) + dir));
+    renderRevCalcOpp();
+    return;
+  }
+  if (t.dataset.rcApplyresult !== undefined) {
+    rcApplyResultToCalc(parseInt(t.dataset.rcApplyresult, 10));
+    return;
+  }
+});
+
+// 분석 시작
+document.getElementById('rcAnalyze')?.addEventListener('click', async () => {
+  revCalcState.analyzing = true;
+  renderRevCalcResults();
+  // UI 업데이트 후 분석 (heavy → 다음 frame)
+  await new Promise(resolve => setTimeout(resolve, 30));
+  try {
+    revCalcState.results = rcAnalyze();
+  } catch (e) {
+    revCalcState.results = { error: '분석 실패: ' + e.message };
+  }
+  revCalcState.analyzing = false;
+  renderRevCalcResults();
+});
+
+// 결과 spread 를 계산기 방어측에 적용
+function rcApplyResultToCalc(idx) {
+  const r = revCalcState.results;
+  if (!r || !r.results || !r.results[idx]) return;
+  const c = r.results[idx];
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  if (!oppP) return;
+  // 새 def state 빌드
+  const defState = makeSideState(oppP.id);
+  defState.evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  if (c.hpEv) defState.evs.hp = c.hpEv;
+  if (c.defEv) defState.evs[c.defStat] = c.defEv;
+  if (c.atkEv) defState.evs[c.atkStat] = c.atkEv;
+  defState.nature = c.nature;
+  if (c.item) defState.item = c.item;
+  defState.ranks = { ...revCalcState.opp.ranks };
+  defState.status = revCalcState.opp.status || 'none';
+  // 적용
+  state.def = defState;
+  state.atk = JSON.parse(JSON.stringify(revCalcState.my));
+  // 필드 상태 적용
+  Object.assign(state.field, revCalcState.field);
+  renderSide('atk');
+  renderSide('def');
+  triggerCalc();
+  const calcNav = document.querySelector('.nav-tab[data-page="calc"]');
+  if (calcNav) calcNav.click();
+}
+
+// 계산기 → 역계산 sync (계산기 패널에 🔍 역계산 버튼 추가됨)
+function loadSideToRevCalc(sideKey) {
+  const src = state[sideKey];
+  revCalcState.my = JSON.parse(JSON.stringify(src));
+  const otherKey = sideKey === 'atk' ? 'def' : 'atk';
+  revCalcState.opp.pokemonIdx = state[otherKey].pokemonIdx;
+  revCalcState.opp.ranks = { ...state[otherKey].ranks };
+  revCalcState.opp.status = state[otherKey].status || 'none';
+  Object.assign(revCalcState.field, state.field);
+  const navBtn = document.querySelector('.nav-tab[data-page="revcalc"]');
+  if (navBtn) navBtn.click();
+  renderRevCalcAll();
+}
+window.loadSideToRevCalc = loadSideToRevCalc;

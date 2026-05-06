@@ -16,3 +16,4 @@ renderDexContent('');
 renderMatchupSlots();
 renderMatchupTable();
 renderFineTuneAll();
+renderRevCalcAll();
