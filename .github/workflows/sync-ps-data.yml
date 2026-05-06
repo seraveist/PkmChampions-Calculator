@@ -62,10 +62,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/ pokemon-champions-calculator-v3.html
           DATE=$(date -u +%Y-%m-%d)
-          git commit -m "chore: sync PS data ${DATE}
-
-Auto-synced from smogon/pokemon-showdown master via
-.github/workflows/sync-ps-data.yml — see job summary for changed files."
+          git commit -m "chore: sync PS data ${DATE}" -m "Auto-synced from smogon/pokemon-showdown master via .github/workflows/sync-ps-data.yml — see job summary for changed files."
           git push
 
       - name: Job summary

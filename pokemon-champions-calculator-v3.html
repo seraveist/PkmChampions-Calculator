@@ -4985,7 +4985,14 @@ function renderPokemonDex(query) {
   if (dexTypeFilter.length > 0) data = data.filter(p => dexTypeFilter.every(t => p.types.includes(t)));
   const tbody = document.getElementById('dexBodyPokemon');
   if(!tbody) return;
-  tbody.innerHTML = data.slice(0, 200).map(p => `<tr data-dex-id="${p.id}"><td>${p.mega ? '<span class="badge-mega" style="color:var(--tera);font-size:10px;">[메가]</span> ' : ''}${escapeHTML(p.koName || p.name)}</td><td>${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join(' ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num" style="font-weight:700; color:var(--warn);">${p.bst}</td><td class="dim" style="font-size:10px;">${Object.values(p.ab).join(', ')}</td></tr>`).join('');
+  tbody.innerHTML = data.slice(0, 200).map(p => {
+    // 특성 한글명 매핑 — abilityIdNorm 으로 ID 변환 후 AbilityById lookup
+    const abLabels = Object.values(p.ab || {}).map(abN => {
+      const data = AbilityById[abilityIdNorm(abN)];
+      return escapeHTML(data ? abName(data) : abN);
+    }).join(', ');
+    return `<tr data-dex-id="${p.id}"><td>${p.mega ? '<span class="badge-mega" style="color:var(--tera);font-size:10px;">[메가]</span> ' : ''}${escapeHTML(p.koName || p.name)}</td><td>${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join(' ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num" style="font-weight:700; color:var(--warn);">${p.bst}</td><td class="dim" style="font-size:10px;">${abLabels}</td></tr>`;
+  }).join('');
 }
 function renderMovesDex(query) {
   let data = [...MOVES];
@@ -5369,7 +5376,13 @@ function renderPokemonDetail(p) {
       <div class="dex-modal-section-title">학습 가능 기술 (${learnable.length})</div>
       <div id="learnsetWrap">${learnsetHtml}</div>
     </div>
-    ${p.requiredItem ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">필요 도구</span><b>${escapeHTML(p.requiredItem)}</b></div></div>` : ''}
+    ${p.requiredItem ? (() => {
+      // requiredItem 은 영문명 ("Charizardite X" 등) — id 정규화 후 한글 매핑
+      const reqId = p.requiredItem.toLowerCase().replace(/[\s'\-()]/g, '');
+      const reqData = ItemById[reqId];
+      const label = reqData ? itName(reqData) : p.requiredItem;
+      return `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">필요 도구</span><b>${escapeHTML(label)}</b>${reqData ? ` <small style="color:var(--text-faint);">${escapeHTML(reqData.name)}</small>` : ''}</div></div>`;
+    })() : ''}
   `;
 
   const actions = `
@@ -5591,17 +5604,22 @@ function renderItemDetail(it) {
 
   let megaInfo = '';
   if (it.ms) {
-    // ms = { "Charizard": "Charizard-Mega-X" } 형태
+    // ms = { "Charizard": "Charizard-Mega-X" } 형태 — 영문 포켓몬 이름. 한글 매핑 시도.
     const targets = Object.entries(it.ms);
     megaInfo = `
       <div class="dex-modal-section">
         <div class="dex-modal-section-title">메가스톤 — 변환 대상</div>
         <div class="dex-link-list">
           ${targets.map(([orig, mega]) => {
+            const origId = orig.toLowerCase().replace(/[^a-z0-9]/g, '');
             const megaId = mega.toLowerCase().replace(/[^a-z0-9]/g, '');
-            return PokemonById[megaId]
-              ? `<button class="dex-link" data-dex-link="pokemon" data-id="${megaId}">${escapeHTML(orig)} → ${escapeHTML(mega)}</button>`
-              : `<span class="dex-modal-flag">${escapeHTML(orig)} → ${escapeHTML(mega)}</span>`;
+            const origData = PokemonById[origId];
+            const megaData = PokemonById[megaId];
+            const origLabel = origData ? pkName(origData) : orig;
+            const megaLabel = megaData ? pkName(megaData) : mega;
+            return megaData
+              ? `<button class="dex-link" data-dex-link="pokemon" data-id="${megaId}">${escapeHTML(origLabel)} → ${escapeHTML(megaLabel)}</button>`
+              : `<span class="dex-modal-flag">${escapeHTML(origLabel)} → ${escapeHTML(megaLabel)}</span>`;
           }).join('')}
         </div>
       </div>
@@ -5634,7 +5652,11 @@ function renderItemDetail(it) {
     ${berryInfo ? `<div class="dex-modal-section">${berryInfo}</div>` : ''}
     ${it.flingBp ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">던지기 위력</span><b>${it.flingBp}</b></div></div>` : ''}
     ${megaInfo}
-    ${it.itemUser ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">전용</span>${it.itemUser.map(u => `<span class="dex-modal-flag">${escapeHTML(u)}</span>`).join(' ')}</div></div>` : ''}
+    ${it.itemUser ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">전용</span>${it.itemUser.map(u => {
+      const uid = u.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const ud = PokemonById[uid];
+      return `<span class="dex-modal-flag">${escapeHTML(ud ? pkName(ud) : u)}</span>`;
+    }).join(' ')}</div></div>` : ''}
   `;
   const actions = `
     <button class="dex-modal-btn atk" data-dex-apply="item-atk">⚔️ 공격측에 장착</button>
