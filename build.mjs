@@ -52,6 +52,54 @@ async function build() {
   const Natures = readBase('natures.ts', 'Natures');
   const FormatsData = readBase('formats-data.ts', 'FormatsData');
 
+  console.log('📚 텍스트 설명(text/) 로드');
+  const textDir = path.join(DATA, 'text');
+  const hasText = fs.existsSync(textDir);
+  const MovesText = hasText ? loadTsModule(path.join(textDir, 'moves.ts')).MovesText || {} : {};
+  const AbilitiesText = hasText ? loadTsModule(path.join(textDir, 'abilities.ts')).AbilitiesText || {} : {};
+  const ItemsText = hasText ? loadTsModule(path.join(textDir, 'items.ts')).ItemsText || {} : {};
+  if (!hasText) console.log('  (data/text/ 폴더가 없어 설명을 비웁니다)');
+
+  console.log('🇰🇷 한국어 캐시(data/ko/) 로드');
+  const koDir = path.join(DATA, 'ko');
+  function readKoJsonRaw(name) {
+    const fp = path.join(koDir, `${name}.json`);
+    if (!fs.existsSync(fp)) return {};
+    try { return JSON.parse(fs.readFileSync(fp, 'utf8')); }
+    catch (e) { console.warn(`  ⚠️ ${fp} parse 실패:`, e.message); return {}; }
+  }
+  // 수동 번역 파일 (사용자 편집). 메타 키(_README, _NOTE 등) 와 빈 문자열은 무시.
+  function readManualKo(name) {
+    const raw = readKoJsonRaw(`${name}.manual`);
+    const clean = {};
+    for (const [k, v] of Object.entries(raw)) {
+      if (k.startsWith('_')) continue;
+      if (v && typeof v === 'string' && v.trim()) clean[k] = v;
+    }
+    return clean;
+  }
+  // auto > manual 우선. PokéAPI 가 추후 항목을 추가하면 자동값이 수동값을 덮음.
+  // (Object spread 는 뒤쪽이 이김 → ...manual 먼저, ...auto 나중)
+  function loadKo(name) {
+    return { ...readManualKo(name), ...readKoJsonRaw(name) };
+  }
+  const koPokemon = loadKo('pokemon');
+  const koMoves = loadKo('moves');
+  const koAbilities = loadKo('abilities');
+  const koItems = loadKo('items');
+  // 설명 (PokéAPI flavor text 한국어 — 최신 게임 버전 우선)
+  const koDescMoves = loadKo('desc-moves');
+  const koDescAbilities = loadKo('desc-abilities');
+  const koDescItems = loadKo('desc-items');
+  // 진단 출력 (auto / manual 분리 표시)
+  function manualCount(name) { return Object.keys(readManualKo(name)).length; }
+  const m1 = manualCount('pokemon'), m2 = manualCount('moves'), m3 = manualCount('abilities'), m4 = manualCount('items');
+  const d1 = manualCount('desc-moves'), d2 = manualCount('desc-abilities'), d3 = manualCount('desc-items');
+  const fmt = (auto, manual) => manual > 0 ? `${auto}+${manual}` : `${auto}`;
+  console.log(`  이름  포켓몬:${fmt(Object.keys(readKoJsonRaw('pokemon')).length, m1)} 기술:${fmt(Object.keys(readKoJsonRaw('moves')).length, m2)} 특성:${fmt(Object.keys(readKoJsonRaw('abilities')).length, m3)} 도구:${fmt(Object.keys(readKoJsonRaw('items')).length, m4)}`);
+  console.log(`  설명  기술:${fmt(Object.keys(readKoJsonRaw('desc-moves')).length, d1)} 특성:${fmt(Object.keys(readKoJsonRaw('desc-abilities')).length, d2)} 도구:${fmt(Object.keys(readKoJsonRaw('desc-items')).length, d3)}`);
+  if (m1+m2+m3+m4+d1+d2+d3 > 0) console.log(`  (형식: 자동+수동, 자동 우선 적용)`);
+
   console.log('📦 champions 모드 오버라이드 로드');
   const champPokedex = readChamp('pokedex.ts', 'Pokedex'); // 보통 비어 있음
   const champMoves = readChamp('moves.ts', 'Moves');
@@ -69,6 +117,19 @@ async function build() {
   // formats-data 는 base 가 9세대 본가 기준이라 champions 쪽이 진실의 원천.
   // champions formats-data 에 명시된 항목만 사용한다.
   const mergedFormats = champFormatsData;
+
+  // 설명 우선순위: 모드 오버라이드 → 베이스 text/ → 빈 문자열
+  // text/ 항목엔 desc(긴 설명) 와 shortDesc(짧은 설명) 가 모두 존재. shortDesc 우선.
+  function pickText(modEntry, textEntry) {
+    return modEntry?.shortDesc || modEntry?.desc
+      || textEntry?.shortDesc || textEntry?.desc
+      || '';
+  }
+  function pickLongText(modEntry, textEntry) {
+    return modEntry?.desc || textEntry?.desc
+      || modEntry?.shortDesc || textEntry?.shortDesc
+      || '';
+  }
 
   console.log('⚙️ 챔피언스 필터링');
 
@@ -90,7 +151,7 @@ async function build() {
     finalPokemon.push({
       id,
       name: p.name,
-      koName: p.name, // 한국어 번역은 별도 적용 예정
+      koName: koPokemon[id] || p.name,
       base: p.baseSpecies,
       forme: p.forme,
       types: p.types,
@@ -114,10 +175,13 @@ async function build() {
     if (!m || !m.name) continue;
     if (isPast(m)) continue;
     if (m.category === 'Status' || (typeof m.basePower === 'number' && m.basePower > 0) || m.category === 'Physical' || m.category === 'Special') {
+      const enShort = pickText(m, MovesText[id]);
+      const enLong = pickLongText(m, MovesText[id]);
+      const ko = koDescMoves[id];
       finalMoves.push({
         id,
         name: m.name,
-        koName: m.name,
+        koName: koMoves[id] || m.name,
         type: m.type,
         cat: m.category,
         bp: m.basePower,
@@ -126,7 +190,9 @@ async function build() {
         flags: m.flags || {},
         mh: m.multihit || undefined,
         target: m.target,
-        desc: m.shortDesc || m.desc || '',
+        // 한글 우선 (없으면 영문 short). descLong 은 항상 영문 long 보존 → 모달에서 한글+영문 함께 표시.
+        desc: ko || enShort,
+        descLong: ko ? enLong : (enLong !== enShort ? enLong : ''),
       });
     }
   }
@@ -136,11 +202,16 @@ async function build() {
   for (const [id, a] of Object.entries(mergedAbilities)) {
     if (!a || !a.name) continue;
     if (isPast(a)) continue;
+    const enShort = pickText(a, AbilitiesText[id]);
+    const enLong = pickLongText(a, AbilitiesText[id]);
+    const ko = koDescAbilities[id];
     finalAbilities.push({
       id,
       name: a.name,
-      koName: a.name,
-      desc: a.shortDesc || a.desc || '',
+      koName: koAbilities[id] || a.name,
+      rating: typeof a.rating === 'number' ? a.rating : undefined,
+      desc: ko || enShort,
+      descLong: ko ? enLong : (enLong !== enShort ? enLong : ''),
     });
   }
 
@@ -149,13 +220,23 @@ async function build() {
   for (const [id, it] of Object.entries(mergedItems)) {
     if (!it || !it.name) continue;
     if (isPast(it)) continue;
+    const enShort = pickText(it, ItemsText[id]);
+    const enLong = pickLongText(it, ItemsText[id]);
+    const ko = koDescItems[id];
     finalItems.push({
       id,
       name: it.name,
-      koName: it.name,
+      koName: koItems[id] || it.name,
       ms: it.megaStone || undefined,
       itemUser: it.itemUser || undefined,
-      desc: it.shortDesc || it.desc || '',
+      isBerry: it.isBerry || undefined,
+      isChoice: it.isChoice || undefined,
+      isGem: it.isGem || undefined,
+      isPrimalOrb: it.isPrimalOrb || undefined,
+      flingBp: it.fling?.basePower || undefined,
+      naturalGift: it.naturalGift || undefined,
+      desc: ko || enShort,
+      descLong: ko ? enLong : (enLong !== enShort ? enLong : ''),
     });
   }
 
@@ -207,7 +288,20 @@ async function build() {
   if (!fs.existsSync(templatePath)) throw new Error(`Template not found: ${templatePath}`);
   const template = fs.readFileSync(templatePath, 'utf8');
 
+  // 분할된 src/styles/*.css, src/js/*.js 를 알파벳순으로 concat 한다.
+  // 파일명 접두사(01-, 02-, ...)가 곧 의존성 순서를 결정하므로 Array.sort() 면 충분.
+  function concatDir(dir, ext) {
+    if (!fs.existsSync(dir)) return '';
+    const files = fs.readdirSync(dir).filter(f => f.endsWith(ext) && !f.startsWith('.')).sort();
+    return files.map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n\n');
+  }
+  const inlineCss = concatDir(path.join(ROOT, 'src', 'styles'), '.css');
+  const inlineJs = concatDir(path.join(ROOT, 'src', 'js'), '.js');
+  console.log(`  styles: ${inlineCss.length} bytes, js: ${inlineJs.length} bytes`);
+
   const replacements = {
+    '/* __INLINE_CSS__ */': inlineCss,
+    '// __INLINE_JS__': inlineJs,
     '__POKEMON_DATA__': JSON.stringify(finalPokemon),
     '__MOVES_DATA__': JSON.stringify(finalMoves),
     '__ABILITIES_DATA__': JSON.stringify(finalAbilities),

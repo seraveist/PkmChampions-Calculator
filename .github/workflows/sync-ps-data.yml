@@ -1,0 +1,83 @@
+name: Sync PS data
+
+on:
+  schedule:
+    # 매주 일요일 02:00 UTC (KST 11:00) 자동 실행
+    - cron: '0 2 * * 0'
+  workflow_dispatch: {}   # Actions 탭에서 수동 트리거 가능
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-ps-data
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # 자동 커밋 시 trigger workflow 가 다시 트리거되지 않도록 GITHUB_TOKEN 그대로 사용
+          # (기본 GITHUB_TOKEN 으로 push 한 커밋은 다른 workflow 를 깨우지 않음 — 안전)
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Sync PS data files
+        run: node scripts/sync-ps-data.mjs
+
+      - name: Refresh Korean name cache (PokéAPI)
+        # 새 포켓몬·기술이 추가됐을 수 있으므로 ko 캐시도 갱신
+        run: node scripts/fetch-ko.mjs
+        continue-on-error: true   # PokéAPI 일시 장애 시에도 빌드는 진행
+
+      - name: Build (regression check)
+        run: npm run build
+
+      - name: Detect changes
+        id: changes
+        run: |
+          if git diff --quiet HEAD -- data/ pokemon-champions-calculator-v3.html; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "변경 없음 — 커밋 생략"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "변경 감지:"
+            git diff --stat HEAD -- data/ pokemon-champions-calculator-v3.html | tail -20
+          fi
+
+      - name: Commit & push
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/ pokemon-champions-calculator-v3.html
+          DATE=$(date -u +%Y-%m-%d)
+          git commit -m "chore: sync PS data ${DATE}" -m "Auto-synced from smogon/pokemon-showdown master via .github/workflows/sync-ps-data.yml — see job summary for changed files."
+          git push
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "## PS data sync $(date -u +%Y-%m-%d)"
+            echo ""
+            if [ "${{ steps.changes.outputs.changed }}" = "true" ]; then
+              echo "✏️ Changes detected and committed."
+              echo ""
+              echo '```'
+              git log -1 --stat
+              echo '```'
+            else
+              echo "· No changes."
+            fi
+          } >> $GITHUB_STEP_SUMMARY
