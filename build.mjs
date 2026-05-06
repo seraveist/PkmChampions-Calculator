@@ -60,6 +60,20 @@ async function build() {
   const ItemsText = hasText ? loadTsModule(path.join(textDir, 'items.ts')).ItemsText || {} : {};
   if (!hasText) console.log('  (data/text/ 폴더가 없어 설명을 비웁니다)');
 
+  console.log('🇰🇷 한국어 캐시(data/ko/) 로드');
+  const koDir = path.join(DATA, 'ko');
+  function readKoJson(name) {
+    const fp = path.join(koDir, `${name}.json`);
+    if (!fs.existsSync(fp)) return {};
+    try { return JSON.parse(fs.readFileSync(fp, 'utf8')); }
+    catch (e) { console.warn(`  ⚠️ ${fp} parse 실패:`, e.message); return {}; }
+  }
+  const koPokemon = readKoJson('pokemon');
+  const koMoves = readKoJson('moves');
+  const koAbilities = readKoJson('abilities');
+  const koItems = readKoJson('items');
+  console.log(`  포켓몬:${Object.keys(koPokemon).length} 기술:${Object.keys(koMoves).length} 특성:${Object.keys(koAbilities).length} 도구:${Object.keys(koItems).length}`);
+
   console.log('📦 champions 모드 오버라이드 로드');
   const champPokedex = readChamp('pokedex.ts', 'Pokedex'); // 보통 비어 있음
   const champMoves = readChamp('moves.ts', 'Moves');
@@ -111,7 +125,7 @@ async function build() {
     finalPokemon.push({
       id,
       name: p.name,
-      koName: p.name, // 한국어 번역은 별도 적용 예정
+      koName: koPokemon[id] || p.name,
       base: p.baseSpecies,
       forme: p.forme,
       types: p.types,
@@ -138,7 +152,7 @@ async function build() {
       finalMoves.push({
         id,
         name: m.name,
-        koName: m.name,
+        koName: koMoves[id] || m.name,
         type: m.type,
         cat: m.category,
         bp: m.basePower,
@@ -161,7 +175,7 @@ async function build() {
     finalAbilities.push({
       id,
       name: a.name,
-      koName: a.name,
+      koName: koAbilities[id] || a.name,
       rating: typeof a.rating === 'number' ? a.rating : undefined,
       desc: pickText(a, AbilitiesText[id]),
       descLong: pickLongText(a, AbilitiesText[id]),
@@ -176,7 +190,7 @@ async function build() {
     finalItems.push({
       id,
       name: it.name,
-      koName: it.name,
+      koName: koItems[id] || it.name,
       ms: it.megaStone || undefined,
       itemUser: it.itemUser || undefined,
       isBerry: it.isBerry || undefined,

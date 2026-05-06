@@ -4,6 +4,9 @@
   "description": "Pokemon Champions Damage Calculator",
   "type": "module",
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "sync-data": "node scripts/sync-ps-data.mjs",
+    "sync-data:dry": "node scripts/sync-ps-data.mjs --dry-run",
+    "fetch-ko": "node scripts/fetch-ko.mjs"
   }
 }
