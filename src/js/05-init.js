@@ -15,3 +15,4 @@ renderTypeFilter();
 renderDexContent('');
 renderMatchupSlots();
 renderMatchupTable();
+renderFineTuneAll();

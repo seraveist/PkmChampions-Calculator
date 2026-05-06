@@ -331,7 +331,8 @@ function renderSide(sideKey) {
       <div class="combobox-options"></div>
       <div class="types-display">
         ${types.map(t => `<span class="type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}
-        <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 (data/mods/champions/scripts.ts: canTerastallize → null) -->
+        <button type="button" class="ft-jump-btn" data-ft-from-side="${sideKey}" title="이 포켓몬의 세팅을 세부조정 탭으로 가져가기">🔧 세부조정</button>
+        <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 -->
       </div>
     </div>
 
@@ -1199,6 +1200,14 @@ document.getElementById('championsMode').addEventListener('change', e => {
 });
 
 // 공격측 ↔ 방어측 교대 (사이드 객체 전체를 통째로 교환)
+// 사이드 패널의 "🔧 세부조정" 버튼 위임 — 04-views.js 의 loadSideToFineTune 호출
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.ft-jump-btn[data-ft-from-side]');
+  if (!btn) return;
+  const sideKey = btn.dataset.ftFromSide;
+  if (typeof loadSideToFineTune === 'function') loadSideToFineTune(sideKey);
+});
+
 document.getElementById('btnSwapSides')?.addEventListener('click', () => {
   const tmp = state.atk;
   state.atk = state.def;

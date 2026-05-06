@@ -28,6 +28,7 @@
     <button class="nav-tab active" data-page="calc">⚔️ 대미지 계산기</button>
     <button class="nav-tab" data-page="dex">📖 도감</button>
     <button class="nav-tab" data-page="matchup">📊 상성표</button>
+    <button class="nav-tab" data-page="finetune">🔧 세부조정</button>
   </nav>
   <div class="header-status" id="data-status">데이터 로딩 중...</div>
 </header>
@@ -121,6 +122,40 @@
 </main>
 
 <!-- 상성표 페이지 -->
+<!-- 세부조정 페이지 -->
+<main id="page-finetune" class="page">
+  <div class="finetune-grid">
+    <section class="panel ft-my">
+      <div class="panel-head">
+        <div class="panel-title">내 포켓몬 (세부조정)</div>
+        <div class="panel-head-actions">
+          <button class="ft-action-btn atk" id="ftApplyAtk" title="현재 세팅을 계산기 공격측으로 적용 (상대는 방어측으로)">⚔️ 공격측 적용</button>
+          <button class="ft-action-btn def" id="ftApplyDef" title="현재 세팅을 계산기 방어측으로 적용 (상대는 공격측으로)">🛡️ 방어측 적용</button>
+        </div>
+      </div>
+      <div class="panel-body" id="ft-my-body"></div>
+    </section>
+    <section class="panel ft-opp">
+      <div class="panel-head">
+        <div class="panel-title">상대 포켓몬 (스피드 비교용)</div>
+        <span class="ft-hint">특성 무시 · 스카프와 랭크만 반영</span>
+      </div>
+      <div class="panel-body" id="ft-opp-body"></div>
+    </section>
+  </div>
+
+  <section class="panel ft-results">
+    <div class="panel-head">
+      <div class="panel-title">스피드 비교</div>
+      <div class="panel-head-actions">
+        <span class="field-label" style="margin-right:6px;">추월 마진 (+n):</span>
+        <input type="number" id="ftMargin" value="1" min="0" max="100" style="width: 60px;">
+      </div>
+    </div>
+    <div class="panel-body" id="ft-speed-body"></div>
+  </section>
+</main>
+
 <main id="page-matchup" class="page">
   <section class="panel">
     <div class="panel-head">

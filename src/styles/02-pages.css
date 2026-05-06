@@ -962,3 +962,149 @@
 
   /* cat-stat: 변화기 카테고리 배지 */
   .cat-stat { background: var(--text-faint); color: var(--bg); padding: 2px 6px; border-radius: 2px; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; }
+
+
+/* ════════════════════════════════════════════════════════════
+   세부조정 (Fine-tune) 페이지
+   ════════════════════════════════════════════════════════════ */
+.finetune-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+@media (max-width: 1000px) { .finetune-grid { grid-template-columns: 1fr; } }
+
+.ft-my .panel-head { background: linear-gradient(90deg, rgba(255, 71, 102, 0.12), transparent); }
+.ft-opp .panel-head { background: linear-gradient(90deg, rgba(51, 183, 255, 0.12), transparent); }
+.ft-results .panel-head { background: linear-gradient(90deg, rgba(255, 181, 71, 0.12), transparent); }
+
+.ft-action-btn {
+  background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim);
+  padding: 5px 10px; font-size: 11px; cursor: pointer; border-radius: 3px;
+  font-family: inherit; transition: all 0.15s;
+}
+.ft-action-btn:hover { color: var(--text); border-color: var(--border-bright); }
+.ft-action-btn.atk { color: var(--atk); border-color: var(--atk-deep); }
+.ft-action-btn.atk:hover { background: rgba(255, 71, 102, 0.1); }
+.ft-action-btn.def { color: var(--def); border-color: var(--def-deep); }
+.ft-action-btn.def:hover { background: rgba(51, 183, 255, 0.1); }
+
+.ft-hint { font-size: 10px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; margin-left: auto; }
+
+.ft-section-title {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em;
+  color: var(--text-faint); text-transform: uppercase; display: inline-block; margin-right: 8px;
+  margin-top: 10px; margin-bottom: 6px;
+}
+
+.ft-poke-row { margin-bottom: 10px; }
+.ft-pickname { display: flex; align-items: center; gap: 8px; }
+
+.ft-controls-row {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  padding: 8px 0; margin-bottom: 8px;
+  border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border);
+}
+.ft-controls-row > .field { flex: 1; min-width: 140px; margin-bottom: 0; }
+
+.ft-stats-grid {
+  display: grid;
+  grid-template-columns: 60px 50px 130px 50px 80px 1fr;
+  gap: 6px 8px;
+  align-items: center;
+  font-size: 12px;
+}
+.ft-stats-head {
+  display: contents;
+}
+.ft-stats-head > div {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--text-faint); letter-spacing: 0.1em; text-transform: uppercase;
+  padding-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.ft-stat-row { display: contents; }
+.ft-stat-name { font-weight: 600; }
+.ft-stat-base { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; text-align: right; }
+.ft-stat-ev { display: flex; gap: 2px; align-items: center; }
+.ft-ev-input { width: 60px; height: 28px; padding: 2px 6px; font-size: 12px; text-align: center; }
+.ft-ev-quick {
+  background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim);
+  width: 28px; height: 28px; cursor: pointer; border-radius: 2px; font-size: 10px;
+}
+.ft-ev-quick:hover { color: var(--warn); border-color: var(--warn); }
+.ft-stat-final {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  text-align: right; color: var(--ok);
+}
+.ft-rank { display: flex; gap: 3px; align-items: center; }
+.ft-rank-btn {
+  background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim);
+  width: 22px; height: 22px; cursor: pointer; border-radius: 2px; font-size: 12px; line-height: 1;
+}
+.ft-rank-btn:hover { color: var(--warn); border-color: var(--warn); }
+.ft-rank-val {
+  min-width: 28px; text-align: center; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  font-size: 11px;
+}
+.ft-rank-val.pos { color: var(--atk); }
+.ft-rank-val.neg { color: var(--def); }
+.ft-magic { display: flex; gap: 8px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text-dim); }
+.ft-magic.empty { color: transparent; }
+.ft-magic-prev, .ft-magic-next {
+  padding: 1px 5px; border: 1px solid var(--border); border-radius: 2px;
+  background: var(--bg-input);
+}
+.ft-magic-prev.empty, .ft-magic-next.empty { visibility: hidden; }
+.ft-magic-next { color: var(--ok); border-color: rgba(74, 222, 128, 0.3); }
+.ft-magic-prev { color: var(--text-faint); }
+
+.ft-ev-total {
+  margin-top: 12px; padding: 6px 10px;
+  background: var(--bg-input); border: 1px solid var(--border); border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+}
+.ft-ev-total.over { border-color: var(--atk); color: var(--atk); }
+.ft-ev-total b { font-weight: 700; }
+
+.ft-tag-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.ft-tag {
+  padding: 3px 8px; border: 1px solid var(--border); border-radius: 2px;
+  background: var(--bg-input); font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+}
+
+/* 스피드 표 */
+.ft-myspe-info {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  margin-bottom: 10px; padding: 6px 10px;
+  background: var(--bg-input); border: 1px solid var(--border); border-radius: 3px;
+  font-size: 12px; font-family: 'JetBrains Mono', monospace;
+}
+.ft-speed-table-wrap { overflow-x: auto; }
+.ft-speed-table {
+  width: 100%; border-collapse: collapse;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+}
+.ft-speed-table th, .ft-speed-table td {
+  padding: 8px 12px; border: 1px solid var(--border); text-align: center;
+}
+.ft-speed-table thead th {
+  background: var(--bg-elev); color: var(--text-dim); font-size: 11px; font-weight: 600;
+}
+.ft-speed-table thead th small { display: block; color: var(--text-faint); font-size: 9px; margin-top: 2px; }
+.ft-speed-table tbody th {
+  background: var(--bg-elev); color: var(--text); font-size: 11px;
+  text-align: left; padding-left: 12px; min-width: 140px;
+}
+.ft-speed-table .ft-cell-possible { background: rgba(74, 222, 128, 0.08); color: var(--ok); }
+.ft-speed-table .ft-cell-impossible { background: rgba(255, 71, 102, 0.08); color: var(--atk); }
+
+/* 사이드 패널의 세부조정 점프 버튼 */
+.ft-jump-btn {
+  background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim);
+  padding: 3px 8px; font-size: 10px; cursor: pointer; border-radius: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: auto;
+}
+.ft-jump-btn:hover { color: var(--warn); border-color: var(--warn); }
