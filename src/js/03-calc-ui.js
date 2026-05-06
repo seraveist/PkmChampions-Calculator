@@ -332,7 +332,7 @@ function renderSide(sideKey) {
       <div class="types-display">
         ${types.map(t => `<span class="type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}
         <button type="button" class="ft-jump-btn" data-ft-from-side="${sideKey}" title="이 포켓몬의 세팅을 세부조정 탭으로 가져가기">🔧 세부조정</button>
-        <button type="button" class="ft-jump-btn" data-rc-from-side="${sideKey}" title="이 포켓몬의 세팅을 내구역계산 탭으로 가져가기">🔍 역계산</button>
+        <button type="button" class="ft-jump-btn" data-rc-from-side="${sideKey}" title="이 포켓몬의 세팅을 내구 역계산 탭으로 가져가기">🔍 역계산</button>
         <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 -->
       </div>
     </div>

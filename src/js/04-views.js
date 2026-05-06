@@ -951,7 +951,11 @@ function ftHpHints(side) {
   if (hp % 10 === 9)  tags.push({ rule: '10n-1',  desc: '생명의구슬 반동 최소',      color: 'var(--text-dim)' });
   if (hp % 8 === 1)   tags.push({ rule: '8n+1',   desc: '씨뿌리기 +1턴 버팀',        color: 'var(--ok)' });
   if (hp % 8 === 7)   tags.push({ rule: '8n-1',   desc: '씨뿌리기 최소',             color: 'var(--text-dim)' });
-  if (hp % 4 === 1)   tags.push({ rule: '4n+1',   desc: '대타출동 +1회 가능',         color: 'var(--ok)' });
+  // 대타출동: 1/4 max HP 소모. 4n+1, 4n+2, 4n+3 모두 한 번 더 가능 (4n 보다)
+  const hpMod4 = hp % 4;
+  if (hpMod4 === 1) tags.push({ rule: '4n+1', desc: '대타출동 +1회 가능', color: 'var(--ok)' });
+  if (hpMod4 === 2) tags.push({ rule: '4n+2', desc: '대타출동 +1회 가능', color: 'var(--ok)' });
+  if (hpMod4 === 3) tags.push({ rule: '4n+3', desc: '대타출동 +1회 가능', color: 'var(--ok)' });
   // 스텔스록: 자기 포켓몬의 바위 약점 배율 기준
   const types = effectiveTypes(side);
   const rockEff = typeEff('Rock', types);
@@ -1076,19 +1080,19 @@ function renderFineTuneMy() {
     const isDown = nature?.down === s;
     const natureMark = isUp ? '<span style="color:#ff6b85;">▲</span>' : isDown ? '<span style="color:#7e9eff;">▼</span>' : '';
     const rank = my.ranks?.[s] || 0;
-    const rankCtrl = s === 'hp' ? '' : `
+    const rankCtrl = s === 'hp' ? '<div class="ft-rank-empty"></div>' : `
       <div class="ft-rank">
         <button class="ft-rank-btn" data-ft-rank="${s}" data-ft-dir="-1">−</button>
         <span class="ft-rank-val ${rank > 0 ? 'pos' : rank < 0 ? 'neg' : ''}">${rank > 0 ? '+' + rank : rank}</span>
         <button class="ft-rank-btn" data-ft-rank="${s}" data-ft-dir="1">+</button>
       </div>
     `;
-    // 매직넘버 (있을 때만)
+    // 매직넘버 — 현재 EV 대비 상대값으로 표시 (-Npt / +Npt)
     const magic = ftMagicNumbers(my, s);
     const magicHtml = magic ? `
       <div class="ft-magic">
-        ${magic.prev !== null ? `<span class="ft-magic-prev">←${magic.prev}pt</span>` : '<span class="ft-magic-prev empty"></span>'}
-        ${magic.next !== null ? `<span class="ft-magic-next">${magic.next}pt→</span>` : '<span class="ft-magic-next empty"></span>'}
+        ${magic.prev !== null ? `<span class="ft-magic-prev" title="이전 매직 위치: ${magic.prev}pt">-${ev - magic.prev}pt</span>` : '<span class="ft-magic-prev empty"></span>'}
+        ${magic.next !== null ? `<span class="ft-magic-next" title="다음 매직 위치: ${magic.next}pt">+${magic.next - ev}pt</span>` : '<span class="ft-magic-next empty"></span>'}
       </div>
     ` : '<div class="ft-magic empty"></div>';
     return `
@@ -1352,7 +1356,12 @@ document.getElementById('page-finetune')?.addEventListener('change', e => {
   if (t.id === 'ftWeatherAbility') { fineTuneState.weatherAbilityActive = t.checked; renderFineTuneSpeed(); return; }
   if (t.dataset.ftEv) {
     const stat = t.dataset.ftEv;
-    fineTuneState.my.evs[stat] = Math.max(0, Math.min(32, parseInt(t.value, 10) || 0));
+    const evs = fineTuneState.my.evs;
+    const requested = Math.max(0, Math.min(32, parseInt(t.value, 10) || 0));
+    // 66 캡 적용: 다른 stat 합 + 새 값이 66 초과면 잘라냄
+    const otherSum = ['hp','atk','def','spa','spd','spe'].reduce((a, k) => k === stat ? a : a + (evs[k] || 0), 0);
+    const capped = Math.min(requested, Math.max(0, 66 - otherSum));
+    evs[stat] = capped;
     renderFineTuneMy(); renderFineTuneSpeed();
     return;
   }
@@ -1362,9 +1371,13 @@ document.getElementById('page-finetune')?.addEventListener('change', e => {
 
 document.getElementById('page-finetune')?.addEventListener('click', e => {
   const t = e.target;
-  // EV quick set 버튼 (0/32)
+  // EV quick set 버튼 (0/32) — 66 캡 적용
   if (t.dataset.ftEvset !== undefined) {
-    fineTuneState.my.evs[t.dataset.ftEvset] = parseInt(t.dataset.ftEvval, 10) || 0;
+    const stat = t.dataset.ftEvset;
+    const evs = fineTuneState.my.evs;
+    const requested = parseInt(t.dataset.ftEvval, 10) || 0;
+    const otherSum = ['hp','atk','def','spa','spd','spe'].reduce((a, k) => k === stat ? a : a + (evs[k] || 0), 0);
+    evs[stat] = Math.min(requested, Math.max(0, 66 - otherSum));
     renderFineTuneMy(); renderFineTuneSpeed();
     return;
   }
@@ -1698,7 +1711,7 @@ function renderRevCalcMy() {
     const isUp = nature?.up === s, isDown = nature?.down === s;
     const natureMark = isUp ? '<span style="color:#ff6b85;">▲</span>' : isDown ? '<span style="color:#7e9eff;">▼</span>' : '';
     const rank = my.ranks?.[s] || 0;
-    const rankCtrl = s === 'hp' ? '' : `
+    const rankCtrl = s === 'hp' ? '<div class="ft-rank-empty"></div>' : `
       <div class="ft-rank">
         <button class="ft-rank-btn" data-rc-rank="${s}" data-rc-dir="-1">−</button>
         <span class="ft-rank-val ${rank > 0 ? 'pos' : rank < 0 ? 'neg' : ''}">${rank > 0 ? '+' + rank : rank}</span>
@@ -1749,7 +1762,7 @@ function renderRevCalcMy() {
         </div>
       </label>
     </div>
-    <div class="ft-stats-grid" style="grid-template-columns: 60px 50px 130px 50px 80px;">
+    <div class="ft-stats-grid" style="grid-template-columns: 64px 56px 168px 60px 96px;">
       <div class="ft-stats-head"><div>스탯</div><div>종족값</div><div>노력치</div><div>실수치</div><div>랭크</div></div>
       ${statRows}
     </div>
@@ -2078,7 +2091,11 @@ function rcWireOppComboboxes() {
 document.getElementById('page-revcalc')?.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.rcEv) {
-    revCalcState.my.evs[t.dataset.rcEv] = Math.max(0, Math.min(32, parseInt(t.value, 10) || 0));
+    const stat = t.dataset.rcEv;
+    const evs = revCalcState.my.evs;
+    const requested = Math.max(0, Math.min(32, parseInt(t.value, 10) || 0));
+    const otherSum = ['hp','atk','def','spa','spd','spe'].reduce((a, k) => k === stat ? a : a + (evs[k] || 0), 0);
+    evs[stat] = Math.min(requested, Math.max(0, 66 - otherSum));
     renderRevCalcMy();
     return;
   }
@@ -2118,7 +2135,11 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
 document.getElementById('page-revcalc')?.addEventListener('click', e => {
   const t = e.target;
   if (t.dataset.rcEvset !== undefined) {
-    revCalcState.my.evs[t.dataset.rcEvset] = parseInt(t.dataset.rcEvval, 10) || 0;
+    const stat = t.dataset.rcEvset;
+    const evs = revCalcState.my.evs;
+    const requested = parseInt(t.dataset.rcEvval, 10) || 0;
+    const otherSum = ['hp','atk','def','spa','spd','spe'].reduce((a, k) => k === stat ? a : a + (evs[k] || 0), 0);
+    evs[stat] = Math.min(requested, Math.max(0, 66 - otherSum));
     renderRevCalcMy();
     return;
   }
