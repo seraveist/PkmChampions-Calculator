@@ -72,7 +72,12 @@ async function build() {
   const koMoves = readKoJson('moves');
   const koAbilities = readKoJson('abilities');
   const koItems = readKoJson('items');
-  console.log(`  포켓몬:${Object.keys(koPokemon).length} 기술:${Object.keys(koMoves).length} 특성:${Object.keys(koAbilities).length} 도구:${Object.keys(koItems).length}`);
+  // 설명 (PokéAPI flavor text 한국어 — 최신 게임 버전 우선)
+  const koDescMoves = readKoJson('desc-moves');
+  const koDescAbilities = readKoJson('desc-abilities');
+  const koDescItems = readKoJson('desc-items');
+  console.log(`  이름  포켓몬:${Object.keys(koPokemon).length} 기술:${Object.keys(koMoves).length} 특성:${Object.keys(koAbilities).length} 도구:${Object.keys(koItems).length}`);
+  console.log(`  설명  기술:${Object.keys(koDescMoves).length} 특성:${Object.keys(koDescAbilities).length} 도구:${Object.keys(koDescItems).length}`);
 
   console.log('📦 champions 모드 오버라이드 로드');
   const champPokedex = readChamp('pokedex.ts', 'Pokedex'); // 보통 비어 있음
@@ -149,6 +154,9 @@ async function build() {
     if (!m || !m.name) continue;
     if (isPast(m)) continue;
     if (m.category === 'Status' || (typeof m.basePower === 'number' && m.basePower > 0) || m.category === 'Physical' || m.category === 'Special') {
+      const enShort = pickText(m, MovesText[id]);
+      const enLong = pickLongText(m, MovesText[id]);
+      const ko = koDescMoves[id];
       finalMoves.push({
         id,
         name: m.name,
@@ -161,8 +169,9 @@ async function build() {
         flags: m.flags || {},
         mh: m.multihit || undefined,
         target: m.target,
-        desc: pickText(m, MovesText[id]),
-        descLong: pickLongText(m, MovesText[id]),
+        // 한글 우선 (없으면 영문 short). descLong 은 항상 영문 long 보존 → 모달에서 한글+영문 함께 표시.
+        desc: ko || enShort,
+        descLong: ko ? enLong : (enLong !== enShort ? enLong : ''),
       });
     }
   }
@@ -172,13 +181,16 @@ async function build() {
   for (const [id, a] of Object.entries(mergedAbilities)) {
     if (!a || !a.name) continue;
     if (isPast(a)) continue;
+    const enShort = pickText(a, AbilitiesText[id]);
+    const enLong = pickLongText(a, AbilitiesText[id]);
+    const ko = koDescAbilities[id];
     finalAbilities.push({
       id,
       name: a.name,
       koName: koAbilities[id] || a.name,
       rating: typeof a.rating === 'number' ? a.rating : undefined,
-      desc: pickText(a, AbilitiesText[id]),
-      descLong: pickLongText(a, AbilitiesText[id]),
+      desc: ko || enShort,
+      descLong: ko ? enLong : (enLong !== enShort ? enLong : ''),
     });
   }
 
@@ -187,6 +199,9 @@ async function build() {
   for (const [id, it] of Object.entries(mergedItems)) {
     if (!it || !it.name) continue;
     if (isPast(it)) continue;
+    const enShort = pickText(it, ItemsText[id]);
+    const enLong = pickLongText(it, ItemsText[id]);
+    const ko = koDescItems[id];
     finalItems.push({
       id,
       name: it.name,
@@ -199,8 +214,8 @@ async function build() {
       isPrimalOrb: it.isPrimalOrb || undefined,
       flingBp: it.fling?.basePower || undefined,
       naturalGift: it.naturalGift || undefined,
-      desc: pickText(it, ItemsText[id]),
-      descLong: pickLongText(it, ItemsText[id]),
+      desc: ko || enShort,
+      descLong: ko ? enLong : (enLong !== enShort ? enLong : ''),
     });
   }
 

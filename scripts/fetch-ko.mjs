@@ -29,38 +29,99 @@ async function fetchText(url) {
   return res.text();
 }
 
-// CSV 파서 — 따옴표 안의 콤마 처리. PokéAPI CSV 는 따옴표를 거의 안 쓰지만 안전하게.
+// CSV 파서 — RFC 4180 기준. 따옴표 안의 콤마/줄바꿈 처리, "" 이스케이프 처리.
+// flavor text 류는 한 셀이 여러 줄에 걸치므로 line-split 우선 방식으로는 안 된다.
 function parseCsv(text) {
-  const lines = text.split('\n').filter(l => l.length > 0);
-  const header = parseRow(lines[0]);
   const rows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseRow(lines[i]);
-    if (cols.length === 0) continue;
-    const obj = {};
-    header.forEach((h, j) => { obj[h] = cols[j] ?? ''; });
-    rows.push(obj);
-  }
-  return rows;
-}
-function parseRow(line) {
-  const out = [];
-  let cur = '';
+  let cur = [];
+  let field = '';
   let inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
+  // 첫 row 는 header 로 사용
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
     if (inQ) {
-      if (c === '"' && line[i+1] === '"') { cur += '"'; i++; }
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
       else if (c === '"') inQ = false;
-      else cur += c;
+      else field += c;
     } else {
       if (c === '"') inQ = true;
-      else if (c === ',') { out.push(cur); cur = ''; }
-      else cur += c;
+      else if (c === ',') { cur.push(field); field = ''; }
+      else if (c === '\n') { cur.push(field); rows.push(cur); cur = []; field = ''; }
+      else if (c === '\r') { /* skip CR */ }
+      else field += c;
     }
   }
-  out.push(cur);
+  if (field !== '' || cur.length) { cur.push(field); rows.push(cur); }
+  if (rows.length === 0) return [];
+  const header = rows[0];
+  const out = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (r.length === 1 && r[0] === '') continue;
+    const obj = {};
+    header.forEach((h, j) => { obj[h] = r[j] ?? ''; });
+    out.push(obj);
+  }
   return out;
+}
+
+// 다중 라인 flavor text 를 단일 줄로 정리: 줄바꿈 → 공백, 연속 공백 압축.
+function cleanFlavor(text) {
+  return (text || '').replace(/\s+/g, ' ').trim();
+}
+
+// version_groups.csv 에서 id → order 맵을 만든다.
+// flavor text 여러 버전 중 가장 최신 (order 큰) 것을 고르기 위해.
+let _versionOrderCache = null;
+async function getVersionOrder() {
+  if (_versionOrderCache) return _versionOrderCache;
+  const rows = parseCsv(await fetchText(`${CSV_BASE}/version_groups.csv`));
+  _versionOrderCache = new Map(rows.map(r => [r.id, parseInt(r.order, 10) || 0]));
+  return _versionOrderCache;
+}
+
+// 한 카테고리의 flavor text(한국어) 를 PS id 키로 매핑해서 반환.
+// opts: { tableCsv, flavorCsv, idColumn (e.g. 'ability_id'/'move_id'/'item_id') }
+async function fetchKoFlavor(targetIds, opts) {
+  console.log(`   ${opts.tableCsv} ...`);
+  const items = parseCsv(await fetchText(`${CSV_BASE}/${opts.tableCsv}`));
+  console.log(`   ${opts.flavorCsv} ...`);
+  const flavors = parseCsv(await fetchText(`${CSV_BASE}/${opts.flavorCsv}`));
+
+  const idToIdent = new Map(items.map(r => [r.id, r.identifier]));
+  const versionOrder = await getVersionOrder();
+
+  // {pokeapi_id} → { latestOrder, flavor_text }
+  const bestPerId = new Map();
+  for (const r of flavors) {
+    if (r.language_id !== KO_LANG_ID) continue;
+    const id = r[opts.idColumn];
+    if (!id) continue;
+    const ord = versionOrder.get(r.version_group_id) ?? 0;
+    const cur = bestPerId.get(id);
+    if (!cur || ord > cur.order) {
+      bestPerId.set(id, { order: ord, text: r.flavor_text });
+    }
+  }
+
+  // identifier → flavor 맵으로 변환 (정규화된 키)
+  const koByPsId = new Map();
+  for (const [pokeId, { text }] of bestPerId) {
+    const ident = idToIdent.get(pokeId);
+    if (!ident) continue;
+    koByPsId.set(psNorm(ident), cleanFlavor(text));
+  }
+  console.log(`   PokéAPI 한국어 flavor ${koByPsId.size}개 (최신 버전 우선)`);
+
+  // 우리 ID 와 매칭
+  const cache = {};
+  const missing = [];
+  for (const id of targetIds) {
+    const flavor = koByPsId.get(psNorm(id));
+    if (flavor) cache[id] = flavor;
+    else missing.push(id);
+  }
+  return { cache, missing };
 }
 
 // === 카테고리별 fetcher ===
@@ -167,10 +228,15 @@ async function main() {
   const targets = loadTargetIds();
 
   const tasks = [
+    // 이름
     { key: 'pokemon',   total: targets.pokemon.length,   run: () => fetchKoPokemon(targets.pokemon) },
     { key: 'moves',     total: targets.moves.length,     run: () => fetchKoSimple(targets.moves, { tableCsv: 'moves.csv', namesCsv: 'move_names.csv', idColumn: 'move_id' }) },
     { key: 'abilities', total: targets.abilities.length, run: () => fetchKoSimple(targets.abilities, { tableCsv: 'abilities.csv', namesCsv: 'ability_names.csv', idColumn: 'ability_id' }) },
     { key: 'items',     total: targets.items.length,     run: () => fetchKoSimple(targets.items, { tableCsv: 'items.csv', namesCsv: 'item_names.csv', idColumn: 'item_id' }) },
+    // 설명 (flavor text 의 한국어 — 최신 게임 버전 우선)
+    { key: 'desc-moves',     total: targets.moves.length,     run: () => fetchKoFlavor(targets.moves, { tableCsv: 'moves.csv', flavorCsv: 'move_flavor_text.csv', idColumn: 'move_id' }) },
+    { key: 'desc-abilities', total: targets.abilities.length, run: () => fetchKoFlavor(targets.abilities, { tableCsv: 'abilities.csv', flavorCsv: 'ability_flavor_text.csv', idColumn: 'ability_id' }) },
+    { key: 'desc-items',     total: targets.items.length,     run: () => fetchKoFlavor(targets.items, { tableCsv: 'items.csv', flavorCsv: 'item_flavor_text.csv', idColumn: 'item_id' }) },
   ];
 
   const summary = {};
