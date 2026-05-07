@@ -19,9 +19,12 @@ const DATA = path.join(ROOT, 'data');
 const KO_DIR = path.join(DATA, 'ko');
 const CSV_BASE = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv';
 const KO_LANG_ID = '3';  // PokéAPI languages.csv 에서 ko=3
+const UNOFFICIAL_NONSTANDARD = new Set(['CAP', 'Custom']);
 
 // PS id ↔ identifier 정규화
 function psNorm(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function isPast(e) { return e?.isNonstandard === 'Past' || e?.isNonstandard === 'Future'; }
+function isAvailable(e) { return !isPast(e) && !UNOFFICIAL_NONSTANDARD.has(e?.isNonstandard); }
 
 async function fetchText(url) {
   const res = await fetch(url);
@@ -208,17 +211,16 @@ function loadTargetIds() {
   const champAbilities = loadTsModule(path.join(DATA, 'mods', 'champions', 'abilities.ts')).Abilities;
   const champItems = loadTsModule(path.join(DATA, 'mods', 'champions', 'items.ts')).Items;
 
-  const isPast = e => e?.isNonstandard === 'Past' || e?.isNonstandard === 'Future';
   const legalPokemon = Object.entries(FormatsData)
-    .filter(([_, f]) => f && f.tier !== 'Illegal' && !isPast(f))
+    .filter(([_, f]) => f && f.tier !== 'Illegal' && isAvailable(f))
     .map(([id]) => id)
     .filter(id => Pokedex[id]);
 
   return {
     pokemon: legalPokemon,
-    moves: Object.entries(applyModOverrides(Moves, champMoves)).filter(([_, m]) => m?.name && !isPast(m)).map(([id]) => id),
-    abilities: Object.entries(applyModOverrides(Abilities, champAbilities)).filter(([_, a]) => a?.name && !isPast(a)).map(([id]) => id),
-    items: Object.entries(applyModOverrides(Items, champItems)).filter(([_, i]) => i?.name && !isPast(i)).map(([id]) => id),
+    moves: Object.entries(applyModOverrides(Moves, champMoves)).filter(([_, m]) => m?.name && isAvailable(m)).map(([id]) => id),
+    abilities: Object.entries(applyModOverrides(Abilities, champAbilities)).filter(([_, a]) => a?.name && isAvailable(a)).map(([id]) => id),
+    items: Object.entries(applyModOverrides(Items, champItems)).filter(([_, i]) => i?.name && isAvailable(i)).map(([id]) => id),
   };
 }
 
@@ -240,7 +242,7 @@ async function main() {
   ];
 
   // 수동 번역 파일을 미리 읽어서, missing 목록에서 빼기 위한 set 으로 보관.
-  // 우선순위는 build.mjs 에서 적용 (auto > manual). 여기선 진단용 missing 만 정확히 산출.
+  // 우선순위는 build.mjs 에서 적용 (manual > auto). 여기선 진단용 missing 만 정확히 산출.
   function readManual(key) {
     const fp = path.join(KO_DIR, `${key}.manual.json`);
     if (!fs.existsSync(fp)) return {};
@@ -297,7 +299,7 @@ async function main() {
   console.table(summary);
   console.log('\n💡 누락된 항목은 data/ko/<카테고리>.missing.json 에 템플릿 형태로 기록됩니다.');
   console.log('   해당 파일의 항목을 data/ko/<카테고리>.manual.json 에 옮기고 한글값을 채우면');
-  console.log('   다음 빌드부터 표시됩니다. PokéAPI 가 추후 같은 항목을 추가하면 자동값이 우선합니다.');
+  console.log('   다음 빌드부터 표시됩니다. PokéAPI 가 추후 같은 항목을 추가해도 수동값이 우선합니다.');
 }
 
 main().catch(err => { console.error('❌ fetcher 실패:', err); process.exit(1); });

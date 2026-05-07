@@ -220,6 +220,29 @@
     margin-right: 6px;
   }
   .field-summary b { color: var(--warn); font-weight: 500; }
+  .field-source-mark {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0;
+    vertical-align: middle;
+  }
+  .field-source-mark.auto {
+    background: rgba(74, 222, 128, 0.14);
+    color: var(--ok);
+    border: 1px solid rgba(74, 222, 128, 0.34);
+  }
+  .field-source-mark.manual {
+    background: rgba(255, 181, 71, 0.13);
+    color: var(--warn);
+    border: 1px solid rgba(255, 181, 71, 0.35);
+  }
 
   /* 필드 패널 내부: 가로 그리드로 */
   .field-grid {
@@ -654,9 +677,42 @@
 
   .moves-list { display: flex; flex-direction: column; gap: 4px; }
   .move-slot { display: flex; align-items: center; gap: 4px; }
+  .move-slot .cb-input { flex: 1 1 auto; min-width: 0; }
   .move-slot-num {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px; color: var(--text-faint); width: 14px;
+  }
+  .move-bp-control {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+    height: 34px;
+    padding: 0 5px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+  }
+  .move-bp-control span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-faint);
+    letter-spacing: 0.04em;
+  }
+  .move-bp-input {
+    width: 52px !important;
+    height: 24px !important;
+    padding: 2px 4px !important;
+    border: 0 !important;
+    background: transparent !important;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 11px !important;
+    color: var(--text) !important;
+  }
+  .move-bp-input:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
   .move-stat-info {
     font-family: 'JetBrains Mono', monospace;

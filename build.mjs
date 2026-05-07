@@ -20,6 +20,9 @@ import { loadTsModule, applyModOverrides } from './scripts/ts-loader.mjs';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.join(ROOT, 'data');
 const CHAMP = path.join(DATA, 'mods', 'champions');
+const OVERRIDES = path.join(DATA, 'overrides');
+
+const UNOFFICIAL_NONSTANDARD = new Set(['CAP', 'Custom']);
 
 function readBase(file, exportName) {
   const mod = loadTsModule(path.join(DATA, file));
@@ -35,9 +38,29 @@ function readChamp(file, exportName) {
 function isPast(entry) {
   return entry?.isNonstandard === 'Past' || entry?.isNonstandard === 'Future';
 }
-function isAvailable(entry) {
-  // null, undefined, 'CAP' 등은 사용 가능. 'Past'/'Future' 만 차단.
-  return !isPast(entry);
+function isUnofficial(entry) {
+  return UNOFFICIAL_NONSTANDARD.has(entry?.isNonstandard);
+}
+function readJsonFile(fp, fallback = {}) {
+  if (!fs.existsSync(fp)) return fallback;
+  try { return JSON.parse(fs.readFileSync(fp, 'utf8')); }
+  catch (e) { console.warn(`  ⚠️ ${fp} parse 실패:`, e.message); return fallback; }
+}
+function normalizeFilterList(raw, kind) {
+  return new Set(Array.isArray(raw?.[kind]) ? raw[kind].filter(Boolean) : []);
+}
+function readDataFilters() {
+  const raw = readJsonFile(path.join(OVERRIDES, 'filters.json'), {});
+  const kinds = ['pokemon', 'moves', 'abilities', 'items'];
+  return {
+    exclude: Object.fromEntries(kinds.map(kind => [kind, normalizeFilterList(raw.exclude, kind)])),
+    include: Object.fromEntries(kinds.map(kind => [kind, normalizeFilterList(raw.include, kind)])),
+  };
+}
+function isAvailable(entry, kind, id, filters) {
+  if (filters?.include?.[kind]?.has(id)) return !isPast(entry);
+  if (filters?.exclude?.[kind]?.has(id)) return false;
+  return !isPast(entry) && !isUnofficial(entry);
 }
 
 async function build() {
@@ -78,10 +101,10 @@ async function build() {
     }
     return clean;
   }
-  // auto > manual 우선. PokéAPI 가 추후 항목을 추가하면 자동값이 수동값을 덮음.
-  // (Object spread 는 뒤쪽이 이김 → ...manual 먼저, ...auto 나중)
+  // manual > auto 우선. PokéAPI 자동값이 있어도 사용자가 보정한 수동값을 마지막에 덮어쓴다.
+  // (Object spread 는 뒤쪽이 이김 → ...auto 먼저, ...manual 나중)
   function loadKo(name) {
-    return { ...readManualKo(name), ...readKoJsonRaw(name) };
+    return { ...readKoJsonRaw(name), ...readManualKo(name) };
   }
   const koPokemon = loadKo('pokemon');
   const koMoves = loadKo('moves');
@@ -98,7 +121,7 @@ async function build() {
   const fmt = (auto, manual) => manual > 0 ? `${auto}+${manual}` : `${auto}`;
   console.log(`  이름  포켓몬:${fmt(Object.keys(readKoJsonRaw('pokemon')).length, m1)} 기술:${fmt(Object.keys(readKoJsonRaw('moves')).length, m2)} 특성:${fmt(Object.keys(readKoJsonRaw('abilities')).length, m3)} 도구:${fmt(Object.keys(readKoJsonRaw('items')).length, m4)}`);
   console.log(`  설명  기술:${fmt(Object.keys(readKoJsonRaw('desc-moves')).length, d1)} 특성:${fmt(Object.keys(readKoJsonRaw('desc-abilities')).length, d2)} 도구:${fmt(Object.keys(readKoJsonRaw('desc-items')).length, d3)}`);
-  if (m1+m2+m3+m4+d1+d2+d3 > 0) console.log(`  (형식: 자동+수동, 자동 우선 적용)`);
+  if (m1+m2+m3+m4+d1+d2+d3 > 0) console.log(`  (형식: 자동+수동, 수동 우선 적용)`);
 
   console.log('📦 champions 모드 오버라이드 로드');
   const champPokedex = readChamp('pokedex.ts', 'Pokedex'); // 보통 비어 있음
@@ -117,6 +140,7 @@ async function build() {
   // formats-data 는 base 가 9세대 본가 기준이라 champions 쪽이 진실의 원천.
   // champions formats-data 에 명시된 항목만 사용한다.
   const mergedFormats = champFormatsData;
+  const dataFilters = readDataFilters();
 
   // 설명 우선순위: 모드 오버라이드 → 베이스 text/ → 빈 문자열
   // text/ 항목엔 desc(긴 설명) 와 shortDesc(짧은 설명) 가 모두 존재. shortDesc 우선.
@@ -138,7 +162,7 @@ async function build() {
   for (const [id, fd] of Object.entries(mergedFormats)) {
     if (!fd) continue;
     if (fd.tier === 'Illegal') continue;
-    if (isPast(fd)) continue;
+    if (!isAvailable(fd, 'pokemon', id, dataFilters)) continue;
     legalPokemonIds.add(id);
   }
 
@@ -148,6 +172,7 @@ async function build() {
     if (!p) continue;
     const fd = mergedFormats[id] || {};
     const ls = mergedLearnsets[id]?.learnset || mergedLearnsets[(p.baseSpecies || '').toLowerCase().replace(/[^a-z0-9]/g, '')]?.learnset;
+    const learnset = ls ? Object.keys(ls).filter(moveId => isAvailable(mergedMoves[moveId], 'moves', moveId, dataFilters)) : undefined;
     finalPokemon.push({
       id,
       name: p.name,
@@ -165,7 +190,7 @@ async function build() {
       requiredItem: p.requiredItem,
       requiredMove: p.requiredMove,
       changesFrom: p.changesFrom,
-      ls: ls ? Object.keys(ls) : undefined,
+      ls: learnset,
     });
   }
 
@@ -173,7 +198,7 @@ async function build() {
   const finalMoves = [];
   for (const [id, m] of Object.entries(mergedMoves)) {
     if (!m || !m.name) continue;
-    if (isPast(m)) continue;
+    if (!isAvailable(m, 'moves', id, dataFilters)) continue;
     if (m.category === 'Status' || (typeof m.basePower === 'number' && m.basePower > 0) || m.category === 'Physical' || m.category === 'Special') {
       const enShort = pickText(m, MovesText[id]);
       const enLong = pickLongText(m, MovesText[id]);
@@ -189,7 +214,10 @@ async function build() {
         pri: m.priority,
         flags: m.flags || {},
         mh: m.multihit || undefined,
+        sec: (m.secondary || m.secondaries) ? true : undefined,
+        recoil: m.recoil || undefined,
         target: m.target,
+        tgt: m.target,
         // 한글 우선 (없으면 영문 short). descLong 은 항상 영문 long 보존 → 모달에서 한글+영문 함께 표시.
         desc: ko || enShort,
         descLong: ko ? enLong : (enLong !== enShort ? enLong : ''),
@@ -201,7 +229,7 @@ async function build() {
   const finalAbilities = [];
   for (const [id, a] of Object.entries(mergedAbilities)) {
     if (!a || !a.name) continue;
-    if (isPast(a)) continue;
+    if (!isAvailable(a, 'abilities', id, dataFilters)) continue;
     const enShort = pickText(a, AbilitiesText[id]);
     const enLong = pickLongText(a, AbilitiesText[id]);
     const ko = koDescAbilities[id];
@@ -219,7 +247,7 @@ async function build() {
   const finalItems = [];
   for (const [id, it] of Object.entries(mergedItems)) {
     if (!it || !it.name) continue;
-    if (isPast(it)) continue;
+    if (!isAvailable(it, 'items', id, dataFilters)) continue;
     const enShort = pickText(it, ItemsText[id]);
     const enLong = pickLongText(it, ItemsText[id]);
     const ko = koDescItems[id];
@@ -248,8 +276,9 @@ async function build() {
   // 타입 상성: damageTaken 코드 (0=neutral, 1=resist, 2=immune, 3=weak) → 배율로 변환된 맵
   // 키는 공격 타입 이름(PascalCase), 값은 맵.
   const finalTypeChart = {};
+  const typeCodeToMult = { 0: 1, 1: 2, 2: 0.5, 3: 0 };
   for (const [defType, info] of Object.entries(TypeChart)) {
-    const row = {};
+    const defTypeName = defType.charAt(0).toUpperCase() + defType.slice(1);
     for (const [atkType, code] of Object.entries(info.damageTaken || {})) {
       // Pokemon Showdown 표기:
       //   0: 일반 (1x)
@@ -258,11 +287,15 @@ async function build() {
       //   3: 효과적 (2x)
       // 우리는 atkType 이 대문자 시작인 경우만 (상태이상/날씨 키워드 제외)
       if (/^[A-Z]/.test(atkType)) {
-        row[atkType] = code;
+        const mult = typeCodeToMult[code] ?? 1;
+        if (mult !== 1) {
+          finalTypeChart[atkType] ||= {};
+          finalTypeChart[atkType][defTypeName] = mult;
+        }
       }
     }
-    finalTypeChart[defType] = row;
   }
+  finalTypeChart.Stellar ||= {};
 
   // 챔피언스 룰/공식 상수 (data/mods/champions/scripts.ts 분석 결과)
   const champRules = {

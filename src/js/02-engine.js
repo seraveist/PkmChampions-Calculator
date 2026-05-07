@@ -8,12 +8,114 @@
    side.hpPct (0~1, 기본 1.0), side.lastMoveFailed, side.wasHit, side.fallenAllies,
    side.timesHit, field.atkMovesFirst, field.atkMovesSecond 등의 보조 플래그를 읽는다.
    ════════════════════════════════════════════════════════════ */
+const RESIST_BERRY_TYPES = {
+  occaberry: 'Fire',
+  passhoberry: 'Water',
+  wacanberry: 'Electric',
+  rindoberry: 'Grass',
+  yacheberry: 'Ice',
+  chopleberry: 'Fighting',
+  kebiaberry: 'Poison',
+  shucaberry: 'Ground',
+  cobaberry: 'Flying',
+  payapaberry: 'Psychic',
+  tangaberry: 'Bug',
+  chartiberry: 'Rock',
+  kasibberry: 'Ghost',
+  habanberry: 'Dragon',
+  colburberry: 'Dark',
+  babiriberry: 'Steel',
+  chilanberry: 'Normal',
+  roseliberry: 'Fairy',
+};
+
+const BERRY_BLOCKING_ABILITIES = ['unnerve', 'asoneglastrier', 'asonespectrier'];
+const PHYSICAL_DEFENSE_SPECIAL_MOVES = ['psyshock', 'psystrike', 'secretsword'];
+
+function normalizedStatus(status) {
+  return (status || 'none').toString().toLowerCase();
+}
+
+function isBurnStatus(status) {
+  return ['burn', 'brn'].includes(normalizedStatus(status));
+}
+
+function isPoisonStatus(status) {
+  return ['poison', 'toxic', 'psn', 'tox'].includes(normalizedStatus(status));
+}
+
+function attackerBlocksBerries(atkAb) {
+  return BERRY_BLOCKING_ABILITIES.includes(atkAb);
+}
+
+function fixedDamageAmount(move, atkSide, defSide, atkStats, defStats, defAb) {
+  const atkHp = Math.max(1, Math.floor(atkStats.hp * (atkSide.hpPct ?? 1)));
+  const defHp = Math.max(1, Math.floor(defStats.hp * (defSide.hpPct ?? 1)));
+
+  switch (move.id) {
+    case 'seismictoss':
+    case 'nightshade':
+      return 50;
+    case 'dragonrage':
+      return 40;
+    case 'sonicboom':
+      return 20;
+    case 'superfang':
+    case 'naturesmadness':
+      return Math.max(1, Math.floor(defHp / 2));
+    case 'finalgambit':
+      return atkHp;
+    case 'endeavor':
+      return defHp > atkHp ? defHp - atkHp : 0;
+    case 'fissure':
+    case 'guillotine':
+    case 'horndrill':
+    case 'sheercold':
+      if (move.id === 'sheercold' && effectiveTypes(defSide).includes('Ice')) return 0;
+      return defAb === 'sturdy' ? 0 : defStats.hp;
+    default:
+      return null;
+  }
+}
+
+function fixedDamageResult(damage, move, moveType, category, defStats, mods) {
+  const dmg = Math.max(0, Math.floor(damage));
+  const damages = new Array(16).fill(dmg);
+  return {
+    damages,
+    rawDamages: damages,
+    minPct: dmg / defStats.hp * 100,
+    maxPct: dmg / defStats.hp * 100,
+    effectiveness: dmg > 0 ? 1 : 0,
+    moveType,
+    category,
+    bp: move.bp || 0,
+    atk: 0,
+    def: 0,
+    defHP: defStats.hp,
+    stab: false,
+    mods,
+  };
+}
+
 function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
   if (!move) return 0;
   const id = move.id;
   const atkP = PokemonById[atkSide.pokemonIdx];
   const defP = PokemonById[defSide.pokemonIdx];
   const baseBp = move.bp || 0;
+  const abilityCtx = battleAbilityContext(atkSide, defSide);
+  const atkAb = abilityCtx.atkAb;
+  const moldBreakerActive = ['moldbreaker', 'teravolt', 'turboblaze'].includes(atkAb);
+  const defAb = (moldBreakerActive && MOLD_BREAKER_IGNORED_ABILITIES.includes(abilityCtx.defAb))
+    ? ''
+    : abilityCtx.defAb;
+  const atkItem = effectiveBattleItem(atkSide, atkAb);
+  const defItem = effectiveBattleItem(defSide, defAb);
+  const rawDefItem = effectiveItem(defSide);
+  const weather = effectiveWeather(field, atkAb, defAb);
+
+  if (move.manualBp) return baseBp;
 
   switch (id) {
     case 'gyroball': {
@@ -36,8 +138,8 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     }
     case 'heatcrash':
     case 'heavyslam': {
-      const aw = atkP?.weightkg || 1;
-      const dw = Math.max(0.1, defP?.weightkg || 1);
+      const aw = effectiveWeight(atkSide, atkAb);
+      const dw = Math.max(0.1, effectiveWeight(defSide, defAb));
       const r = aw / dw;
       if (r >= 5) return 120;
       if (r >= 4) return 100;
@@ -47,7 +149,7 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     }
     case 'lowkick':
     case 'grassknot': {
-      const w = defP?.weightkg || 1;
+      const w = effectiveWeight(defSide, defAb);
       if (w >= 200) return 120;
       if (w >= 100) return 100;
       if (w >= 50) return 80;
@@ -98,10 +200,10 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     }
     case 'knockoff': {
       // 대상이 도구를 보유하면 ×1.5 (Z아이템/메가스톤 등은 제외해야 정확하지만 단순화)
-      const hasItem = !!defSide.item;
+      const hasItem = !!rawDefItem;
       // 메가스톤은 떼낼 수 없으므로 보너스 없음
-      const defItemData = defSide.item ? ItemById[defSide.item] : null;
-      const removable = hasItem && !defItemData?.ms;
+      const defItemData = rawDefItem ? ItemById[rawDefItem] : null;
+      const removable = hasItem && !defItemData?.ms && defAb !== 'stickyhold';
       return removable ? Math.floor(baseBp * 1.5) : baseBp;
     }
     case 'boltbeak':
@@ -118,17 +220,17 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     case 'assurance':
       return defSide.wasHit ? baseBp * 2 : baseBp;
     case 'risingvoltage': {
-      const grounded = (typeof isGrounded === 'function') ? isGrounded(defSide, field) : true;
+      const grounded = (typeof isGrounded === 'function') ? isGrounded(defSide, field, defAb, defItem) : true;
       return field.terrain === 'Electric' && grounded ? baseBp * 2 : baseBp;
     }
     case 'expandingforce': {
       // 사이코필드 + 사용자 그라운드 시 ×1.5
-      const grounded = (typeof isGrounded === 'function') ? isGrounded(atkSide, field) : true;
+      const grounded = (typeof isGrounded === 'function') ? isGrounded(atkSide, field, atkAb, atkItem) : true;
       return field.terrain === 'Psychic' && grounded ? Math.floor(baseBp * 1.5) : baseBp;
     }
     case 'mistyexplosion': {
       // 미스트필드 + 사용자 그라운드 시 ×1.5
-      const grounded = (typeof isGrounded === 'function') ? isGrounded(atkSide, field) : true;
+      const grounded = (typeof isGrounded === 'function') ? isGrounded(atkSide, field, atkAb, atkItem) : true;
       return field.terrain === 'Misty' && grounded ? Math.floor(baseBp * 1.5) : baseBp;
     }
     case 'gravapple': {
@@ -138,7 +240,7 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     case 'solarbeam':
     case 'solarblade': {
       // 쾌청/대쾌청 외 날씨에서 ×0.5 (모래/비/눈/눈보라/none → 0.5×)
-      const w = field.weather;
+      const w = weather;
       if (w === 'Rain' || w === 'Heavy Rain' || w === 'Sand' || w === 'Snow') {
         return Math.floor(baseBp * 0.5);
       }
@@ -146,13 +248,13 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     }
     case 'weatherball': {
       // 날씨가 있으면 BP 100 (타입은 calculateDamage 에서 별도 처리)
-      const w = field.weather;
+      const w = weather;
       if (w && w !== 'none') return 100;
       return baseBp;
     }
     case 'terrainpulse': {
       // 필드 활성 + 사용자 그라운드 시 BP 100 (타입 별도)
-      const grounded = (typeof isGrounded === 'function') ? isGrounded(atkSide, field) : true;
+      const grounded = (typeof isGrounded === 'function') ? isGrounded(atkSide, field, atkAb, atkItem) : true;
       const t = field.terrain;
       if (t && t !== 'none' && grounded) return 100;
       return baseBp;
@@ -176,6 +278,10 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     case 'acrobatics':
       // 도구 미보유 시 ×2 (55 → 110)
       return !atkSide.item ? baseBp * 2 : baseBp;
+    case 'poltergeist':
+      return rawDefItem ? baseBp : 0;
+    case 'steelroller':
+      return field.terrain && field.terrain !== 'none' ? baseBp : 0;
     case 'tripleaxel':
       // 1/2/3타에 BP 20/40/60 누적. 다단히트 평균 처리에선 (20+40+60)/3 = 40
       return 40;
@@ -209,29 +315,63 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
    반환: { damages[16], rawDamages, multihitCount, minPct, maxPct,
            effectiveness, moveType, category, bp, atk, def, defHP, mods }
    ════════════════════════════════════════════════════════════ */
-function calculateDamage(atkSide, defSide, move, field) {
-  if (!move || move.cat === 'Status') return null;
+function finishDamageStage(result) {
+  return { done: true, result };
+}
 
-  const mods = [];  // trace
+function makeDamageContext(atkSide, defSide, move, field) {
   const atkP = PokemonById[atkSide.pokemonIdx];
   const defP = PokemonById[defSide.pokemonIdx];
-  if (!atkP || !defP) return null;
-  
-  const atkAb = effectiveAbility(atkSide);
-  const rawDefAb = effectiveAbility(defSide);
-  const atkItem = effectiveItem(atkSide);
-  const defItem = effectiveItem(defSide);
-  const atkItemData = atkItem ? ItemById[atkItem] : null;
-  const defItemData = defItem ? ItemById[defItem] : null;
+  if (!atkP || !defP) return { invalid: true };
 
-  // 틀깨기 / 테라볼트 / 터보블레이즈: 방어측 특정 특성 무시
+  const abilityCtx = battleAbilityContext(atkSide, defSide);
+  const atkAb = abilityCtx.atkAb;
+  const rawDefAb = abilityCtx.defAb;
   const moldBreakerActive = ['moldbreaker', 'teravolt', 'turboblaze'].includes(atkAb);
   const defAb = (moldBreakerActive && MOLD_BREAKER_IGNORED_ABILITIES.includes(rawDefAb)) ? '' : rawDefAb;
+  const atkItem = effectiveBattleItem(atkSide, atkAb);
+  const defItem = effectiveBattleItem(defSide, defAb);
 
-  const atkTypes = effectiveTypes(atkSide);
-  const defTypes = effectiveTypes(defSide);
-  const atkStats = calcStats(atkSide);
-  const defStats = calcStats(defSide);
+  return {
+    atkSide,
+    defSide,
+    move,
+    field,
+    mods: [],
+    atkP,
+    defP,
+    abilityCtx,
+    atkAb,
+    defAb,
+    atkItem,
+    defItem,
+    atkItemData: atkItem ? ItemById[atkItem] : null,
+    defItemData: defItem ? ItemById[defItem] : null,
+    weather: effectiveWeather(field, atkAb, defAb),
+    itemCtx: { atkItem, defItem },
+    defTypes: effectiveTypes(defSide),
+    atkStats: calcStats(atkSide),
+    defStats: calcStats(defSide),
+    moveType: move.type,
+    bp: 0,
+    category: move.cat,
+    typeChangeMod: null,
+    isPhysical: false,
+    usesDefStat: false,
+    isCritical: false,
+    effectiveness: 1,
+    atkStat: 0,
+    defStat: 0,
+    baseDmg: 0,
+  };
+}
+
+function resolveDamagePreludeStage(ctx) {
+  const {
+    atkSide, defSide, move, field, mods,
+    atkP, defP, atkAb, defAb, atkItem,
+    abilityCtx, itemCtx, weather, atkStats, defStats,
+  } = ctx;
 
   // ─ 디스가이즈 (Mimikyu / Mimikyu-Totem): 풀피일 때 첫 공격 무효 ─
   // 챔피언스 사양: onEffectiveness 가 0 반환 → 데미지 0
@@ -239,7 +379,7 @@ function calculateDamage(atkSide, defSide, move, field) {
   if (defAb === 'disguise' && defSide.fullHP) {
     const defPokeId = defP?.id || '';
     if (['mimikyu', 'mimikyutotem'].includes(defPokeId) && move.cat !== 'Status') {
-      return {
+      return finishDamageStage({
         damages: new Array(16).fill(0),
         minPct: 0, maxPct: 0,
         effectiveness: 0,
@@ -247,20 +387,19 @@ function calculateDamage(atkSide, defSide, move, field) {
         bp: move.bp, atk: 0, def: 0,
         defHP: defStats.hp,
         mods: ['디스가이즈로 차단']
-      };
+      });
     }
   }
-  
+
   // ─ 기술 타입 결정 ─
   let moveType = move.type;
   // 가변 위력 기술은 callback 으로 실제 BP 계산
   let bp = computeVariableBp(move, atkSide, defSide, field, atkStats, defStats);
-  if (bp === 0) return null;  // 위력 0 (대부분 status/계산 불가)
   let category = move.cat;
 
   // Weather Ball: 날씨에 따라 타입 변경 (BP는 computeVariableBp 에서 처리됨)
   if (move.id === 'weatherball') {
-    const wt = field.weather;
+    const wt = weather;
     if (wt === 'Sun' || wt === 'Harsh Sunshine') moveType = 'Fire';
     else if (wt === 'Rain' || wt === 'Heavy Rain') moveType = 'Water';
     else if (wt === 'Sand') moveType = 'Rock';
@@ -269,7 +408,7 @@ function calculateDamage(atkSide, defSide, move, field) {
   }
   // Terrain Pulse: 필드에 따라 타입 변경 (그라운드 시)
   if (move.id === 'terrainpulse') {
-    const grounded = isGrounded(atkSide, field);
+    const grounded = isGrounded(atkSide, field, atkAb, atkItem);
     if (grounded) {
       if (field.terrain === 'Electric') moveType = 'Electric';
       else if (field.terrain === 'Grassy') moveType = 'Grass';
@@ -280,6 +419,11 @@ function calculateDamage(atkSide, defSide, move, field) {
   }
 
   // Aerilate / Refrigerate / Pixilate / Galvanize / Dragonize: 노말 → 타입 변경
+  if (atkAb === 'liquidvoice' && move.flags?.sound) {
+    moveType = 'Water';
+    mods.push('Liquid Voice');
+  }
+
   let typeChangeMod = null;
   if (moveType === 'Normal') {
     if (atkAb === 'aerilate') { moveType = 'Flying'; typeChangeMod = 4915; mods.push('에어레이트'); }
@@ -288,9 +432,9 @@ function calculateDamage(atkSide, defSide, move, field) {
     else if (atkAb === 'galvanize') { moveType = 'Electric'; typeChangeMod = 4915; mods.push('일렉트릭스킨'); }
     else if (atkAb === 'dragonize') { moveType = 'Dragon'; typeChangeMod = 4915; mods.push('드래고나이즈'); }
   }
-  
+
   // Tera Blast: 테라스탈 시 공격 > 특공이면 물리
-  if (move.id === 'terablast' && atkSide.tera) {
+  if (move.id === 'terablast' && isTeraActive(atkSide)) {
     moveType = atkSide.teraType;
     const physAtk = applyBoost(atkStats.atk, atkSide.ranks.atk || 0);
     const specAtk = applyBoost(atkStats.spa, atkSide.ranks.spa || 0);
@@ -298,25 +442,33 @@ function calculateDamage(atkSide, defSide, move, field) {
     // Stellar Tera Blast: 고정 100 BP
     if (atkSide.teraType === 'Stellar') bp = 100;
   }
-  
+
   // Tera Starstorm (Terapagos-Stellar): 스텔라 타입
   if (move.id === 'terastarstorm' && atkP.id === 'terapagosstellar') {
     moveType = 'Stellar';
   }
-  
+
   // Photon Geyser: 공격 > 특공이면 물리
   if (move.id === 'photongeyser') {
     const physAtk = applyBoost(atkStats.atk, atkSide.ranks.atk || 0);
     const specAtk = applyBoost(atkStats.spa, atkSide.ranks.spa || 0);
     if (physAtk > specAtk) category = 'Physical';
   }
-  
+
   const isPhysical = category === 'Physical';
-  
+  const usesDefStat = isPhysical || PHYSICAL_DEFENSE_SPECIAL_MOVES.includes(move.id);
+  let isCritical = !!field.isCritical || (atkAb === 'merciless' && isPoisonStatus(defSide.status));
+  if (isCritical && (defAb === 'battlearmor' || defAb === 'shellarmor')) {
+    isCritical = false;
+    mods.push('critical blocked');
+  } else if (atkAb === 'merciless' && isPoisonStatus(defSide.status)) {
+    mods.push('Merciless critical');
+  }
+
   // ─ 타입 상성 먼저 계산 (0배면 조기 종료) ─
-  const effectiveness = getMoveEffectiveness(move, moveType, atkSide, defSide, field);
+  const effectiveness = getMoveEffectiveness(move, moveType, atkSide, defSide, field, { ...abilityCtx, atkAb, defAb }, itemCtx);
   if (effectiveness === 0) {
-    return {
+    return finishDamageStage({
       damages: new Array(16).fill(0),
       minPct: 0, maxPct: 0,
       effectiveness: 0,
@@ -324,14 +476,51 @@ function calculateDamage(atkSide, defSide, move, field) {
       bp, atk: 0, def: 0,
       defHP: defStats.hp,
       mods: ['효과 없음']
-    };
+    });
   }
-  
+
+  ctx.moveType = moveType;
+  ctx.bp = bp;
+  ctx.category = category;
+  ctx.typeChangeMod = typeChangeMod;
+  ctx.isPhysical = isPhysical;
+  ctx.usesDefStat = usesDefStat;
+  ctx.isCritical = isCritical;
+  ctx.effectiveness = effectiveness;
+  return null;
+}
+
+function calculateBasePowerStage(ctx) {
+  const {
+    atkSide, defSide, move, field, mods,
+    atkP, defP, atkAb, defAb, atkItem, defItem, atkItemData,
+    weather, atkStats, defStats, isPhysical, effectiveness, category,
+  } = ctx;
+  let { moveType, bp, typeChangeMod } = ctx;
+
   // ═══════════════════════════════════════
   // STAGE 1: BP modifiers
   // ═══════════════════════════════════════
+  if (defAb === 'iceface' && defP.id === 'eiscue' && defSide.fullHP && isPhysical) {
+    return finishDamageStage({
+      damages: new Array(16).fill(0),
+      minPct: 0, maxPct: 0,
+      effectiveness,
+      moveType, category,
+      bp, atk: 0, def: 0,
+      defHP: defStats.hp,
+      mods: ['Ice Face blocked']
+    });
+  }
+
+  const fixedDamage = fixedDamageAmount(move, atkSide, defSide, atkStats, defStats, defAb);
+  if (fixedDamage !== null) {
+    return finishDamageStage(fixedDamageResult(fixedDamage, move, moveType, category, defStats, ['fixed damage']));
+  }
+  if (bp === 0) return finishDamageStage(null);
+
   const bpMods = [];
-  
+
   // 특성 BP modifiers
   if (atkAb === 'technician' && bp <= 60) { bpMods.push(MOD.x1_5); mods.push('테크니션×1.5'); }
   if (atkAb === 'toughclaws' && move.flags?.contact) { bpMods.push(MOD.x1_3); mods.push('단단한발톱×1.3'); }
@@ -349,7 +538,9 @@ function calculateDamage(atkSide, defSide, move, field) {
   if (atkAb === 'transistor' && moveType === 'Electric') { bpMods.push(MOD.x1_3); mods.push('트랜지스터×1.3'); }
   if (atkAb === 'rockypayload' && moveType === 'Rock') { bpMods.push(MOD.x1_5); mods.push('바위적재×1.5'); }
   if (atkAb === 'sheerforce' && move.sec) { bpMods.push(MOD.x1_3); mods.push('우격다짐×1.3'); }
-  if (atkAb === 'sandforce' && field.weather === 'Sand' && ['Rock','Ground','Steel'].includes(moveType)) {
+  if (atkAb === 'flareboost' && isBurnStatus(atkSide.status) && !isPhysical) { bpMods.push(MOD.x1_5); mods.push('Flare Boost×1.5'); }
+  if (atkAb === 'toxicboost' && isPoisonStatus(atkSide.status) && isPhysical) { bpMods.push(MOD.x1_5); mods.push('Toxic Boost×1.5'); }
+  if (atkAb === 'sandforce' && weather === 'Sand' && ['Rock','Ground','Steel'].includes(moveType)) {
     bpMods.push(MOD.x1_3); mods.push('모래의힘×1.3');
   }
   if (atkAb === 'normalize') { moveType = 'Normal'; bpMods.push(MOD.x1_2); mods.push('노말스킨×1.2'); }
@@ -357,6 +548,16 @@ function calculateDamage(atkSide, defSide, move, field) {
   if (atkAb === 'analytic' && field.atkMovesSecond) { bpMods.push(MOD.x1_3); mods.push('애널라이즈×1.3'); }
 
   // 총대장 (Supreme Overlord): 쓰러진 동료 수에 따라 1.1~1.5× (state.atk.fallenAllies 사용)
+  const auraBreakActive = atkAb === 'aurabreak' || defAb === 'aurabreak';
+  if ((atkAb === 'darkaura' || defAb === 'darkaura') && moveType === 'Dark') {
+    bpMods.push(auraBreakActive ? MOD.x0_75 : 5448);
+    mods.push(auraBreakActive ? 'Dark Aura reversedx0.75' : 'Dark Aurax1.33');
+  }
+  if ((atkAb === 'fairyaura' || defAb === 'fairyaura') && moveType === 'Fairy') {
+    bpMods.push(auraBreakActive ? MOD.x0_75 : 5448);
+    mods.push(auraBreakActive ? 'Fairy Aura reversedx0.75' : 'Fairy Aurax1.33');
+  }
+
   if (atkAb === 'supremeoverlord' && atkSide.fallenAllies) {
     const mod = 4096 + Math.min(5, atkSide.fallenAllies) * 410;  // 1.1~1.5×
     bpMods.push(mod);
@@ -368,7 +569,7 @@ function calculateDamage(atkSide, defSide, move, field) {
   // 진홍빛고동 (Orichalcum Pulse): 자기 진입시 쾌청 + 공격 1.33×
   // 하드론엔진 (Hadron Engine): 자기 진입시 일렉트릭 필드 + 특공 1.33×
   // 이건 Atk 단계로 이동
-  
+
   // 아이템 BP modifiers
   if (atkItemData) {
     // 타입 강화 아이템
@@ -381,7 +582,7 @@ function calculateDamage(atkSide, defSide, move, field) {
       'metalcoat': 'Steel', 'fairyfeather': 'Fairy', 'silkscarf': 'Normal'
     };
     if (typeBoostItems[atkItem] === moveType) { bpMods.push(MOD.x1_2); mods.push(`${atkItemData.koName}×1.2`); }
-    
+
     // Plate
     if (atkItem.endsWith('plate')) {
       const plateType = {
@@ -393,18 +594,18 @@ function calculateDamage(atkSide, defSide, move, field) {
       };
       if (plateType[atkItem] === moveType) { bpMods.push(MOD.x1_2); mods.push(`${atkItemData.koName}×1.2`); }
     }
-    
+
     // Muscle Band (물리 ×1.1) / Wise Glasses (특수 ×1.1)
     if (atkItem === 'muscleband' && isPhysical) { bpMods.push(MOD.x1_1); mods.push('근육띠×1.1'); }
     if (atkItem === 'wiseglasses' && !isPhysical) { bpMods.push(MOD.x1_1); mods.push('박식안경×1.1'); }
-    
+
     // Punching Glove
     if (atkItem === 'punchingglove' && move.flags?.punch) { bpMods.push(MOD.x1_1g); mods.push('펀치글러브×1.1'); }
-    
+
     // Primal Orbs (원시회귀 전용)
     if (atkItem === 'redorb' && atkP.id === 'groudonprimal' && moveType === 'Fire') { bpMods.push(MOD.x1_2); }
     if (atkItem === 'blueorb' && atkP.id === 'kyogreprimal' && moveType === 'Water') { bpMods.push(MOD.x1_2); }
-    
+
     // Adamant/Lustrous/Griseous Orb (조건부)
     if (atkItem === 'adamant orb' && atkP.id === 'dialga' && (moveType === 'Dragon' || moveType === 'Steel')) {
       bpMods.push(MOD.x1_2); mods.push('아다만트구슬×1.2');
@@ -416,46 +617,59 @@ function calculateDamage(atkSide, defSide, move, field) {
       bpMods.push(MOD.x1_2); mods.push('깨어진구슬×1.2');
     }
   }
-  
+
   // Field BP modifiers
-  if (field.terrain === 'Electric' && moveType === 'Electric' && isGrounded(atkSide, field)) {
+  if (field.terrain === 'Electric' && moveType === 'Electric' && isGrounded(atkSide, field, atkAb, atkItem)) {
     bpMods.push(MOD.x1_3); mods.push('일렉트릭필드×1.3');
   }
-  if (field.terrain === 'Grassy' && moveType === 'Grass' && isGrounded(atkSide, field)) {
+  if (field.terrain === 'Grassy' && moveType === 'Grass' && isGrounded(atkSide, field, atkAb, atkItem)) {
     bpMods.push(MOD.x1_3); mods.push('그래스필드×1.3');
   }
-  if (field.terrain === 'Psychic' && moveType === 'Psychic' && isGrounded(atkSide, field)) {
+  if (field.terrain === 'Psychic' && moveType === 'Psychic' && isGrounded(atkSide, field, atkAb, atkItem)) {
     bpMods.push(MOD.x1_3); mods.push('사이코필드×1.3');
   }
-  if (field.terrain === 'Misty' && moveType === 'Dragon' && isGrounded(defSide, field)) {
+  if (field.terrain === 'Misty' && moveType === 'Dragon' && isGrounded(defSide, field, defAb, defItem)) {
     bpMods.push(MOD.x0_5); mods.push('미스트필드 드래곤×0.5');
   }
   if (field.terrain === 'Grassy' && ['earthquake','bulldoze','magnitude'].includes(move.id)) {
     bpMods.push(MOD.x0_5); mods.push('그래스필드 지진×0.5');
   }
-  
+
   // 도우미 (Helping Hand)
   if (field.atkHelpingHand) { bpMods.push(MOD.x1_5); mods.push('도우미×1.5'); }
-  
+
   // 응용: 챔피언스 신규 메가 특성 "메가솔라" — 항상 쾌청 효과로 간주
   // 이건 실제 날씨를 세팅하지 않으므로 BP 단계에서 불꽃 ×1.5 추가하지 않고 Weather에서 처리
-  
-  bp = OF16(Math.max(1, pokeRound(bp * chainMods(bpMods, 1, 65535) / 4096)));
-  
+
+  ctx.moveType = moveType;
+  ctx.bp = OF16(Math.max(1, pokeRound(bp * chainMods(bpMods, 1, 65535) / 4096)));
+  return null;
+}
+
+function calculateAttackStage(ctx) {
+  const {
+    atkSide, defSide, move, field, mods,
+    atkP, atkAb, defAb, atkItem, weather, atkStats, defStats,
+    isPhysical, isCritical, moveType,
+  } = ctx;
+
   // ═══════════════════════════════════════
   // STAGE 2: Attack modifiers
   // ═══════════════════════════════════════
-  let atkStat = isPhysical ? atkStats.atk : atkStats.spa;
-  let atkBoost = isPhysical ? (atkSide.ranks.atk || 0) : (atkSide.ranks.spa || 0);
-  
+  const usesTargetAttack = move.id === 'foulplay';
+  let atkStat = usesTargetAttack ? defStats.atk : (isPhysical ? atkStats.atk : atkStats.spa);
+  let atkBoost = usesTargetAttack
+    ? (defSide.ranks.atk || 0)
+    : (isPhysical ? (atkSide.ranks.atk || 0) : (atkSide.ranks.spa || 0));
+
   // Unaware: 상대 부스트 무시
   if (defAb === 'unaware' && atkBoost > 0) atkBoost = 0;
   // 급소 시 공격 하락 무시
-  if (field.isCritical && atkBoost < 0) atkBoost = 0;
-  
+  if (isCritical && atkBoost < 0) atkBoost = 0;
+
   atkStat = applyBoost(atkStat, atkBoost);
   if (atkBoost !== 0) mods.push(`공격랭크${atkBoost > 0 ? '+' : ''}${atkBoost}`);
-  
+
   const atkMods = [];
 
   // 특성 공격 modifiers
@@ -465,10 +679,19 @@ function calculateDamage(atkSide, defSide, move, field) {
   if (atkAb === 'guts' && atkSide.status !== 'none' && isPhysical) {
     atkMods.push(MOD.x1_5); mods.push('의기양양×1.5');
   }
-  if (atkAb === 'solarpower' && field.weather === 'Sun' && !isPhysical) {
+  if (atkAb === 'waterbubble' && moveType === 'Water') {
+    atkMods.push(MOD.x2_0); mods.push('Water Bubblex2');
+  }
+  if (defAb === 'purifyingsalt' && moveType === 'Ghost') {
+    atkMods.push(MOD.x0_5); mods.push('Purifying Saltx0.5');
+  }
+  if (defAb === 'waterbubble' && moveType === 'Fire') {
+    atkMods.push(MOD.x0_5); mods.push('Water Bubble Firex0.5');
+  }
+  if (atkAb === 'solarpower' && weather === 'Sun' && !isPhysical) {
     atkMods.push(MOD.x1_5); mods.push('선파워×1.5');
   }
-  if (atkAb === 'flowergift' && field.weather === 'Sun' && isPhysical) {
+  if (atkAb === 'flowergift' && weather === 'Sun' && isPhysical) {
     atkMods.push(MOD.x1_5); mods.push('꽃선물×1.5');
   }
 
@@ -484,7 +707,7 @@ function calculateDamage(atkSide, defSide, move, field) {
 
   // 고대활성 / 쿼크차지: 쾌청-or-부에가 / 일렉트릭-or-부에가 발동 시 최고 스탯 ×1.3 (HP는 ×1.5)
   // 어떤 스탯이 부스트 받는지 결정: 가장 높은 실수치 스탯
-  const isProtoActive = atkAb === 'protosynthesis' && (field.weather === 'Sun' || atkItem === 'boosterenergy');
+  const isProtoActive = atkAb === 'protosynthesis' && (weather === 'Sun' || atkItem === 'boosterenergy');
   const isQuarkActive = atkAb === 'quarkdrive' && (field.terrain === 'Electric' || atkItem === 'boosterenergy');
 
   if (isProtoActive || isQuarkActive) {
@@ -517,19 +740,19 @@ function calculateDamage(atkSide, defSide, move, field) {
   // 재앙 적용 (Atk 단계)
   // 목간의재앙: 자기가 아닌 타 포켓몬의 공격 ×0.75 (자기 자신 효과 X)
   // 그릇의재앙: 자기가 아닌 타 포켓몬의 특공 ×0.75
-  if (state.field.ruinTablet && atkAb !== 'tabletsofruin' && isPhysical) {
+  if (field.ruinTablet && atkAb !== 'tabletsofruin' && isPhysical) {
     atkMods.push(MOD.x0_75); mods.push('목간의재앙×0.75');
   }
-  if (state.field.ruinVessel && atkAb !== 'vesselofruin' && !isPhysical) {
+  if (field.ruinVessel && atkAb !== 'vesselofruin' && !isPhysical) {
     atkMods.push(MOD.x0_75); mods.push('그릇의재앙×0.75');
   }
 
   // 챔피언스 신규: 메가장크로다일 드래곤스킨 (노말→드래곤)
   // (데이터 레이어에서 처리되어야 하지만 여기서도 핸들링)
-  
+
   // 능력치 rank 감소 없음 특성
   // (별도 적용 필요 없음, 단순 rank 처리)
-  
+
   // 아이템 공격 modifiers
   if (atkItem === 'choiceband' && isPhysical) { atkMods.push(MOD.x1_5); mods.push('구애머리띠×1.5'); }
   if (atkItem === 'choicespecs' && !isPhysical) { atkMods.push(MOD.x1_5); mods.push('구애안경×1.5'); }
@@ -542,58 +765,67 @@ function calculateDamage(atkSide, defSide, move, field) {
   if (atkItem === 'deepseatooth' && atkP.id === 'clamperl' && !isPhysical) {
     atkMods.push(MOD.x2_0); mods.push('심해의이빨×2');
   }
-  
+
   // 화상: Facade / Guts 예외
-  const isBurned = atkSide.status === 'Burn' && isPhysical && atkAb !== 'guts' && move.id !== 'facade';
+  const isBurned = isBurnStatus(atkSide.status) && isPhysical && atkAb !== 'guts' && move.id !== 'facade';
   if (isBurned) { atkMods.push(MOD.x0_5); mods.push('화상 물리½'); }
-  
-  atkStat = OF16(Math.max(1, pokeRound(atkStat * chainMods(atkMods, 410, 131072) / 4096)));
-  
+
+  ctx.atkStat = OF16(Math.max(1, pokeRound(atkStat * chainMods(atkMods, 410, 131072) / 4096)));
+  return null;
+}
+
+function calculateDefenseStage(ctx) {
+  const {
+    defSide, field, mods,
+    defP, atkAb, defAb, defItem, weather, defStats, defTypes,
+    isPhysical, isCritical, usesDefStat,
+  } = ctx;
+
   // ═══════════════════════════════════════
   // STAGE 3: Defense modifiers
   // ═══════════════════════════════════════
-  let defStat = isPhysical ? defStats.def : defStats.spd;
-  let defBoost = isPhysical ? (defSide.ranks.def || 0) : (defSide.ranks.spd || 0);
-  
+  let defStat = usesDefStat ? defStats.def : defStats.spd;
+  let defBoost = usesDefStat ? (defSide.ranks.def || 0) : (defSide.ranks.spd || 0);
+
   // Unaware (공격측이)
   if (atkAb === 'unaware' && defBoost > 0) defBoost = 0;
   // 급소 시 방어 상승 무시
-  if (field.isCritical && defBoost > 0) defBoost = 0;
-  
+  if (isCritical && defBoost > 0) defBoost = 0;
+
   defStat = applyBoost(defStat, defBoost);
   if (defBoost !== 0) mods.push(`방어랭크${defBoost > 0 ? '+' : ''}${defBoost}`);
-  
+
   // 모래바람 바위 특방 ×1.5
-  if (field.weather === 'Sand' && defTypes.includes('Rock') && !isPhysical) {
+  if (weather === 'Sand' && defTypes.includes('Rock') && !usesDefStat) {
     defStat = Math.floor(defStat * 1.5);
     mods.push('모래 바위 특방×1.5');
   }
   // 눈 얼음 방어 ×1.5
-  if (field.weather === 'Snow' && defTypes.includes('Ice') && isPhysical) {
+  if (weather === 'Snow' && defTypes.includes('Ice') && usesDefStat) {
     defStat = Math.floor(defStat * 1.5);
     mods.push('눈 얼음 방어×1.5');
   }
-  
+
   const defMods = [];
-  
+
   // 특성 방어 modifiers
-  if (defAb === 'marvelscale' && defSide.status !== 'none' && isPhysical) {
+  if (defAb === 'marvelscale' && defSide.status !== 'none' && usesDefStat) {
     defMods.push(MOD.x1_5); mods.push('이상한비늘×1.5');
   }
-  if (defAb === 'grasspelt' && field.terrain === 'Grassy' && isPhysical) {
+  if (defAb === 'grasspelt' && field.terrain === 'Grassy' && usesDefStat) {
     defMods.push(MOD.x1_5); mods.push('털가죽(풀)×1.5');
   }
-  if (defAb === 'furcoat' && isPhysical) { defMods.push(MOD.x2_0); mods.push('털가죽×2'); }
+  if (defAb === 'furcoat' && usesDefStat) { defMods.push(MOD.x2_0); mods.push('털가죽×2'); }
   if (defAb === 'icescales' && !isPhysical) { defMods.push(MOD.x2_0); mods.push('얼음비늘×2'); }
 
   // 고대활성/쿼크차지 방어 부스트 (방어/특방이 최고 스탯일 때)
-  const defIsProtoActive = defAb === 'protosynthesis' && (field.weather === 'Sun' || defItem === 'boosterenergy');
+  const defIsProtoActive = defAb === 'protosynthesis' && (weather === 'Sun' || defItem === 'boosterenergy');
   const defIsQuarkActive = defAb === 'quarkdrive' && (field.terrain === 'Electric' || defItem === 'boosterenergy');
   if (defIsProtoActive || defIsQuarkActive) {
     const dCandidates = ['atk', 'def', 'spa', 'spd', 'spe'].map(s => ({ stat: s, val: defStats[s] }));
     dCandidates.sort((a, b) => b.val - a.val);
     const boostStat = dCandidates[0].stat;
-    if ((isPhysical && boostStat === 'def') || (!isPhysical && boostStat === 'spd')) {
+    if ((usesDefStat && boostStat === 'def') || (!usesDefStat && boostStat === 'spd')) {
       defMods.push(MOD.x1_3);
       const name = defIsProtoActive ? '고대활성' : '쿼크차지';
       mods.push(`${name}(방어)×1.3 (${STAT_LABEL[boostStat]})`);
@@ -603,25 +835,33 @@ function calculateDamage(atkSide, defSide, move, field) {
   // 재앙 (Def 단계)
   // 검의재앙: 자기가 아닌 타 포켓몬의 방어 ×0.75
   // 구슬의재앙: 자기가 아닌 타 포켓몬의 특방 ×0.75
-  if (state.field.ruinSword && defAb !== 'swordofruin' && isPhysical) {
+  if (field.ruinSword && defAb !== 'swordofruin' && usesDefStat) {
     defMods.push(MOD.x0_75); mods.push('검의재앙×0.75');
   }
-  if (state.field.ruinBeads && defAb !== 'beadsofruin' && !isPhysical) {
+  if (field.ruinBeads && defAb !== 'beadsofruin' && !usesDefStat) {
     defMods.push(MOD.x0_75); mods.push('구슬의재앙×0.75');
   }
-  
+
   // 아이템 방어 modifiers
   if (defItem === 'eviolite' && defP.nfe) { defMods.push(MOD.x1_5); mods.push('진화의휘석×1.5'); }
-  if (defItem === 'assaultvest' && !isPhysical) { defMods.push(MOD.x1_5); mods.push('돌격조끼×1.5'); }
-  if (defItem === 'metalpowder' && defP.id === 'ditto' && isPhysical) {
+  if (defItem === 'assaultvest' && !usesDefStat) { defMods.push(MOD.x1_5); mods.push('돌격조끼×1.5'); }
+  if (defItem === 'metalpowder' && defP.id === 'ditto' && usesDefStat) {
     defMods.push(MOD.x2_0); mods.push('메탈파우더×2');
   }
-  if (defItem === 'deepseascale' && defP.id === 'clamperl' && !isPhysical) {
+  if (defItem === 'deepseascale' && defP.id === 'clamperl' && !usesDefStat) {
     defMods.push(MOD.x2_0); mods.push('심해의비늘×2');
   }
-  
-  defStat = OF16(Math.max(1, pokeRound(defStat * chainMods(defMods, 410, 131072) / 4096)));
-  
+
+  ctx.defStat = OF16(Math.max(1, pokeRound(defStat * chainMods(defMods, 410, 131072) / 4096)));
+  return null;
+}
+
+function calculateBaseDamageStage(ctx) {
+  const {
+    move, field, mods, atkAb, atkItem, defItem, weather, defStats,
+    moveType, category, bp, atkStat, defStat, effectiveness, isCritical,
+  } = ctx;
+
   // ═══════════════════════════════════════
   // STAGE 4: Base Damage
   // ═══════════════════════════════════════
@@ -631,7 +871,7 @@ function calculateDamage(atkSide, defSide, move, field) {
       Math.floor((2 * level) / 5 + 2) * bp * atkStat / defStat
     ) / 50 + 2
   );
-  
+
   // Spread (더블배틀 광역기)
   const isSpread = field.gameType === 'Doubles' &&
     ['allAdjacent','allAdjacentFoes'].includes(move.tgt);
@@ -639,43 +879,55 @@ function calculateDamage(atkSide, defSide, move, field) {
     baseDmg = pokeRound(baseDmg * 3072 / 4096);
     mods.push('광역×0.75');
   }
-  
+
   // 날씨 (Base damage에 적용, 특성 해제: Utility Umbrella)
   // 메가솔(Mega Sol): 자기 공격은 쾌청 효과 (실제 날씨 무시)
   // - 자기 불꽃 ×1.5
   // - 자기 물 ×0.5는 적용 안됨 (메가솔은 일방향 효과)
   const atkSelfSun = atkAb === 'megasol';
-  const effectiveWeather = atkSelfSun ? 'Sun' : field.weather;
+  const damageWeather = atkSelfSun ? 'Sun' : weather;
 
-  if (defItem !== 'utilityumbrella') {
+  if (atkItem !== 'utilityumbrella' && defItem !== 'utilityumbrella') {
     if (atkSelfSun && moveType === 'Fire') {
       baseDmg = pokeRound(baseDmg * 6144 / 4096);
       mods.push('메가솔 불꽃×1.5');
-    } else if ((field.weather === 'Sun' || field.weather === 'Harsh Sunshine') && moveType === 'Fire') {
+    } else if ((damageWeather === 'Sun' || damageWeather === 'Harsh Sunshine') && moveType === 'Fire') {
       baseDmg = pokeRound(baseDmg * 6144 / 4096);
       mods.push('쾌청 불꽃×1.5');
-    } else if ((field.weather === 'Rain' || field.weather === 'Heavy Rain') && moveType === 'Water') {
+    } else if ((damageWeather === 'Rain' || damageWeather === 'Heavy Rain') && moveType === 'Water') {
       baseDmg = pokeRound(baseDmg * 6144 / 4096);
       mods.push('비 물×1.5');
-    } else if (field.weather === 'Sun' && moveType === 'Water' && !atkSelfSun) {
+    } else if (damageWeather === 'Sun' && moveType === 'Water' && !atkSelfSun) {
       baseDmg = pokeRound(baseDmg * 2048 / 4096);
       mods.push('쾌청 물×0.5');
-    } else if (field.weather === 'Rain' && moveType === 'Fire' && !atkSelfSun) {
+    } else if (damageWeather === 'Rain' && moveType === 'Fire' && !atkSelfSun) {
       baseDmg = pokeRound(baseDmg * 2048 / 4096);
       mods.push('비 불꽃×0.5');
-    } else if (field.weather === 'Harsh Sunshine' && moveType === 'Water') {
-      return { damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness: 0, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: ['대쾌청: 물 기술 무효'] };
-    } else if (field.weather === 'Heavy Rain' && moveType === 'Fire') {
-      return { damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness: 0, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: ['강한비: 불꽃 기술 무효'] };
+    } else if (damageWeather === 'Harsh Sunshine' && moveType === 'Water') {
+      return finishDamageStage({ damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness: 0, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: ['대쾌청: 물 기술 무효'] });
+    } else if (damageWeather === 'Heavy Rain' && moveType === 'Fire') {
+      return finishDamageStage({ damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness: 0, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: ['강한비: 불꽃 기술 무효'] });
     }
   }
-  
+
   // Critical
-  if (field.isCritical) {
+  if (isCritical) {
     baseDmg = Math.floor(baseDmg * 1.5);
     mods.push('급소×1.5');
   }
-  
+
+  ctx.baseDmg = baseDmg;
+  return null;
+}
+
+function calculateFinalDamageStage(ctx) {
+  const {
+    atkSide, defSide, move, field, mods,
+    atkAb, defAb, atkItem, defItem, defItemData, defStats,
+    moveType, category, bp, atkStat, defStat, baseDmg,
+    effectiveness, isPhysical, isCritical,
+  } = ctx;
+
   // ═══════════════════════════════════════
   // STAGE 5: Final modifiers & 16 rolls
   // ═══════════════════════════════════════
@@ -683,85 +935,90 @@ function calculateDamage(atkSide, defSide, move, field) {
   // STAB ×1.5는 카드 헤더의 '자속' 마크로 표시하므로 mods 추적 생략
   if (stabMod === 8192) mods.push('테라 매칭 STAB×2');
   else if (stabMod === 9216) mods.push('다능 STAB×2.25');
-  
+
   const finalMods = [];
-  
+
   // Screens
   const screenActive = (
     (field.defReflect && isPhysical) ||
     (field.defLightScreen && !isPhysical)
   );
-  if (screenActive && !field.isCritical && atkAb !== 'infiltrator') {
+  if (screenActive && !isCritical && atkAb !== 'infiltrator') {
     finalMods.push(field.gameType === 'Doubles' ? 2732 : 2048);
     mods.push(isPhysical ? '리플렉터×0.5' : '빛의장막×0.5');
   }
-  
+
   // Multiscale / Shadow Shield (HP 풀일 때)
   if ((defAb === 'multiscale' || defAb === 'shadowshield') && defSide.fullHP) {
     finalMods.push(MOD.x0_5); mods.push(defAb === 'multiscale' ? '멀티스케일×0.5' : '섀도실드×0.5');
   }
-  
+
   // Fluffy: 접촉기 0.5× / 불꽃 2×
   if (defAb === 'fluffy') {
     if (move.flags?.contact) { finalMods.push(MOD.x0_5); mods.push('플러피 접촉×0.5'); }
     if (moveType === 'Fire') { finalMods.push(MOD.x2_0); mods.push('플러피 불꽃×2'); }
   }
-  
+
   // Punk Rock (방어): 소리 기술 0.5×
   if (defAb === 'punkrock' && move.flags?.sound) {
     finalMods.push(MOD.x0_5); mods.push('펑크록 방어×0.5');
   }
-  
+
   // Ice Scales: 특수 0.5× (이미 Def에서 처리했지만 공식은 Final)
   // → 여기선 Def stage에서 처리했으므로 스킵
-  
+
   // Thick Fat (공격 타입이 불꽃/얼음이면 공격 절반, 여기선 defMod 대신 final로 처리해도 됨)
   if (defAb === 'thickfat' && (moveType === 'Fire' || moveType === 'Ice')) {
     finalMods.push(MOD.x0_5); mods.push('두꺼운지방×0.5');
   }
-  
+
   // Heatproof: 불꽃 0.5×
   if (defAb === 'heatproof' && moveType === 'Fire') {
     finalMods.push(MOD.x0_5); mods.push('내열×0.5');
   }
-  
+
   // Dry Skin: 불꽃 1.25×
   if (defAb === 'dryskin' && moveType === 'Fire') {
     finalMods.push(5120); mods.push('건조피부 불꽃×1.25');
   }
-  
+
   // Filter / Prism Armor / Solid Rock: 효과굉장 0.75×
   if ((defAb === 'filter' || defAb === 'prismarmor' || defAb === 'solidrock') && effectiveness > 1) {
     finalMods.push(MOD.x0_75);
     const name = defAb === 'filter' ? '필터' : defAb === 'prismarmor' ? '프리즘아머' : '단단한바위';
     mods.push(`${name}×0.75`);
   }
-  
+
   // Neuroforce: 효과굉장 1.25×
   if (atkAb === 'neuroforce' && effectiveness > 1) {
     finalMods.push(5120); mods.push('뇌장×1.25');
   }
-  
+
   // Sniper (급소 시 추가 1.5×)
-  if (atkAb === 'sniper' && field.isCritical) {
+  if (atkAb === 'sniper' && isCritical) {
     finalMods.push(MOD.x1_5); mods.push('스나이퍼×1.5');
   }
-  
+
   // Tinted Lens: 반감 이하일 때 2×
   if (atkAb === 'tintedlens' && effectiveness < 1) {
     finalMods.push(MOD.x2_0); mods.push('색안경×2');
   }
-  
+
   // Aerilate/Refrigerate etc. already applied in BP stage
-  
+
   // 아이템
   if (atkItem === 'lifeorb') { finalMods.push(5324); mods.push('생명의구슬×1.3'); }
   if (atkItem === 'expertbelt' && effectiveness > 1) { finalMods.push(MOD.x1_2); mods.push('달인의띠×1.2'); }
   if (atkItem === 'metronome') { /* 기술 연속 사용 카운트, 생략 */ }
 
   // 여보먹열매 (효과굉장 시 0.5×) — 단발 계산이라 단순 적용
-  if (defItem === 'roseliberry' && moveType === 'Fairy' && effectiveness > 1) {
-    finalMods.push(MOD.x0_5); mods.push('로세리열매×0.5');
+  const resistBerryType = RESIST_BERRY_TYPES[defItem];
+  const resistBerryApplies = resistBerryType === moveType && (defItem === 'chilanberry' || effectiveness > 1);
+  if (resistBerryApplies && !attackerBlocksBerries(atkAb)) {
+    const ripenActive = defAb === 'ripen';
+    finalMods.push(ripenActive ? MOD.x0_25 : MOD.x0_5);
+    const berryName = defItemData?.koName || defItem;
+    mods.push(`${berryName}${ripenActive ? '+Ripen' : ''}x${ripenActive ? '0.25' : '0.5'}`);
   }
 
   // ─ 방어 관통 메커니즘 ─
@@ -785,25 +1042,25 @@ function calculateDamage(atkSide, defSide, move, field) {
   }
 
   const finalMod = chainMods(finalMods, 41, 131072);
-  
+
   // ═ 16개 롤 계산 ═
   const damages = [];
   for (let i = 0; i < 16; i++) {
     // 85 + i 퍼센트 랜덤
     let d = Math.floor(OF32(baseDmg * (85 + i)) / 100);
-    
+
     // STAB
     if (stabMod !== 4096) d = OF32(d * stabMod) / 4096;
     d = Math.floor(OF32(pokeRound(d) * effectiveness));
-    
+
     // 화상은 공격 스탯에서 이미 처리됨
-    
+
     // 스크린 (중복 방지: 이미 finalMod에 포함)
     // Final mod
     d = OF16(pokeRound(Math.max(1, OF32(d * finalMod) / 4096)));
     damages.push(d);
   }
-  
+
   // Multi-hit 처리
   let multihitDamages = null;
   let parentalBondActive = false;
@@ -837,11 +1094,11 @@ function calculateDamage(atkSide, defSide, move, field) {
     }
     multihitDamages = damages.map(d => Math.floor(d * hits));
   }
-  
+
   const finalDamages = multihitDamages || damages;
   const minPct = (finalDamages[0] / defStats.hp * 100);
   const maxPct = (finalDamages[15] / defStats.hp * 100);
-  
+
   return {
     damages: finalDamages,
     rawDamages: damages,
@@ -854,6 +1111,28 @@ function calculateDamage(atkSide, defSide, move, field) {
     stab: stabMod !== 4096,
     mods
   };
+}
+
+function calculateDamage(atkSide, defSide, move, field) {
+  if (!move || move.cat === 'Status') return null;
+
+  const ctx = makeDamageContext(atkSide, defSide, move, field);
+  if (ctx.invalid) return null;
+
+  const stages = [
+    resolveDamagePreludeStage,
+    calculateBasePowerStage,
+    calculateAttackStage,
+    calculateDefenseStage,
+    calculateBaseDamageStage,
+  ];
+
+  for (const stage of stages) {
+    const outcome = stage(ctx);
+    if (outcome?.done) return outcome.result;
+  }
+
+  return calculateFinalDamageStage(ctx);
 }
 
 /* ════════════════════════════════════════════════════════════

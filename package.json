@@ -5,6 +5,12 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
+    "check": "node scripts/check.mjs",
+    "data:validate": "node scripts/validate-data.mjs",
+    "damage:golden": "node scripts/damage-golden.mjs",
+    "coverage:matrix": "node scripts/coverage-matrix.mjs",
+    "state:entry": "node scripts/entry-effects-state.mjs",
+    "test": "npm run check && npm run build && npm run data:validate && npm run damage:golden && npm run state:entry",
     "sync-data": "node scripts/sync-ps-data.mjs",
     "sync-data:dry": "node scripts/sync-ps-data.mjs --dry-run",
     "fetch-ko": "node scripts/fetch-ko.mjs"

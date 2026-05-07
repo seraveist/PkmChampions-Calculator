@@ -7,6 +7,9 @@ const POKEMON   = JSON.parse(document.getElementById('data-pokemon').textContent
 const MOVES     = JSON.parse(document.getElementById('data-moves').textContent);
 const ABILITIES = JSON.parse(document.getElementById('data-abilities').textContent);
 const ITEMS     = JSON.parse(document.getElementById('data-items').textContent);
+const NATURE_DATA = JSON.parse(document.getElementById('data-natures')?.textContent || '[]');
+const TYPE_CHART_DATA = JSON.parse(document.getElementById('data-typechart')?.textContent || '{}');
+const RULES     = JSON.parse(document.getElementById('data-rules')?.textContent || '{}');
 
 const PokemonById   = Object.fromEntries(POKEMON.map(p => [p.id, p]));
 const MoveById      = Object.fromEntries(MOVES.map(m => [m.id, m]));
@@ -85,7 +88,7 @@ function applyMod(value, mod) {
 /* ════════════════════════════════════════════════════════════
    타입 상성표 (Gen 9 기준)
    ════════════════════════════════════════════════════════════ */
-const TYPE_CHART = {
+const FALLBACK_TYPE_CHART = {
   "Normal":   { "Rock": 0.5, "Ghost": 0, "Steel": 0.5 },
   "Fire":     { "Fire": 0.5, "Water": 0.5, "Grass": 2, "Ice": 2, "Bug": 2, "Rock": 0.5, "Dragon": 0.5, "Steel": 2 },
   "Water":    { "Fire": 2, "Water": 0.5, "Grass": 0.5, "Ground": 2, "Rock": 2, "Dragon": 0.5 },
@@ -106,6 +109,7 @@ const TYPE_CHART = {
   "Fairy":    { "Fire": 0.5, "Fighting": 2, "Poison": 0.5, "Dragon": 2, "Dark": 2, "Steel": 0.5 },
   "Stellar":  {}  // 테라 스텔라는 기본 1배 (테라 스텔라 전용 처리)
 };
+const TYPE_CHART = Object.keys(TYPE_CHART_DATA).length ? TYPE_CHART_DATA : FALLBACK_TYPE_CHART;
 
 function typeEff(atkType, defTypes) {
   let eff = 1;
@@ -135,7 +139,7 @@ const RANK_STATS = ["atk", "def", "spa", "spd", "spe"];
 
 // 25성격 데이터 (id, 한국어명, 상승 스탯, 하락 스탯)
 // id 'hardy' 같은 중성 성격은 up/down null
-const NATURES = [
+const FALLBACK_NATURES = [
   { id: 'hardy',   ko: '노력',     up: null,  down: null  },
   { id: 'lonely',  ko: '외로움',   up: 'atk', down: 'def' },
   { id: 'brave',   ko: '용감',     up: 'atk', down: 'spe' },
@@ -162,6 +166,15 @@ const NATURES = [
   { id: 'careful', ko: '신중',     up: 'spd', down: 'spa' },
   { id: 'quirky',  ko: '변덕',     up: null,  down: null  },
 ];
+const NATURE_KO = Object.fromEntries(FALLBACK_NATURES.map(n => [n.id, n.ko]));
+const NATURES = Array.isArray(NATURE_DATA) && NATURE_DATA.length
+  ? NATURE_DATA.map(n => ({
+      id: n.id,
+      ko: NATURE_KO[n.id] || n.name,
+      up: n.plus || n.up || null,
+      down: n.minus || n.down || null,
+    }))
+  : FALLBACK_NATURES;
 const NATURE_BY_ID = Object.fromEntries(NATURES.map(n => [n.id, n]));
 
 function calcStats(side) {
@@ -212,11 +225,19 @@ function effectivePokemon(side) {
   return PokemonById[side.pokemonIdx];
 }
 
+function isTeraEnabled() {
+  return !RULES.teraDisabled;
+}
+
+function isTeraActive(side) {
+  return isTeraEnabled() && !!side.tera;
+}
+
 function effectiveTypes(side) {
   const p = PokemonById[side.pokemonIdx];
   if (!p) return [];
   // 테라스탈 활성 시 타입 변경 (테라 스텔라는 원래 타입 유지)
-  if (side.tera && side.teraType && side.teraType !== 'Stellar') {
+  if (isTeraActive(side) && side.teraType && side.teraType !== 'Stellar') {
     return [side.teraType];
   }
   return p.types;
@@ -235,13 +256,76 @@ function effectiveItem(side) {
   return side.item;
 }
 
+const NEUTRALIZING_GAS_EXEMPT_ABILITIES = [
+  'asoneglastrier', 'asonespectrier', 'battlebond', 'comatose',
+  'disguise', 'gulpmissile', 'iceface', 'multitype',
+  'neutralizinggas', 'powerconstruct', 'rkssystem', 'schooling',
+  'shieldsdown', 'stancechange', 'terashift', 'zenmode', 'zerotohero'
+];
+
+const MOLD_BREAKER_IGNORED_ABILITIES = [
+  'levitate', 'sturdy', 'multiscale', 'shadowshield',
+  'waterabsorb', 'voltabsorb', 'flashfire', 'sapsipper',
+  'lightningrod', 'stormdrain', 'motordrive',
+  'wellbakedbody', 'eartheater', 'earthenateatr',
+  'thickfat', 'heatproof', 'dryskin',
+  'filter', 'prismarmor', 'solidrock',
+  'furcoat', 'icescales', 'fluffy',
+  'marvelscale', 'grasspelt',
+  'unaware', 'magicguard',
+  'soundproof', 'bulletproof',
+  'battlearmor', 'shellarmor',
+  'purifyingsalt', 'terashell', 'waterbubble',
+  'stickyhold', 'heavymetal', 'lightmetal',
+  'queenlymajesty', 'dazzling', 'armortail',
+  'goodasgold'
+];
+
+function hasNeutralizingGas(atkSide, defSide) {
+  return effectiveAbility(atkSide) === 'neutralizinggas' || effectiveAbility(defSide) === 'neutralizinggas';
+}
+
+function suppressAbilityForGas(ability, gasActive) {
+  if (!gasActive) return ability;
+  return NEUTRALIZING_GAS_EXEMPT_ABILITIES.includes(ability) ? ability : '';
+}
+
+function battleAbilityContext(atkSide, defSide) {
+  const gasActive = hasNeutralizingGas(atkSide, defSide);
+  return {
+    gasActive,
+    rawAtkAb: effectiveAbility(atkSide),
+    rawDefAb: effectiveAbility(defSide),
+    atkAb: suppressAbilityForGas(effectiveAbility(atkSide), gasActive),
+    defAb: suppressAbilityForGas(effectiveAbility(defSide), gasActive),
+  };
+}
+
+function effectiveBattleItem(side, ability = effectiveAbility(side)) {
+  return ability === 'klutz' ? '' : effectiveItem(side);
+}
+
+function effectiveWeather(field, atkAb = '', defAb = '') {
+  return (atkAb === 'airlock' || atkAb === 'cloudnine' || defAb === 'airlock' || defAb === 'cloudnine')
+    ? 'none'
+    : field.weather;
+}
+
+function effectiveWeight(side, ability = effectiveAbility(side)) {
+  const p = PokemonById[side.pokemonIdx];
+  let weight = p?.weightkg || 1;
+  if (ability === 'heavymetal') weight *= 2;
+  if (ability === 'lightmetal') weight = Math.max(0.1, Math.floor(weight * 5) / 10);
+  return weight;
+}
+
 /* ════════════════════════════════════════════════════════════
    Grounded (땅에 있는지) 판정
    ════════════════════════════════════════════════════════════ */
-function isGrounded(side, field) {
+function isGrounded(side, field, abilityOverride = null, itemOverride = null) {
   const types = effectiveTypes(side);
-  const ab = effectiveAbility(side);
-  const item = effectiveItem(side);
+  const ab = abilityOverride ?? effectiveAbility(side);
+  const item = itemOverride ?? effectiveBattleItem(side, ab);
   // 강제 Grounded 조건
   if (field.isGravity) return true;
   if (item === 'ironball') return true;
@@ -259,8 +343,9 @@ function getStabMod(side, moveType) {
   const ab = effectiveAbility(side);
   const origTypes = originalTypes(side);
   const isOriginal = origTypes.includes(moveType);
-  const isTera = side.tera && side.teraType === moveType;
-  const isTeraStellar = side.tera && side.teraType === 'Stellar';
+  const teraActive = isTeraActive(side);
+  const isTera = teraActive && side.teraType === moveType;
+  const isTeraStellar = teraActive && side.teraType === 'Stellar';
 
   // 리베로/프로틴: 사용 기술 타입으로 변환 → STAB 항상 발동
   // (Gen 9에서는 한 턴 1회 제한, 우리는 단발 계산이라 항상 발동 가정)
@@ -290,11 +375,12 @@ function getStabMod(side, moveType) {
 /* ════════════════════════════════════════════════════════════
    타입 효과 계산 (특성·도구 포함)
    ════════════════════════════════════════════════════════════ */
-function getMoveEffectiveness(move, moveType, atkSide, defSide, field) {
+function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCtx = null, itemCtx = null) {
   const defTypes = effectiveTypes(defSide);
-  const defAb = effectiveAbility(defSide);
-  const defItem = effectiveItem(defSide);
-  const atkAb = effectiveAbility(atkSide);
+  const ctx = abilityCtx || battleAbilityContext(atkSide, defSide);
+  const atkAb = ctx.atkAb;
+  const defAb = ctx.defAb;
+  const defItem = itemCtx?.defItem ?? effectiveBattleItem(defSide, defAb);
   
   // Mold Breaker / Teravolt / Turboblaze: 방어측 일부 특성 무시
   const ignoresAbility = ['moldbreaker','teravolt','turboblaze'].includes(atkAb);
@@ -333,13 +419,13 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field) {
   // 땅 면역: 비행 타입 / 풍선 / 부유 필드 제외
   if (moveType === 'Ground' && !field.isGravity) {
     if (defItem === 'airballoon') eff = 0;
-    if (defTypes.includes('Flying') && !isGrounded(defSide, field)) {
+    if (defTypes.includes('Flying') && !isGrounded(defSide, field, defAb, defItem)) {
       // (이미 typeEff에서 반영됨)
     }
   }
   
   // 배짱 (Scrappy): 고스트에 노말/격투 기술 사용 가능
-  if (eff === 0 && atkAb === 'scrappy' && ['Normal','Fighting'].includes(moveType) && defTypes.includes('Ghost')) {
+  if (eff === 0 && (atkAb === 'scrappy' || atkAb === 'mindseye') && ['Normal','Fighting'].includes(moveType) && defTypes.includes('Ghost')) {
     // eff=0이 노말 vs 고스트 때문이었다면 상성표 재계산
     let e = 1;
     for (const t of defTypes) {
@@ -350,7 +436,8 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field) {
     eff = e;
   }
   
-  // Tera Shell (Terapagos): HP 풀일 때 모든 공격 NVE (미구현, 드묾)
+  // Tera Shell: full HP target turns non-immune hits into not very effective.
+  if (eff > 0 && defAb === 'terashell' && defSide.fullHP) eff = 0.5;
   
   return eff;
 }

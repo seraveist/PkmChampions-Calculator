@@ -19,7 +19,8 @@ function makeSideState(defaultIdx) {
     teraType: p ? p.types[0] : 'Normal',
     pinch: false,
     fullHP: true,
-    moves: []
+    moves: [],
+    moveBpOverrides: [null, null, null, null]
   };
 }
 
@@ -65,6 +66,36 @@ function pkName(p) { return p.koName || p.name; }
 function mvName(m) { return m.koName || m.name; }
 function abName(a) { return a ? (a.koName || a.name) : '없음'; }
 function itName(i) { return i ? (i.koName || i.name) : '없음'; }
+
+function normalizeManualBp(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.min(999, Math.floor(n)));
+}
+
+function manualBpForSlot(side, slot, move) {
+  const manual = normalizeManualBp(side.moveBpOverrides?.[slot]);
+  return manual === null ? (move?.bp || 0) : manual;
+}
+
+function moveWithManualBp(move, manualBp) {
+  const bp = normalizeManualBp(manualBp);
+  return bp === null ? move : { ...move, bp, manualBp: true };
+}
+
+function applyMoveBpInput(el, renderAfter = false) {
+  const side = state[el.dataset.side];
+  const slot = parseInt(el.dataset.slot);
+  const moveId = side.moves?.[slot];
+  const move = moveId ? MoveById[moveId] : null;
+  const normalized = normalizeManualBp(el.value);
+  const defaultBp = move?.bp || 0;
+  if (!Array.isArray(side.moveBpOverrides)) side.moveBpOverrides = [null, null, null, null];
+  side.moveBpOverrides[slot] = normalized === null || normalized === defaultBp ? null : normalized;
+  if (renderAfter) renderSide(el.dataset.side);
+  triggerCalc();
+}
 
 // 챔피언스 모드 (사용 불가 도구 필터링)
 let championsMode = true;
@@ -128,21 +159,6 @@ const INTIMIDATE_BLOCKERS = [
 ];
 
 // 틀깨기에 무시되는 방어측 특성
-const MOLD_BREAKER_IGNORED_ABILITIES = [
-  'levitate', 'sturdy', 'multiscale', 'shadowshield',
-  'waterabsorb', 'voltabsorb', 'flashfire', 'sapsipper',
-  'lightningrod', 'stormdrain', 'motordrive',
-  'wellbakedbody', 'eartheater', 'earthenateatr',
-  'thickfat', 'heatproof', 'dryskin',
-  'filter', 'prismarmor', 'solidrock',
-  'furcoat', 'icescales', 'fluffy',
-  'marvelscale', 'grasspelt',
-  'unaware', 'magicguard',
-  'soundproof', 'bulletproof',
-  'queenlymajesty', 'dazzling', 'armortail',
-  'goodasgold'
-];
-
 // 기술 위력 / 결정력 추정
 // 결정력 = 공격(특공) 실수치 × 기술 위력 × STAB × 도구 × 특성 보정
 //   ※ 타입 상성, 방어측 보정은 제외
@@ -471,12 +487,19 @@ function renderSide(sideKey) {
         ${[0,1,2,3].map(i => {
           const moveId = side.moves[i];
           const move = moveId ? MoveById[moveId] : null;
-          const power = move ? estimateMovePower(side, move) : null;
+          const slotBp = move ? manualBpForSlot(side, i, move) : '';
+          const manualBp = normalizeManualBp(side.moveBpOverrides?.[i]);
+          const moveForCalc = move ? moveWithManualBp(move, manualBp) : null;
+          const power = moveForCalc ? estimateMovePower(side, moveForCalc) : null;
           return `
             <div class="move-slot combobox" data-cb="${sideKey}-move-${i}">
               <span class="move-slot-num">${i+1}</span>
               <input type="text" class="cb-input" value="${move ? mvName(move) : ''}" data-cb-type="move" data-side="atk" data-field="moves.${i}" placeholder="기술 검색...">
               <div class="combobox-options"></div>
+              <label class="move-bp-control" title="계산용 위력">
+                <span>위력</span>
+                <input type="number" class="move-bp-input" data-action="moveBp" data-side="atk" data-slot="${i}" value="${move ? slotBp : ''}" min="0" max="999" ${move ? '' : 'disabled'}>
+              </label>
               ${move ? `<span class="move-stat-info">${power.bp || '—'}<span class="move-stat-sep">/</span><b>${typeof power.eff === 'number' ? power.eff.toLocaleString() : power.eff}</b></span>` : '<span class="move-stat-info empty">—</span>'}
             </div>
           `;
@@ -576,9 +599,11 @@ function wireSide(sideKey) {
       e.preventDefault();
       e.stopPropagation();
       const id = opt.dataset.id;
+      let resetAutoFields = false;
 
       if (field === 'pokemonIdx') {
         const oldIdx = state[side].pokemonIdx;
+        resetAutoFields = id !== oldIdx && autoEntryEffects && resetManualAutoFieldOverrides();
         state[side].pokemonIdx = id;
         // 포켓몬 변경 시: 특성/도구/테라타입 기본값 + 기술 초기화 (다른 종)
         const p = PokemonById[id];
@@ -599,17 +624,22 @@ function wireSide(sideKey) {
             state[side].item = '';
           }
           // 기술 초기화 (공격측만)
-          if (side === 'atk') state[side].moves = [];
+          if (side === 'atk') {
+            state[side].moves = [];
+            state[side].moveBpOverrides = [null, null, null, null];
+          }
         }
       } else if (field === 'item') {
         state[side].item = id || '';
       } else if (field.startsWith('moves.')) {
         const idx = parseInt(field.split('.')[1]);
         state.atk.moves[idx] = id || '';
+        state.atk.moveBpOverrides[idx] = null;
       }
       // 옵션 닫기 + 사이드 재렌더 (위력/결정력/내구력 등 모두 갱신)
       optsEl.classList.remove('open');
       renderSide(side);
+      if (resetAutoFields) syncFieldControls();
       triggerCalc();
     }
     optsEl.addEventListener('mousedown', handleOptionSelect);
@@ -619,6 +649,11 @@ function wireSide(sideKey) {
   // 일반 input/select
   container.querySelectorAll('[data-action]').forEach(el => {
     const action = el.dataset.action;
+    if (action === 'moveBp') {
+      el.addEventListener('input', () => applyMoveBpInput(el));
+      el.addEventListener('change', () => applyMoveBpInput(el, true));
+      return;
+    }
     const evt = el.tagName === 'BUTTON' ? 'click' : 'change';
     el.addEventListener(evt, () => {
       const side = state[el.dataset.side];
@@ -715,108 +750,220 @@ function applyEvPreset(sideKey, preset) {
 
 /* ════════════════════════════════════════════════════════════
    자동 진입 효과 적용
-   - autoEntryEffects가 true일 때만 실행
-   - 사용자가 수동으로 변경한 값은 자동으로 다시 덮어쓰지 않음 (lastAutoApplied 추적)
+   - 원본 state는 유지하고 계산용 복사본에만 자동 효과를 적용
+   - 자동으로 켜진 필드는 사용자가 수동 변경하면 다음 포켓몬 변경 전까지 덮어쓰지 않음
    ════════════════════════════════════════════════════════════ */
 
-// 마지막으로 자동 적용된 진입 효과 추적 (해제용)
-const lastAutoEntry = {
-  atk: { weather: null, terrain: null, ranks: {}, ruin: null },
-  def: { weather: null, terrain: null, ranks: {}, ruin: null }
+let lastAutoEntry = emptyEntryMeta();
+
+const manualAutoFieldOverrides = {
+  weather: null,
+  terrain: null,
+  ruinSword: null,
+  ruinTablet: null,
+  ruinBeads: null,
+  ruinVessel: null,
 };
 
-function applyEntryEffects() {
-  if (!autoEntryEffects) return [];
-  const log = [];
+function defaultAutoFieldValue(fieldKey) {
+  return fieldKey === 'weather' || fieldKey === 'terrain' ? 'none' : false;
+}
+
+function emptyEntryMeta() {
+  return {
+    logs: [],
+    fields: {},
+    rankDeltas: { atk: {}, def: {} },
+    blocked: [],
+  };
+}
+
+function cloneSideForCalc(side) {
+  return {
+    ...side,
+    evs: { ...side.evs },
+    ranks: { ...side.ranks },
+    moves: Array.isArray(side.moves) ? [...side.moves] : [],
+    moveBpOverrides: Array.isArray(side.moveBpOverrides) ? [...side.moveBpOverrides] : [null, null, null, null],
+  };
+}
+
+function cloneFieldForCalc(field) {
+  return { ...field };
+}
+
+function clampRank(value) {
+  return Math.max(-6, Math.min(6, value));
+}
+
+function addRankDelta(meta, sideKey, stat, delta) {
+  if (!delta) return;
+  meta.rankDeltas[sideKey][stat] = (meta.rankDeltas[sideKey][stat] || 0) + delta;
+}
+
+function applyRankDelta(side, meta, sideKey, stat, delta) {
+  const before = side.ranks[stat] || 0;
+  const after = clampRank(before + delta);
+  side.ranks[stat] = after;
+  addRankDelta(meta, sideKey, stat, after - before);
+  return after - before;
+}
+
+function sideEntryLabel(sideKey) {
+  return sideKey === 'atk' ? '공격측' : '방어측';
+}
+
+function applyAutoField(calcState, meta, fieldKey, value, sideKey, label) {
+  if (manualAutoFieldOverrides[fieldKey]) return false;
+  if (calcState.field[fieldKey] === value) return false;
+  calcState.field[fieldKey] = value;
+  meta.fields[fieldKey] = { sideKey, value, label };
+  meta.logs.push(`${sideEntryLabel(sideKey)} 진입: ${label}`);
+  return true;
+}
+
+function applyEntryEffectsToCalcState(calcState) {
+  const meta = emptyEntryMeta();
+  if (!autoEntryEffects) return meta;
 
   for (const sideKey of ['atk', 'def']) {
-    const side = state[sideKey];
+    const side = calcState[sideKey];
     const otherKey = sideKey === 'atk' ? 'def' : 'atk';
-    const other = state[otherKey];
-    const ab = side.ability;
-    const effect = ENTRY_EFFECTS[ab];
-
-    // 이전 자동 적용 해제 — 우리가 바꾼 값과 현재 값이 같을 때만 이전 값으로 복원.
-    // (사용자가 그 사이 수동으로 다시 바꿨다면 그대로 둠)
-    const last = lastAutoEntry[sideKey];
-    if (last.weather && state.field.weather === last.weather.applied) {
-      state.field.weather = last.weather.prev;
-    }
-    if (last.terrain && state.field.terrain === last.terrain.applied) {
-      state.field.terrain = last.terrain.prev;
-    }
-    for (const r of Object.keys(last.ranks)) {
-      side.ranks[r] = (side.ranks[r] || 0) - last.ranks[r];
-    }
-    for (const r of Object.keys(last.ranks).filter(k => k.startsWith('opp_'))) {
-      const stat = r.replace('opp_', '');
-      other.ranks[stat] = (other.ranks[stat] || 0) - last.ranks[r];
-    }
-    if (last.ruin) {
-      // 우리가 켰던 재앙만 끈다 (사용자가 수동으로 켰던 경우는 last.ruin = null 이라 통과)
-      state.field['ruin' + last.ruin.charAt(0).toUpperCase() + last.ruin.slice(1)] = false;
-    }
-    // reset
-    lastAutoEntry[sideKey] = { weather: null, terrain: null, ranks: {}, ruin: null };
-
+    const other = calcState[otherKey];
+    const effect = ENTRY_EFFECTS[side.ability];
     if (!effect) continue;
 
-    // 날씨 — 이미 같은 날씨면 변경/추적 안 함 (사용자 수동 설정 보존)
-    if (effect.weather && state.field.weather !== effect.weather) {
-      lastAutoEntry[sideKey].weather = { prev: state.field.weather, applied: effect.weather };
-      state.field.weather = effect.weather;
-      log.push(`${sideKey === 'atk' ? '공격측' : '방어측'} 진입: ${effect.label}`);
-    }
-    // 필드 — 동일 처리
-    if (effect.terrain && state.field.terrain !== effect.terrain) {
-      lastAutoEntry[sideKey].terrain = { prev: state.field.terrain, applied: effect.terrain };
-      state.field.terrain = effect.terrain;
-      if (!effect.weather) log.push(`${sideKey === 'atk' ? '공격측' : '방어측'} 진입: ${effect.label}`);
-    }
-    // 자기 능력치 +
+    if (effect.weather) applyAutoField(calcState, meta, 'weather', effect.weather, sideKey, effect.label);
+    if (effect.terrain) applyAutoField(calcState, meta, 'terrain', effect.terrain, sideKey, effect.label);
+
     if (effect.selfBoost) {
+      let changed = false;
       for (const [stat, n] of Object.entries(effect.selfBoost)) {
-        side.ranks[stat] = Math.max(-6, Math.min(6, (side.ranks[stat] || 0) + n));
-        lastAutoEntry[sideKey].ranks[stat] = n;
+        changed = applyRankDelta(side, meta, sideKey, stat, n) !== 0 || changed;
       }
-      log.push(`${sideKey === 'atk' ? '공격측' : '방어측'} 진입: ${effect.label}`);
+      if (changed) meta.logs.push(`${sideEntryLabel(sideKey)} 진입: ${effect.label}`);
     }
-    // 상대 능력치 변화 (위협)
+
     if (effect.opponentBoost) {
-      // 위협 무시 특성 체크
       const otherAb = other.ability;
       if (effect.blockable && INTIMIDATE_BLOCKERS.includes(otherAb)) {
-        log.push(`${sideKey === 'atk' ? '공격측' : '방어측'} 위협 → 무효 (${AbilityById[otherAb]?.koName || otherAb})`);
+        const log = `${sideEntryLabel(sideKey)} 위협 무효 (${AbilityById[otherAb]?.koName || otherAb})`;
+        meta.blocked.push(log);
+        meta.logs.push(log);
       } else {
+        let changed = false;
         for (const [stat, n] of Object.entries(effect.opponentBoost)) {
-          other.ranks[stat] = Math.max(-6, Math.min(6, (other.ranks[stat] || 0) + n));
-          lastAutoEntry[sideKey].ranks['opp_' + stat] = n;
+          changed = applyRankDelta(other, meta, otherKey, stat, n) !== 0 || changed;
         }
-        log.push(`${sideKey === 'atk' ? '공격측' : '방어측'} 진입: ${effect.label}`);
+        if (changed) meta.logs.push(`${sideEntryLabel(sideKey)} 진입: ${effect.label}`);
       }
     }
-    // 다운로드: 상대 방어 < 특방이면 공격 +1, 아니면 특공 +1
+
     if (effect.download) {
       const otherStats = calcStats(other);
       const stat = otherStats.def < otherStats.spd ? 'atk' : 'spa';
-      side.ranks[stat] = Math.max(-6, Math.min(6, (side.ranks[stat] || 0) + 1));
-      lastAutoEntry[sideKey].ranks[stat] = 1;
-      log.push(`${sideKey === 'atk' ? '공격측' : '방어측'} 다운로드: 자기 ${STAT_LABEL[stat]} +1`);
+      if (applyRankDelta(side, meta, sideKey, stat, 1) !== 0) {
+        meta.logs.push(`${sideEntryLabel(sideKey)} 다운로드: 자기 ${STAT_LABEL[stat]} +1`);
+      }
     }
-    // 재앙 — 매핑: spd → ruinBeads, atk → ruinTablet, def → ruinSword, spa → ruinVessel
+
     if (effect.ruin) {
       const RUIN_MAP = { spd: 'ruinBeads', atk: 'ruinTablet', def: 'ruinSword', spa: 'ruinVessel' };
       const fieldKey = RUIN_MAP[effect.ruin];
-      // 이미 켜져 있으면 (사용자 수동 또는 다른 자동 효과) 우리가 끄지 않도록 추적 안 함
-      if (fieldKey && !state.field[fieldKey]) {
-        state.field[fieldKey] = true;
-        lastAutoEntry[sideKey].ruin = fieldKey.replace('ruin', '');
-        log.push(`${sideKey === 'atk' ? '공격측' : '방어측'} 진입: ${effect.label}`);
+      if (fieldKey && !manualAutoFieldOverrides[fieldKey] && !calcState.field[fieldKey]) {
+        calcState.field[fieldKey] = true;
+        meta.fields[fieldKey] = { sideKey, value: true, label: effect.label };
+        meta.logs.push(`${sideEntryLabel(sideKey)} 진입: ${effect.label}`);
       }
     }
   }
 
-  return log;
+  return meta;
+}
+
+function makeCalcState() {
+  const calcState = {
+    atk: cloneSideForCalc(state.atk),
+    def: cloneSideForCalc(state.def),
+    field: cloneFieldForCalc(state.field),
+  };
+  calcState.entryMeta = applyEntryEffectsToCalcState(calcState);
+  return calcState;
+}
+
+function activeAutoFieldBase(fieldKey) {
+  const prev = state.field[fieldKey] ?? defaultAutoFieldValue(fieldKey);
+  if (lastAutoEntry.fields?.[fieldKey]) return { active: true, prev };
+  return { active: false, prev };
+}
+
+function markManualAutoFieldOverride(fieldKey) {
+  if (!(fieldKey in manualAutoFieldOverrides) || manualAutoFieldOverrides[fieldKey]) return;
+  const auto = activeAutoFieldBase(fieldKey);
+  if (auto.active) manualAutoFieldOverrides[fieldKey] = { prev: auto.prev };
+}
+
+function resetManualAutoFieldOverrides() {
+  let changed = false;
+  for (const fieldKey of Object.keys(manualAutoFieldOverrides)) {
+    const override = manualAutoFieldOverrides[fieldKey];
+    if (!override) continue;
+    const nextValue = override.prev ?? defaultAutoFieldValue(fieldKey);
+    if (state.field[fieldKey] !== nextValue) {
+      state.field[fieldKey] = nextValue;
+      changed = true;
+    }
+    manualAutoFieldOverrides[fieldKey] = null;
+  }
+  return changed;
+}
+
+function syncFieldControls(fieldState = null) {
+  const f = fieldState || makeCalcState().field;
+  const weatherEl = document.getElementById('weather');
+  const terrainEl = document.getElementById('terrain');
+  if (weatherEl) weatherEl.value = f.weather;
+  if (terrainEl) terrainEl.value = f.terrain;
+  if (typeof updateFieldSummary === 'function') updateFieldSummary(f, lastAutoEntry);
+  if (typeof updateRuinCheckboxes === 'function') updateRuinCheckboxes(f);
+}
+
+function applyEntryEffects() {
+  const calcState = makeCalcState();
+  lastAutoEntry = calcState.entryMeta;
+  return lastAutoEntry.logs;
+}
+
+function formatRankValue(value) {
+  return value > 0 ? `+${value}` : `${value}`;
+}
+
+function renderEntryRankSummary(calcState) {
+  const meta = calcState.entryMeta;
+  const rows = [];
+  for (const sideKey of ['atk', 'def']) {
+    for (const stat of ['atk', 'def', 'spa', 'spd', 'spe']) {
+      const delta = meta.rankDeltas?.[sideKey]?.[stat] || 0;
+      if (!delta) continue;
+      const base = state[sideKey].ranks[stat] || 0;
+      const final = calcState[sideKey].ranks[stat] || 0;
+      rows.push(`
+        <div class="entry-rank-item ${sideKey}">
+          <span>${sideEntryLabel(sideKey)} ${STAT_LABEL[stat]}</span>
+          <b>${formatRankValue(base)}</b>
+          <em>${formatRankValue(delta)}</em>
+          <strong>${formatRankValue(final)}</strong>
+        </div>
+      `);
+    }
+  }
+  if (!rows.length) return '';
+  return `
+    <div class="entry-rank-summary">
+      <div class="entry-rank-label">계산 적용 랭크</div>
+      <div class="entry-rank-list">${rows.join('')}</div>
+    </div>
+  `;
 }
 
 
@@ -824,60 +971,56 @@ function applyEntryEffects() {
    결과 렌더링
    ════════════════════════════════════════════════════════════ */
 function runCalc() {
-  // 진입 효과 자동 적용 (활성화 시)
-  const entryLog = applyEntryEffects();
-  // 진입 효과로 필드/랭크가 바뀌면 사이드 패널 다시 그리기
-  if (entryLog.length > 0) {
-    renderSide('atk');
-    renderSide('def');
-    // 필드 select 갱신
-    document.getElementById('weather').value = state.field.weather;
-    document.getElementById('terrain').value = state.field.terrain;
-    updateFieldSummary();
-    updateRuinCheckboxes();
-  }
+  const calcState = makeCalcState();
+  lastAutoEntry = calcState.entryMeta;
+  const entryLog = lastAutoEntry.logs;
+  const calcAtk = calcState.atk;
+  const calcDef = calcState.def;
+  const calcField = calcState.field;
+  syncFieldControls(calcField);
 
   const atkP = PokemonById[state.atk.pokemonIdx];
   const defP = PokemonById[state.def.pokemonIdx];
   if (!atkP || !defP) return;
   
-  const atkSpe = effectiveSpeed(state.atk, state.field);
-  const defSpe = effectiveSpeed(state.def, state.field);
+  const atkSpe = effectiveSpeed(calcAtk, calcField);
+  const defSpe = effectiveSpeed(calcDef, calcField);
 
   // 가변 위력 기술이 참조하는 행동 순서 플래그를 필드에 복사 (priority 0 기준)
   // 우선도가 다른 기술은 기술별로 calculateDamage 가 firstMover 결과로 보정해야 정확하지만
   // 대부분의 가변 위력 기술 (boltbeak, fishiousrend, payback) 은 priority 0 이므로 단순화.
-  state.field.atkMovesFirst = atkSpe > defSpe;
-  state.field.atkMovesSecond = atkSpe < defSpe;
+  calcField.atkMovesFirst = atkSpe > defSpe;
+  calcField.atkMovesSecond = atkSpe < defSpe;
 
   // 각 기술 계산
   const moveResults = state.atk.moves.map((mvId, i) => {
     if (!mvId) return { empty: true, slot: i+1 };
-    const move = MoveById[mvId];
+    const baseMove = MoveById[mvId];
+    const move = baseMove ? moveWithManualBp(baseMove, calcAtk.moveBpOverrides?.[i]) : null;
     if (!move) return { empty: true, slot: i+1 };
     if (move.cat === 'Status') {
       return { empty: true, slot: i+1, move, statusMove: true };
     }
-    const result = calculateDamage(state.atk, state.def, move, state.field);
+    const result = calculateDamage(calcAtk, calcDef, move, calcField);
     if (!result) return { empty: true, slot: i+1, move };
-    const hko = hkoLabel(result.damages, result.defHP, state.def, state.field);
-    const first = firstMover(move.pri, atkSpe, defSpe, state.field);
+    const hko = hkoLabel(result.damages, result.defHP, calcDef, calcField);
+    const first = firstMover(move.pri, atkSpe, defSpe, calcField);
     return { ...result, hko, first, slot: i+1, move };
   });
   
   // 틀깨기 / 다능 등 공격측 특성으로 무시되는 방어측 특성 체크
-  const atkAb = state.atk.ability;
-  const defAb = state.def.ability;
+  const atkAb = calcAtk.ability;
+  const defAb = calcDef.ability;
   const moldBreakerActive = ['moldbreaker', 'teravolt', 'turboblaze'].includes(atkAb);
   const ignoredAb = moldBreakerActive && MOLD_BREAKER_IGNORED_ABILITIES.includes(defAb)
     ? AbilityById[defAb] : null;
 
   // 재앙 효과 정보
   const ruinActive = [];
-  if (state.field.ruinSword)  ruinActive.push('검의재앙(방어 ×0.75)');
-  if (state.field.ruinTablet) ruinActive.push('목간의재앙(공격 ×0.75)');
-  if (state.field.ruinBeads)  ruinActive.push('구슬의재앙(특방 ×0.75)');
-  if (state.field.ruinVessel) ruinActive.push('그릇의재앙(특공 ×0.75)');
+  if (calcField.ruinSword)  ruinActive.push('검의재앙(방어 ×0.75)');
+  if (calcField.ruinTablet) ruinActive.push('목간의재앙(공격 ×0.75)');
+  if (calcField.ruinBeads)  ruinActive.push('구슬의재앙(특방 ×0.75)');
+  if (calcField.ruinVessel) ruinActive.push('그릇의재앙(특공 ×0.75)');
 
   const body = document.getElementById('results-body');
   body.innerHTML = `
@@ -887,6 +1030,8 @@ function runCalc() {
       ${entryLog.map(e => `<div class="entry-effect-item">${e}</div>`).join('')}
     </div>
     ` : ''}
+
+    ${renderEntryRankSummary(calcState)}
 
     ${moldBreakerActive ? `
     <div class="mold-breaker-info">
@@ -920,8 +1065,8 @@ function runCalc() {
         </div>
       </div>
       <div class="speed-verdict">
-        ${atkSpe > defSpe ? `공격측이 <b>${atkSpe - defSpe}</b> 더 빠름 ${state.field.isTrickRoom ? '→ 트릭룸: 방어측 선공' : '→ 동우선도시 공격측 선공'}` :
-          atkSpe < defSpe ? `방어측이 <b>${defSpe - atkSpe}</b> 더 빠름 ${state.field.isTrickRoom ? '→ 트릭룸: 공격측 선공' : '→ 동우선도시 방어측 선공'}` :
+        ${atkSpe > defSpe ? `공격측이 <b>${atkSpe - defSpe}</b> 더 빠름 ${calcField.isTrickRoom ? '→ 트릭룸: 방어측 선공' : '→ 동우선도시 공격측 선공'}` :
+          atkSpe < defSpe ? `방어측이 <b>${defSpe - atkSpe}</b> 더 빠름 ${calcField.isTrickRoom ? '→ 트릭룸: 공격측 선공' : '→ 동우선도시 방어측 선공'}` :
           `속도 동일 (스피드 타이 50%)`}
       </div>
     </div>
@@ -1073,20 +1218,36 @@ function renderMoveCard(r) {
 let autoCalcMode = true;
 
 function triggerCalc() {
-  if (autoCalcMode) runCalc();
-  updateFieldSummary();
+  if (autoCalcMode) {
+    runCalc();
+  } else {
+    const calcState = makeCalcState();
+    lastAutoEntry = calcState.entryMeta;
+    syncFieldControls(calcState.field);
+  }
 }
 
-function updateFieldSummary() {
-  const f = state.field;
+function updateFieldSummary(fieldState = null, entryMeta = null) {
+  const f = fieldState || state.field;
+  const meta = entryMeta || lastAutoEntry;
   const parts = [];
+  const sourceMark = fieldKey => {
+    if (manualAutoFieldOverrides[fieldKey]) return '<span class="field-source-mark manual">수동</span>';
+    if (meta?.fields?.[fieldKey]) return '<span class="field-source-mark auto">자동</span>';
+    return '';
+  };
+
   if (f.weather && f.weather !== 'none') {
     const wMap = { Sun: '쾌청', Rain: '비', Sand: '모래바람', Snow: '눈', 'Harsh Sunshine': '대쾌청', 'Heavy Rain': '강한비' };
-    parts.push(`<b>${wMap[f.weather] || f.weather}</b>`);
+    parts.push(`<b>${wMap[f.weather] || f.weather}</b>${sourceMark('weather')}`);
+  } else if (manualAutoFieldOverrides.weather) {
+    parts.push(`<b>날씨 없음</b>${sourceMark('weather')}`);
   }
   if (f.terrain && f.terrain !== 'none') {
     const tMap = { Electric: '일렉트릭', Grassy: '그래스', Psychic: '사이코', Misty: '미스트' };
-    parts.push(`<b>${tMap[f.terrain] || f.terrain}필드</b>`);
+    parts.push(`<b>${tMap[f.terrain] || f.terrain}필드</b>${sourceMark('terrain')}`);
+  } else if (manualAutoFieldOverrides.terrain) {
+    parts.push(`<b>필드 없음</b>${sourceMark('terrain')}`);
   }
   if (f.gameType === 'Doubles') parts.push('더블');
   if (f.isCritical) parts.push('급소');
@@ -1095,10 +1256,10 @@ function updateFieldSummary() {
   if (f.atkHelpingHand) parts.push('도우미');
   if (f.defProtect) parts.push('방어');
   const ruins = [];
-  if (f.ruinSword) ruins.push('검');
-  if (f.ruinTablet) ruins.push('목간');
-  if (f.ruinBeads) ruins.push('구슬');
-  if (f.ruinVessel) ruins.push('그릇');
+  if (f.ruinSword) ruins.push(`검${sourceMark('ruinSword')}`);
+  if (f.ruinTablet) ruins.push(`목간${sourceMark('ruinTablet')}`);
+  if (f.ruinBeads) ruins.push(`구슬${sourceMark('ruinBeads')}`);
+  if (f.ruinVessel) ruins.push(`그릇${sourceMark('ruinVessel')}`);
   if (ruins.length) parts.push(`<span style="color:var(--tera)">⚔️${ruins.join('/')}</span>`);
   document.getElementById('field-summary').innerHTML =
     parts.length ? parts.join(' · ') : '기본값';
@@ -1127,8 +1288,8 @@ document.getElementById('btnAutoCalc').classList.add('active');
 /* ════════════════════════════════════════════════════════════
    필드 이벤트
    ════════════════════════════════════════════════════════════ */
-document.getElementById('weather').addEventListener('change', e => { state.field.weather = e.target.value; triggerCalc(); });
-document.getElementById('terrain').addEventListener('change', e => { state.field.terrain = e.target.value; triggerCalc(); });
+document.getElementById('weather').addEventListener('change', e => { markManualAutoFieldOverride('weather'); state.field.weather = e.target.value; triggerCalc(); });
+document.getElementById('terrain').addEventListener('change', e => { markManualAutoFieldOverride('terrain'); state.field.terrain = e.target.value; triggerCalc(); });
 document.getElementById('gameType').addEventListener('change', e => { state.field.gameType = e.target.value; triggerCalc(); });
 document.getElementById('critHit').addEventListener('change', e => { state.field.isCritical = e.target.checked; triggerCalc(); });
 document.getElementById('defReflect').addEventListener('change', e => { state.field.defReflect = e.target.checked; triggerCalc(); });
@@ -1136,10 +1297,10 @@ document.getElementById('defLightScreen').addEventListener('change', e => { stat
 document.getElementById('atkHelpingHand').addEventListener('change', e => { state.field.atkHelpingHand = e.target.checked; triggerCalc(); });
 document.getElementById('defProtect').addEventListener('change', e => { state.field.defProtect = e.target.checked; triggerCalc(); });
 // 재앙 토글
-document.getElementById('ruinSword').addEventListener('change', e => { state.field.ruinSword = e.target.checked; triggerCalc(); });
-document.getElementById('ruinTablet').addEventListener('change', e => { state.field.ruinTablet = e.target.checked; triggerCalc(); });
-document.getElementById('ruinBeads').addEventListener('change', e => { state.field.ruinBeads = e.target.checked; triggerCalc(); });
-document.getElementById('ruinVessel').addEventListener('change', e => { state.field.ruinVessel = e.target.checked; triggerCalc(); });
+document.getElementById('ruinSword').addEventListener('change', e => { markManualAutoFieldOverride('ruinSword'); state.field.ruinSword = e.target.checked; triggerCalc(); });
+document.getElementById('ruinTablet').addEventListener('change', e => { markManualAutoFieldOverride('ruinTablet'); state.field.ruinTablet = e.target.checked; triggerCalc(); });
+document.getElementById('ruinBeads').addEventListener('change', e => { markManualAutoFieldOverride('ruinBeads'); state.field.ruinBeads = e.target.checked; triggerCalc(); });
+document.getElementById('ruinVessel').addEventListener('change', e => { markManualAutoFieldOverride('ruinVessel'); state.field.ruinVessel = e.target.checked; triggerCalc(); });
 // 진입 위험 (스텔스록 / 압정뿌리기)
 document.getElementById('defStealthRock').addEventListener('change', e => { state.field.defStealthRock = e.target.checked; triggerCalc(); });
 document.getElementById('defSpikes').addEventListener('change', e => {
@@ -1158,40 +1319,17 @@ document.getElementById('gravity').addEventListener('change', e => { state.field
 // 자동 진입 효과 토글
 document.getElementById('autoEntry').addEventListener('change', e => {
   autoEntryEffects = e.target.checked;
-  // 토글 OFF 시 마지막 자동 적용 효과 해제 (applyEntryEffects 와 같은 의미론)
-  if (!autoEntryEffects) {
-    for (const sk of ['atk', 'def']) {
-      const last = lastAutoEntry[sk];
-      const other = state[sk === 'atk' ? 'def' : 'atk'];
-      if (last.weather && state.field.weather === last.weather.applied) state.field.weather = last.weather.prev;
-      if (last.terrain && state.field.terrain === last.terrain.applied) state.field.terrain = last.terrain.prev;
-      for (const r of Object.keys(last.ranks)) {
-        if (r.startsWith('opp_')) {
-          other.ranks[r.replace('opp_','')] = (other.ranks[r.replace('opp_','')] || 0) - last.ranks[r];
-        } else {
-          state[sk].ranks[r] = (state[sk].ranks[r] || 0) - last.ranks[r];
-        }
-      }
-      if (last.ruin) {
-        const fieldKey = 'ruin' + last.ruin.charAt(0).toUpperCase() + last.ruin.slice(1);
-        state.field[fieldKey] = false;
-      }
-      lastAutoEntry[sk] = { weather: null, terrain: null, ranks: {}, ruin: null };
-    }
-    document.getElementById('weather').value = state.field.weather;
-    document.getElementById('terrain').value = state.field.terrain;
-    updateRuinCheckboxes();
-    renderSide('atk'); renderSide('def');
-  }
+  lastAutoEntry = emptyEntryMeta();
   triggerCalc();
 });
 
 // 재앙 체크박스 동기화 (자동 진입 효과로 변경됐을 때)
-function updateRuinCheckboxes() {
-  document.getElementById('ruinSword').checked = state.field.ruinSword;
-  document.getElementById('ruinTablet').checked = state.field.ruinTablet;
-  document.getElementById('ruinBeads').checked = state.field.ruinBeads;
-  document.getElementById('ruinVessel').checked = state.field.ruinVessel;
+function updateRuinCheckboxes(fieldState = null) {
+  const f = fieldState || state.field;
+  document.getElementById('ruinSword').checked = f.ruinSword;
+  document.getElementById('ruinTablet').checked = f.ruinTablet;
+  document.getElementById('ruinBeads').checked = f.ruinBeads;
+  document.getElementById('ruinVessel').checked = f.ruinVessel;
 }
 document.getElementById('championsMode').addEventListener('change', e => {
   championsMode = e.target.checked;
@@ -1219,12 +1357,7 @@ document.getElementById('btnSwapSides')?.addEventListener('click', () => {
   const tmp = state.atk;
   state.atk = state.def;
   state.def = tmp;
-  // 진입 효과로 적용된 last-applied 정보도 함께 교대 (잘못된 자동 해제 방지)
-  if (typeof lastAutoEntry === 'object' && lastAutoEntry) {
-    const tmp2 = lastAutoEntry.atk;
-    lastAutoEntry.atk = lastAutoEntry.def;
-    lastAutoEntry.def = tmp2;
-  }
+  lastAutoEntry = emptyEntryMeta();
   renderSide('atk');
   renderSide('def');
   triggerCalc();
@@ -1232,4 +1365,3 @@ document.getElementById('btnSwapSides')?.addEventListener('click', () => {
 /* ════════════════════════════════════════════════════════════
    ⬆️ 원본 로직 끝 ⬆️
    ════════════════════════════════════════════════════════════ */
-
