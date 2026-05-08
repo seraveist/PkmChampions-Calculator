@@ -25,7 +25,7 @@ These are appropriate for the calculator and are already handled directly or thr
 
 - Type/effectiveness exceptions: Freeze-Dry, Flying Press
 - Type changing: Weather Ball, Terrain Pulse, Liquid Voice, Aerilate/Refrigerate/Pixilate/Galvanize/Dragonize
-- Alternate stat target/use: Psyshock, Foul Play
+- Alternate stat target/use: Psyshock, Foul Play, Body Press
 - Fixed or non-standard damage: Seismic Toss, Night Shade, Super Fang, Nature's Madness, Final Gambit, Endeavor, OHKO moves
 - Variable BP already supported by existing fields: Gyro Ball, Electro Ball, Heat Crash, Heavy Slam, Low Kick, Grass Knot, Solar Beam, Solar Blade, Weather Ball, Terrain Pulse, Rising Voltage, Expanding Force, Misty Explosion, Grav Apple, Stored Power, Power Trip, Last Respects, Knock Off, Acrobatics, Poltergeist, Steel Roller
 - Multi-hit approximations: fixed-hit moves, 2-5 hit average, Skill Link, Loaded Dice, Parental Bond
@@ -86,11 +86,6 @@ These are worth supporting, but the current UI does not expose the required cond
 - Booster Energy consumed/active nuance
   - Current logic treats Booster Energy as activating Protosynthesis/Quark Drive.
   - This is enough for now, but a future version could separate "held item" from "already consumed and active".
-
-- Body Press
-  - Present in the data and important for damage calculation.
-  - Needs a small engine rule: use the attacker's Defense stat/rank as the offensive stat.
-  - No new UI is needed, but it should get its own golden test when implemented.
 
 ## Deferred / Unnecessary
 

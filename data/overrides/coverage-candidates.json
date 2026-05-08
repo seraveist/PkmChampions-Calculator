@@ -1,0 +1,124 @@
+{
+  "move": [
+    {
+      "group": "가변 위력",
+      "expectation": "supported",
+      "note": "computeVariableBp()에서 처리",
+      "ids": ["gyroball", "electroball", "heatcrash", "heavyslam", "lowkick", "grassknot", "eruption", "waterspout", "flail", "reversal", "hardpress", "hex", "infernalparade", "barbbarrage", "venoshock", "facade", "knockoff", "boltbeak", "fishiousrend", "payback", "avalanche", "assurance", "risingvoltage", "expandingforce", "mistyexplosion", "gravapple", "solarbeam", "solarblade", "weatherball", "terrainpulse", "storedpower", "powertrip", "lastrespects", "temperflare", "stompingtantrum", "acrobatics", "poltergeist", "steelroller", "tripleaxel", "beatup"]
+    },
+    {
+      "group": "타입/분류 변경",
+      "expectation": "supported",
+      "note": "prelude stage에서 타입 또는 분류 결정",
+      "ids": ["weatherball", "terrainpulse", "terablast", "terastarstorm", "photongeyser"]
+    },
+    {
+      "group": "상성 예외",
+      "expectation": "supported",
+      "note": "getMoveEffectiveness()에서 처리",
+      "ids": ["freezedry", "flyingpress"]
+    },
+    {
+      "group": "공격/방어 스탯 예외",
+      "expectation": "supported",
+      "note": "방어측 방어, 대상 공격, 또는 공격측 방어를 사용",
+      "ids": ["psyshock", "psystrike", "secretsword", "foulplay", "bodypress"]
+    },
+    {
+      "group": "고정/비표준 대미지",
+      "expectation": "supported",
+      "note": "fixedDamageAmount()에서 처리",
+      "ids": ["seismictoss", "nightshade", "dragonrage", "sonicboom", "superfang", "naturesmadness", "finalgambit", "endeavor", "fissure", "guillotine", "horndrill", "sheercold"]
+    },
+    {
+      "group": "보류",
+      "expectation": "deferred",
+      "note": "이전 피해량 컨텍스트가 필요",
+      "ids": ["counter", "mirrorcoat", "metalburst", "comeuppance"]
+    },
+    {
+      "group": "보류",
+      "expectation": "deferred",
+      "note": "랜덤 강화 분기 표현이 필요",
+      "ids": ["ficklebeam"]
+    }
+  ],
+  "ability": [
+    {
+      "group": "자동 진입 효과",
+      "expectation": "supported",
+      "note": "makeCalcState()에서 source state를 복제해 적용",
+      "ids": ["drought", "orichalcumpulse", "drizzle", "sandstream", "sandspit", "snowwarning", "desolateland", "primordialsea", "electricsurge", "hadronengine", "grassysurge", "psychicsurge", "mistysurge", "intrepidsword", "dauntlessshield", "embodyaspectteal", "embodyaspectwellspring", "embodyaspecthearthflame", "embodyaspectcornerstone", "intimidate", "download", "beadsofruin", "tabletsofruin", "swordofruin", "vesselofruin"]
+    },
+    {
+      "group": "날씨/특성 통제",
+      "expectation": "supported",
+      "ids": ["airlock", "cloudnine", "neutralizinggas", "moldbreaker", "teravolt", "turboblaze"]
+    },
+    {
+      "group": "면역/상성",
+      "expectation": "supported",
+      "ids": ["levitate", "waterabsorb", "dryskin", "stormdrain", "voltabsorb", "lightningrod", "motordrive", "flashfire", "wellbakedbody", "sapsipper", "eartheater", "earthenateatr", "soundproof", "bulletproof", "scrappy", "mindseye", "terashell"]
+    },
+    {
+      "group": "대미지 보정",
+      "expectation": "supported",
+      "ids": ["darkaura", "fairyaura", "aurabreak", "flareboost", "toxicboost", "purifyingsalt", "waterbubble", "neuroforce", "tintedlens", "sniper", "filter", "prismarmor", "solidrock", "multiscale", "shadowshield", "fluffy", "punkrock", "thickfat", "heatproof"]
+    },
+    {
+      "group": "공격/BP/방어 보정",
+      "expectation": "supported",
+      "ids": ["technician", "toughclaws", "ironfist", "strongjaw", "megalauncher", "sharpness", "reckless", "steelworker", "steelyspirit", "dragonsmaw", "transistor", "rockypayload", "sheerforce", "sandforce", "normalize", "analytic", "supremeoverlord", "hugepower", "purepower", "guts", "solarpower", "flowergift", "protosynthesis", "quarkdrive", "blaze", "torrent", "overgrow", "swarm", "defeatist", "hustle", "gorillatactics", "furcoat", "icescales", "marvelscale", "grasspelt", "unaware"]
+    },
+    {
+      "group": "방어 예외/아이템 상호작용",
+      "expectation": "supported",
+      "ids": ["battlearmor", "shellarmor", "sturdy", "disguise", "iceface", "klutz", "heavymetal", "lightmetal", "stickyhold", "unnerve", "asoneglastrier", "asonespectrier", "ripen"]
+    },
+    {
+      "group": "위협 차단",
+      "expectation": "supported",
+      "note": "ENTRY_EFFECTS의 위협 적용 전 차단",
+      "ids": ["innerfocus", "oblivious", "owntempo", "clearbody", "fullmetalbody", "whitesmoke", "mypace", "rattled", "guarddog"]
+    }
+  ],
+  "item": [
+    {
+      "group": "타입 위력 보정",
+      "expectation": "supported",
+      "ids": ["charcoal", "mysticwater", "miracleseed", "magnet", "nevermeltice", "blackbelt", "poisonbarb", "softsand", "sharpbeak", "twistedspoon", "silverpowder", "hardstone", "spelltag", "dragonfang", "blackglasses", "metalcoat", "fairyfeather", "silkscarf", "flameplate", "splashplate", "zapplate", "meadowplate", "icicleplate", "fistplate", "toxicplate", "earthplate", "skyplate", "mindplate", "insectplate", "stoneplate", "spookyplate", "dracoplate", "dreadplate", "ironplate", "pixieplate"]
+    },
+    {
+      "group": "공격/방어 실수치 보정",
+      "expectation": "supported",
+      "ids": ["choiceband", "choicespecs", "assaultvest", "eviolite", "metalpowder", "deepseatooth", "deepseascale", "thickclub", "lightball"]
+    },
+    {
+      "group": "최종 대미지/BP 보정",
+      "expectation": "supported",
+      "ids": ["lifeorb", "expertbelt", "muscleband", "wiseglasses", "punchingglove"]
+    },
+    {
+      "group": "날씨/필드/특성 조건",
+      "expectation": "supported",
+      "ids": ["utilityumbrella", "boosterenergy"]
+    },
+    {
+      "group": "KO 추정",
+      "expectation": "supported",
+      "note": "hkoLabel()/simulateKO()에서 처리",
+      "ids": ["focussash", "sitrusberry", "leftovers"]
+    },
+    {
+      "group": "반감 열매",
+      "expectation": "supported",
+      "note": "Unnerve/As One/Ripen 반영",
+      "ids": ["occaberry", "passhoberry", "wacanberry", "rindoberry", "yacheberry", "chopleberry", "kebiaberry", "shucaberry", "cobaberry", "payapaberry", "tangaberry", "chartiberry", "kasibberry", "habanberry", "colburberry", "babiriberry", "chilanberry", "roseliberry"]
+    },
+    {
+      "group": "가변 위력/접지 보조",
+      "expectation": "supported",
+      "ids": ["ironball", "airballoon", "loadeddice"]
+    }
+  ]
+}

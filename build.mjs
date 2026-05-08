@@ -62,6 +62,11 @@ function isAvailable(entry, kind, id, filters) {
   if (filters?.exclude?.[kind]?.has(id)) return false;
   return !isPast(entry) && !isUnofficial(entry);
 }
+function moveMechanicFlags(id, move, moveMechanics) {
+  const flags = { ...(moveMechanics[id] || {}) };
+  if ((move.damage || move.ohko) && flags.fixedDamageKind) delete flags.fixedDamageKind;
+  return flags;
+}
 
 async function build() {
   console.log('🚀 Pokemon Champions 빌드 시작');
@@ -141,6 +146,9 @@ async function build() {
   // champions formats-data 에 명시된 항목만 사용한다.
   const mergedFormats = champFormatsData;
   const dataFilters = readDataFilters();
+  const moveMechanics = readJsonFile(path.join(OVERRIDES, 'move-mechanics.json'), {});
+  const itemMechanics = readJsonFile(path.join(OVERRIDES, 'item-mechanics.json'), {});
+  const abilityMechanics = readJsonFile(path.join(OVERRIDES, 'ability-mechanics.json'), {});
 
   // 설명 우선순위: 모드 오버라이드 → 베이스 text/ → 빈 문자열
   // text/ 항목엔 desc(긴 설명) 와 shortDesc(짧은 설명) 가 모두 존재. shortDesc 우선.
@@ -203,6 +211,7 @@ async function build() {
       const enShort = pickText(m, MovesText[id]);
       const enLong = pickLongText(m, MovesText[id]);
       const ko = koDescMoves[id];
+      const mechanicFlags = moveMechanicFlags(id, m, moveMechanics);
       finalMoves.push({
         id,
         name: m.name,
@@ -216,6 +225,20 @@ async function build() {
         mh: m.multihit || undefined,
         sec: (m.secondary || m.secondaries) ? true : undefined,
         recoil: m.recoil || undefined,
+        damage: m.damage || undefined,
+        ohko: m.ohko || undefined,
+        fixedDamageKind: mechanicFlags.fixedDamageKind,
+        breaksProtect: m.breaksProtect || undefined,
+        hasCrashDamage: m.hasCrashDamage || undefined,
+        ...mechanicFlags,
+        overrideOffensiveStat: m.overrideOffensiveStat || undefined,
+        overrideDefensiveStat: m.overrideDefensiveStat || undefined,
+        overrideOffensivePokemon: m.overrideOffensivePokemon || undefined,
+        overrideDefensivePokemon: m.overrideDefensivePokemon || undefined,
+        ignoreOffensive: m.ignoreOffensive || undefined,
+        ignoreDefensive: m.ignoreDefensive || undefined,
+        ignoreNegativeOffensive: m.ignoreNegativeOffensive || undefined,
+        ignorePositiveDefensive: m.ignorePositiveDefensive || undefined,
         target: m.target,
         tgt: m.target,
         // 한글 우선 (없으면 영문 short). descLong 은 항상 영문 long 보존 → 모달에서 한글+영문 함께 표시.
@@ -233,11 +256,13 @@ async function build() {
     const enShort = pickText(a, AbilitiesText[id]);
     const enLong = pickLongText(a, AbilitiesText[id]);
     const ko = koDescAbilities[id];
+    const mechanics = abilityMechanics[id] || {};
     finalAbilities.push({
       id,
       name: a.name,
       koName: koAbilities[id] || a.name,
       rating: typeof a.rating === 'number' ? a.rating : undefined,
+      ...mechanics,
       desc: ko || enShort,
       descLong: ko ? enLong : (enLong !== enShort ? enLong : ''),
     });
@@ -251,6 +276,7 @@ async function build() {
     const enShort = pickText(it, ItemsText[id]);
     const enLong = pickLongText(it, ItemsText[id]);
     const ko = koDescItems[id];
+    const mechanics = itemMechanics[id] || {};
     finalItems.push({
       id,
       name: it.name,
@@ -263,6 +289,21 @@ async function build() {
       isPrimalOrb: it.isPrimalOrb || undefined,
       flingBp: it.fling?.basePower || undefined,
       naturalGift: it.naturalGift || undefined,
+      typeBoostType: mechanics.typeBoostType || it.onPlate || undefined,
+      powerBoostKind: mechanics.powerBoostKind || undefined,
+      powerBoostMod: mechanics.powerBoostMod || undefined,
+      speciesTypeBoost: mechanics.speciesTypeBoost || undefined,
+      attackStatBoost: mechanics.attackStatBoost || undefined,
+      defenseStatBoost: mechanics.defenseStatBoost || undefined,
+      finalDamageBoost: mechanics.finalDamageBoost || undefined,
+      paradoxActivation: mechanics.paradoxActivation || undefined,
+      multiHitModifier: mechanics.multiHitModifier || undefined,
+      koSurvival: mechanics.koSurvival || undefined,
+      hpRecovery: mechanics.hpRecovery || undefined,
+      residualRecovery: mechanics.residualRecovery || undefined,
+      speedStatBoost: mechanics.speedStatBoost || undefined,
+      resistBerryType: mechanics.resistBerryType || undefined,
+      resistBerryRequiresWeakness: mechanics.resistBerryRequiresWeakness,
       desc: ko || enShort,
       descLong: ko ? enLong : (enLong !== enShort ? enLong : ''),
     });

@@ -180,6 +180,44 @@ function assertMoveFields(moveId, expected) {
   assertDeepEqual(actual, expected, `move data ${moveId} fields`);
 }
 
+function assertOptionalMoveFields(moveId, expected) {
+  if (!api.MoveById[moveId]) {
+    console.log(`[SKIP] move data ${moveId} is not in Champions data`);
+    return;
+  }
+  assertMoveFields(moveId, expected);
+}
+
+function assertItemFields(itemId, expected) {
+  const item = api.ItemById[itemId];
+  if (!item) {
+    console.error(`[FAIL] item data ${itemId} exists`);
+    process.exitCode = 1;
+    return;
+  }
+  const actual = Object.fromEntries(Object.keys(expected).map(key => [key, item[key]]));
+  assertDeepEqual(actual, expected, `item data ${itemId} fields`);
+}
+
+function assertOptionalItemFields(itemId, expected) {
+  if (!api.ItemById[itemId]) {
+    console.log(`[SKIP] item data ${itemId} is not in Champions data`);
+    return;
+  }
+  assertItemFields(itemId, expected);
+}
+
+function assertAbilityFields(abilityId, expected) {
+  const ability = api.AbilityById[abilityId];
+  if (!ability) {
+    console.error(`[FAIL] ability data ${abilityId} exists`);
+    process.exitCode = 1;
+    return;
+  }
+  const actual = Object.fromEntries(Object.keys(expected).map(key => [key, ability[key]]));
+  assertDeepEqual(actual, expected, `ability data ${abilityId} fields`);
+}
+
 const atkIncineroar = side('incineroar', {
   evs: { atk: 32, spd: 2, spe: 32 },
   nature: 'adamant',
@@ -613,6 +651,32 @@ const cases = [
     },
   },
   {
+    name: 'body press uses attacker defense rank',
+    move: 'bodypress',
+    atk: side('kommoo', {
+      evs: { atk: 0, def: 32 },
+      nature: 'bold',
+      ranks: { atk: 2, def: 2 },
+    }),
+    def: side('tyranitar', {
+      evs: { hp: 32, def: 32 },
+      nature: 'impish',
+    }),
+    field: field(),
+    expected: {
+      damages: [396, 400, 400, 408, 412, 420, 420, 424, 432, 436, 444, 444, 448, 456, 460, 468],
+      minPct: 191.3,
+      maxPct: 226.1,
+      effectiveness: 4,
+      moveType: 'Fighting',
+      category: 'Physical',
+      bp: 80,
+      atk: 388,
+      def: 178,
+      defHP: 207,
+    },
+  },
+  {
     name: 'water bubble doubles water offense',
     move: 'liquidation',
     atk: side('araquanid', {
@@ -795,6 +859,82 @@ assertMoveFields('bodyslam', { sec: true, tgt: 'normal' });
 assertMoveFields('flareblitz', { sec: true, recoil: [33, 100], tgt: 'normal' });
 assertMoveFields('earthquake', { tgt: 'allAdjacent' });
 assertMoveFields('bulletseed', { mh: [2, 5], tgt: 'normal' });
+assertMoveFields('bodypress', { overrideOffensiveStat: 'def' });
+assertMoveFields('foulplay', { overrideOffensivePokemon: 'target' });
+assertMoveFields('psyshock', { overrideDefensiveStat: 'def' });
+assertMoveFields('nightshade', { damage: 'level' });
+assertMoveFields('superfang', { fixedDamageKind: 'targetHalfHp' });
+assertMoveFields('finalgambit', { fixedDamageKind: 'sourceCurrentHp' });
+assertMoveFields('endeavor', { fixedDamageKind: 'targetMinusSourceHp' });
+assertMoveFields('sheercold', { ohko: 'Ice' });
+assertMoveFields('feint', { breaksProtect: true });
+assertMoveFields('highjumpkick', { hasCrashDamage: true });
+assertMoveFields('freezedry', { effectivenessKind: 'freezeDry' });
+assertMoveFields('flyingpress', { effectivenessKind: 'flyingPress' });
+assertMoveFields('facade', { burnBypass: true });
+assertMoveFields('earthquake', { weakenedByGrassyTerrain: true });
+assertMoveFields('gyroball', { variableBpKind: 'gyroBall' });
+assertMoveFields('heatcrash', { variableBpKind: 'weightRatio' });
+assertMoveFields('lowkick', { variableBpKind: 'targetWeight' });
+assertMoveFields('weatherball', { variableBpKind: 'weatherBall' });
+assertMoveFields('terrainpulse', { variableBpKind: 'terrainPulse' });
+assertMoveFields('storedpower', { variableBpKind: 'positiveBoostCount' });
+assertMoveFields('lastrespects', { variableBpKind: 'fallenAllies' });
+assertMoveFields('weatherball', { typeChangeKind: 'weatherBall' });
+assertMoveFields('terrainpulse', { typeChangeKind: 'terrainPulse' });
+assertOptionalMoveFields('terablast', { typeChangeKind: 'teraBlast', categoryChangeKind: 'higherOffense' });
+assertOptionalMoveFields('terastarstorm', { typeChangeKind: 'teraStarstorm' });
+assertOptionalMoveFields('photongeyser', { categoryChangeKind: 'higherOffense' });
+assertItemFields('charcoal', { typeBoostType: 'Fire' });
+assertOptionalItemFields('flameplate', { typeBoostType: 'Fire' });
+assertOptionalItemFields('muscleband', { powerBoostKind: 'physical', powerBoostMod: 'x1_1' });
+assertOptionalItemFields('punchingglove', { powerBoostKind: 'punch', powerBoostMod: 'x1_1g' });
+assertItemFields('occaberry', { resistBerryType: 'Fire' });
+assertOptionalItemFields('chilanberry', { resistBerryType: 'Normal', resistBerryRequiresWeakness: false });
+assertOptionalItemFields('choiceband', { attackStatBoost: { stat: 'atk', mod: 'x1_5' } });
+assertOptionalItemFields('lifeorb', { finalDamageBoost: { kind: 'always', mod: 5324 } });
+assertOptionalItemFields('deepseatooth', { attackStatBoost: { pokemon: ['clamperl'], stat: 'spa', mod: 'x2_0' } });
+assertOptionalItemFields('metalpowder', { defenseStatBoost: { pokemon: ['ditto'], stat: 'def', mod: 'x2_0' } });
+assertOptionalItemFields('boosterenergy', { paradoxActivation: true });
+assertOptionalItemFields('loadeddice', { multiHitModifier: 'loadedDice' });
+assertOptionalItemFields('focussash', { koSurvival: 'fullHpNoHazards' });
+assertOptionalItemFields('sitrusberry', { hpRecovery: { kind: 'sitrus', trigger: 'halfHp', fraction: [1, 4] } });
+assertOptionalItemFields('leftovers', { residualRecovery: { kind: 'endTurn', fraction: [1, 16] } });
+assertOptionalItemFields('choicescarf', { speedStatBoost: { stat: 'spe', mod: 'x1_5' } });
+assertOptionalItemFields('ironball', { speedStatBoost: { stat: 'spe', mod: 'x0_5' }, grounded: true });
+assertOptionalItemFields('airballoon', { grounded: false, groundImmunity: true });
+assertOptionalItemFields('utilityumbrella', { ignoresWeatherDamageModifiers: true });
+assertOptionalItemFields('quickpowder', { speedStatBoost: { pokemon: ['ditto'], stat: 'spe', mod: 'x2_0' } });
+assertAbilityFields('sheerforce', { bpBoosts: [{ secondary: true, mod: 'x1_3' }] });
+assertAbilityFields('waterbubble', {
+  attackStatBoosts: [{ types: ['Water'], mod: 'x2_0' }],
+  defensiveAttackMods: [{ types: ['Fire'], mod: 'x0_5' }],
+});
+assertAbilityFields('furcoat', { defenseStatBoosts: [{ stat: 'def', mod: 'x2_0' }] });
+assertAbilityFields('multiscale', { defensiveFinalMods: [{ fullHP: true, mod: 'x0_5' }] });
+assertAbilityFields('sniper', { finalDamageBoosts: [{ critical: true, mod: 'x1_5' }] });
+assertAbilityFields('levitate', { moldBreakerIgnored: true, grounded: false, immunities: [{ types: ['Ground'] }] });
+assertAbilityFields('moldbreaker', { ignoresTargetAbility: true });
+assertAbilityFields('cloudnine', { suppressesWeather: true });
+assertAbilityFields('sturdy', { moldBreakerIgnored: true, ohkoBlock: true, koSurvival: 'fullHpNoHazards' });
+assertAbilityFields('battlearmor', { moldBreakerIgnored: true, blocksCritical: true });
+assertAbilityFields('skilllink', { multiHitModifier: 'max' });
+assertAbilityFields('poisonheal', { residualRecovery: { fraction: [1, 8] } });
+assertAbilityFields('adaptability', { stabBoost: 'adaptability' });
+assertAbilityFields('protean', { volatileStab: true });
+assertAbilityFields('heavymetal', { moldBreakerIgnored: true, weightModifier: 'double' });
+assertAbilityFields('quickfeet', { ignoresParalysisSpeedDrop: true });
+assertAbilityFields('ripen', { resistBerryMod: 'x0_25' });
+assertAbilityFields('infiltrator', { ignoresScreens: true });
+assertAbilityFields('protosynthesis', { paradoxBoost: { weather: ['Sun'], itemActivation: true, mod: 'x1_3' } });
+assertAbilityFields('quarkdrive', { paradoxBoost: { terrain: 'Electric', itemActivation: true, mod: 'x1_3' } });
+assertAbilityFields('megasol', { weatherDamageOverride: 'Sun', ignoreWeatherDamagePenalty: true });
+assertAbilityFields('klutz', { suppressesItem: true });
+assertAbilityFields('stickyhold', { moldBreakerIgnored: true, blocksItemRemoval: true });
+assertAbilityFields('tabletsofruin', { ruinExemption: 'ruinTablet' });
+assertAbilityFields('vesselofruin', { ruinExemption: 'ruinVessel' });
+assertAbilityFields('swordofruin', { ruinExemption: 'ruinSword' });
+assertAbilityFields('beadsofruin', { ruinExemption: 'ruinBeads' });
 
 for (const testCase of cases) {
   const actual = runCase(testCase);

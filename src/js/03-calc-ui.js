@@ -167,6 +167,7 @@ function estimateMovePower(side, move) {
   if (!move || move.cat === 'Status') return { bp: '—', eff: '—' };
   const types = effectiveTypes(side);
   const ab = side.ability;
+  const abilityData = AbilityById[ab];
   const item = side.item;
   const stats = calcStats(side);
   // 가변 위력 기술 위력은 자기 자신을 상대로 가정한 추정치로 보여준다 (estimate 용도)
@@ -179,20 +180,18 @@ function estimateMovePower(side, move) {
 
   // 타입 변환 특성 + BP 보정
   let typeMult = 1.0;
-  if (moveType === 'Normal') {
-    if (ab === 'aerilate')        { moveType = 'Flying';   typeMult = 1.2; }
-    else if (ab === 'refrigerate'){ moveType = 'Ice';      typeMult = 1.2; }
-    else if (ab === 'pixilate')   { moveType = 'Fairy';    typeMult = 1.2; }
-    else if (ab === 'galvanize')  { moveType = 'Electric'; typeMult = 1.2; }
-    else if (ab === 'dragonize')  { moveType = 'Dragon';   typeMult = 1.2; }
+  const typeChange = abilityData?.typeChange;
+  if (typeChange && (!typeChange.from || moveType === typeChange.from) && (!typeChange.flag || move.flags?.[typeChange.flag])) {
+    moveType = typeChange.type;
+    if (typeChange.mod) typeMult = mechanicMod(typeChange.mod) / 4096;
   }
 
   // Tera Blast Stellar: 100 BP 고정
-  if (move.id === 'terablast' && side.tera && side.teraType === 'Stellar') bp = 100;
+  if (move.typeChangeKind === 'teraBlast' && side.tera && side.teraType === 'Stellar') bp = 100;
 
   // 카테고리 결정 (Tera Blast / Photon Geyser는 동적)
   let category = move.cat;
-  if ((move.id === 'terablast' && side.tera) || move.id === 'photongeyser') {
+  if (move.categoryChangeKind === 'higherOffense' && (move.typeChangeKind !== 'teraBlast' || side.tera)) {
     if (stats.atk > stats.spa) category = 'Physical';
     else category = 'Special';
   }
@@ -206,13 +205,14 @@ function estimateMovePower(side, move) {
   const isOriginal = types.includes(moveType);
   const isTera = side.tera && side.teraType === moveType;
   const isStellar = side.tera && side.teraType === 'Stellar';
+  const hasAdaptability = abilityData?.stabBoost === 'adaptability';
   if (isStellar) {
-    stabMod = isOriginal ? (ab === 'adaptability' ? 2.25 : 2.0) : 1.5;
+    stabMod = isOriginal ? (hasAdaptability ? 2.25 : 2.0) : 1.5;
   } else if (isTera && isOriginal) {
-    stabMod = ab === 'adaptability' ? 2.25 : 2.0;
+    stabMod = hasAdaptability ? 2.25 : 2.0;
   } else if (isTera || isOriginal) {
-    stabMod = (isOriginal && ab === 'adaptability') ? 2.0 : 1.5;
-  } else if (ab === 'libero' || ab === 'protean') {
+    stabMod = (isOriginal && hasAdaptability) ? 2.0 : 1.5;
+  } else if (abilityData?.volatileStab) {
     stabMod = 1.5;
   }
 
@@ -220,75 +220,53 @@ function estimateMovePower(side, move) {
   let hits = 1;
   if (move.mh) {
     if (Array.isArray(move.mh)) {
-      if (item === 'loadeddice' && move.mh[1] === 5) hits = 4.5;
-      else if (ab === 'skilllink') hits = move.mh[1];
+      if (ItemById[item]?.multiHitModifier === 'loadedDice' && move.mh[1] === 5) hits = 4.5;
+      else if (abilityData?.multiHitModifier === 'max') hits = move.mh[1];
       else if (move.mh[0] === 2 && move.mh[1] === 5) hits = 3.167;
       else hits = (move.mh[0] + move.mh[1]) / 2;
     } else {
       hits = move.mh;
     }
   }
-  if (ab === 'parentalbond' && !move.mh && move.cat !== 'Status') {
-    hits = 1.25;  // 1타 + 0.25타
+  if (abilityData?.extraHitModifier?.singleHitOnly && !move.mh && move.cat !== 'Status') {
+    hits = mechanicMod(abilityData.extraHitModifier.mod) / 4096;
   }
 
   // 특성 위력 보정 (BP 단계)
   let abilityMult = 1.0;
-  if (ab === 'technician' && bp <= 60) abilityMult *= 1.5;
-  if (ab === 'toughclaws' && move.flags?.contact) abilityMult *= 1.3;
-  if (ab === 'ironfist' && move.flags?.punch) abilityMult *= 1.2;
-  if (ab === 'strongjaw' && move.flags?.bite) abilityMult *= 1.5;
-  if (ab === 'megalauncher' && move.flags?.pulse) abilityMult *= 1.5;
-  if (ab === 'sharpness' && move.flags?.slicing) abilityMult *= 1.5;
-  if (ab === 'punkrock' && move.flags?.sound) abilityMult *= 1.3;
-  if (ab === 'steelworker' && moveType === 'Steel') abilityMult *= 1.5;
-  if (ab === 'steelyspirit' && moveType === 'Steel') abilityMult *= 1.5;
-  if (ab === 'dragonsmaw' && moveType === 'Dragon') abilityMult *= 1.5;
-  if (ab === 'transistor' && moveType === 'Electric') abilityMult *= 1.3;
-  if (ab === 'rockypayload' && moveType === 'Rock') abilityMult *= 1.5;
-  if (ab === 'sheerforce' && move.sec) abilityMult *= 1.3;
-  if (ab === 'reckless' && (move.recoil || move.id === 'jumpkick' || move.id === 'highjumpkick')) abilityMult *= 1.2;
+  const estimateCtx = {
+    atkSide: side,
+    defSide: state.def,
+    move,
+    field: state.field,
+    bp,
+    moveType,
+    weather: state.field.weather,
+    effectiveness: 1,
+    isCritical: false,
+    isPhysical,
+  };
+  for (const rule of abilityData?.bpBoosts || []) {
+    if (abilityRuleApplies(rule, estimateCtx)) abilityMult *= mechanicMod(rule.mod) / 4096;
+  }
 
   // 특성 공격 보정 (Atk 단계)
   let atkMult = 1.0;
-  if ((ab === 'hugepower' || ab === 'purepower') && isPhysical) atkMult *= 2.0;
-  if (ab === 'hustle' && isPhysical) atkMult *= 1.5;
-  if (ab === 'gorillatactics' && isPhysical) atkMult *= 1.5;
-  if (ab === 'orichalcumpulse' && isPhysical) atkMult *= 4/3;
-  if (ab === 'hadronengine' && !isPhysical) atkMult *= 4/3;
+  for (const rule of abilityData?.attackStatBoosts || []) {
+    if (abilityRuleApplies(rule, estimateCtx)) atkMult *= mechanicMod(rule.mod) / 4096;
+  }
 
   // 도구 보정
   let itemMult = 1.0;
-  if (item === 'choiceband' && isPhysical) itemMult *= 1.5;
-  if (item === 'choicespecs' && !isPhysical) itemMult *= 1.5;
-  if (item === 'lifeorb') itemMult *= 1.3;
-  // 타입 강화 도구 (×1.2)
-  const typeBoosters = {
-    'charcoal':'Fire','mysticwater':'Water','miracleseed':'Grass','magnet':'Electric',
-    'nevermeltice':'Ice','blackbelt':'Fighting','poisonbarb':'Poison','softsand':'Ground',
-    'sharpbeak':'Flying','twistedspoon':'Psychic','silverpowder':'Bug','hardstone':'Rock',
-    'spelltag':'Ghost','dragonfang':'Dragon','blackglasses':'Dark','metalcoat':'Steel',
-    'fairyfeather':'Fairy','silkscarf':'Normal'
-  };
-  if (typeBoosters[item] === moveType) itemMult *= 1.2;
-  // Plate
-  const plateMap = {
-    'flameplate':'Fire','splashplate':'Water','zapplate':'Electric','meadowplate':'Grass',
-    'icicleplate':'Ice','fistplate':'Fighting','toxicplate':'Poison','earthplate':'Ground',
-    'skyplate':'Flying','mindplate':'Psychic','insectplate':'Bug','stoneplate':'Rock',
-    'spookyplate':'Ghost','dracoplate':'Dragon','dreadplate':'Dark','ironplate':'Steel',
-    'pixieplate':'Fairy'
-  };
-  if (plateMap[item] === moveType) itemMult *= 1.2;
-  if (item === 'muscleband' && isPhysical) itemMult *= 1.1;
-  if (item === 'wiseglasses' && !isPhysical) itemMult *= 1.1;
-  if (item === 'punchingglove' && move.flags?.punch) itemMult *= 1.1;
-  // 종족 전용
-  const p = PokemonById[side.pokemonIdx];
-  if (item === 'thickclub' && p && ['cubone','marowak','marowakalola'].includes(p.id) && isPhysical) itemMult *= 2.0;
-  if (item === 'lightball' && p && p.base === 'Pikachu') itemMult *= 2.0;
-  if (item === 'deepseatooth' && p && p.id === 'clamperl' && !isPhysical) itemMult *= 2.0;
-
+  const itemData = ItemById[item];
+  if (itemData?.attackStatBoost && statBoostApplies(PokemonById[side.pokemonIdx], itemData.attackStatBoost, isPhysical ? 'atk' : 'spa')) {
+    itemMult *= mechanicMod(itemData.attackStatBoost.mod) / 4096;
+  }
+  if (itemData?.finalDamageBoost?.kind === 'always') itemMult *= mechanicMod(itemData.finalDamageBoost.mod) / 4096;
+  if (itemData?.typeBoostType === moveType) itemMult *= 1.2;
+  if (itemData?.powerBoostKind === 'physical' && isPhysical) itemMult *= 1.1;
+  if (itemData?.powerBoostKind === 'special' && !isPhysical) itemMult *= 1.1;
+  if (itemData?.powerBoostKind === 'punch' && move.flags?.punch) itemMult *= 1.1;
   // 결정력 = 공격 실수치 × 위력 × STAB × 다단 × 특성BP × 특성Atk × 도구 × 타입변환
   const eff = Math.round(atkStat * bp * stabMod * hits * abilityMult * atkMult * itemMult * typeMult);
 
@@ -1011,7 +989,7 @@ function runCalc() {
   // 틀깨기 / 다능 등 공격측 특성으로 무시되는 방어측 특성 체크
   const atkAb = calcAtk.ability;
   const defAb = calcDef.ability;
-  const moldBreakerActive = ['moldbreaker', 'teravolt', 'turboblaze'].includes(atkAb);
+  const moldBreakerActive = !!AbilityById[atkAb]?.ignoresTargetAbility;
   const ignoredAb = moldBreakerActive && MOLD_BREAKER_IGNORED_ABILITIES.includes(defAb)
     ? AbilityById[defAb] : null;
 

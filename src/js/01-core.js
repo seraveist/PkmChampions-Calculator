@@ -256,30 +256,12 @@ function effectiveItem(side) {
   return side.item;
 }
 
-const NEUTRALIZING_GAS_EXEMPT_ABILITIES = [
-  'asoneglastrier', 'asonespectrier', 'battlebond', 'comatose',
-  'disguise', 'gulpmissile', 'iceface', 'multitype',
-  'neutralizinggas', 'powerconstruct', 'rkssystem', 'schooling',
-  'shieldsdown', 'stancechange', 'terashift', 'zenmode', 'zerotohero'
-];
+const NEUTRALIZING_GAS_EXEMPT_ABILITIES = ABILITIES.filter(a => a.gasExempt).map(a => a.id);
+const MOLD_BREAKER_IGNORED_ABILITIES = ABILITIES.filter(a => a.moldBreakerIgnored).map(a => a.id);
 
-const MOLD_BREAKER_IGNORED_ABILITIES = [
-  'levitate', 'sturdy', 'multiscale', 'shadowshield',
-  'waterabsorb', 'voltabsorb', 'flashfire', 'sapsipper',
-  'lightningrod', 'stormdrain', 'motordrive',
-  'wellbakedbody', 'eartheater', 'earthenateatr',
-  'thickfat', 'heatproof', 'dryskin',
-  'filter', 'prismarmor', 'solidrock',
-  'furcoat', 'icescales', 'fluffy',
-  'marvelscale', 'grasspelt',
-  'unaware', 'magicguard',
-  'soundproof', 'bulletproof',
-  'battlearmor', 'shellarmor',
-  'purifyingsalt', 'terashell', 'waterbubble',
-  'stickyhold', 'heavymetal', 'lightmetal',
-  'queenlymajesty', 'dazzling', 'armortail',
-  'goodasgold'
-];
+function abilityData(id) {
+  return AbilityById[id] || {};
+}
 
 function hasNeutralizingGas(atkSide, defSide) {
   return effectiveAbility(atkSide) === 'neutralizinggas' || effectiveAbility(defSide) === 'neutralizinggas';
@@ -302,11 +284,11 @@ function battleAbilityContext(atkSide, defSide) {
 }
 
 function effectiveBattleItem(side, ability = effectiveAbility(side)) {
-  return ability === 'klutz' ? '' : effectiveItem(side);
+  return abilityData(ability).suppressesItem ? '' : effectiveItem(side);
 }
 
 function effectiveWeather(field, atkAb = '', defAb = '') {
-  return (atkAb === 'airlock' || atkAb === 'cloudnine' || defAb === 'airlock' || defAb === 'cloudnine')
+  return (abilityData(atkAb).suppressesWeather || abilityData(defAb).suppressesWeather)
     ? 'none'
     : field.weather;
 }
@@ -314,8 +296,9 @@ function effectiveWeather(field, atkAb = '', defAb = '') {
 function effectiveWeight(side, ability = effectiveAbility(side)) {
   const p = PokemonById[side.pokemonIdx];
   let weight = p?.weightkg || 1;
-  if (ability === 'heavymetal') weight *= 2;
-  if (ability === 'lightmetal') weight = Math.max(0.1, Math.floor(weight * 5) / 10);
+  const weightModifier = abilityData(ability).weightModifier;
+  if (weightModifier === 'double') weight *= 2;
+  if (weightModifier === 'half') weight = Math.max(0.1, Math.floor(weight * 5) / 10);
   return weight;
 }
 
@@ -328,11 +311,12 @@ function isGrounded(side, field, abilityOverride = null, itemOverride = null) {
   const item = itemOverride ?? effectiveBattleItem(side, ab);
   // 강제 Grounded 조건
   if (field.isGravity) return true;
-  if (item === 'ironball') return true;
+  const itemData = ItemById[item] || {};
+  if (itemData.grounded === true) return true;
   // Ungrounded
   if (types.includes('Flying')) return false;
-  if (ab === 'levitate') return false;
-  if (item === 'airballoon') return false;
+  if (abilityData(ab).grounded === false) return false;
+  if (itemData.grounded === false) return false;
   return true;
 }
 
@@ -341,6 +325,7 @@ function isGrounded(side, field, abilityOverride = null, itemOverride = null) {
    ════════════════════════════════════════════════════════════ */
 function getStabMod(side, moveType) {
   const ab = effectiveAbility(side);
+  const abData = abilityData(ab);
   const origTypes = originalTypes(side);
   const isOriginal = origTypes.includes(moveType);
   const teraActive = isTeraActive(side);
@@ -349,12 +334,13 @@ function getStabMod(side, moveType) {
 
   // 리베로/프로틴: 사용 기술 타입으로 변환 → STAB 항상 발동
   // (Gen 9에서는 한 턴 1회 제한, 우리는 단발 계산이라 항상 발동 가정)
-  const isProteanLibero = ab === 'libero' || ab === 'protean';
+  const hasVolatileStab = !!abData.volatileStab;
+  const hasAdaptability = abData.stabBoost === 'adaptability';
 
   // 테라 스텔라: 원래 타입이면 STAB 2.0×, 아니면 1.5× 부여
   if (isTeraStellar) {
     if (isOriginal) {
-      return ab === 'adaptability' ? 9216 : 8192;
+      return hasAdaptability ? 9216 : 8192;
     }
     return 6144;  // 1.5× (스텔라는 모든 타입에 STAB)
   }
@@ -362,11 +348,11 @@ function getStabMod(side, moveType) {
   // 일반 테라스탈
   if (isTera && isOriginal) {
     // 원래 타입과 테라 타입이 같음 → 2.0× STAB (Adaptability: 2.25×)
-    return ab === 'adaptability' ? 9216 : 8192;
+    return hasAdaptability ? 9216 : 8192;
   }
-  if (isTera || isOriginal || isProteanLibero) {
+  if (isTera || isOriginal || hasVolatileStab) {
     // 테라 타입이거나 원래 타입이면 1.5× (Adaptability: 원래 타입일 때만 2×)
-    if (isOriginal && ab === 'adaptability') return 8192;
+    if (isOriginal && hasAdaptability) return 8192;
     return 6144;
   }
   return 4096;  // STAB 없음
@@ -383,10 +369,10 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCt
   const defItem = itemCtx?.defItem ?? effectiveBattleItem(defSide, defAb);
   
   // Mold Breaker / Teravolt / Turboblaze: 방어측 일부 특성 무시
-  const ignoresAbility = ['moldbreaker','teravolt','turboblaze'].includes(atkAb);
+  const ignoresAbility = !!abilityData(atkAb).ignoresTargetAbility;
   
   // Freeze-Dry: 얼음 → 물 2배
-  if (move.id === 'freezedry' && defTypes.includes('Water')) {
+  if (move.effectivenessKind === 'freezeDry' && defTypes.includes('Water')) {
     let eff = 2;
     for (const t of defTypes) {
       if (t === 'Water') continue;
@@ -397,7 +383,7 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCt
   }
   
   // Flying Press: 격투 + 비행 동시 계산
-  if (move.id === 'flyingpress') {
+  if (move.effectivenessKind === 'flyingPress') {
     return typeEff('Fighting', defTypes) * typeEff('Flying', defTypes);
   }
   
@@ -405,27 +391,24 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCt
   
   // 면역 특성 (Mold Breaker로 무시 가능)
   if (eff > 0 && !ignoresAbility) {
-    if (moveType === 'Ground' && defAb === 'levitate') eff = 0;
-    if (moveType === 'Water' && (defAb === 'waterabsorb' || defAb === 'dryskin' || defAb === 'stormdrain')) eff = 0;
-    if (moveType === 'Electric' && (defAb === 'voltabsorb' || defAb === 'lightningrod' || defAb === 'motordrive')) eff = 0;
-    if (moveType === 'Fire' && (defAb === 'flashfire' || defAb === 'wellbakedbody')) eff = 0;
-    if (moveType === 'Grass' && defAb === 'sapsipper') eff = 0;
-    if (moveType === 'Ground' && defAb === 'earthenateatr') eff = 0;
-    if (moveType === 'Ground' && defAb === 'eartheater') eff = 0;
-    if (move.flags?.sound && defAb === 'soundproof') eff = 0;
-    if (move.flags?.bullet && defAb === 'bulletproof') eff = 0;
+    for (const immunity of abilityData(defAb).immunities || []) {
+      if (immunity.types?.includes(moveType) || (immunity.flag && move.flags?.[immunity.flag])) {
+        eff = 0;
+        break;
+      }
+    }
   }
   
   // 땅 면역: 비행 타입 / 풍선 / 부유 필드 제외
   if (moveType === 'Ground' && !field.isGravity) {
-    if (defItem === 'airballoon') eff = 0;
+    if (ItemById[defItem]?.groundImmunity) eff = 0;
     if (defTypes.includes('Flying') && !isGrounded(defSide, field, defAb, defItem)) {
       // (이미 typeEff에서 반영됨)
     }
   }
   
   // 배짱 (Scrappy): 고스트에 노말/격투 기술 사용 가능
-  if (eff === 0 && (atkAb === 'scrappy' || atkAb === 'mindseye') && ['Normal','Fighting'].includes(moveType) && defTypes.includes('Ghost')) {
+  if (eff === 0 && abilityData(atkAb).ignoreGhostImmunity && ['Normal','Fighting'].includes(moveType) && defTypes.includes('Ghost')) {
     // eff=0이 노말 vs 고스트 때문이었다면 상성표 재계산
     let e = 1;
     for (const t of defTypes) {
@@ -437,8 +420,7 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCt
   }
   
   // Tera Shell: full HP target turns non-immune hits into not very effective.
-  if (eff > 0 && defAb === 'terashell' && defSide.fullHP) eff = 0.5;
+  if (eff > 0 && abilityData(defAb).teraShell && defSide.fullHP) eff = 0.5;
   
   return eff;
 }
-

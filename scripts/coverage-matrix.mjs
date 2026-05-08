@@ -67,110 +67,20 @@ function candidate(kind, group, ids, expectation, note = '') {
   return ids.map(id => ({ kind, group, id, expectation, note }));
 }
 
-const moveCandidates = [
-  ...candidate('move', '가변 위력', [
-    'gyroball', 'electroball', 'heatcrash', 'heavyslam', 'lowkick', 'grassknot',
-    'eruption', 'waterspout', 'flail', 'reversal', 'hardpress', 'hex',
-    'infernalparade', 'barbbarrage', 'venoshock', 'facade', 'knockoff',
-    'boltbeak', 'fishiousrend', 'payback', 'avalanche', 'assurance',
-    'risingvoltage', 'expandingforce', 'mistyexplosion', 'gravapple',
-    'solarbeam', 'solarblade', 'weatherball', 'terrainpulse', 'storedpower',
-    'powertrip', 'lastrespects', 'temperflare', 'stompingtantrum',
-    'acrobatics', 'poltergeist', 'steelroller', 'tripleaxel', 'beatup',
-  ], 'supported', 'computeVariableBp()에서 처리'),
-  ...candidate('move', '타입/분류 변경', [
-    'weatherball', 'terrainpulse', 'terablast', 'terastarstorm', 'photongeyser',
-  ], 'supported', 'prelude stage에서 타입 또는 분류 결정'),
-  ...candidate('move', '상성 예외', ['freezedry', 'flyingpress'], 'supported', 'getMoveEffectiveness()에서 처리'),
-  ...candidate('move', '공격/방어 스탯 예외', ['psyshock', 'psystrike', 'secretsword', 'foulplay'], 'supported', '방어측 방어 또는 대상 공격을 사용'),
-  ...candidate('move', '고정/비표준 대미지', [
-    'seismictoss', 'nightshade', 'dragonrage', 'sonicboom', 'superfang',
-    'naturesmadness', 'finalgambit', 'endeavor', 'fissure', 'guillotine',
-    'horndrill', 'sheercold',
-  ], 'supported', 'fixedDamageAmount()에서 처리'),
-  ...candidate('move', '검토 필요', ['bodypress'], 'missing', '공격측 방어 실수치/랭크를 공격값으로 사용해야 함'),
-  ...candidate('move', '보류', ['counter', 'mirrorcoat', 'metalburst', 'comeuppance'], 'deferred', '이전 피해량 컨텍스트가 필요'),
-  ...candidate('move', '보류', ['ficklebeam'], 'deferred', '랜덤 강화 분기 표현이 필요'),
-];
+function readCoverageCandidates() {
+  const fp = path.join(ROOT, 'data', 'overrides', 'coverage-candidates.json');
+  const raw = JSON.parse(readFileSync(fp, 'utf8'));
+  const expandKind = kind => (raw[kind] || []).flatMap(group =>
+    candidate(kind, group.group, group.ids || [], group.expectation, group.note || '')
+  );
+  return {
+    moveCandidates: expandKind('move'),
+    abilityCandidates: expandKind('ability'),
+    itemCandidates: expandKind('item'),
+  };
+}
 
-const abilityCandidates = [
-  ...candidate('ability', '자동 진입 효과', [
-    'drought', 'orichalcumpulse', 'drizzle', 'sandstream', 'sandspit',
-    'snowwarning', 'desolateland', 'primordialsea', 'electricsurge',
-    'hadronengine', 'grassysurge', 'psychicsurge', 'mistysurge',
-    'intrepidsword', 'dauntlessshield', 'embodyaspectteal',
-    'embodyaspectwellspring', 'embodyaspecthearthflame',
-    'embodyaspectcornerstone', 'intimidate', 'download',
-    'beadsofruin', 'tabletsofruin', 'swordofruin', 'vesselofruin',
-  ], 'supported', 'makeCalcState()에서 source state를 복제한 뒤 적용'),
-  ...candidate('ability', '날씨/특성 억제', [
-    'airlock', 'cloudnine', 'neutralizinggas', 'moldbreaker', 'teravolt', 'turboblaze',
-  ], 'supported'),
-  ...candidate('ability', '면역/상성', [
-    'levitate', 'waterabsorb', 'dryskin', 'stormdrain', 'voltabsorb',
-    'lightningrod', 'motordrive', 'flashfire', 'wellbakedbody',
-    'sapsipper', 'eartheater', 'earthenateatr', 'soundproof',
-    'bulletproof', 'scrappy', 'mindseye', 'terashell',
-  ], 'supported'),
-  ...candidate('ability', '대미지 보정', [
-    'darkaura', 'fairyaura', 'aurabreak', 'flareboost', 'toxicboost',
-    'purifyingsalt', 'waterbubble', 'neuroforce', 'tintedlens', 'sniper',
-    'filter', 'prismarmor', 'solidrock', 'multiscale', 'shadowshield',
-    'fluffy', 'punkrock', 'thickfat', 'heatproof',
-  ], 'supported'),
-  ...candidate('ability', '공격/BP/방어 보정', [
-    'technician', 'toughclaws', 'ironfist', 'strongjaw', 'megalauncher',
-    'sharpness', 'reckless', 'steelworker', 'steelyspirit', 'dragonsmaw',
-    'transistor', 'rockypayload', 'sheerforce', 'sandforce', 'normalize',
-    'analytic', 'supremeoverlord', 'hugepower', 'purepower', 'guts',
-    'solarpower', 'flowergift', 'protosynthesis', 'quarkdrive', 'blaze',
-    'torrent', 'overgrow', 'swarm', 'defeatist', 'hustle', 'gorillatactics',
-    'furcoat', 'icescales', 'marvelscale', 'grasspelt', 'unaware',
-  ], 'supported'),
-  ...candidate('ability', '방어 예외/아이템 상호작용', [
-    'battlearmor', 'shellarmor', 'sturdy', 'disguise', 'iceface',
-    'klutz', 'heavymetal', 'lightmetal', 'stickyhold', 'unnerve',
-    'asoneglastrier', 'asonespectrier', 'ripen',
-  ], 'supported'),
-  ...candidate('ability', '위협 차단', [
-    'innerfocus', 'oblivious', 'owntempo', 'clearbody', 'fullmetalbody',
-    'whitesmoke', 'mypace', 'rattled', 'guarddog',
-  ], 'supported', 'ENTRY_EFFECTS의 위협 적용 시 차단'),
-];
-
-const typeBoostItems = [
-  'charcoal', 'mysticwater', 'miracleseed', 'magnet', 'nevermeltice',
-  'blackbelt', 'poisonbarb', 'softsand', 'sharpbeak', 'twistedspoon',
-  'silverpowder', 'hardstone', 'spelltag', 'dragonfang', 'blackglasses',
-  'metalcoat', 'fairyfeather', 'silkscarf',
-];
-const plateItems = [
-  'flameplate', 'splashplate', 'zapplate', 'meadowplate', 'icicleplate',
-  'fistplate', 'toxicplate', 'earthplate', 'skyplate', 'mindplate',
-  'insectplate', 'stoneplate', 'spookyplate', 'dracoplate', 'dreadplate',
-  'ironplate', 'pixieplate',
-];
-const resistBerries = [
-  'occaberry', 'passhoberry', 'wacanberry', 'rindoberry', 'yacheberry',
-  'chopleberry', 'kebiaberry', 'shucaberry', 'cobaberry', 'payapaberry',
-  'tangaberry', 'chartiberry', 'kasibberry', 'habanberry', 'colburberry',
-  'baberiberry', 'chilanberry', 'roseliberry',
-];
-
-const itemCandidates = [
-  ...candidate('item', '타입 위력 보정', [...typeBoostItems, ...plateItems], 'supported'),
-  ...candidate('item', '공격/방어 실수치 보정', [
-    'choiceband', 'choicespecs', 'assaultvest', 'eviolite', 'metalpowder',
-    'deepseatooth', 'deepseascale', 'thickclub', 'lightball',
-  ], 'supported'),
-  ...candidate('item', '최종 대미지/BP 보정', [
-    'lifeorb', 'expertbelt', 'muscleband', 'wiseglasses', 'punchingglove',
-  ], 'supported'),
-  ...candidate('item', '날씨/필드/특성 조건', ['utilityumbrella', 'boosterenergy'], 'supported'),
-  ...candidate('item', 'KO 추정', ['focussash', 'sitrusberry', 'leftovers'], 'supported', 'hkoLabel()/simulateKO()에서 처리'),
-  ...candidate('item', '반감 열매', resistBerries, 'supported', 'Unnerve/As One/Ripen 반영'),
-  ...candidate('item', '가변 위력/접지 보조', ['ironball', 'airballoon', 'loadeddice'], 'supported'),
-];
+const { moveCandidates, abilityCandidates, itemCandidates } = readCoverageCandidates();
 
 function scopeFor(kind) {
   if (kind === 'move') return legalMoveIds;

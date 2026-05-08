@@ -1,5 +1,34 @@
 # Decision Log
 
+## D012. 계산 메커니즘은 코드 분기보다 데이터 메타데이터를 우선한다
+
+결정:
+
+- 기술, 특성, 아이템의 계산 차이는 가능한 한 `data/overrides/*-mechanics.json`에 선언한다.
+- 엔진은 개별 이름을 직접 비교하기보다 `AbilityById`, `ItemById`, `MoveById`에 병합된 메타데이터를 읽어 처리한다.
+- Champions 사양이 Showdown과 다를 수 있으므로, 데이터 선언은 Champions 동작을 우선한다.
+
+이유:
+
+- Showdown / showdown calculator의 처리 방식을 참고하되, 프로젝트 내부에서는 새 기술/특성/아이템을 추가할 때 코드 수정량을 줄여야 한다.
+- 이름 기반 분기가 늘어나면 누락, Mold Breaker/Neutralizing Gas 같은 예외 처리, UI 추정치와 엔진 계산의 불일치가 쉽게 생긴다.
+- 데이터화하면 golden test와 coverage matrix가 계산 지원 범위를 더 명확히 추적할 수 있다.
+
+적용된 예:
+
+- `Klutz` → `suppressesItem`
+- `Sticky Hold` → `blocksItemRemoval`
+- `Iron Ball` / `Air Balloon` → `grounded`, `groundImmunity`
+- `Utility Umbrella` → `ignoresWeatherDamageModifiers`
+- Ruin 계열 → `ruinExemption`
+- Mold Breaker 계열 → `ignoresTargetAbility`
+- Tera Shell/Sturdy/Shell Armor/Skill Link/Parental Bond 등 → ability metadata
+
+검증:
+
+- `npm.cmd test`
+- `npm.cmd run coverage:matrix`
+
 이 문서는 리팩토링 과정에서 확정한 중요한 결정과 이유를 기록한다.
 
 ## D001. 대미지 계산기 탭을 최우선 리팩토링 대상으로 둔다

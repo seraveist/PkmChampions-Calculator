@@ -1,5 +1,30 @@
 # Refactor Handoff
 
+## 2026-05-08 최신 분기점 요약
+
+현재 이어받을 기준 브랜치는 `codex-refactor-handoff-20260508`이다.
+
+이번 분기점에서 완료된 핵심 작업:
+
+- 대미지 계산기의 남은 특성/아이템 하드코딩 일부를 데이터 메타데이터로 이동했다.
+- `Klutz`는 `ability-mechanics.json`의 `suppressesItem`으로 처리한다.
+- `Sticky Hold`는 `blocksItemRemoval`로 처리해 Knock Off 가변 위력 분기에서 직접 특성명을 비교하지 않는다.
+- `Iron Ball`, `Air Balloon`, `Utility Umbrella`는 `item-mechanics.json`의 `grounded`, `groundImmunity`, `ignoresWeatherDamageModifiers`로 처리한다.
+- Ruin 계열 자기 제외 로직은 `ruinExemption` 메타데이터로 처리한다.
+- 이전 작업의 특성 메타데이터 확장도 포함되어 있다: Mold Breaker 계열, Neutralizing Gas 예외, 면역 특성, Sturdy, Shell Armor/Battle Armor, Tera Shell, Skill Link, Parental Bond, Poison Heal, Quick Feet, Adaptability/Protean/Libero, Heavy Metal/Light Metal, Protosynthesis/Quark Drive, Ripen, Infiltrator, Mega Sol.
+
+검증 완료:
+
+```powershell
+npm.cmd test
+npm.cmd run coverage:matrix
+```
+
+주의:
+
+- 이 PC에는 `git` 실행 파일이 PATH에 없어 로컬 `git commit/push`는 수행하지 못했다.
+- 다른 PC에서 이어받을 때는 아래 빠른 시작 절차로 브랜치를 받은 뒤, 이 문서의 최신 분기점 요약을 먼저 확인한다.
+
 이 문서는 다른 PC 또는 새 대화에서 현재 작업을 이어받기 위한 시작점이다.
 
 ## 빠른 시작

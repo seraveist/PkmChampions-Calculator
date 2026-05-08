@@ -1,5 +1,39 @@
 # Refactor Roadmap
 
+## 2026-05-08 진행 업데이트
+
+완료:
+
+- Body Press 구현 및 golden test 반영.
+- move/item/ability 계산 메커니즘의 주요 하드코딩을 `data/overrides/*-mechanics.json`으로 이동.
+- 특성 메타데이터 기반 처리 확대:
+  - 면역/접지/날씨 억제/Mold Breaker/Neutralizing Gas 예외
+  - STAB 보정, 타입 변경 특성, 멀티히트, 추가타, 치명타 차단, KO 생존, 잔반/회복류
+  - Paradox 계열, Ripen, Infiltrator, Mega Sol
+  - Klutz, Sticky Hold, Ruin 계열 자기 제외
+- 아이템 메타데이터 기반 처리 확대:
+  - Iron Ball 접지
+  - Air Balloon 비접지 및 땅 무효
+  - Utility Umbrella 날씨 대미지 보정 무시
+- `scripts/damage-golden.mjs`에 새 메타데이터 회귀 검증 추가.
+- `docs/damage-calculator-coverage-matrix.md` 재생성.
+
+다음 우선순위:
+
+1. 필드/상태 메커니즘 데이터화
+   - 날씨 대미지 보정
+   - 지형 BP 보정
+   - 스크린 보정
+   - Protect 처리
+2. HP% 기반 상태 모델 정리
+   - full HP, pinch, Endeavor/Final Gambit, Multiscale/Sturdy/Focus Sash 계열
+3. Showdown / showdown calculator 참조 케이스 추가
+   - Mold Breaker vs defensive ability
+   - Tera Shell
+   - Paradox abilities
+   - type-changing abilities
+   - fixed damage / OHKO
+
 이 문서는 리팩토링 진행 순서와 현재 완료/대기/보류 항목을 정리한다.
 
 ## 전체 전략
