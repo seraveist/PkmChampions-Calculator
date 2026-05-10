@@ -17,22 +17,38 @@
   - Utility Umbrella 날씨 대미지 보정 무시
 - `scripts/damage-golden.mjs`에 새 메타데이터 회귀 검증 추가.
 - `docs/damage-calculator-coverage-matrix.md` 재생성.
+- HP% 기반 상태 모델 정리:
+  - 공격측/방어측 현재 HP% 입력 추가
+  - `fullHP`, `pinch`를 현재 HP%에서 파생
+  - Eruption/Water Spout, Final Gambit, Multiscale, Sturdy/Focus Sash 계열이 HP%를 사용하도록 정리
+- 조건부 기술/특성 UI 정리:
+  - 실속도 기준 선공/후공 자동 판정 상태 표시
+  - 직전 기술 실패, 공격측 피격, 방어측 피격, Flash Fire 활성 토글 추가
+  - 쓰러진 아군 수를 싱글 0~2, 더블 0~3으로 제한
+- 필드/상태 메커니즘 데이터화:
+  - `data/overrides/field-mechanics.json` 추가
+  - 날씨 대미지 보정, 지형 BP 보정, 스크린 보정, Protect 처리를 데이터 선언으로 이동
+  - field mechanics 번들링 및 golden test 추가
+- 범위 밖 필드/상태 보류 추적 정리:
+  - `coverage:matrix`가 field/state 후보를 별도 범위로 추적
+  - Magic Room, Wonder Room, Aurora Veil, Friend Guard, Battery, Power Spot을 명시 보류로 표시
+- 결과 카드 `mods` 표시 정리:
+  - 배율 라벨을 `×1.3`처럼 짧은 표기로 통일
+  - `blocked`, `critical`, `fixed damage` 같은 영문 조각을 한국어로 정리
+  - 결과 카드에는 중복 제거 후 최대 6개 라벨만 표시하고 전체 목록은 hover 제목에 보존
+- Booster Energy 상태 분리:
+  - `auto` / `active` / `inactive` 모드로 보유, 소모 후 활성, 비활성 비교를 분리
+  - Protosynthesis/Quark Drive 공격측/방어측 부스트 모두 golden test 추가
+- Showdown / showdown calculator 참조 케이스 추가:
+  - Tera Shell 및 Mold Breaker 상호작용
+  - Pixilate/Liquid Voice 타입 변경
+  - Protosynthesis/Quark Drive 조건부 스탯 보정
+  - OHKO, Sturdy, Mold Breaker 상호작용
 
 다음 우선순위:
 
-1. 필드/상태 메커니즘 데이터화
-   - 날씨 대미지 보정
-   - 지형 BP 보정
-   - 스크린 보정
-   - Protect 처리
-2. HP% 기반 상태 모델 정리
-   - full HP, pinch, Endeavor/Final Gambit, Multiscale/Sturdy/Focus Sash 계열
-3. Showdown / showdown calculator 참조 케이스 추가
-   - Mold Breaker vs defensive ability
-   - Tera Shell
-   - Paradox abilities
-   - type-changing abilities
-   - fixed damage / OHKO
+1. 노력치 세부조정 재개발을 위한 계산 상태 재사용 지점 정리
+2. 내구 역계산 재개발을 위한 HP%/필드 조건 재사용 지점 정리
 
 이 문서는 리팩토링 진행 순서와 현재 완료/대기/보류 항목을 정리한다.
 
@@ -160,89 +176,132 @@
 - `scripts/coverage-matrix.mjs`
 - `docs/damage-calculator-coverage-matrix.md`
 
-## 다음 작업 순서
+### 8. Body Press 및 mechanics 데이터화
 
-### Step 1. Body Press 구현
+- `bodypress`는 공격측 방어 실수치와 방어 랭크를 공격값으로 사용하도록 구현 완료
+- move/item/ability 계산 메커니즘을 `data/overrides/*-mechanics.json` 중심으로 이전
+- 커버리지 매트릭스가 mechanics JSON과 빌드된 데이터 필드를 지원 근거로 인식하도록 수정
+- damage calculator 전용 레퍼런스를 기준으로 구현/수동 조건/보류 범위를 재정리
 
-현재 커버리지 매트릭스에서 가장 명확한 미구현 항목이다.
+관련 파일:
 
-요구:
+- `src/js/02-engine.js`
+- `build.mjs`
+- `data/overrides/move-mechanics.json`
+- `data/overrides/ability-mechanics.json`
+- `data/overrides/item-mechanics.json`
+- `scripts/coverage-matrix.mjs`
+- `scripts/damage-golden.mjs`
 
-- `bodypress`는 공격측의 방어 실수치와 방어 랭크를 공격값으로 사용해야 한다.
-- 공격측 방어 하락/상승, 급소, Unaware와의 관계를 확인해야 한다.
-- 골든 테스트를 추가해야 한다.
+### 9. HP% 상태 모델
 
-예상 수정 위치:
+- 공격측/방어측 패널에 현재 HP% 입력 추가
+- `pinch` 수동 체크박스를 제거하고 현재 HP% 1/3 이하에서 자동 파생
+- `fullHP`는 현재 HP% 100%에서 자동 파생
+- HKO 판정과 잔여 HP 표시가 방어측 현재 HP%를 기준으로 계산되도록 정리
+- HP% 기반 회귀 테스트 추가
 
+관련 파일:
+
+- `src/js/03-calc-ui.js`
+- `src/js/02-engine.js`
+- `src/styles/01-base.css`
+- `scripts/damage-golden.mjs`
+- `scripts/entry-effects-state.mjs`
+
+### 10. 조건부 기술/특성 UI
+
+- 선택된 기술이나 공격측 특성이 필요로 할 때만 조건 영역 표시
+- Bolt Beak/Fishious Rend/Payback/Analytic 계열은 실속도 기준 자동 판정 상태를 명시
+- Temper Flare/Stomping Tantrum, Avalanche, Assurance, Flash Fire는 수동 토글로 입력
+- Last Respects/Supreme Overlord는 쓰러진 아군 수 입력 사용
+- 쓰러진 아군 수는 Champions 룰 기준으로 싱글 0~2, 더블 0~3 제한
+- 조건부 계산 회귀 테스트 추가
+
+관련 파일:
+
+- `src/js/03-calc-ui.js`
+- `src/js/02-engine.js`
+- `src/styles/01-base.css`
+- `scripts/damage-golden.mjs`
+- `scripts/entry-effects-state.mjs`
+
+### 11. 필드/상태 메커니즘 데이터화
+
+- 계산 순서는 엔진에 유지하고, 필드 조건별 보정값은 `data/overrides/field-mechanics.json`으로 분리
+- 날씨 대미지 보정, 지형 BP 보정, 리플렉터/빛의장막, 방어/막아내기 처리를 데이터 기반으로 적용
+- 그래스필드 지진 약화, 리플렉터, Protect 차단 케이스를 golden test로 고정
+
+관련 파일:
+
+- `data/overrides/field-mechanics.json`
+- `build.mjs`
 - `src/js/02-engine.js`
 - `scripts/damage-golden.mjs`
 
-완료 기준:
+### 12. 참조 케이스 golden test 확장
 
-- `bodypress`가 coverage matrix에서 미구현으로 남지 않음
-- 관련 골든 테스트 통과
-- `npm test` 통과
+- Tera Shell이 풀피 대상의 비면역 공격을 반감 처리하는지 고정
+- Mold Breaker가 Tera Shell과 Sturdy/OHKO 차단을 무시하는지 고정
+- Pixilate와 Liquid Voice의 타입 변경 및 BP 보정을 고정
+- Protosynthesis와 Quark Drive가 조건 충족 시 최고 공격 스탯을 보정하는지 고정
+- Sheer Cold OHKO, Sturdy 차단, Mold Breaker 예외를 고정
 
-### Step 2. HP% 상태 정리
+관련 파일:
 
-현재 HP 관련 조건은 일부 수동 플래그로 남아 있다.
+- `scripts/damage-golden.mjs`
 
-대상:
+### 13. 범위 밖 필드/상태 보류 표시 정리
 
-- `hpPct`
-- `fullHP`
-- `pinch`
-- `Final Gambit`
-- `Endeavor`
-- `Eruption`
-- `Water Spout`
-- `Flail`
-- `Reversal`
-- `Hard Press`
-- `Multiscale`
-- `Shadow Shield`
-- `Sturdy`
-- `Focus Sash`
-- `Disguise`
-- `Ice Face`
+- `coverage:matrix`가 기술/특성/도구뿐 아니라 필드/상태 후보도 추적하도록 확장
+- `weatherdamage`, `terrainbp`, `screens`, `protect`는 `field-mechanics.json` 기반 지원으로 표시
+- Magic Room, Wonder Room은 도구/스탯 상태를 전역으로 뒤집는 효과라 현재 단발 계산기 상태 모델 밖으로 보류
+- Aurora Veil은 리플렉터/빛의장막과 중첩되지 않는 별도 사이드 스크린 상태가 필요해 보류
+- Friend Guard, Battery, Power Spot은 아군 위치와 더블 사이드 컨텍스트가 필요해 보류
 
-방향:
+관련 파일:
 
-- 공격측/방어측 HP% 입력 추가
-- `fullHP`는 `hpPct === 1`에서 파생
-- `pinch`는 HP% 기준 파생 또는 수동 override 허용
+- `data/overrides/coverage-candidates.json`
+- `scripts/coverage-matrix.mjs`
+- `docs/damage-calculator-coverage-matrix.md`
 
-### Step 3. 조건부 기술 UI
+### 14. 결과 카드 보정 라벨 정리
 
-선택된 기술이나 특성이 필요로 할 때만 조건 UI를 보여준다.
+- 보정 배율 표시를 짧은 `×N` 형식으로 통일
+- 차단/급소/고정 대미지 계열의 영문 라벨을 한국어로 정리
+- `mods` 표시에서 중복 라벨을 제거
+- 카드에는 앞 6개 라벨만 표시하고, 숨겨진 라벨 수는 `+N`으로 표시
+- 전체 보정 라벨 목록은 `title`로 남겨 사용자가 필요할 때 확인할 수 있게 유지
 
-대상:
+관련 파일:
 
-- `lastMoveFailed`: Temper Flare, Stomping Tantrum
-- `attackerWasHit`: Avalanche
-- `targetWasHit`: Assurance
-- `fallenAllies`: Last Respects, Supreme Overlord
-- `attackerMovedFirst`: Bolt Beak, Fishious Rend
-- `attackerMovedSecond`: Payback
-- `flashFireActive`: Flash Fire 공격 boost
+- `src/js/02-engine.js`
+- `src/js/03-calc-ui.js`
+- `src/styles/02-pages.css`
 
-### Step 4. 계산 근거 표시 유지
+### 15. Booster Energy 상태 분리
 
-현재 방향은 상세 공식 패널을 만들지 않는 것이다.
+- CalcPokemon source state에 `boosterEnergyState` 추가
+- 값은 `auto`, `active`, `inactive` 세 가지로 관리
+- `auto`는 기존처럼 도구 데이터의 `paradoxActivation`이 있으면 발동
+- `active`는 도구를 이미 소모했거나 도구 슬롯과 별개로 Paradox 부스트가 켜진 상태
+- `inactive`는 도구 보유와 별개로 Paradox 부스트를 꺼서 비교하는 상태
+- 공격측과 방어측 모두 Protosynthesis/Quark Drive 조건 UI를 노출할 수 있게 정리
+- 공격측 활성/비활성, 방어측 방어 부스트 golden test 추가
 
-유지:
+관련 파일:
 
-- 결과 카드에는 간단한 보정 근거만 표시
-- 자동 진입 효과는 상단 요약에서 표시
+- `src/js/02-engine.js`
+- `src/js/03-calc-ui.js`
+- `src/styles/01-base.css`
+- `scripts/damage-golden.mjs`
+- `scripts/entry-effects-state.mjs`
 
-검토:
+## 다음 작업 순서
 
-- 너무 긴 `mods` 문구는 간결하게 정리
-- 한글/영문 라벨 혼재는 나중에 정리
+### Step 1. 노력치 세부조정 재개발
 
-### Step 5. 노력치 세부조정 재개발
-
-대미지 계산기 탭 안정화 후 진행한다.
+대미지 계산기 탭의 상태 모델이 안정화된 뒤 진행한다.
 
 방향:
 
@@ -250,7 +309,7 @@
 - 목표 실수치, 목표 생존/KO 조건 기반 탐색
 - 추천 세부조정 후보 표시
 
-### Step 6. 내구 역계산 재개발
+### Step 2. 내구 역계산 재개발
 
 대미지 계산기 탭 안정화 후 진행한다.
 
@@ -269,10 +328,16 @@
 - `metalburst`
 - `comeuppance`
 - `ficklebeam`
+- `magicroom`
+- `wonderroom`
+- `auroraveil`
+- `friendguard`
+- `battery`
+- `powerspot`
 
 이유:
 
-- 이전 피해량 또는 랜덤 분기 같은 전투 이력 컨텍스트가 필요하다.
+- 이전 피해량, 랜덤 분기, 별도 사이드 상태, 아군 위치 같은 전투 이력/배치 컨텍스트가 필요하다.
 - 단발 공격 대미지 계산기 UI에 바로 넣으면 복잡도가 커진다.
 
 ## 매 작업 후 확인

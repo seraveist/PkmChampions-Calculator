@@ -301,13 +301,14 @@
   .dmg-info b { color: var(--text); font-weight: 500; }
 
   .mods-trace {
+    display: flex; flex-wrap: wrap; gap: 2px 4px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10.5px; color: var(--text-faint);
-    margin-top: 4px; letter-spacing: 0.02em;
+    margin-top: 4px; letter-spacing: 0;
     line-height: 1.5;
   }
   .mods-trace b { color: var(--warn); font-weight: 500; }
-  .mods-trace .sep { color: var(--text-faint); margin: 0 2px; }
+  .mods-trace .sep { color: var(--text-faint); margin: 0; }
 
   .eff-badge {
     font-family: 'JetBrains Mono', monospace;
@@ -975,8 +976,6 @@
     /* 폰트 사이즈 상향 (가독성) */
     .move-stat-info { font-size: 11px; }
     .hko-sub { font-size: 10px; }
-    .pinch-toggle { font-size: 11px; }
-
     /* 터치 타겟 보강 */
     .stat-rank-btns button {
       min-width: 28px; min-height: 28px;

@@ -11,6 +11,8 @@ Pokemon Champions calculator refactor.
 
 These are appropriate for the calculator and are already handled directly or through existing field/side inputs.
 
+Field/state modifiers that directly affect one attack are declared in `data/overrides/field-mechanics.json` and bundled as `RULES.fieldMechanics`.
+
 ### Core Inputs
 
 - Pokemon, move, ability, item
@@ -54,38 +56,50 @@ These are appropriate for the calculator and are already handled directly or thr
 
 These are worth supporting, but the current UI does not expose the required condition clearly enough.
 
-### High Priority
+### Completed
 
 - Current HP percentage for each side
   - Used by Eruption, Water Spout, Flail, Reversal, Hard Press, Final Gambit, Endeavor.
   - Also decides `fullHP` for Multiscale, Shadow Shield, Sturdy, Focus Sash, Disguise, Tera Shell, Ice Face.
-  - Recommended UI: one HP% input per side. `fullHP` should be derived from `hpPct === 1`.
+  - UI now has one HP% input per side. `fullHP` and `pinch` are derived from `hpPct`.
 
 - Conditional move flags
   - `lastMoveFailed`: Temper Flare, Stomping Tantrum.
   - `attackerWasHit`: Avalanche.
   - `targetWasHit`: Assurance.
   - `fallenAllies`: Last Respects, Supreme Overlord.
-  - Recommended UI: show a compact "move conditions" row only when the selected move or ability needs it.
+  - UI shows a compact conditions section only when the selected move or ability needs it.
 
-- Manual action condition
+- Speed-based action condition
   - `attackerMovedFirst`: Bolt Beak, Fishious Rend.
   - `attackerMovedSecond`: Payback.
-  - The calculator does not need priority/speed judgment as a core feature, so this should be a manual condition toggle, not an automatic speed verdict.
+  - UI keeps the current speed-based automatic verdict and explicitly labels it as automatic.
 
 - Flash Fire charged state
-  - Flash Fire immunity is automatic, but the attack boost needs a user-controlled "Flash Fire active" toggle when the attacker has Flash Fire.
+  - Flash Fire immunity is automatic.
+  - The attack boost has a user-controlled "Flash Fire active" toggle when the attacker has Flash Fire.
 
-### Medium Priority
-
-- Pinch state cleanup
-  - Current UI has an attacker-only pinch checkbox.
-  - Keep it simple, but consider deriving it from HP% <= 33 when HP% UI is added.
-  - Used by Blaze, Torrent, Overgrow, Swarm, Defeatist.
-
+- Field/state mechanics cleanup
+  - Weather damage modifiers, terrain BP modifiers, screen/protect handling, and clearly deferred room effects.
+  - Weather damage, terrain BP, screens, and Protect are now data-driven.
+- Deferred field/state scope cleanup
+  - Magic Room, Wonder Room, Aurora Veil.
+  - Friend Guard, Battery, Power Spot.
+  - These are tracked as deferred field/state rows in the generated coverage matrix.
+- Result modifier label cleanup
+  - Short multiplier labels.
+  - Korean labels for common block/critical/fixed-damage traces.
+  - Deduplicated and capped result-card trace display.
 - Booster Energy consumed/active nuance
-  - Current logic treats Booster Energy as activating Protosynthesis/Quark Drive.
-  - This is enough for now, but a future version could separate "held item" from "already consumed and active".
+  - Protosynthesis/Quark Drive can now use `auto`, `active`, or `inactive` Booster Energy state.
+  - This supports held-item activation and already-consumed active state separately.
+- Showdown / showdown calculator reference cases
+  - Mold Breaker vs defensive ability.
+  - Tera Shell.
+  - Paradox abilities.
+  - Type-changing abilities.
+  - Fixed damage / OHKO.
+  - These are now covered by golden tests.
 
 ## Deferred / Unnecessary
 
@@ -124,6 +138,17 @@ Reason: they require "target just switched in" or "turn count since entering bat
 
 Reason: these mostly change future turns after taking a hit. Since the calculator evaluates the current hit, the user can represent the already-applied result with manual ranks.
 
+### Requires Side Or Global Battle Context
+
+- Magic Room
+- Wonder Room
+- Aurora Veil
+- Friend Guard
+- Battery
+- Power Spot
+
+Reason: these need item/global-room state, a separate Aurora Veil side state, or ally-position context. They are tracked as deferred so they do not disappear from planning, but they are outside the first one-attack calculator model.
+
 ## UI/State Refactor Direction
 
 The calculator should keep the current simple result display. We do not need a detailed formula panel.
@@ -137,8 +162,6 @@ Recommended state split:
 Recommended implementation order:
 
 1. Keep `makeCalcState()` as the only place that derives calculation state.
-2. Add `battle` or `conditions` fields to side state instead of scattering new flags.
-3. Add HP% controls and derive `fullHP` from them.
-4. Add contextual move-condition controls that only appear when selected moves/abilities need them.
-5. Replace automatic speed verdict use for Bolt Beak/Fishious Rend/Payback with manual condition toggles.
-6. Keep auto entry effect summaries at the top and keep result trace compact.
+2. Continue moving field/state mechanics into data where it reduces name-based branching.
+3. Add golden tests for every new condition branch.
+4. Keep auto entry effect summaries at the top and keep result trace compact.

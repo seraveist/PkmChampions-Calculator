@@ -51,7 +51,7 @@
 | --- | --- | --- | --- | --- |
 | Pokemon | species, type, weight, level, ability, abilityOn, item, teraType, nature, ivs, evs, boosts, rawStats, stats, curHP, status, toxicCounter, moves | pokemonIdx, EV point, nature, ranks, status, ability, item, tera/teraType, pinch, fullHP, moves | 부분 | Current는 Champions 레벨 50/IV 31/EV point 체계로 단순화되어 있다. |
 | Move | bp, type, category, flags, secondaries, target, recoil, drain, priority, hits, timesUsed, overrides, Z/Max/Stellar | move data + manual BP override + flags/sec/tgt/mh/recoil 등 build data | 부분 | Z/Max는 제외. hits/timesUsed 쪽은 추가 검토 가능. |
-| Field | gameType, weather, terrain, rooms, gravity, aura, ruin, attackerSide, defenderSide | weather, terrain, gameType, critical, trick room, gravity, reflect/light screen, helping hand, protect, ruin, hazards | 부분 | Magic Room/Wonder Room/Aurora Veil/Friend Guard/Battery/Power Spot 등은 미지원. |
+| Field | gameType, weather, terrain, rooms, gravity, aura, ruin, attackerSide, defenderSide | weather, terrain, gameType, critical, trick room, gravity, reflect/light screen, helping hand, protect, ruin, hazards | 부분 | Magic Room/Wonder Room/Aurora Veil/Friend Guard/Battery/Power Spot 등은 coverage matrix에서 명시 보류로 추적한다. |
 | Side | hazards, screens, protect, seeded, foresight, tailwind, flower gift, friend guard, battery, power spot, switching 등 | 대부분 field 단일 플래그 또는 미지원 | 부분 | 1:1 공격 계산 목적이라 side 모델을 단순화했다. |
 | Result | damage shape(number/array/multihit), range, fullDesc, moveDesc, recoil, recovery, kochance | damages/rawDamages/multihitCount/minPct/maxPct/effectiveness/moveType/category/bp/atk/def/defHP/mods | 부분 | Current 결과 모델은 UI 표시에 충분. 향후 역계산까지 고려하면 표준화 후보. |
 
@@ -59,15 +59,15 @@
 
 | 단계 | Reference 흐름 | Current 흐름 | 상태 | 보완 후보 |
 | --- | --- | --- | --- | --- |
-| Initial effects | Air Lock, Forecast, Magic Room, Wonder Room, Seed, Intimidate, Download, Intrepid Sword, Dauntless Shield, Embody, Infiltrator 등 | 자동 진입 효과에서 날씨/필드/랭크/재앙 처리. Air Lock/Cloud Nine, Neutralizing Gas, Mold Breaker 일부 처리 | 부분 | Seed, Forecast, Wonder Room, Magic Room, Embody Aspect 필요 여부 확인. |
+| Initial effects | Air Lock, Forecast, Magic Room, Wonder Room, Seed, Intimidate, Download, Intrepid Sword, Dauntless Shield, Embody, Infiltrator 등 | 자동 진입 효과에서 날씨/필드/랭크/재앙 처리. Air Lock/Cloud Nine, Neutralizing Gas, Mold Breaker 일부 처리 | 부분 | Magic/Wonder Room은 보류 추적. Seed, Forecast, Embody Aspect는 필요 여부 확인. |
 | Move prelude | Weather Ball, Judgment, Techno Blast, Multi-Attack, Natural Gift, Terrain Pulse, Revelation Dance, Tera Blast, Photon Geyser 등 타입/분류 결정 | Weather Ball, Terrain Pulse, Liquid Voice, -ate, Tera Blast, Tera Starstorm, Photon Geyser 처리 | 부분 | Judgment/Techno Blast/Multi-Attack/Natural Gift/Revelation Dance/Raging Bull/Ivy Cudgel 확인. |
 | Immunity/effectiveness | 타입 상성 + ability/item immunity + Ring Target + Thousand Arrows + Tera Shell 등 | Freeze-Dry, Flying Press, immunity abilities, Air Balloon, Scrappy/Mind's Eye, Tera Shell 등 | 부분 | Ring Target, Thousand Arrows, Psychic Terrain priority 차단 등은 목적에 따라 제외/검토. |
 | Fixed damage | Seismic Toss, Night Shade, Dragon Rage, Sonic Boom, Final Gambit, Guardian of Alola, Nature's Madness 등 | Seismic Toss, Night Shade, Dragon Rage, Sonic Boom, Super Fang, Nature's Madness, Final Gambit, Endeavor, OHKO moves | 부분 | Guardian of Alola/Z 관련은 제외 가능. |
 | Base Power | 많은 가변 위력 + ability/item/field BP mods | 명시 가변 BP 목록 + ability/item/field BP mods | 부분 | 가변 위력 누락을 golden test로 확장 필요. |
-| Attack | boost, crit ignore, Unaware, Body Press/Foul Play류, ability/item atMods | rank, crit ignore, Unaware, Foul Play, 주요 ability/item atMods, ruin | 부분 | Body Press/Power Trick/Stakeout/Plus/Minus 등 확인. |
-| Defense | boost, crit ignore, Psyshock류, Unaware, weather defense, ability/item dfMods, ruin | Psyshock류, rank, crit ignore, Unaware, sand/snow defense, 주요 ability/item dfMods, ruin | 부분 | Wonder Room/Flower Gift side effect 등 확인. |
+| Attack | boost, crit ignore, Unaware, Body Press/Foul Play류, ability/item atMods | rank, crit ignore, Unaware, Body Press, Foul Play, 주요 ability/item atMods, ruin | 부분 | Power Trick/Stakeout/Plus/Minus 등은 Champions 범위와 UI 조건 필요 여부 확인. |
+| Defense | boost, crit ignore, Psyshock류, Unaware, weather defense, ability/item dfMods, ruin | Psyshock류, rank, crit ignore, Unaware, sand/snow defense, 주요 ability/item dfMods, ruin | 부분 | Wonder Room은 보류 추적. Flower Gift side effect 등 확인. |
 | Base damage | level formula, spread, weather, crit | level 50 formula, spread, weather, crit | 동등 | Champions 레벨 고정이면 현재 방향 유지. |
-| Final mods | screens, Multiscale, Fluffy, Punk Rock, Filter류, Neuroforce, Sniper, Tinted Lens, Life Orb, Expert Belt, resist berries, Protect | 대부분 주요 final mods 구현 | 부분 | Friend Guard, Aurora Veil, Metronome, Parental Bond edge, multi-hit after-effect 확인. |
+| Final mods | screens, Multiscale, Fluffy, Punk Rock, Filter류, Neuroforce, Sniper, Tinted Lens, Life Orb, Expert Belt, resist berries, Protect | 대부분 주요 final mods 구현. screens/Protect는 `field-mechanics.json` 기반 | 부분 | Friend Guard/Aurora Veil은 보류 추적. Metronome, Parental Bond edge, multi-hit after-effect 확인. |
 | Roll output | damage 배열/다단히트/고정 대미지 shape | 16-roll 배열 + multihit raw/summed | 동등 | Result 모델만 정리하면 좋다. |
 | KO chance | Result.kochance | hkoLabel 자체 계산 | 부분 | 현재 UI 목적에는 충분. 역계산/세부조정에서 재사용성 검토. |
 
@@ -223,7 +223,7 @@ Reference 대비 상태: `부분`.
 
 - Stakeout
 - Plus / Minus
-- Battery / Power Spot / side Steely Spirit
+- Battery / Power Spot / side Steely Spirit. Battery와 Power Spot은 더블 아군 위치 컨텍스트가 필요해 보류 추적
 - Rivalry
 - Flash Fire active flag의 UI 노출 여부
 - Sheer Force secondary 판정의 데이터 정합성
@@ -259,8 +259,8 @@ Reference 대비 상태: `부분`.
 
 보완 후보:
 
-- Friend Guard
-- Aurora Veil
+- Friend Guard. 더블 아군 위치 컨텍스트가 필요해 보류 추적
+- Aurora Veil. 별도 사이드 스크린 상태가 필요해 보류 추적
 - Wonder Guard
 - Infiltrator는 screens 쪽에서 처리됨. 다른 side effect까지 필요한지 확인.
 - Full HP 판정이 hazards와 함께 적용되는 edge case
@@ -305,7 +305,7 @@ Reference 대비 상태: `부분`.
 - Ring Target
 - Float Stone
 - Clear Amulet
-- Booster Energy의 소비/Seed류 소비 모델
+- Booster Energy의 소비/활성 상태는 `auto`/`active`/`inactive`로 분리 완료. Seed류 소비 모델은 후순위
 
 ## 6. 의도적 제외 또는 후순위
 
@@ -325,4 +325,3 @@ Reference 대비 상태: `부분`.
 3. Champions에 존재하는 move/ability/item만 대상으로 coverage matrix를 자동 생성한다.
 4. `부분` 또는 `검토 필요` 항목을 golden test로 하나씩 고정한다.
 5. UI는 계산 입력 어댑터 역할로 좁힌다. 특히 수동 위력, 자동 진입 효과, 수동 override 같은 사용자 의도는 원본 상태와 계산 상태를 계속 분리한다.
-

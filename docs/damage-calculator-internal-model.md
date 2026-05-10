@@ -43,8 +43,14 @@ Derived state는 매 계산마다 새로 만들어진다. 사용자가 포켓몬
 - `ranks`: 공격, 방어, 특공, 특방, 스피드 랭크
 - `status`: 화상, 독 등 상태이상
 - `tera`, `teraType`: 테라스탈 입력. 현재 챔피언스 룰에서는 `RULES.teraDisabled`로 비활성화된다.
-- `pinch`, `fullHP`, `hpPct`: 저HP/풀피/현재 HP 조건. 현재 일부는 수동 플래그로 남아 있고, 향후 HP% UI로 정리할 수 있다.
+- `hpPct`: 현재 HP 비율. UI에서는 1~100%로 입력하고 엔진에는 0.01~1.0으로 전달한다.
+- `pinch`, `fullHP`: `hpPct`에서 파생되는 계산 조건. `pinch`는 1/3 이하, `fullHP`는 100%일 때 true다.
 - `lastMoveFailed`, `wasHit`, `fallenAllies`, `flashFireActive`: 조건부 기술/특성 계산용 전투 컨텍스트
+  - `fallenAllies`는 `gameType`에 따라 싱글 0~2, 더블 0~3으로 제한한다.
+- `boosterEnergyState`: Protosynthesis/Quark Drive의 Booster Energy 상태. `auto`, `active`, `inactive` 중 하나다.
+  - `auto`는 도구 데이터의 발동 상태를 따른다.
+  - `active`는 이미 소모된 뒤 부스트만 남은 상태를 표현한다.
+  - `inactive`는 도구 보유와 별개로 부스트를 끈 비교 상태다.
 
 계산 엔진은 이 객체를 읽어서 실수치, 실효 특성/도구, 실효 타입을 계산한다. 엔진 내부에서 원본 `CalcPokemon`을 변경하지 않는 것이 원칙이다.
 
@@ -78,9 +84,11 @@ Derived state는 매 계산마다 새로 만들어진다. 사용자가 포켓몬
 - `atkHelpingHand`
 - `defStealthRock`, `defSpikesLayers`
 - `ruinSword`, `ruinTablet`, `ruinBeads`, `ruinVessel`
-- `atkMovesFirst`, `atkMovesSecond`
+- `atkMovesFirst`, `atkMovesSecond`: 현재 실속도 비교에서 파생되는 행동 순서 조건. 조건 UI에 자동 적용 상태로 표시한다.
 
-선공/후공 자동 판정은 계산기의 핵심 목표가 아니므로, Bolt Beak, Fishious Rend, Payback처럼 순서 조건이 필요한 기술은 수동 조건값으로 취급한다.
+기술 우선도나 전체 턴 순서 시스템은 계산기의 핵심 목표가 아니므로 제외한다. 다만 Bolt Beak, Fishious Rend, Payback처럼 현재 실속도 비교만으로 충분히 설명 가능한 조건은 자동 판정을 유지하고 UI에 명시한다.
+
+필드/상태 보정 중 날씨 대미지, 지형 BP, 스크린, Protect는 `RULES.fieldMechanics`에 번들된 `data/overrides/field-mechanics.json`을 읽어 적용한다. 계산 단계 자체는 엔진에 남기고, 조건별 배율과 결과 카드 라벨은 데이터에 둔다.
 
 ## CalcResult
 

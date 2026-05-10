@@ -73,6 +73,10 @@ function loadUiApi() {
         state,
         calcStats,
         makeCalcState,
+        setSideHpPct,
+        maxFallenAllies,
+        clampFallenAllies,
+        normalizeBattleConditionState,
         markManualAutoFieldOverride,
         resetManualAutoFieldOverrides,
         manualAutoFieldOverrides,
@@ -121,6 +125,19 @@ function resetScenario() {
   api.setAutoEntry(true);
   state.atk.ability = 'blaze';
   state.def.ability = 'effectspore';
+  state.atk.hpPct = 1;
+  state.def.hpPct = 1;
+  state.atk.pinch = false;
+  state.def.pinch = false;
+  state.atk.fullHP = true;
+  state.def.fullHP = true;
+  state.atk.lastMoveFailed = false;
+  state.atk.wasHit = false;
+  state.def.wasHit = false;
+  state.atk.fallenAllies = 0;
+  state.atk.flashFireActive = false;
+  state.atk.boosterEnergyState = 'auto';
+  state.def.boosterEnergyState = 'auto';
   state.atk.ranks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
   state.def.ranks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
   state.field.weather = 'none';
@@ -136,8 +153,29 @@ function resetScenario() {
 }
 
 resetScenario();
+let calc;
+api.setSideHpPct(state.atk, 0.33);
+calc = api.refresh();
+assertEqual(state.atk.pinch, true, 'attacker hp pct updates source pinch');
+assertEqual(calc.atk.pinch, true, 'attacker hp pct derives calc pinch');
+assertEqual(calc.atk.fullHP, false, 'attacker hp pct derives not full hp');
+api.setSideHpPct(state.def, 0.99);
+calc = api.refresh();
+assertEqual(calc.def.fullHP, false, 'defender hp pct below 100 disables full hp');
+
+resetScenario();
+state.field.gameType = 'Singles';
+state.atk.fallenAllies = 5;
+api.normalizeBattleConditionState();
+assertEqual(state.atk.fallenAllies, 2, 'fallen allies clamps to singles party max');
+state.field.gameType = 'Doubles';
+state.atk.fallenAllies = 5;
+api.normalizeBattleConditionState();
+assertEqual(state.atk.fallenAllies, 3, 'fallen allies clamps to doubles party max');
+
+resetScenario();
 state.atk.ability = 'drought';
-let calc = api.refresh();
+calc = api.refresh();
 assertEqual(calc.field.weather, 'Sun', 'drought weather is derived');
 assertEqual(state.field.weather, 'none', 'drought does not mutate source weather');
 

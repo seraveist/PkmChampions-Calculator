@@ -435,20 +435,53 @@
   .field-label .hint { color: var(--text-faint); font-weight: 400; letter-spacing: 0.08em; }
   .field-label .link { color: var(--warn); cursor: pointer; }
 
-  /* 핀치 토글 (기술 배치 라벨 옆) */
-  .pinch-toggle {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 10.5px;
-    color: var(--text-faint);
-    font-weight: 400;
-    letter-spacing: 0;
-    text-transform: none;
-    cursor: pointer;
-    user-select: none;
+  .hp-control-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
   }
-  .pinch-toggle input { width: auto; cursor: pointer; margin: 0; }
-  .pinch-toggle:hover { color: var(--warn); }
+  .hp-percent-control {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+  }
+  .hp-percent-control span {
+    color: var(--text-faint);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .hp-state-pills {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 70px;
+  }
+  .hp-state-pill {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    color: var(--text-faint);
+    background: rgba(255,255,255,0.03);
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .hp-state-pill.full {
+    color: var(--ok);
+    border-color: rgba(74, 222, 128, 0.35);
+    background: rgba(74, 222, 128, 0.08);
+  }
+  .hp-state-pill.pinch {
+    color: var(--warn);
+    border-color: rgba(245, 158, 11, 0.38);
+    background: rgba(245, 158, 11, 0.09);
+  }
 
   select, input[type="number"], input[type="text"] {
     width: 100%;
@@ -736,6 +769,103 @@
   .move-stat-info b { color: var(--atk); font-weight: 600; }
   .move-stat-info .move-stat-sep { color: var(--border-bright); margin: 0 3px; }
   .move-stat-info.empty { color: var(--text-faint); opacity: 0.5; }
+
+  .battle-conditions {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .condition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 6px;
+  }
+  .condition-auto,
+  .condition-toggle,
+  .condition-number {
+    min-height: 34px;
+    padding: 7px 8px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--bg-input);
+    box-sizing: border-box;
+  }
+  .condition-auto {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .condition-auto.active {
+    border-color: rgba(74, 222, 128, 0.35);
+    background: rgba(74, 222, 128, 0.06);
+  }
+  .condition-auto div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .condition-auto span,
+  .condition-toggle span,
+  .condition-number span {
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .condition-auto b {
+    color: var(--warn);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .condition-auto em,
+  .condition-toggle em,
+  .condition-number em {
+    color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-style: normal;
+    line-height: 1.3;
+  }
+  .condition-toggle {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 2px 6px;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .condition-toggle input {
+    grid-row: 1 / span 2;
+    width: auto;
+    margin: 0;
+    cursor: pointer;
+  }
+  .condition-number {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 54px;
+    gap: 2px 8px;
+    align-items: center;
+  }
+  .condition-number input {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    height: 28px;
+    padding: 2px 6px;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .condition-number.condition-select {
+    grid-template-columns: minmax(0, 1fr) 84px;
+  }
+  .condition-number select {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    height: 28px;
+    padding: 2px 6px;
+    font-size: 11px;
+  }
 
   /* 내구력 */
   .durability-grid {
@@ -1091,13 +1221,14 @@
   .dmg-info b { color: var(--text); font-weight: 500; }
 
   .mods-trace {
+    display: flex; flex-wrap: wrap; gap: 2px 4px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10.5px; color: var(--text-faint);
-    margin-top: 4px; letter-spacing: 0.02em;
+    margin-top: 4px; letter-spacing: 0;
     line-height: 1.5;
   }
   .mods-trace b { color: var(--warn); font-weight: 500; }
-  .mods-trace .sep { color: var(--text-faint); margin: 0 2px; }
+  .mods-trace .sep { color: var(--text-faint); margin: 0; }
 
   .eff-badge {
     font-family: 'JetBrains Mono', monospace;
@@ -1765,8 +1896,6 @@
     /* 폰트 사이즈 상향 (가독성) */
     .move-stat-info { font-size: 11px; }
     .hko-sub { font-size: 10px; }
-    .pinch-toggle { font-size: 11px; }
-
     /* 터치 타겟 보강 */
     .stat-rank-btns button {
       min-width: 28px; min-height: 28px;
@@ -2340,7 +2469,7 @@
 <script id="data-items" type="application/json">[{"id":"abomasite","name":"Abomasite","koName":"눈설왕나이트","ms":{"Abomasnow":"Abomasnow-Mega"},"itemUser":["Abomasnow"],"desc":"눈설왕에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by an Abomasnow, this item allows it to Mega Evolve in battle."},{"id":"absolite","name":"Absolite","koName":"앱솔나이트","ms":{"Absol":"Absol-Mega"},"itemUser":["Absol"],"desc":"앱솔에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by an Absol, this item allows it to Mega Evolve into Mega Absol in battle."},{"id":"aerodactylite","name":"Aerodactylite","koName":"프테라나이트","ms":{"Aerodactyl":"Aerodactyl-Mega"},"itemUser":["Aerodactyl"],"desc":"프테라에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by an Aerodactyl, this item allows it to Mega Evolve in battle."},{"id":"aggronite","name":"Aggronite","koName":"보스로라나이트","ms":{"Aggron":"Aggron-Mega"},"itemUser":["Aggron"],"desc":"보스로라에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by an Aggron, this item allows it to Mega Evolve in battle."},{"id":"alakazite","name":"Alakazite","koName":"후디나이트","ms":{"Alakazam":"Alakazam-Mega"},"itemUser":["Alakazam"],"desc":"후딘에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by an Alakazam, this item allows it to Mega Evolve in battle."},{"id":"altarianite","name":"Altarianite","koName":"파비코리나이트","ms":{"Altaria":"Altaria-Mega"},"itemUser":["Altaria"],"desc":"파비코리에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by an Altaria, this item allows it to Mega Evolve in battle."},{"id":"ampharosite","name":"Ampharosite","koName":"전룡나이트","ms":{"Ampharos":"Ampharos-Mega"},"itemUser":["Ampharos"],"desc":"전룡에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by an Ampharos, this item allows it to Mega Evolve in battle."},{"id":"aspearberry","name":"Aspear Berry","koName":"배리열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Ice"},"desc":"포켓몬에게 지니게 하면 얼음을 회복한다.","descLong":"Holder is cured if it is frozen. Single use."},{"id":"audinite","name":"Audinite","koName":"다부니나이트","ms":{"Audino":"Audino-Mega"},"itemUser":["Audino"],"desc":"다부니에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by an Audino, this item allows it to Mega Evolve in battle."},{"id":"babiriberry","name":"Babiri Berry","koName":"바리비열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Steel"},"resistBerryType":"Steel","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 강철 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Steel-type attack. Single use."},{"id":"banettite","name":"Banettite","koName":"다크펫나이트","ms":{"Banette":"Banette-Mega"},"itemUser":["Banette"],"desc":"다크펫에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Banette, this item allows it to Mega Evolve in battle."},{"id":"beedrillite","name":"Beedrillite","koName":"독침붕나이트","ms":{"Beedrill":"Beedrill-Mega"},"itemUser":["Beedrill"],"desc":"독침붕에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Beedrill, this item allows it to Mega Evolve in battle."},{"id":"blackbelt","name":"Black Belt","koName":"검은띠","flingBp":30,"typeBoostType":"Fighting","desc":"마음을 긴장시키는 띠. 지니게 하면 격투타입 기술의 위력이 올라간다.","descLong":"Holder's Fighting-type attacks have 1.2x power."},{"id":"blackglasses","name":"Black Glasses","koName":"검은안경","flingBp":30,"typeBoostType":"Dark","desc":"괴상하게 보이는 안경. 지니게 하면 악타입 기술의 위력이 올라간다.","descLong":"Holder's Dark-type attacks have 1.2x power."},{"id":"blastoisinite","name":"Blastoisinite","koName":"거북왕나이트","ms":{"Blastoise":"Blastoise-Mega"},"itemUser":["Blastoise"],"desc":"거북왕에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Blastoise, this item allows it to Mega Evolve in battle."},{"id":"brightpowder","name":"Bright Powder","koName":"반짝가루","flingBp":10,"desc":"반짝반짝 빛나는 가루. 지니게 하면 빛이 상대를 혼란시켜 기술이 명중되기 어려워진다.","descLong":"The accuracy of attacks against the holder is 0.9x."},{"id":"cameruptite","name":"Cameruptite","koName":"폭타나이트","ms":{"Camerupt":"Camerupt-Mega"},"itemUser":["Camerupt"],"desc":"폭타에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Camerupt, this item allows it to Mega Evolve in battle."},{"id":"chandelurite","name":"Chandelurite","koName":"샹델라나이트","ms":{"Chandelure":"Chandelure-Mega"},"itemUser":["Chandelure"],"desc":"샹델라에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Chandelure, this item allows it to Mega Evolve in battle."},{"id":"charcoal","name":"Charcoal","koName":"목탄","flingBp":30,"typeBoostType":"Fire","desc":"물건을 태우는 연료. 지니게 하면 불꽃타입 기술의 위력이 올라간다.","descLong":"Holder's Fire-type attacks have 1.2x power."},{"id":"charizarditex","name":"Charizardite X","koName":"리자몽나이트X","ms":{"Charizard":"Charizard-Mega-X"},"itemUser":["Charizard"],"desc":"리자몽에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Charizard, this item allows it to Mega Evolve into Mega Charizard X."},{"id":"charizarditey","name":"Charizardite Y","koName":"리자몽나이트Y","ms":{"Charizard":"Charizard-Mega-Y"},"itemUser":["Charizard"],"desc":"리자몽에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Charizard, this item allows it to Mega Evolve into Mega Charizard Y."},{"id":"chartiberry","name":"Charti Berry","koName":"루미열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Rock"},"resistBerryType":"Rock","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 바위 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Rock-type attack. Single use."},{"id":"cheriberry","name":"Cheri Berry","koName":"버치열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Fire"},"desc":"포켓몬에게 지니게 하면 마비를 회복한다.","descLong":"Holder cures itself if it is paralyzed. Single use."},{"id":"cherishball","name":"Cherish Ball","koName":"프레셔스볼","desc":"무언가의 기념품으로 특별히 만들어진 상당히 진귀한 볼.","descLong":"A rare Poke Ball that has been crafted to commemorate an occasion."},{"id":"chesnaughtite","name":"Chesnaughtite","koName":"브리가론나이트","ms":{"Chesnaught":"Chesnaught-Mega"},"itemUser":["Chesnaught"],"desc":"브리가론에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Chesnaught, this item allows it to Mega Evolve in battle."},{"id":"chestoberry","name":"Chesto Berry","koName":"유루열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Water"},"desc":"포켓몬에게 지니게 하면 잠듦을 회복한다.","descLong":"Holder wakes up if it is asleep. Single use."},{"id":"chilanberry","name":"Chilan Berry","koName":"카리열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Normal"},"resistBerryType":"Normal","resistBerryRequiresWeakness":false,"desc":"포켓몬에게 지니게 하면 노말 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a Normal-type attack. Single use."},{"id":"chimechite","name":"Chimechite","koName":"치렁나이트","ms":{"Chimecho":"Chimecho-Mega"},"itemUser":["Chimecho"],"desc":"치렁에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Chimecho, this item allows it to Mega Evolve in battle."},{"id":"choicescarf","name":"Choice Scarf","koName":"구애스카프","isChoice":true,"flingBp":10,"speedStatBoost":{"stat":"spe","mod":"x1_5"},"desc":"기술을 구애받는 스카프. 지니게 하면 스피드는 올라가지만 같은 기술밖에 쓸 수 없다.","descLong":"Holder's Speed is 1.5x, but it can only select the first move it executes."},{"id":"chopleberry","name":"Chople Berry","koName":"로플열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Fighting"},"resistBerryType":"Fighting","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 격투 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Fighting-type attack. Single use."},{"id":"clefablite","name":"Clefablite","koName":"픽시나이트","ms":{"Clefable":"Clefable-Mega"},"itemUser":["Clefable"],"desc":"픽시에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Clefable, this item allows it to Mega Evolve in battle."},{"id":"cobaberry","name":"Coba Berry","koName":"바코열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Flying"},"resistBerryType":"Flying","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 비행 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Flying-type attack. Single use."},{"id":"colburberry","name":"Colbur Berry","koName":"마코열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Dark"},"resistBerryType":"Dark","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 악 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Dark-type attack. Single use."},{"id":"crabominite","name":"Crabominite","koName":"모단단게나이트","ms":{"Crabominable":"Crabominable-Mega"},"itemUser":["Crabominable"],"desc":"모단단게에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Crabominable, this item allows it to Mega Evolve in battle."},{"id":"delphoxite","name":"Delphoxite","koName":"마폭시나이트","ms":{"Delphox":"Delphox-Mega"},"itemUser":["Delphox"],"desc":"마폭시에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Delphox, this item allows it to Mega Evolve in battle."},{"id":"dragonfang","name":"Dragon Fang","koName":"용의이빨","flingBp":70,"typeBoostType":"Dragon","desc":"단단하고 날카로운 이빨. 지니게 하면 드래곤타입 기술의 위력이 올라간다.","descLong":"Holder's Dragon-type attacks have 1.2x power."},{"id":"dragoninite","name":"Dragoninite","koName":"망나뇽나이트","ms":{"Dragonite":"Dragonite-Mega"},"itemUser":["Dragonite"],"desc":"망나뇽에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Dragonite, this item allows it to Mega Evolve in battle."},{"id":"drampanite","name":"Drampanite","koName":"할비롱나이트","ms":{"Drampa":"Drampa-Mega"},"itemUser":["Drampa"],"desc":"할비롱에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Drampa, this item allows it to Mega Evolve in battle."},{"id":"emboarite","name":"Emboarite","koName":"염무왕나이트","ms":{"Emboar":"Emboar-Mega"},"itemUser":["Emboar"],"desc":"염무왕에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by an Emboar, this item allows it to Mega Evolve in battle."},{"id":"excadrite","name":"Excadrite","koName":"몰드류나이트","ms":{"Excadrill":"Excadrill-Mega"},"itemUser":["Excadrill"],"desc":"몰드류에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by an Excadrill, this item allows it to Mega Evolve in battle."},{"id":"fairyfeather","name":"Fairy Feather","koName":"요정의깃털","flingBp":10,"typeBoostType":"Fairy","desc":"빛에 비추면 희미하게 빛나는 깃털. 지니게 하면 페어리타입 기술의 위력이 올라간다.","descLong":"Holder's Fairy-type attacks have 1.2x power."},{"id":"feraligite","name":"Feraligite","koName":"장크로다일나이트","ms":{"Feraligatr":"Feraligatr-Mega"},"itemUser":["Feraligatr"],"desc":"장크로다일에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Feraligatr, this item allows it to Mega Evolve in battle."},{"id":"floettite","name":"Floettite","koName":"플라엣테나이트","ms":{"Floette-Eternal":"Floette-Mega"},"itemUser":["Floette-Eternal"],"desc":"플라엣테에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by an Eternal Flower Floette, this item allows it to Mega Evolve in battle."},{"id":"focusband","name":"Focus Band","koName":"기합의머리띠","flingBp":10,"desc":"지니게 하면 기절할 듯한 기술을 받아도 HP를 1 남겨서 견디기도 한다.","descLong":"Holder has a 10% chance to survive an attack that would KO it with 1 HP."},{"id":"focussash","name":"Focus Sash","koName":"기합의띠","flingBp":10,"koSurvival":"fullHpNoHazards","desc":"지니게 하면 HP가 꽉 찼을 때 기절할 듯한 기술을 당해도 HP 1로 한 번은 버틴다.","descLong":"If holder's HP is full, will survive an attack that would KO it with 1 HP. Single use."},{"id":"froslassite","name":"Froslassite","koName":"눈여아나이트","ms":{"Froslass":"Froslass-Mega"},"itemUser":["Froslass"],"desc":"눈여아에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Froslass, this item allows it to Mega Evolve in battle."},{"id":"galladite","name":"Galladite","koName":"엘레이드나이트","ms":{"Gallade":"Gallade-Mega"},"itemUser":["Gallade"],"desc":"엘레이드에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Gallade, this item allows it to Mega Evolve in battle."},{"id":"garchompite","name":"Garchompite","koName":"한카리아스나이트","ms":{"Garchomp":"Garchomp-Mega"},"itemUser":["Garchomp"],"desc":"한카리아스에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Garchomp, this item allows it to Mega Evolve into Mega Garchomp."},{"id":"gardevoirite","name":"Gardevoirite","koName":"가디안나이트","ms":{"Gardevoir":"Gardevoir-Mega"},"itemUser":["Gardevoir"],"desc":"가디안에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Gardevoir, this item allows it to Mega Evolve in battle."},{"id":"gengarite","name":"Gengarite","koName":"팬텀나이트","ms":{"Gengar":"Gengar-Mega"},"itemUser":["Gengar"],"desc":"팬텀에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Gengar, this item allows it to Mega Evolve in battle."},{"id":"glalitite","name":"Glalitite","koName":"얼음귀신나이트","ms":{"Glalie":"Glalie-Mega"},"itemUser":["Glalie"],"desc":"얼음귀신에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Glalie, this item allows it to Mega Evolve in battle."},{"id":"glimmoranite","name":"Glimmoranite","koName":"킬라플로르나이트","ms":{"Glimmora":"Glimmora-Mega"},"itemUser":["Glimmora"],"desc":"킬라플로르에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Glimmora, this item allows it to Mega Evolve in battle."},{"id":"golurkite","name":"Golurkite","koName":"골루그나이트","ms":{"Golurk":"Golurk-Mega"},"itemUser":["Golurk"],"desc":"골루그에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Golurk, this item allows it to Mega Evolve in battle."},{"id":"greninjite","name":"Greninjite","koName":"개굴닌자나이트","ms":{"Greninja":"Greninja-Mega"},"itemUser":["Greninja"],"desc":"개굴닌자에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Greninja, this item allows it to Mega Evolve in battle."},{"id":"gyaradosite","name":"Gyaradosite","koName":"갸라도스나이트","ms":{"Gyarados":"Gyarados-Mega"},"itemUser":["Gyarados"],"desc":"갸라도스에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Gyarados, this item allows it to Mega Evolve in battle."},{"id":"habanberry","name":"Haban Berry","koName":"하반열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Dragon"},"resistBerryType":"Dragon","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 드래곤 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Dragon-type attack. Single use."},{"id":"hardstone","name":"Hard Stone","koName":"딱딱한돌","flingBp":100,"typeBoostType":"Rock","desc":"절대 깨지지 않는 돌. 지니게 하면 바위타입 기술의 위력이 올라간다.","descLong":"Holder's Rock-type attacks have 1.2x power."},{"id":"hawluchanite","name":"Hawluchanite","koName":"루차불나이트","ms":{"Hawlucha":"Hawlucha-Mega"},"itemUser":["Hawlucha"],"desc":"루차불에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Hawlucha, this item allows it to Mega Evolve in battle."},{"id":"heracronite","name":"Heracronite","koName":"헤라크로스나이트","ms":{"Heracross":"Heracross-Mega"},"itemUser":["Heracross"],"desc":"헤라크로스에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Heracross, this item allows it to Mega Evolve in battle."},{"id":"houndoominite","name":"Houndoominite","koName":"헬가나이트","ms":{"Houndoom":"Houndoom-Mega"},"itemUser":["Houndoom"],"desc":"헬가에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Houndoom, this item allows it to Mega Evolve in battle."},{"id":"kangaskhanite","name":"Kangaskhanite","koName":"캥카나이트","ms":{"Kangaskhan":"Kangaskhan-Mega"},"itemUser":["Kangaskhan"],"desc":"캥카에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Kangaskhan, this item allows it to Mega Evolve in battle."},{"id":"kasibberry","name":"Kasib Berry","koName":"수불열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Ghost"},"resistBerryType":"Ghost","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 고스트 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Ghost-type attack. Single use."},{"id":"kebiaberry","name":"Kebia Berry","koName":"으름열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Poison"},"resistBerryType":"Poison","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 독 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Poison-type attack. Single use."},{"id":"kingsrock","name":"King's Rock","koName":"왕의징표석","flingBp":30,"desc":"지니게 하면 공격해서 데미지를 줄 때 상대를 풀죽이기도 한다.","descLong":"Holder's attacks without a chance to make the target flinch gain a 10% chance to make the target flinch. Evolves Poliwhirl into Politoed and Slowpoke into Slowking when traded."},{"id":"leftovers","name":"Leftovers","koName":"먹다남은음식","flingBp":10,"residualRecovery":{"kind":"endTurn","fraction":[1,16]},"desc":"지니게 하면 포켓몬의 HP가 배틀을 하는 동안 조금씩 회복된다.","descLong":"At the end of every turn, holder restores 1/16 of its max HP."},{"id":"leppaberry","name":"Leppa Berry","koName":"과사열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Fighting"},"desc":"포켓몬에게 지니게 하면 PP를 10만큼 회복한다.","descLong":"Restores 10 PP to the first of the holder's moves to reach 0 PP. Single use."},{"id":"lightball","name":"Light Ball","koName":"전기구슬","itemUser":["Pikachu","Pikachu-Cosplay","Pikachu-Rock-Star","Pikachu-Belle","Pikachu-Pop-Star","Pikachu-PhD","Pikachu-Libre","Pikachu-Original","Pikachu-Hoenn","Pikachu-Sinnoh","Pikachu-Unova","Pikachu-Kalos","Pikachu-Alola","Pikachu-Partner","Pikachu-Starter","Pikachu-World"],"flingBp":30,"attackStatBoost":{"baseSpecies":["Pikachu"],"stats":["atk","spa"],"mod":"x2_0"},"desc":"피카츄에게 지니게 하면 공격과 특수공격의 위력이 올라가는 이상한 구슬.","descLong":"If held by a Pikachu, its Attack and Sp. Atk are doubled."},{"id":"lopunnite","name":"Lopunnite","koName":"이어롭나이트","ms":{"Lopunny":"Lopunny-Mega"},"itemUser":["Lopunny"],"desc":"이어롭에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Lopunny, this item allows it to Mega Evolve in battle."},{"id":"lucarionite","name":"Lucarionite","koName":"루카리오나이트","ms":{"Lucario":"Lucario-Mega"},"itemUser":["Lucario"],"desc":"루카리오에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Lucario, this item allows it to Mega Evolve into Mega Lucario in battle."},{"id":"lumberry","name":"Lum Berry","koName":"리샘열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Flying"},"desc":"포켓몬에게 지니게 하면 모든 상태 이상을 회복한다.","descLong":"Holder cures itself if it has a non-volatile status or is confused. Single use."},{"id":"magnet","name":"Magnet","koName":"자석","flingBp":30,"typeBoostType":"Electric","desc":"강력한 자석. 지니게 하면 전기타입 기술의 위력이 올라간다.","descLong":"Holder's Electric-type attacks have 1.2x power."},{"id":"manectite","name":"Manectite","koName":"썬더볼트나이트","ms":{"Manectric":"Manectric-Mega"},"itemUser":["Manectric"],"desc":"썬더볼트에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Manectric, this item allows it to Mega Evolve in battle."},{"id":"medichamite","name":"Medichamite","koName":"요가램나이트","ms":{"Medicham":"Medicham-Mega"},"itemUser":["Medicham"],"desc":"요가램에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Medicham, this item allows it to Mega Evolve in battle."},{"id":"meganiumite","name":"Meganiumite","koName":"메가니움나이트","ms":{"Meganium":"Meganium-Mega"},"itemUser":["Meganium"],"desc":"메가니움에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Meganium, this item allows it to Mega Evolve in battle."},{"id":"mentalherb","name":"Mental Herb","koName":"멘탈허브","flingBp":10,"desc":"지니게 한 포켓몬은 헤롱헤롱 상태가 되었을 때 한 번만 회복한다.","descLong":"Cures holder of Attract, Disable, Encore, Heal Block, Taunt, Torment. Single use."},{"id":"meowsticite","name":"Meowsticite","koName":"냐오닉스나이트","ms":{"Meowstic":"Meowstic-M-Mega","Meowstic-F":"Meowstic-F-Mega"},"itemUser":["Meowstic","Meowstic-F"],"desc":"냐오닉스에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Meowstic, this item allows it to Mega Evolve in battle."},{"id":"metalcoat","name":"Metal Coat","koName":"금속코트","flingBp":30,"typeBoostType":"Steel","desc":"특수한 금속 장막. 지니게 하면 강철타입 기술의 위력이 올라간다.","descLong":"Holder's Steel-type attacks have 1.2x power. Evolves Onix into Steelix and Scyther into Scizor when traded."},{"id":"miracleseed","name":"Miracle Seed","koName":"기적의씨","flingBp":30,"typeBoostType":"Grass","desc":"생명이 깃든 씨앗. 지니게 하면 풀타입 기술의 위력이 올라간다.","descLong":"Holder's Grass-type attacks have 1.2x power."},{"id":"mysticwater","name":"Mystic Water","koName":"신비의물방울","flingBp":30,"typeBoostType":"Water","desc":"물방울 모양의 보석. 지니게 하면 물타입 기술의 위력이 올라간다.","descLong":"Holder's Water-type attacks have 1.2x power."},{"id":"nevermeltice","name":"Never-Melt Ice","koName":"녹지않는얼음","flingBp":30,"typeBoostType":"Ice","desc":"열을 가까이하지 않게 하는 얼음. 지니게 하면 얼음타입 기술의 위력이 올라간다.","descLong":"Holder's Ice-type attacks have 1.2x power."},{"id":"occaberry","name":"Occa Berry","koName":"오카열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Fire"},"resistBerryType":"Fire","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 불꽃 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Fire-type attack. Single use."},{"id":"oranberry","name":"Oran Berry","koName":"오랭열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Poison"},"desc":"포켓몬에게 지니게 하면 HP를 10만큼 회복한다.","descLong":"Restores 10 HP when at 1/2 max HP or less. Single use."},{"id":"passhoberry","name":"Passho Berry","koName":"꼬시개열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Water"},"resistBerryType":"Water","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 물 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Water-type attack. Single use."},{"id":"payapaberry","name":"Payapa Berry","koName":"야파열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Psychic"},"resistBerryType":"Psychic","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 에스퍼 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Psychic-type attack. Single use."},{"id":"pechaberry","name":"Pecha Berry","koName":"복슝열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Electric"},"desc":"포켓몬에게 지니게 하면 독을 회복한다.","descLong":"Holder is cured if it is poisoned. Single use."},{"id":"persimberry","name":"Persim Berry","koName":"시몬열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Ground"},"desc":"포켓몬에게 지니게 하면 혼란을 회복한다.","descLong":"Holder is cured if it is confused. Single use."},{"id":"pidgeotite","name":"Pidgeotite","koName":"피죤투나이트","ms":{"Pidgeot":"Pidgeot-Mega"},"itemUser":["Pidgeot"],"desc":"피죤투에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Pidgeot, this item allows it to Mega Evolve in battle."},{"id":"pinsirite","name":"Pinsirite","koName":"쁘사이저나이트","ms":{"Pinsir":"Pinsir-Mega"},"itemUser":["Pinsir"],"desc":"쁘사이저에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Pinsir, this item allows it to Mega Evolve in battle."},{"id":"poisonbarb","name":"Poison Barb","koName":"독바늘","flingBp":70,"typeBoostType":"Poison","desc":"독이 있는 작은 침. 지니게 하면 독타입 기술의 위력이 올라간다.","descLong":"Holder's Poison-type attacks have 1.2x power."},{"id":"quickclaw","name":"Quick Claw","koName":"선제공격손톱","flingBp":80,"desc":"가볍고 날카로운 손톱. 지니게 하면 상대보다 먼저 행동할 수도 있다.","descLong":"Each turn, holder has a 20% chance to move first in its priority bracket."},{"id":"rawstberry","name":"Rawst Berry","koName":"복분열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Grass"},"desc":"포켓몬에게 지니게 하면 화상을 회복한다.","descLong":"Holder is cured if it is burned. Single use."},{"id":"rindoberry","name":"Rindo Berry","koName":"린드열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Grass"},"resistBerryType":"Grass","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 풀 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Grass-type attack. Single use."},{"id":"roseliberry","name":"Roseli Berry","koName":"로셀열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Fairy"},"resistBerryType":"Fairy","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 페어리 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Fairy-type attack. Single use."},{"id":"sablenite","name":"Sablenite","koName":"깜까미나이트","ms":{"Sableye":"Sableye-Mega"},"itemUser":["Sableye"],"desc":"깜까미에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Sableye, this item allows it to Mega Evolve in battle."},{"id":"scizorite","name":"Scizorite","koName":"핫삼나이트","ms":{"Scizor":"Scizor-Mega"},"itemUser":["Scizor"],"desc":"핫삼에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Scizor, this item allows it to Mega Evolve in battle."},{"id":"scopelens","name":"Scope Lens","koName":"초점렌즈","flingBp":30,"desc":"약점이 보이는 렌즈. 지니게 한 포켓몬의 기술이 급소에 맞기 쉬워진다.","descLong":"Holder's critical hit ratio is raised by 1 stage."},{"id":"scovillainite","name":"Scovillainite","koName":"스코빌런나이트","ms":{"Scovillain":"Scovillain-Mega"},"itemUser":["Scovillain"],"desc":"스코빌런에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Scovillain, this item allows it to Mega Evolve in battle."},{"id":"sharpbeak","name":"Sharp Beak","koName":"예리한부리","flingBp":50,"typeBoostType":"Flying","desc":"길고 뾰족한 부리. 지니게 하면 비행타입 기술의 위력이 올라간다.","descLong":"Holder's Flying-type attacks have 1.2x power."},{"id":"sharpedonite","name":"Sharpedonite","koName":"샤크니아나이트","ms":{"Sharpedo":"Sharpedo-Mega"},"itemUser":["Sharpedo"],"desc":"샤크니아에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Sharpedo, this item allows it to Mega Evolve in battle."},{"id":"shellbell","name":"Shell Bell","koName":"조개껍질방울","flingBp":30,"desc":"지니게 한 포켓몬이 공격하여 상대에게 데미지를 줬을 때 HP를 조금 회복할 수 있다.","descLong":"After an attack, holder gains 1/8 of the damage in HP dealt to other Pokemon."},{"id":"shucaberry","name":"Shuca Berry","koName":"슈캐열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Ground"},"resistBerryType":"Ground","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 땅 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Ground-type attack. Single use."},{"id":"silkscarf","name":"Silk Scarf","koName":"실크스카프","flingBp":10,"typeBoostType":"Normal","desc":"감촉이 좋은 스카프. 지니게 하면 노말타입 기술의 위력이 올라간다.","descLong":"Holder's Normal-type attacks have 1.2x power."},{"id":"silverpowder","name":"Silver Powder","koName":"은빛가루","flingBp":10,"typeBoostType":"Bug","desc":"은색으로 반짝이는 가루. 지니게 하면 벌레타입 기술의 위력이 올라간다.","descLong":"Holder's Bug-type attacks have 1.2x power."},{"id":"sitrusberry","name":"Sitrus Berry","koName":"자뭉열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Psychic"},"hpRecovery":{"kind":"sitrus","trigger":"halfHp","fraction":[1,4]},"desc":"포켓몬에게 지니게 하면 HP를 조금 회복한다.","descLong":"Restores 1/4 max HP when at 1/2 max HP or less. Single use."},{"id":"skarmorite","name":"Skarmorite","koName":"무장조나이트","ms":{"Skarmory":"Skarmory-Mega"},"itemUser":["Skarmory"],"desc":"무장조에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Skarmory, this item allows it to Mega Evolve in battle."},{"id":"slowbronite","name":"Slowbronite","koName":"야도란나이트","ms":{"Slowbro":"Slowbro-Mega"},"itemUser":["Slowbro"],"desc":"야도란에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Slowbro (not Galarian Slowbro), this item allows it to Mega Evolve."},{"id":"softsand","name":"Soft Sand","koName":"부드러운모래","flingBp":10,"typeBoostType":"Ground","desc":"만지면 보슬보슬한 모래. 지니게 하면 땅타입 기술의 위력이 올라간다.","descLong":"Holder's Ground-type attacks have 1.2x power."},{"id":"spelltag","name":"Spell Tag","koName":"저주의부적","flingBp":30,"typeBoostType":"Ghost","desc":"괴상하고 으스스한 부적. 지니게 하면 고스트타입 기술의 위력이 올라간다.","descLong":"Holder's Ghost-type attacks have 1.2x power."},{"id":"starminite","name":"Starminite","koName":"아쿠스타나이트","ms":{"Starmie":"Starmie-Mega"},"itemUser":["Starmie"],"desc":"아쿠스타에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Starmie, this item allows it to Mega Evolve in battle."},{"id":"steelixite","name":"Steelixite","koName":"강철톤나이트","ms":{"Steelix":"Steelix-Mega"},"itemUser":["Steelix"],"desc":"강철톤에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Steelix, this item allows it to Mega Evolve in battle."},{"id":"tangaberry","name":"Tanga Berry","koName":"리체열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Bug"},"resistBerryType":"Bug","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 벌레 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Bug-type attack. Single use."},{"id":"twistedspoon","name":"Twisted Spoon","koName":"휘어진스푼","flingBp":30,"typeBoostType":"Psychic","desc":"염동력을 담은 숟가락. 지니게 하면 에스퍼타입 기술의 위력이 올라간다.","descLong":"Holder's Psychic-type attacks have 1.2x power."},{"id":"tyranitarite","name":"Tyranitarite","koName":"마기라스나이트","ms":{"Tyranitar":"Tyranitar-Mega"},"itemUser":["Tyranitar"],"desc":"마기라스에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Tyranitar, this item allows it to Mega Evolve in battle."},{"id":"venusaurite","name":"Venusaurite","koName":"이상해꽃나이트","ms":{"Venusaur":"Venusaur-Mega"},"itemUser":["Venusaur"],"desc":"이상해꽃에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Venusaur, this item allows it to Mega Evolve in battle."},{"id":"victreebelite","name":"Victreebelite","koName":"우츠보트나이트","ms":{"Victreebel":"Victreebel-Mega"},"itemUser":["Victreebel"],"desc":"우츠보트에게 지니게 하면 배틀할 때 메가진화할 수 있는 신비한 메가스톤의 일종.","descLong":"If held by a Victreebel, this item allows it to Mega Evolve in battle."},{"id":"wacanberry","name":"Wacan Berry","koName":"초나열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Electric"},"resistBerryType":"Electric","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 전기 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Electric-type attack. Single use."},{"id":"whiteherb","name":"White Herb","koName":"하양허브","flingBp":10,"desc":"지니게 한 포켓몬의 능력이 떨어졌을 때 한 번만 원래 상태로 돌아온다.","descLong":"Restores all lowered stat stages to 0 when one is less than 0. Single use."},{"id":"yacheberry","name":"Yache Berry","koName":"플카열매","isBerry":true,"naturalGift":{"basePower":80,"type":"Ice"},"resistBerryType":"Ice","desc":"포켓몬에게 지니게 하면 효과가 뛰어난 얼음 기술을 당했을 때 위력이 약해진다.","descLong":"Halves damage taken from a supereffective Ice-type attack. Single use."}]</script>
 <script id="data-natures" type="application/json">[{"id":"adamant","name":"Adamant","plus":"atk","minus":"spa"},{"id":"bashful","name":"Bashful"},{"id":"bold","name":"Bold","plus":"def","minus":"atk"},{"id":"brave","name":"Brave","plus":"atk","minus":"spe"},{"id":"calm","name":"Calm","plus":"spd","minus":"atk"},{"id":"careful","name":"Careful","plus":"spd","minus":"spa"},{"id":"docile","name":"Docile"},{"id":"gentle","name":"Gentle","plus":"spd","minus":"def"},{"id":"hardy","name":"Hardy"},{"id":"hasty","name":"Hasty","plus":"spe","minus":"def"},{"id":"impish","name":"Impish","plus":"def","minus":"spa"},{"id":"jolly","name":"Jolly","plus":"spe","minus":"spa"},{"id":"lax","name":"Lax","plus":"def","minus":"spd"},{"id":"lonely","name":"Lonely","plus":"atk","minus":"def"},{"id":"mild","name":"Mild","plus":"spa","minus":"def"},{"id":"modest","name":"Modest","plus":"spa","minus":"atk"},{"id":"naive","name":"Naive","plus":"spe","minus":"spd"},{"id":"naughty","name":"Naughty","plus":"atk","minus":"spd"},{"id":"quiet","name":"Quiet","plus":"spa","minus":"spe"},{"id":"quirky","name":"Quirky"},{"id":"rash","name":"Rash","plus":"spa","minus":"spd"},{"id":"relaxed","name":"Relaxed","plus":"def","minus":"spe"},{"id":"sassy","name":"Sassy","plus":"spd","minus":"spe"},{"id":"serious","name":"Serious"},{"id":"timid","name":"Timid","plus":"spe","minus":"atk"}]</script>
 <script id="data-typechart" type="application/json">{"Fighting":{"Bug":0.5,"Dark":2,"Fairy":0.5,"Flying":0.5,"Ghost":0,"Ice":2,"Normal":2,"Poison":0.5,"Psychic":0.5,"Rock":2,"Steel":2},"Fire":{"Bug":2,"Dragon":0.5,"Fire":0.5,"Grass":2,"Ice":2,"Rock":0.5,"Steel":2,"Water":0.5},"Flying":{"Bug":2,"Electric":0.5,"Fighting":2,"Grass":2,"Rock":0.5,"Steel":0.5},"Grass":{"Bug":0.5,"Dragon":0.5,"Fire":0.5,"Flying":0.5,"Grass":0.5,"Ground":2,"Poison":0.5,"Rock":2,"Steel":0.5,"Water":2},"Ground":{"Bug":0.5,"Electric":2,"Fire":2,"Flying":0,"Grass":0.5,"Poison":2,"Rock":2,"Steel":2},"Rock":{"Bug":2,"Fighting":0.5,"Fire":2,"Flying":2,"Ground":0.5,"Ice":2,"Steel":0.5},"Bug":{"Dark":2,"Fairy":0.5,"Fighting":0.5,"Fire":0.5,"Flying":0.5,"Ghost":0.5,"Grass":2,"Poison":0.5,"Psychic":2,"Steel":0.5},"Dark":{"Dark":0.5,"Fairy":0.5,"Fighting":0.5,"Ghost":2,"Psychic":2},"Fairy":{"Dark":2,"Dragon":2,"Fighting":2,"Fire":0.5,"Poison":0.5,"Steel":0.5},"Ghost":{"Dark":0.5,"Ghost":2,"Normal":0,"Psychic":2},"Psychic":{"Dark":0,"Fighting":2,"Poison":2,"Psychic":0.5,"Steel":0.5},"Dragon":{"Dragon":2,"Fairy":0,"Steel":0.5},"Electric":{"Dragon":0.5,"Electric":0.5,"Flying":2,"Grass":0.5,"Ground":0,"Water":2},"Ice":{"Dragon":2,"Fire":0.5,"Flying":2,"Grass":2,"Ground":2,"Ice":0.5,"Steel":0.5,"Water":0.5},"Water":{"Dragon":0.5,"Fire":2,"Grass":0.5,"Ground":2,"Rock":2,"Water":0.5},"Steel":{"Electric":0.5,"Fairy":2,"Fire":0.5,"Ice":2,"Rock":2,"Steel":0.5,"Water":0.5},"Poison":{"Fairy":2,"Ghost":0.5,"Grass":2,"Ground":0.5,"Poison":0.5,"Rock":0.5,"Steel":0},"Normal":{"Ghost":0,"Rock":0.5,"Steel":0.5},"Stellar":{}}</script>
-<script id="data-rules" type="application/json">{"level":50,"statHpAdd":75,"statOtherAdd":20,"pccap":20,"multihitDistribution25":[2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,5,5,5],"spreadModifierDoubles":0.75,"spreadModifierFreeForAll":0.5,"parChance":0.125,"teraDisabled":true}</script>
+<script id="data-rules" type="application/json">{"level":50,"statHpAdd":75,"statOtherAdd":20,"pccap":20,"multihitDistribution25":[2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,5,5,5],"spreadModifierDoubles":0.75,"spreadModifierFreeForAll":0.5,"parChance":0.125,"teraDisabled":true,"fieldMechanics":{"bpMods":[{"terrain":"Electric","types":["Electric"],"attackerGrounded":true,"mod":"x1_3","label":"일렉트릭필드×1.3"},{"terrain":"Grassy","types":["Grass"],"attackerGrounded":true,"mod":"x1_3","label":"그래스필드×1.3"},{"terrain":"Psychic","types":["Psychic"],"attackerGrounded":true,"mod":"x1_3","label":"사이코필드×1.3"},{"terrain":"Misty","types":["Dragon"],"defenderGrounded":true,"mod":"x0_5","label":"미스트필드 드래곤×0.5"},{"terrain":"Grassy","moveFlag":"weakenedByGrassyTerrain","mod":"x0_5","label":"그래스필드 지진×0.5"},{"field":"atkHelpingHand","mod":"x1_5","label":"도우미×1.5"}],"weatherDamageMods":[{"weather":["Sun","Harsh Sunshine"],"types":["Fire"],"mod":"x1_5","label":"쾌청 불꽃×1.5"},{"weather":["Rain","Heavy Rain"],"types":["Water"],"mod":"x1_5","label":"비 물×1.5"},{"weather":["Sun"],"types":["Water"],"mod":"x0_5","skipWhen":"ignoresWeatherDamagePenalty","label":"쾌청 물×0.5"},{"weather":["Rain"],"types":["Fire"],"mod":"x0_5","skipWhen":"ignoresWeatherDamagePenalty","label":"비 불꽃×0.5"},{"weather":["Harsh Sunshine"],"types":["Water"],"nullDamage":true,"label":"대쾌청: 물 기술 무효"},{"weather":["Heavy Rain"],"types":["Fire"],"nullDamage":true,"label":"강한비: 불꽃 기술 무효"}],"screenFinalMods":[{"field":"defReflect","category":"Physical","singlesMod":"x0_5","doublesMod":2732,"label":"리플렉터×0.5"},{"field":"defLightScreen","category":"Special","singlesMod":"x0_5","doublesMod":2732,"label":"빛의장막×0.5"}],"protect":{"field":"defProtect","blockedLabel":"방어/막아내기로 차단","bypassLabel":"방어 관통"}}}</script>
 
 <script>
 "use strict";
@@ -2801,6 +2930,79 @@ function mechanicMod(key) {
   return MECHANIC_MODS[key] || 4096;
 }
 
+function formatCalcMultiplier(mod) {
+  const value = typeof mod === 'number' && Math.abs(mod) > 16 ? mod / 4096 : Number(mod);
+  if (!Number.isFinite(value)) return '';
+  const rounded = (Math.round(value * 100) / 100)
+    .toFixed(2)
+    .replace(/\.?0+$/, '');
+  return `×${rounded}`;
+}
+
+function formatModLabel(name, mod, detail = '') {
+  const prefix = name || '보정';
+  return `${prefix}${formatCalcMultiplier(mod)}${detail ? ` (${detail})` : ''}`;
+}
+
+function displayName(data, fallback = '') {
+  return data?.koName || data?.name || fallback || '';
+}
+
+function displayType(type) {
+  return TYPE_KO[type] || type || '';
+}
+
+function normalizeParadoxItemState(value) {
+  return ['auto', 'active', 'inactive'].includes(value) ? value : 'auto';
+}
+
+function sideParadoxItemActive(side, itemData) {
+  const mode = normalizeParadoxItemState(side?.boosterEnergyState);
+  if (mode === 'active') return true;
+  if (mode === 'inactive') return false;
+  return !!itemData?.paradoxActivation;
+}
+
+function asArray(value) {
+  if (Array.isArray(value)) return value;
+  return value === undefined || value === null ? [] : [value];
+}
+
+function fieldMechanics() {
+  return RULES.fieldMechanics || {};
+}
+
+function moveHasRuleFlag(move, flag) {
+  if (!flag) return true;
+  return !!move?.[flag] || !!move?.flags?.[flag];
+}
+
+function fieldRuleApplies(rule, ctx) {
+  if (!rule) return false;
+  if (rule.field && !ctx.field?.[rule.field]) return false;
+  if (rule.weather && !asArray(rule.weather).includes(ctx.damageWeather ?? ctx.weather)) return false;
+  if (rule.terrain && ctx.field?.terrain !== rule.terrain) return false;
+  if (rule.types && !rule.types.includes(ctx.moveType)) return false;
+  if (rule.category && rule.category !== ctx.category) return false;
+  if (rule.moveFlag && !moveHasRuleFlag(ctx.move, rule.moveFlag)) return false;
+  if (rule.attackerGrounded && !isGrounded(ctx.atkSide, ctx.field, ctx.atkAb, ctx.atkItem)) return false;
+  if (rule.defenderGrounded && !isGrounded(ctx.defSide, ctx.field, ctx.defAb, ctx.defItem)) return false;
+  if (rule.skipWhen && ctx[rule.skipWhen]) return false;
+  return true;
+}
+
+function applyFieldRuleMods(rules, ctx, outMods) {
+  for (const rule of rules || []) {
+    if (!fieldRuleApplies(rule, ctx)) continue;
+    outMods.push(mechanicMod(rule.mod));
+    if (rule.label) ctx.mods.push(rule.label);
+  }
+}
+
+function firstMatchingFieldRule(rules, ctx) {
+  return (rules || []).find(rule => fieldRuleApplies(rule, ctx)) || null;
+}
+
 function pokemonMatchesCondition(pokemon, condition) {
   if (!condition) return false;
   if (!condition.pokemon && !condition.baseSpecies) return true;
@@ -2833,6 +3035,37 @@ function statusMatches(rule, status) {
   return false;
 }
 
+function sideHpPct(side) {
+  const n = Number(side?.hpPct);
+  if (!Number.isFinite(n)) return 1;
+  const raw = n > 1 ? n / 100 : n;
+  return Math.max(0.01, Math.min(1, raw));
+}
+
+function sideCurrentHp(maxHp, side) {
+  return Math.max(1, Math.floor(maxHp * sideHpPct(side)));
+}
+
+function sideIsFullHp(side) {
+  if (side?.fullHP !== undefined) return !!side.fullHP;
+  return sideHpPct(side) >= 1;
+}
+
+function sideIsPinch(side) {
+  if (side?.pinch !== undefined) return !!side.pinch;
+  return sideHpPct(side) <= (1 / 3);
+}
+
+function battleMaxFallenAllies(field) {
+  return field?.gameType === 'Doubles' ? 3 : 2;
+}
+
+function battleFallenAllies(side, field) {
+  const n = Math.floor(Number(side?.fallenAllies || 0));
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(battleMaxFallenAllies(field), n));
+}
+
 function abilityRuleApplies(rule, ctx) {
   if (!rule) return false;
   const { move, field, bp, moveType, weather, effectiveness, isCritical } = ctx;
@@ -2850,10 +3083,10 @@ function abilityRuleApplies(rule, ctx) {
   if (rule.movesSecond && !field.atkMovesSecond) return false;
   if (rule.secondary && !move.sec) return false;
   if (rule.recoilOrCrash && !(move.recoil || move.hasCrashDamage)) return false;
-  if (rule.pinch && !ctx.atkSide?.pinch && !ctx.defSide?.pinch) return false;
+  if (rule.pinch && !sideIsPinch(ctx.atkSide)) return false;
   if (rule.flashFireActive && !ctx.atkSide?.flashFireActive) return false;
   if (rule.unburdenActive && !ctx.atkSide?.unburdenActive) return false;
-  if (rule.fullHP && !ctx.defSide?.fullHP) return false;
+  if (rule.fullHP && !sideIsFullHp(ctx.defSide)) return false;
   if (rule.critical && !isCritical) return false;
   if (rule.effectiveness === 'superEffective' && !(effectiveness > 1)) return false;
   if (rule.effectiveness === 'resisted' && !(effectiveness < 1)) return false;
@@ -2863,14 +3096,15 @@ function abilityRuleApplies(rule, ctx) {
 function applyAbilityRuleMods(rules, ctx, outMods, label) {
   for (const rule of rules || []) {
     if (!abilityRuleApplies(rule, ctx)) continue;
-    outMods.push(mechanicMod(rule.mod));
-    ctx.mods.push(`${label}×${mechanicMod(rule.mod) / 4096}`);
+    const mod = mechanicMod(rule.mod);
+    outMods.push(mod);
+    ctx.mods.push(formatModLabel(label, mod));
   }
 }
 
 function damageBlockApplies(block, pokemon, side, move, isPhysical) {
   if (!block) return false;
-  if (block.fullHP && !side.fullHP) return false;
+  if (block.fullHP && !sideIsFullHp(side)) return false;
   if (block.nonStatus && move.cat === 'Status') return false;
   if (block.category && block.category !== (isPhysical ? 'Physical' : 'Special')) return false;
   return pokemonMatchesCondition(pokemon, block);
@@ -2893,8 +3127,8 @@ function attackerBlocksBerries(atkAb) {
 }
 
 function fixedDamageAmount(move, atkSide, defSide, atkStats, defStats, defAbilityData) {
-  const atkHp = Math.max(1, Math.floor(atkStats.hp * (atkSide.hpPct ?? 1)));
-  const defHp = Math.max(1, Math.floor(defStats.hp * (defSide.hpPct ?? 1)));
+  const atkHp = sideCurrentHp(atkStats.hp, atkSide);
+  const defHp = sideCurrentHp(defStats.hp, defSide);
 
   if (move.damage === 'level') return RULES.level || 50;
   if (typeof move.damage === 'number') return move.damage;
@@ -2994,12 +3228,12 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     }
     case 'userHp150': {
       // 150 × HP / maxHP. 기본 가정: 풀피
-      const hp = atkSide.hpPct ?? 1.0;
+      const hp = sideHpPct(atkSide);
       return Math.max(1, Math.floor(150 * hp));
     }
     case 'lowHpFlail': {
       // 48분의 X 단위 비례
-      const hp = atkSide.hpPct ?? 1.0;
+      const hp = sideHpPct(atkSide);
       const p = Math.floor(hp * 48);
       if (p < 2) return 200;
       if (p < 5) return 150;
@@ -3010,7 +3244,7 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     }
     case 'targetHp100': {
       // 1 + floor(99 × targetHP / maxHP). 풀피 기본: 100
-      const hp = defSide.hpPct ?? 1.0;
+      const hp = sideHpPct(defSide);
       return Math.max(1, 1 + Math.floor(99 * hp));
     }
     case 'targetStatusDouble': {
@@ -3097,7 +3331,7 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
       return 20 + 20 * total;
     }
     case 'fallenAllies': {
-      const fa = atkSide.fallenAllies || 0;
+      const fa = battleFallenAllies(atkSide, field);
       return Math.min(350, 50 + 50 * fa);
     }
     case 'lastMoveFailedDouble':
@@ -3213,7 +3447,7 @@ function resolveDamagePreludeStage(ctx) {
       moveType: move.type, category: move.cat,
       bp: move.bp, atk: 0, def: 0,
       defHP: defStats.hp,
-      mods: [`${defAbilityData.koName || defAbilityData.name} blocked`]
+      mods: [`${displayName(defAbilityData)} 차단`]
     });
   }
 
@@ -3230,7 +3464,7 @@ function resolveDamagePreludeStage(ctx) {
     else if (wt === 'Rain' || wt === 'Heavy Rain') moveType = 'Water';
     else if (wt === 'Sand') moveType = 'Rock';
     else if (wt === 'Snow') moveType = 'Ice';
-    if (wt && wt !== 'none') mods.push(`웨더볼 → ${moveType}`);
+    if (wt && wt !== 'none') mods.push(`웨더볼 → ${displayType(moveType)}`);
   }
   // Terrain Pulse: 필드에 따라 타입 변경 (그라운드 시)
   if (move.typeChangeKind === 'terrainPulse') {
@@ -3240,7 +3474,7 @@ function resolveDamagePreludeStage(ctx) {
       else if (field.terrain === 'Grassy') moveType = 'Grass';
       else if (field.terrain === 'Misty') moveType = 'Fairy';
       else if (field.terrain === 'Psychic') moveType = 'Psychic';
-      if (field.terrain && field.terrain !== 'none') mods.push(`테레인펄스 → ${moveType}`);
+      if (field.terrain && field.terrain !== 'none') mods.push(`테레인펄스 → ${displayType(moveType)}`);
     }
   }
 
@@ -3284,9 +3518,9 @@ function resolveDamagePreludeStage(ctx) {
   let isCritical = !!field.isCritical || (criticalOnStatus === 'poison' && isPoisonStatus(defSide.status));
   if (isCritical && defAbilityData?.blocksCritical) {
     isCritical = false;
-    mods.push('critical blocked');
+    mods.push('급소 차단');
   } else if (criticalOnStatus === 'poison' && isPoisonStatus(defSide.status)) {
-    mods.push(`${atkAbilityData.koName || atkAbilityData.name} critical`);
+    mods.push(`${displayName(atkAbilityData)} 급소`);
   }
 
   // ─ 타입 상성 먼저 계산 (0배면 조기 종료) ─
@@ -3333,13 +3567,13 @@ function calculateBasePowerStage(ctx) {
       moveType, category,
       bp, atk: 0, def: 0,
       defHP: defStats.hp,
-      mods: [`${defAbilityData.koName || defAbilityData.name} blocked`]
+      mods: [`${displayName(defAbilityData)} 차단`]
     });
   }
 
   const fixedDamage = fixedDamageAmount(move, atkSide, defSide, atkStats, defStats, defAbilityData);
   if (fixedDamage !== null) {
-    return finishDamageStage(fixedDamageResult(fixedDamage, move, moveType, category, defStats, ['fixed damage']));
+    return finishDamageStage(fixedDamageResult(fixedDamage, move, moveType, category, defStats, ['고정 대미지']));
   }
   if (bp === 0) return finishDamageStage(null);
 
@@ -3353,14 +3587,16 @@ function calculateBasePowerStage(ctx) {
     const aura = abilityData?.aura;
     if (!aura || aura.type !== moveType) continue;
     const mod = auraBreakActive ? aura.reversedMod : aura.mod;
-    bpMods.push(mechanicMod(mod));
-    mods.push(`${abilityData.koName || abilityData.name}×${mechanicMod(mod) / 4096}`);
+    const auraMod = mechanicMod(mod);
+    bpMods.push(auraMod);
+    mods.push(formatModLabel(displayName(abilityData), auraMod));
   }
 
-  if (atkAbilityData?.supremeOverlord && atkSide.fallenAllies) {
-    const mod = 4096 + Math.min(5, atkSide.fallenAllies) * 410;  // 1.1~1.5×
+  const fallenAllies = battleFallenAllies(atkSide, field);
+  if (atkAbilityData?.supremeOverlord && fallenAllies) {
+    const mod = 4096 + fallenAllies * 410;  // Champions: 63 singles max 2, 64 doubles max 3
     bpMods.push(mod);
-    mods.push(`총대장 (동료 ${atkSide.fallenAllies}명 쓰러짐 ×${(mod/4096).toFixed(2)})`);
+    mods.push(`총대장 ${formatCalcMultiplier(mod)} (쓰러진 아군 ${fallenAllies})`);
   }
 
   // 재앙 효과는 Atk/Def 스탯 단계에서 처리됨 (아래 STAGE 2/3 참조)
@@ -3373,7 +3609,7 @@ function calculateBasePowerStage(ctx) {
   if (atkItemData) {
     if (atkItemData.typeBoostType === moveType) {
       bpMods.push(MOD.x1_2);
-      mods.push(`${atkItemData.koName}×1.2`);
+      mods.push(formatModLabel(atkItemData.koName, MOD.x1_2));
     }
 
     const powerBoostKind = atkItemData.powerBoostKind;
@@ -3382,36 +3618,20 @@ function calculateBasePowerStage(ctx) {
       (powerBoostKind === 'special' && !isPhysical) ||
       (powerBoostKind === 'punch' && move.flags?.punch);
     if (powerBoostApplies) {
-      bpMods.push(mechanicMod(atkItemData.powerBoostMod));
-      mods.push(`${atkItemData.koName}×1.1`);
+      const mod = mechanicMod(atkItemData.powerBoostMod);
+      bpMods.push(mod);
+      mods.push(formatModLabel(atkItemData.koName, mod));
     }
 
     const speciesTypeBoost = atkItemData.speciesTypeBoost;
     if (speciesTypeBoost && pokemonMatchesCondition(atkP, speciesTypeBoost) && speciesTypeBoost.types?.includes(moveType)) {
-      bpMods.push(mechanicMod(speciesTypeBoost.mod));
-      mods.push(`${atkItemData.koName}×1.2`);
+      const mod = mechanicMod(speciesTypeBoost.mod);
+      bpMods.push(mod);
+      mods.push(formatModLabel(atkItemData.koName, mod));
     }
   }
 
-  // Field BP modifiers
-  if (field.terrain === 'Electric' && moveType === 'Electric' && isGrounded(atkSide, field, atkAb, atkItem)) {
-    bpMods.push(MOD.x1_3); mods.push('일렉트릭필드×1.3');
-  }
-  if (field.terrain === 'Grassy' && moveType === 'Grass' && isGrounded(atkSide, field, atkAb, atkItem)) {
-    bpMods.push(MOD.x1_3); mods.push('그래스필드×1.3');
-  }
-  if (field.terrain === 'Psychic' && moveType === 'Psychic' && isGrounded(atkSide, field, atkAb, atkItem)) {
-    bpMods.push(MOD.x1_3); mods.push('사이코필드×1.3');
-  }
-  if (field.terrain === 'Misty' && moveType === 'Dragon' && isGrounded(defSide, field, defAb, defItem)) {
-    bpMods.push(MOD.x0_5); mods.push('미스트필드 드래곤×0.5');
-  }
-  if (field.terrain === 'Grassy' && move.weakenedByGrassyTerrain) {
-    bpMods.push(MOD.x0_5); mods.push('그래스필드 지진×0.5');
-  }
-
-  // 도우미 (Helping Hand)
-  if (field.atkHelpingHand) { bpMods.push(MOD.x1_5); mods.push('도우미×1.5'); }
+  applyFieldRuleMods(fieldMechanics().bpMods, ctx, bpMods);
 
   // 응용: 챔피언스 신규 메가 특성 "메가솔라" — 항상 쾌청 효과로 간주
   // 이건 실제 날씨를 세팅하지 않으므로 BP 단계에서 불꽃 ×1.5 추가하지 않고 Weather에서 처리
@@ -3452,16 +3672,17 @@ function calculateAttackStage(ctx) {
 
   // 고대활성 / 쿼크차지: 쾌청-or-부에가 / 일렉트릭-or-부에가 발동 시 최고 스탯 ×1.3 (HP는 ×1.5)
   // 어떤 스탯이 부스트 받는지 결정: 가장 높은 실수치 스탯
-  const atkParadoxBoost = activeParadoxBoost(atkAbilityData, field, weather, ctx.atkItemData);
+  const atkParadoxBoost = activeParadoxBoost(atkAbilityData, field, weather, ctx.atkItemData, atkSide);
 
   if (atkParadoxBoost) {
     // 가장 높은 base+EV+nature 스탯 결정 (HP 제외)
     const boostStat = highestBattleStat(atkStats);
 
     if ((isPhysical && boostStat === 'atk') || (!isPhysical && boostStat === 'spa')) {
-      atkMods.push(mechanicMod(atkParadoxBoost.mod));
+      const mod = mechanicMod(atkParadoxBoost.mod);
+      atkMods.push(mod);
       const name = atkAbilityData?.koName || atkAbilityData?.name || atkAb;
-      mods.push(`${name}×${mechanicMod(atkParadoxBoost.mod) / 4096} (${STAT_LABEL[boostStat]})`);
+      mods.push(formatModLabel(name, mod, STAT_LABEL[boostStat]));
     }
   }
 
@@ -3485,8 +3706,9 @@ function calculateAttackStage(ctx) {
   if (ctx.atkItemData?.attackStatBoost) {
     const statBoost = ctx.atkItemData.attackStatBoost;
     if (statBoostApplies(atkP, statBoost, attackStatId)) {
-      atkMods.push(mechanicMod(statBoost.mod));
-      mods.push(`${ctx.atkItemData.koName}×${mechanicMod(statBoost.mod) / 4096}`);
+      const mod = mechanicMod(statBoost.mod);
+      atkMods.push(mod);
+      mods.push(formatModLabel(ctx.atkItemData.koName, mod));
     }
   }
 
@@ -3498,12 +3720,12 @@ function calculateAttackStage(ctx) {
   return null;
 }
 
-function activeParadoxBoost(abilityData, field, weather, itemData) {
+function activeParadoxBoost(abilityData, field, weather, itemData, side) {
   const boost = abilityData?.paradoxBoost;
   if (!boost) return null;
   const weatherMatches = boost.weather && asArray(boost.weather).includes(weather);
   const terrainMatches = boost.terrain && field.terrain === boost.terrain;
-  const itemMatches = boost.itemActivation && itemData?.paradoxActivation;
+  const itemMatches = boost.itemActivation && sideParadoxItemActive(side, itemData);
   return (weatherMatches || terrainMatches || itemMatches) ? boost : null;
 }
 
@@ -3558,13 +3780,14 @@ function calculateDefenseStage(ctx) {
   }, defMods, defAbilityData?.koName || defAbilityData?.name || defAb);
 
   // 고대활성/쿼크차지 방어 부스트 (방어/특방이 최고 스탯일 때)
-  const defParadoxBoost = activeParadoxBoost(defAbilityData, field, weather, ctx.defItemData);
+  const defParadoxBoost = activeParadoxBoost(defAbilityData, field, weather, ctx.defItemData, defSide);
   if (defParadoxBoost) {
     const boostStat = highestBattleStat(defStats);
     if ((usesDefStat && boostStat === 'def') || (!usesDefStat && boostStat === 'spd')) {
-      defMods.push(mechanicMod(defParadoxBoost.mod));
+      const mod = mechanicMod(defParadoxBoost.mod);
+      defMods.push(mod);
       const name = defAbilityData?.koName || defAbilityData?.name || defAb;
-      mods.push(`${name}(방어)×${mechanicMod(defParadoxBoost.mod) / 4096} (${STAT_LABEL[boostStat]})`);
+      mods.push(formatModLabel(`${name} 방어`, mod, STAT_LABEL[boostStat]));
     }
   }
 
@@ -3582,8 +3805,9 @@ function calculateDefenseStage(ctx) {
   if (ctx.defItemData?.defenseStatBoost) {
     const statBoost = ctx.defItemData.defenseStatBoost;
     if (statBoostApplies(defP, statBoost, defenseStatId)) {
-      defMods.push(mechanicMod(statBoost.mod));
-      mods.push(`${ctx.defItemData.koName}×${mechanicMod(statBoost.mod) / 4096}`);
+      const mod = mechanicMod(statBoost.mod);
+      defMods.push(mod);
+      mods.push(formatModLabel(ctx.defItemData.koName, mod));
     }
   }
 
@@ -3593,7 +3817,7 @@ function calculateDefenseStage(ctx) {
 
 function calculateBaseDamageStage(ctx) {
   const {
-    move, field, mods, atkAb, atkAbilityData, atkItem, defItem, weather, defStats,
+    move, field, mods, atkAb, atkAbilityData, atkItem, atkItemData, defItem, defItemData, weather, defStats,
     moveType, category, bp, atkStat, defStat, effectiveness, isCritical,
   } = ctx;
 
@@ -3622,27 +3846,36 @@ function calculateBaseDamageStage(ctx) {
   const damageWeather = atkAbilityData?.weatherDamageOverride || weather;
   const ignoresWeatherDamagePenalty = !!atkAbilityData?.ignoreWeatherDamagePenalty;
 
-  if (!ItemById[atkItem]?.ignoresWeatherDamageModifiers && !ItemById[defItem]?.ignoresWeatherDamageModifiers) {
-    if (atkAbilityData?.weatherDamageOverride === 'Sun' && moveType === 'Fire') {
-      baseDmg = pokeRound(baseDmg * 6144 / 4096);
-      const name = atkAbilityData?.koName || atkAbilityData?.name || atkAb;
-      mods.push(`${name} 불꽃×1.5`);
-    } else if ((damageWeather === 'Sun' || damageWeather === 'Harsh Sunshine') && moveType === 'Fire') {
-      baseDmg = pokeRound(baseDmg * 6144 / 4096);
-      mods.push('쾌청 불꽃×1.5');
-    } else if ((damageWeather === 'Rain' || damageWeather === 'Heavy Rain') && moveType === 'Water') {
-      baseDmg = pokeRound(baseDmg * 6144 / 4096);
-      mods.push('비 물×1.5');
-    } else if (damageWeather === 'Sun' && moveType === 'Water' && !ignoresWeatherDamagePenalty) {
-      baseDmg = pokeRound(baseDmg * 2048 / 4096);
-      mods.push('쾌청 물×0.5');
-    } else if (damageWeather === 'Rain' && moveType === 'Fire' && !ignoresWeatherDamagePenalty) {
-      baseDmg = pokeRound(baseDmg * 2048 / 4096);
-      mods.push('비 불꽃×0.5');
-    } else if (damageWeather === 'Harsh Sunshine' && moveType === 'Water') {
-      return finishDamageStage({ damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness: 0, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: ['대쾌청: 물 기술 무효'] });
-    } else if (damageWeather === 'Heavy Rain' && moveType === 'Fire') {
-      return finishDamageStage({ damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness: 0, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: ['강한비: 불꽃 기술 무효'] });
+  if (!atkItemData?.ignoresWeatherDamageModifiers && !defItemData?.ignoresWeatherDamageModifiers) {
+    const weatherRule = firstMatchingFieldRule(fieldMechanics().weatherDamageMods, {
+      ...ctx,
+      damageWeather,
+      ignoresWeatherDamagePenalty,
+    });
+
+    if (weatherRule?.nullDamage) {
+      return finishDamageStage({
+        damages: new Array(16).fill(0),
+        minPct: 0,
+        maxPct: 0,
+        effectiveness: 0,
+        moveType,
+        category,
+        bp,
+        atk: atkStat,
+        def: defStat,
+        defHP: defStats.hp,
+        mods: [weatherRule.label],
+      });
+    }
+    if (weatherRule) {
+      baseDmg = pokeRound(baseDmg * mechanicMod(weatherRule.mod) / 4096);
+      if (atkAbilityData?.weatherDamageOverride && weatherRule.types?.includes(moveType)) {
+        const name = atkAbilityData?.koName || atkAbilityData?.name || atkAb;
+        mods.push(formatModLabel(`${name} ${displayType(moveType)}`, weatherRule.mod));
+      } else {
+        mods.push(weatherRule.label);
+      }
     }
   }
 
@@ -3674,14 +3907,13 @@ function calculateFinalDamageStage(ctx) {
 
   const finalMods = [];
 
-  // Screens
-  const screenActive = (
-    (field.defReflect && isPhysical) ||
-    (field.defLightScreen && !isPhysical)
-  );
-  if (screenActive && !isCritical && !ctx.atkAbilityData?.ignoresScreens) {
-    finalMods.push(field.gameType === 'Doubles' ? 2732 : 2048);
-    mods.push(isPhysical ? '리플렉터×0.5' : '빛의장막×0.5');
+  if (!isCritical && !ctx.atkAbilityData?.ignoresScreens) {
+    for (const rule of fieldMechanics().screenFinalMods || []) {
+      if (!fieldRuleApplies(rule, ctx)) continue;
+      const mod = field.gameType === 'Doubles' ? rule.doublesMod : rule.singlesMod;
+      finalMods.push(mechanicMod(mod));
+      mods.push(rule.label);
+    }
   }
 
   applyAbilityRuleMods(ctx.defAbilityData?.defensiveFinalMods, ctx, finalMods, ctx.defAbilityData?.koName || ctx.defAbilityData?.name || defAb);
@@ -3694,8 +3926,9 @@ function calculateFinalDamageStage(ctx) {
     const boost = atkItemData.finalDamageBoost;
     const applies = boost.kind === 'always' || (boost.kind === 'superEffective' && effectiveness > 1);
     if (applies) {
-      finalMods.push(mechanicMod(boost.mod));
-      mods.push(`${atkItemData.koName}×${mechanicMod(boost.mod) / 4096}`);
+      const mod = mechanicMod(boost.mod);
+      finalMods.push(mod);
+      mods.push(formatModLabel(atkItemData.koName, mod));
     }
   }
   // Metronome item requires consecutive-move context and is intentionally omitted for one-shot damage.
@@ -3709,12 +3942,13 @@ function calculateFinalDamageStage(ctx) {
     finalMods.push(ripenMod ? mechanicMod(ripenMod) : MOD.x0_5);
     const berryName = defItemData?.koName || defItem;
     const ripenName = ctx.defAbilityData?.koName || ctx.defAbilityData?.name || defAb;
-    mods.push(`${berryName}${ripenMod ? `+${ripenName}` : ''}x${ripenMod ? mechanicMod(ripenMod) / 4096 : '0.5'}`);
+    mods.push(`${berryName}${ripenMod ? `+${ripenName}` : ''}${formatCalcMultiplier(ripenMod ? mechanicMod(ripenMod) : MOD.x0_5)}`);
   }
 
   // ─ 방어 관통 메커니즘 ─
   // 방어/막아내기는 모든 공격 차단 (단, 일부 기술은 무시)
-  if (field.defProtect) {
+  const protectRule = fieldMechanics().protect || {};
+  if (field[protectRule.field || 'defProtect']) {
     const ignoresProtect = !!move.breaksProtect;
 
     if (!ignoresProtect) {
@@ -3722,12 +3956,13 @@ function calculateFinalDamageStage(ctx) {
       // 연격의태세 (Unseen Fist): 접촉기로 방어 관통, 25% 대미지 (챔피언스 너프)
       const protectBypass = ctx.atkAbilityData?.protectBypass;
       if (protectBypass?.flag && move.flags?.[protectBypass.flag]) {
-        finalMods.push(mechanicMod(protectBypass.mod));
+        const mod = mechanicMod(protectBypass.mod);
+        finalMods.push(mod);
         const abName = ctx.atkAbilityData?.koName || ctx.atkAbilityData?.name || atkAb;
-        mods.push(`${abName} ×${mechanicMod(protectBypass.mod) / 4096} (방어 관통)`);
+        mods.push(formatModLabel(abName, mod, protectRule.bypassLabel || '방어 관통'));
       } else {
         // 일반 공격은 방어막에 막힘 → 대미지 0
-        return { damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: ['방어/막아내기로 차단'] };
+        return { damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: [protectRule.blockedLabel || '방어/막아내기로 차단'] };
       }
     }
   }
@@ -3885,12 +4120,13 @@ function hkoLabel(damages, hp, defSide, field) {
 
   // 진입 위험 (스텔스록/압정뿌리기) 데미지를 시작 HP 에서 차감
   const hazardDmg = field ? calcHazardDamage(defSide, field) : 0;
-  const startHp = Math.max(1, hp - hazardDmg);
+  const currentHp = sideCurrentHp(hp, defSide);
+  const startHp = Math.max(1, currentHp - hazardDmg);
   const hazardActive = hazardDmg > 0;
 
   // 기합의띠/옹골참은 HP 풀피일 때만 발동. 진입 위험으로 1HP 라도 깎였다면 무효.
-  const hasFocusSash = defItemData?.koSurvival === 'fullHpNoHazards' && defSide.fullHP && !hazardActive;
-  const hasSturdy = defAbilityData?.koSurvival === 'fullHpNoHazards' && defSide.fullHP && !hazardActive;
+  const hasFocusSash = defItemData?.koSurvival === 'fullHpNoHazards' && sideIsFullHp(defSide) && !hazardActive;
+  const hasSturdy = defAbilityData?.koSurvival === 'fullHpNoHazards' && sideIsFullHp(defSide) && !hazardActive;
   const survives1HKO = hasFocusSash || hasSturdy;
 
   // 1타 판정은 진입 위험 후의 startHp 기준
@@ -4031,8 +4267,14 @@ function makeSideState(defaultIdx) {
     item: "",
     tera: false,
     teraType: p ? p.types[0] : 'Normal',
+    hpPct: 1,
     pinch: false,
     fullHP: true,
+    lastMoveFailed: false,
+    wasHit: false,
+    fallenAllies: 0,
+    flashFireActive: false,
+    boosterEnergyState: 'auto',
     moves: [],
     moveBpOverrides: [null, null, null, null]
   };
@@ -4096,6 +4338,229 @@ function manualBpForSlot(side, slot, move) {
 function moveWithManualBp(move, manualBp) {
   const bp = normalizeManualBp(manualBp);
   return bp === null ? move : { ...move, bp, manualBp: true };
+}
+
+function normalizeHpPct(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 1;
+  const raw = n > 1 ? n / 100 : n;
+  return Math.max(0.01, Math.min(1, raw));
+}
+
+function hpPercentInputValue(side) {
+  return Number((normalizeHpPct(side.hpPct) * 100).toFixed(1)).toString();
+}
+
+function currentHpValue(maxHp, hpPct) {
+  return Math.max(1, Math.floor(maxHp * normalizeHpPct(hpPct)));
+}
+
+function deriveHpFlags(side) {
+  const hpPct = normalizeHpPct(side.hpPct);
+  side.hpPct = hpPct;
+  side.fullHP = hpPct >= 1;
+  side.pinch = hpPct <= (1 / 3);
+  return side;
+}
+
+function setSideHpPct(side, value) {
+  side.hpPct = normalizeHpPct(value);
+  deriveHpFlags(side);
+}
+
+function renderHpConditionPills(side) {
+  const hpPct = normalizeHpPct(side.hpPct);
+  const pills = [];
+  if (hpPct >= 1) pills.push('<span class="hp-state-pill full">풀피</span>');
+  if (hpPct <= (1 / 3)) pills.push('<span class="hp-state-pill pinch">핀치</span>');
+  return pills.length ? pills.join('') : '<span class="hp-state-pill neutral">일반</span>';
+}
+
+function selectedAttackMoves() {
+  return (state.atk.moves || []).map(id => MoveById[id]).filter(Boolean);
+}
+
+function selectedMoveHasVariableKind(kinds) {
+  const wanted = Array.isArray(kinds) ? kinds : [kinds];
+  return selectedAttackMoves().some(move => wanted.includes(move.variableBpKind));
+}
+
+function attackerAbilityData() {
+  return state.atk.ability ? AbilityById[state.atk.ability] : null;
+}
+
+function sideAbilityData(sideKey) {
+  const side = state[sideKey];
+  return side?.ability ? AbilityById[side.ability] : null;
+}
+
+function attackerNeedsFlashFireToggle() {
+  return !!attackerAbilityData()?.attackStatBoosts?.some(rule => rule.flashFireActive);
+}
+
+function normalizeBoosterEnergyState(value) {
+  return ['auto', 'active', 'inactive'].includes(value) ? value : 'auto';
+}
+
+function sideNeedsBoosterEnergyControl(sideKey) {
+  const side = state[sideKey];
+  return !!sideAbilityData(sideKey)?.paradoxBoost || !!ItemById[side?.item]?.paradoxActivation;
+}
+
+function attackerNeedsFallenAllies() {
+  return selectedMoveHasVariableKind('fallenAllies') || !!attackerAbilityData()?.supremeOverlord;
+}
+
+function maxFallenAllies(gameType = state.field.gameType) {
+  return gameType === 'Doubles' ? 3 : 2;
+}
+
+function clampFallenAllies(value, gameType = state.field.gameType) {
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(maxFallenAllies(gameType), n));
+}
+
+function normalizeBattleConditionState() {
+  state.atk.fallenAllies = clampFallenAllies(state.atk.fallenAllies);
+  state.atk.lastMoveFailed = !!state.atk.lastMoveFailed;
+  state.atk.wasHit = !!state.atk.wasHit;
+  state.def.wasHit = !!state.def.wasHit;
+  state.atk.flashFireActive = !!state.atk.flashFireActive;
+  state.atk.boosterEnergyState = normalizeBoosterEnergyState(state.atk.boosterEnergyState);
+  state.def.boosterEnergyState = normalizeBoosterEnergyState(state.def.boosterEnergyState);
+}
+
+function speedConditionInfo() {
+  const calcState = makeCalcState();
+  const atkSpe = effectiveSpeed(calcState.atk, calcState.field);
+  const defSpe = effectiveSpeed(calcState.def, calcState.field);
+  const first = atkSpe > defSpe;
+  const second = atkSpe < defSpe;
+  return {
+    atkSpe,
+    defSpe,
+    first,
+    second,
+    verdict: first ? '공격측 선공' : second ? '공격측 후공' : '동속',
+  };
+}
+
+function renderConditionToggle({ sideKey, field, checked, label, detail }) {
+  return `
+    <label class="condition-toggle">
+      <input type="checkbox" data-action="conditionFlag" data-side="${sideKey}" data-field="${field}" ${checked ? 'checked' : ''}>
+      <span>${label}</span>
+      ${detail ? `<em>${detail}</em>` : ''}
+    </label>
+  `;
+}
+
+function renderBattleConditions(sideKey = 'atk') {
+  normalizeBattleConditionState();
+  const side = state[sideKey];
+  const isAttacker = sideKey === 'atk';
+  const needsFirst = isAttacker && selectedMoveHasVariableKind('userMovesFirstDouble');
+  const needsSecond = isAttacker && (selectedMoveHasVariableKind('userMovesSecondDouble') || !!attackerAbilityData()?.bpBoosts?.some(rule => rule.movesSecond));
+  const needsLastMoveFailed = isAttacker && selectedMoveHasVariableKind('lastMoveFailedDouble');
+  const needsAttackerWasHit = isAttacker && selectedMoveHasVariableKind('userWasHitDouble');
+  const needsTargetWasHit = isAttacker && selectedMoveHasVariableKind('targetWasHitDouble');
+  const needsFallenAllies = isAttacker && attackerNeedsFallenAllies();
+  const needsFlashFire = isAttacker && attackerNeedsFlashFireToggle();
+  const needsBoosterEnergy = sideNeedsBoosterEnergyControl(sideKey);
+  const hasConditions = needsFirst || needsSecond || needsLastMoveFailed || needsAttackerWasHit ||
+    needsTargetWasHit || needsFallenAllies || needsFlashFire || needsBoosterEnergy;
+  if (!hasConditions) return '';
+
+  const rows = [];
+  if (needsBoosterEnergy) {
+    const mode = normalizeBoosterEnergyState(side.boosterEnergyState);
+    const ab = sideAbilityData(sideKey);
+    rows.push(`
+      <label class="condition-number condition-select">
+        <span>부스트 에너지</span>
+        <select data-action="conditionMode" data-side="${sideKey}" data-field="boosterEnergyState">
+          <option value="auto" ${mode === 'auto' ? 'selected' : ''}>자동</option>
+          <option value="active" ${mode === 'active' ? 'selected' : ''}>활성</option>
+          <option value="inactive" ${mode === 'inactive' ? 'selected' : ''}>비활성</option>
+        </select>
+        <em>${ab?.koName || ab?.name || 'Paradox'} · 도구 보유/소모 상태</em>
+      </label>
+    `);
+  }
+  if (needsFirst || needsSecond) {
+    const info = speedConditionInfo();
+    const active = (needsFirst && info.first) || (needsSecond && info.second);
+    const reason = [
+      needsFirst ? '선공 시 위력 상승' : '',
+      needsSecond ? '후공 시 위력 상승' : '',
+    ].filter(Boolean).join(' · ');
+    rows.push(`
+      <div class="condition-auto ${active ? 'active' : ''}">
+        <div>
+          <span>실속도 기준 자동 적용</span>
+          <b>${info.verdict}</b>
+        </div>
+        <em>${info.atkSpe} : ${info.defSpe}${reason ? ` · ${reason}` : ''}</em>
+      </div>
+    `);
+  }
+  if (needsLastMoveFailed) {
+    rows.push(renderConditionToggle({
+      sideKey: 'atk',
+      field: 'lastMoveFailed',
+      checked: state.atk.lastMoveFailed,
+      label: '직전 기술 실패',
+      detail: '열불내기/분함의발구르기',
+    }));
+  }
+  if (needsAttackerWasHit) {
+    rows.push(renderConditionToggle({
+      sideKey: 'atk',
+      field: 'wasHit',
+      checked: state.atk.wasHit,
+      label: '공격측이 먼저 피격',
+      detail: '눈사태',
+    }));
+  }
+  if (needsTargetWasHit) {
+    rows.push(renderConditionToggle({
+      sideKey: 'def',
+      field: 'wasHit',
+      checked: state.def.wasHit,
+      label: '방어측이 이미 피격',
+      detail: '승부굳히기',
+    }));
+  }
+  if (needsFlashFire) {
+    rows.push(renderConditionToggle({
+      sideKey: 'atk',
+      field: 'flashFireActive',
+      checked: state.atk.flashFireActive,
+      label: '타오르는불꽃 활성',
+      detail: '불꽃 공격 강화',
+    }));
+  }
+  if (needsFallenAllies) {
+    const max = maxFallenAllies();
+    rows.push(`
+      <label class="condition-number">
+        <span>쓰러진 아군 수</span>
+        <input type="number" data-action="fallenAllies" data-side="atk" value="${clampFallenAllies(state.atk.fallenAllies)}" min="0" max="${max}" step="1">
+        <em>0~${max} · ${state.field.gameType === 'Doubles' ? '64 더블' : '63 싱글'}</em>
+      </label>
+    `);
+  }
+
+  return `
+    <div class="battle-conditions">
+      <div class="field-label">
+        <span>조건</span>
+        <span class="hint">선택 기술/특성에 필요한 값만 표시</span>
+      </div>
+      <div class="condition-grid">${rows.join('')}</div>
+    </div>
+  `;
 }
 
 function applyMoveBpInput(el, renderAfter = false) {
@@ -4186,7 +4651,12 @@ function estimateMovePower(side, move) {
   const stats = calcStats(side);
   // 가변 위력 기술 위력은 자기 자신을 상대로 가정한 추정치로 보여준다 (estimate 용도)
   const defStats = calcStats(state.def);
-  const variableBp = computeVariableBp(move, side, state.def, state.field, stats, defStats);
+  const estimateField = { ...state.field };
+  const estimateAtkSpe = effectiveSpeed(side, estimateField);
+  const estimateDefSpe = effectiveSpeed(state.def, estimateField);
+  estimateField.atkMovesFirst = estimateAtkSpe > estimateDefSpe;
+  estimateField.atkMovesSecond = estimateAtkSpe < estimateDefSpe;
+  const variableBp = computeVariableBp(move, side, state.def, estimateField, stats, defStats);
 
   let moveType = move.type;
   let bp = variableBp || move.bp;
@@ -4308,6 +4778,8 @@ function renderSide(sideKey) {
   if (!p) { container.innerHTML = '<div class="empty-state">포켓몬 선택 필요</div>'; return; }
   
   const stats = calcStats(side);
+  deriveHpFlags(side);
+  const currentHp = currentHpValue(stats.hp, side.hpPct);
   const totalEV = Object.values(side.evs).reduce((a,b) => a+b, 0);
   const overEV = totalEV > 66;
   const types = effectiveTypes(side);
@@ -4344,6 +4816,8 @@ function renderSide(sideKey) {
         <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 -->
       </div>
     </div>
+
+    ${sideKey === 'def' ? renderBattleConditions('def') : ''}
 
     <div class="section-divider"></div>
 
@@ -4385,6 +4859,21 @@ function renderSide(sideKey) {
           <option value="Sleep" ${side.status === 'Sleep' ? 'selected' : ''}>잠듦</option>
           <option value="Freeze" ${side.status === 'Freeze' ? 'selected' : ''}>얼음</option>
         </select>
+      </div>
+    </div>
+
+    <!-- 현재 HP -->
+    <div class="field">
+      <div class="field-label">
+        <span>현재 HP</span>
+        <span class="hint">${currentHp} / ${stats.hp}</span>
+      </div>
+      <div class="hp-control-row">
+        <label class="hp-percent-control">
+          <input type="number" data-action="hpPct" data-side="${sideKey}" value="${hpPercentInputValue(side)}" min="1" max="100" step="1">
+          <span>%</span>
+        </label>
+        <div class="hp-state-pills">${renderHpConditionPills(side)}</div>
       </div>
     </div>
 
@@ -4470,10 +4959,7 @@ function renderSide(sideKey) {
     <div class="field">
       <div class="field-label">
         <span>기술 배치</span>
-        <label class="pinch-toggle">
-          <input type="checkbox" data-action="pinch" data-side="atk" ${side.pinch ? 'checked' : ''}>
-          핀치 (HP 1/3 이하, 맹화·격류 등)
-        </label>
+        <span class="hint">HP 조건은 현재 HP에서 자동 파생</span>
       </div>
       <div class="moves-list">
         ${[0,1,2,3].map(i => {
@@ -4498,6 +4984,8 @@ function renderSide(sideKey) {
         }).join('')}
       </div>
     </div>
+
+    ${renderBattleConditions('atk')}
     ` : ''}
 
     ${sideKey === 'def' ? `
@@ -4652,7 +5140,30 @@ function wireSide(sideKey) {
       if (action === 'ability') side.ability = el.value;
       else if (action === 'nature') side.nature = el.value;
       else if (action === 'status') side.status = el.value;
-      else if (action === 'pinch') side.pinch = el.checked;
+      else if (action === 'hpPct') {
+        setSideHpPct(side, el.value);
+        renderSide(el.dataset.side);
+        triggerCalc();
+        return;
+      }
+      else if (action === 'conditionFlag') {
+        side[el.dataset.field] = el.checked;
+        renderSide(el.dataset.side);
+        triggerCalc();
+        return;
+      }
+      else if (action === 'conditionMode') {
+        side[el.dataset.field] = el.value;
+        renderSide(el.dataset.side);
+        triggerCalc();
+        return;
+      }
+      else if (action === 'fallenAllies') {
+        side.fallenAllies = clampFallenAllies(el.value);
+        renderSide('atk');
+        triggerCalc();
+        return;
+      }
       else if (action === 'teraToggle') { side.tera = !side.tera; renderSide(el.dataset.side); return; }
       else if (action === 'teraType') side.teraType = el.value;
       else if (action === 'ev') {
@@ -4771,13 +5282,13 @@ function emptyEntryMeta() {
 }
 
 function cloneSideForCalc(side) {
-  return {
+  return deriveHpFlags({
     ...side,
     evs: { ...side.evs },
     ranks: { ...side.ranks },
     moves: Array.isArray(side.moves) ? [...side.moves] : [],
     moveBpOverrides: Array.isArray(side.moveBpOverrides) ? [...side.moveBpOverrides] : [null, null, null, null],
-  };
+  });
 }
 
 function cloneFieldForCalc(field) {
@@ -4879,6 +5390,7 @@ function makeCalcState() {
     def: cloneSideForCalc(state.def),
     field: cloneFieldForCalc(state.field),
   };
+  calcState.atk.fallenAllies = clampFallenAllies(calcState.atk.fallenAllies, calcState.field.gameType);
   calcState.entryMeta = applyEntryEffectsToCalcState(calcState);
   return calcState;
 }
@@ -4996,8 +5508,9 @@ function runCalc() {
     const result = calculateDamage(calcAtk, calcDef, move, calcField);
     if (!result) return { empty: true, slot: i+1, move };
     const hko = hkoLabel(result.damages, result.defHP, calcDef, calcField);
+    const defStartHp = Math.max(1, sideCurrentHp(result.defHP, calcDef) - calcHazardDamage(calcDef, calcField));
     const first = firstMover(move.pri, atkSpe, defSpe, calcField);
-    return { ...result, hko, first, slot: i+1, move };
+    return { ...result, hko, first, slot: i+1, move, defStartHp };
   });
   
   // 틀깨기 / 다능 등 공격측 특성으로 무시되는 방어측 특성 체크
@@ -5070,6 +5583,17 @@ function runCalc() {
   `;
 }
 
+function renderModsTrace(mods, limit = 6) {
+  const labels = [...new Set((mods || []).filter(Boolean).map(m => m.toString()))];
+  if (!labels.length) return '';
+  const visible = labels.slice(0, limit);
+  const hidden = labels.length - visible.length;
+  const title = escapeHTML(labels.join(' · '));
+  const parts = visible.map(m => `<b>${escapeHTML(m)}</b>`);
+  if (hidden > 0) parts.push(`<b title="${title}">+${hidden}</b>`);
+  return `<div class="mods-trace" title="${title}">${parts.join('<span class="sep">·</span>')}</div>`;
+}
+
 function renderMoveCard(r) {
   if (r.empty) {
     if (r.statusMove) {
@@ -5116,8 +5640,9 @@ function renderMoveCard(r) {
   
   const min = r.damages[0];
   const max = r.damages[15];
-  const hpRemMin = Math.max(0, r.defHP - max);
-  const hpRemMax = Math.max(0, r.defHP - min);
+  const startHp = r.defStartHp || r.defHP;
+  const hpRemMin = Math.max(0, startHp - max);
+  const hpRemMax = Math.max(0, startHp - min);
   
   const moveData = r.move;
   const typeChange = r.moveType !== moveData.type;
@@ -5186,7 +5711,7 @@ function renderMoveCard(r) {
         <div class="dmg-info">
           <span>실제 대미지 <b>${min}–${max}</b></span>
         </div>
-        ${r.mods.length ? `<div class="mods-trace">${r.mods.map(m => `<b>${m}</b>`).join('<span class="sep">·</span>')}</div>` : ''}
+        ${renderModsTrace(r.mods)}
         ${sideEffect}
       </div>
       <div class="hko-badge">
@@ -5282,7 +5807,12 @@ document.getElementById('btnAutoCalc').classList.add('active');
    ════════════════════════════════════════════════════════════ */
 document.getElementById('weather').addEventListener('change', e => { markManualAutoFieldOverride('weather'); state.field.weather = e.target.value; triggerCalc(); });
 document.getElementById('terrain').addEventListener('change', e => { markManualAutoFieldOverride('terrain'); state.field.terrain = e.target.value; triggerCalc(); });
-document.getElementById('gameType').addEventListener('change', e => { state.field.gameType = e.target.value; triggerCalc(); });
+document.getElementById('gameType').addEventListener('change', e => {
+  state.field.gameType = e.target.value;
+  state.atk.fallenAllies = clampFallenAllies(state.atk.fallenAllies);
+  renderSide('atk');
+  triggerCalc();
+});
 document.getElementById('critHit').addEventListener('change', e => { state.field.isCritical = e.target.checked; triggerCalc(); });
 document.getElementById('defReflect').addEventListener('change', e => { state.field.defReflect = e.target.checked; triggerCalc(); });
 document.getElementById('defLightScreen').addEventListener('change', e => { state.field.defLightScreen = e.target.checked; triggerCalc(); });

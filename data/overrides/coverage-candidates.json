@@ -120,5 +120,31 @@
       "expectation": "supported",
       "ids": ["ironball", "airballoon", "loadeddice"]
     }
+  ],
+  "field": [
+    {
+      "group": "필드/상태 보정",
+      "expectation": "supported",
+      "note": "field-mechanics.json에서 처리",
+      "ids": ["weatherdamage", "terrainbp", "screens", "protect"]
+    },
+    {
+      "group": "보류",
+      "expectation": "deferred",
+      "note": "도구/스탯/양쪽 방어 상태를 전역으로 뒤집는 효과라 단발 계산기 상태 모델 밖",
+      "ids": ["magicroom", "wonderroom"]
+    },
+    {
+      "group": "보류",
+      "expectation": "deferred",
+      "note": "리플렉터/빛의장막과 중첩되지 않는 별도 사이드 스크린 상태가 필요",
+      "ids": ["auroraveil"]
+    },
+    {
+      "group": "보류",
+      "expectation": "deferred",
+      "note": "아군 위치/사이드 컨텍스트가 필요한 더블 보정",
+      "ids": ["friendguard", "battery", "powerspot"]
+    }
   ]
 }

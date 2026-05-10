@@ -50,7 +50,7 @@ function loadCalcApi() {
     `
       globalThis.__calcApi = {
         PokemonById, MoveById, AbilityById, ItemById, RULES,
-        calculateDamage, calcStats, effectiveTypes, isTeraActive
+        calculateDamage, hkoLabel, calcStats, effectiveTypes, isTeraActive
       };
     `,
   ].join('\n');
@@ -67,6 +67,13 @@ const EMPTY_RANKS = Object.fromEntries(STATS.filter(stat => stat !== 'hp').map(s
 
 function normalizeId(name) {
   return name.toLowerCase().replace(/[\s'\-()]/g, '');
+}
+
+function normalizeHpPct(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 1;
+  const raw = n > 1 ? n / 100 : n;
+  return Math.max(0.01, Math.min(1, raw));
 }
 
 function defaultAbility(pokemon) {
@@ -88,17 +95,23 @@ function side(pokemonIdx, overrides = {}) {
     item: '',
     tera: false,
     teraType: pokemon.types[0] || 'Normal',
+    hpPct: 1,
     pinch: false,
     fullHP: true,
+    boosterEnergyState: 'auto',
     moves: [],
   };
 
-  return {
+  const next = {
     ...base,
     ...overrides,
     evs: { ...base.evs, ...(overrides.evs || {}) },
     ranks: { ...base.ranks, ...(overrides.ranks || {}) },
   };
+  next.hpPct = normalizeHpPct(next.hpPct);
+  next.fullHP = next.hpPct >= 1;
+  next.pinch = next.hpPct <= (1 / 3);
+  return next;
 }
 
 function field(overrides = {}) {
@@ -375,6 +388,58 @@ const cases = [
     },
   },
   {
+    name: 'tera shell makes full hp target resist a non-immune hit',
+    move: 'thunderbolt',
+    atk: atkPikachuSpecial,
+    def: side('charizard', {
+      ability: 'terashell',
+      evs: { hp: 32, spd: 32 },
+      nature: 'careful',
+      hpPct: 1,
+    }),
+    field: field(),
+    expected: {
+      damages: [19, 19, 19, 20, 20, 20, 21, 21, 21, 21, 21, 21, 22, 22, 22, 23],
+      minPct: 10.3,
+      maxPct: 12.4,
+      effectiveness: 0.5,
+      moveType: 'Electric',
+      category: 'Special',
+      bp: 90,
+      atk: 112,
+      def: 150,
+      defHP: 185,
+    },
+  },
+  {
+    name: 'mold breaker ignores tera shell',
+    move: 'thunderbolt',
+    atk: side('pikachu', {
+      ability: 'moldbreaker',
+      evs: { spa: 32 },
+      nature: 'modest',
+    }),
+    def: side('charizard', {
+      ability: 'terashell',
+      evs: { hp: 32, spd: 32 },
+      nature: 'careful',
+      hpPct: 1,
+    }),
+    field: field(),
+    expected: {
+      damages: [78, 78, 78, 80, 80, 80, 84, 84, 84, 86, 86, 86, 90, 90, 90, 92],
+      minPct: 42.2,
+      maxPct: 49.7,
+      effectiveness: 2,
+      moveType: 'Electric',
+      category: 'Special',
+      bp: 90,
+      atk: 112,
+      def: 150,
+      defHP: 185,
+    },
+  },
+  {
     name: 'sheer force body slam uses secondary flag',
     move: 'bodyslam',
     atk: atkTaurosSheerForce,
@@ -451,6 +516,63 @@ const cases = [
     },
   },
   {
+    name: 'grassy terrain weakens earthquake through field mechanics data',
+    move: 'earthquake',
+    atk: atkGarchomp,
+    def: defVenusaur,
+    field: field({ terrain: 'Grassy' }),
+    expected: {
+      damages: [39, 39, 39, 40, 40, 40, 42, 42, 42, 43, 43, 43, 45, 45, 45, 46],
+      minPct: 20.9,
+      maxPct: 24.6,
+      effectiveness: 1,
+      moveType: 'Ground',
+      category: 'Physical',
+      bp: 50,
+      atk: 200,
+      def: 148,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'reflect halves physical damage through field mechanics data',
+    move: 'flareblitz',
+    atk: atkIncineroar,
+    def: defVenusaur,
+    field: field({ defReflect: true }),
+    expected: {
+      damages: [102, 102, 103, 105, 106, 108, 108, 109, 111, 112, 114, 114, 115, 117, 118, 120],
+      minPct: 54.5,
+      maxPct: 64.2,
+      effectiveness: 2,
+      moveType: 'Fire',
+      category: 'Physical',
+      bp: 144,
+      atk: 183,
+      def: 148,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'protect blocks damage through field mechanics data',
+    move: 'flareblitz',
+    atk: atkIncineroar,
+    def: defVenusaur,
+    field: field({ defProtect: true }),
+    expected: {
+      damages: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      minPct: 0,
+      maxPct: 0,
+      effectiveness: 2,
+      moveType: 'Fire',
+      category: 'Physical',
+      bp: 144,
+      atk: 183,
+      def: 148,
+      defHP: 187,
+    },
+  },
+  {
     name: 'terrain pulse electric changes type and doubles base power',
     move: 'terrainpulse',
     atk: atkVenusaurSpecial,
@@ -486,6 +608,52 @@ const cases = [
       atk: 167,
       def: 105,
       defHP: 215,
+    },
+  },
+  {
+    name: 'pixilate changes hyper voice to fairy and boosts power',
+    move: 'hypervoice',
+    atk: side('sylveon', {
+      ability: 'pixilate',
+      evs: { spa: 32 },
+      nature: 'modest',
+    }),
+    def: defGarchomp,
+    field: field(),
+    expected: {
+      damages: [206, 210, 212, 216, 216, 218, 222, 224, 228, 230, 230, 234, 236, 240, 242, 246],
+      minPct: 95.8,
+      maxPct: 114.4,
+      effectiveness: 2,
+      moveType: 'Fairy',
+      category: 'Special',
+      bp: 108,
+      atk: 178,
+      def: 105,
+      defHP: 215,
+    },
+  },
+  {
+    name: 'liquid voice changes hyper voice to water',
+    move: 'hypervoice',
+    atk: side('primarina', {
+      ability: 'liquidvoice',
+      evs: { spa: 32 },
+      nature: 'modest',
+    }),
+    def: defCharizard,
+    field: field(),
+    expected: {
+      damages: [188, 192, 194, 198, 198, 200, 204, 206, 206, 210, 212, 216, 216, 218, 222, 224],
+      minPct: 101.6,
+      maxPct: 121.1,
+      effectiveness: 2,
+      moveType: 'Water',
+      category: 'Special',
+      bp: 90,
+      atk: 195,
+      def: 105,
+      defHP: 185,
     },
   },
   {
@@ -600,6 +768,490 @@ const cases = [
       atk: 183,
       def: 148,
       defHP: 187,
+    },
+  },
+  {
+    name: 'protosynthesis boosts highest matching attacking stat in sun',
+    move: 'gigadrain',
+    atk: side('venusaur', {
+      ability: 'protosynthesis',
+      evs: { spa: 32 },
+      nature: 'modest',
+    }),
+    def: defGarchomp,
+    field: field({ weather: 'Sun' }),
+    expected: {
+      damages: [88, 90, 90, 91, 93, 94, 94, 96, 97, 97, 99, 100, 100, 102, 103, 105],
+      minPct: 40.9,
+      maxPct: 48.8,
+      effectiveness: 1,
+      moveType: 'Grass',
+      category: 'Special',
+      bp: 75,
+      atk: 217,
+      def: 105,
+      defHP: 215,
+    },
+  },
+  {
+    name: 'quark drive boosts highest matching attacking stat on electric terrain',
+    move: 'gigadrain',
+    atk: side('venusaur', {
+      ability: 'quarkdrive',
+      evs: { spa: 32 },
+      nature: 'modest',
+    }),
+    def: defGarchomp,
+    field: field({ terrain: 'Electric' }),
+    expected: {
+      damages: [88, 90, 90, 91, 93, 94, 94, 96, 97, 97, 99, 100, 100, 102, 103, 105],
+      minPct: 40.9,
+      maxPct: 48.8,
+      effectiveness: 1,
+      moveType: 'Grass',
+      category: 'Special',
+      bp: 75,
+      atk: 217,
+      def: 105,
+      defHP: 215,
+    },
+  },
+  {
+    name: 'protosynthesis booster active boosts without sun',
+    move: 'gigadrain',
+    atk: side('venusaur', {
+      ability: 'protosynthesis',
+      evs: { spa: 32 },
+      nature: 'modest',
+      boosterEnergyState: 'active',
+    }),
+    def: defGarchomp,
+    field: field(),
+    expected: {
+      damages: [88, 90, 90, 91, 93, 94, 94, 96, 97, 97, 99, 100, 100, 102, 103, 105],
+      minPct: 40.9,
+      maxPct: 48.8,
+      effectiveness: 1,
+      moveType: 'Grass',
+      category: 'Special',
+      bp: 75,
+      atk: 217,
+      def: 105,
+      defHP: 215,
+    },
+  },
+  {
+    name: 'protosynthesis booster inactive does not boost without sun',
+    move: 'gigadrain',
+    atk: side('venusaur', {
+      ability: 'protosynthesis',
+      evs: { spa: 32 },
+      nature: 'modest',
+      boosterEnergyState: 'inactive',
+    }),
+    def: defGarchomp,
+    field: field(),
+    expected: {
+      damages: [67, 69, 69, 70, 72, 72, 73, 73, 75, 75, 76, 76, 78, 78, 79, 81],
+      minPct: 31.2,
+      maxPct: 37.7,
+      effectiveness: 1,
+      moveType: 'Grass',
+      category: 'Special',
+      bp: 75,
+      atk: 167,
+      def: 105,
+      defHP: 215,
+    },
+  },
+  {
+    name: 'defender booster active can boost defensive stat',
+    move: 'flareblitz',
+    atk: side('incineroar', {
+      evs: { atk: 32 },
+      nature: 'adamant',
+    }),
+    def: side('venusaur', {
+      ability: 'protosynthesis',
+      evs: { hp: 32, def: 32 },
+      nature: 'bold',
+      boosterEnergyState: 'active',
+    }),
+    field: field(),
+    expected: {
+      damages: [132, 132, 134, 134, 138, 138, 140, 140, 144, 144, 146, 146, 150, 150, 152, 156],
+      minPct: 70.6,
+      maxPct: 83.4,
+      effectiveness: 2,
+      moveType: 'Fire',
+      category: 'Physical',
+      bp: 120,
+      atk: 183,
+      def: 192,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'eruption uses attacker hp pct',
+    move: 'eruption',
+    atk: side('torkoal', {
+      ability: 'drought',
+      evs: { spa: 32 },
+      nature: 'modest',
+      hpPct: 0.5,
+    }),
+    def: side('venusaur', {
+      evs: { hp: 32, spd: 32 },
+      nature: 'calm',
+    }),
+    field: field(),
+    expected: {
+      damages: [78, 78, 78, 80, 80, 80, 84, 84, 84, 86, 86, 86, 90, 90, 90, 92],
+      minPct: 41.7,
+      maxPct: 49.2,
+      effectiveness: 2,
+      moveType: 'Fire',
+      category: 'Special',
+      bp: 75,
+      atk: 150,
+      def: 167,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'blaze uses attacker hp pct',
+    move: 'flamethrower',
+    atk: side('charizard', {
+      ability: 'blaze',
+      evs: { spa: 32 },
+      nature: 'modest',
+      hpPct: 0.33,
+    }),
+    def: side('venusaur', {
+      evs: { hp: 32, spd: 32 },
+      nature: 'calm',
+    }),
+    field: field(),
+    expected: {
+      damages: [162, 164, 164, 168, 168, 170, 174, 174, 176, 180, 180, 182, 186, 186, 188, 192],
+      minPct: 86.6,
+      maxPct: 102.7,
+      effectiveness: 2,
+      moveType: 'Fire',
+      category: 'Special',
+      bp: 90,
+      atk: 265,
+      def: 167,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'defender pinch does not trigger attacker blaze',
+    move: 'flamethrower',
+    atk: side('charizard', {
+      ability: 'blaze',
+      evs: { spa: 32 },
+      nature: 'modest',
+      hpPct: 1,
+    }),
+    def: side('venusaur', {
+      evs: { hp: 32, spd: 32 },
+      nature: 'calm',
+      hpPct: 0.2,
+    }),
+    field: field(),
+    expected: {
+      damages: [108, 108, 110, 110, 114, 114, 116, 116, 116, 120, 120, 122, 122, 126, 126, 128],
+      minPct: 57.8,
+      maxPct: 68.4,
+      effectiveness: 2,
+      moveType: 'Fire',
+      category: 'Special',
+      bp: 90,
+      atk: 177,
+      def: 167,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'multiscale applies only at full hp',
+    move: 'thunderbolt',
+    atk: atkPikachuSpecial,
+    def: side('dragonite', {
+      ability: 'multiscale',
+      evs: { hp: 32, spd: 32 },
+      nature: 'careful',
+      hpPct: 1,
+    }),
+    field: field(),
+    expected: {
+      damages: [17, 18, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 21],
+      minPct: 8.6,
+      maxPct: 10.6,
+      effectiveness: 1,
+      moveType: 'Electric',
+      category: 'Special',
+      bp: 90,
+      atk: 112,
+      def: 167,
+      defHP: 198,
+    },
+  },
+  {
+    name: 'multiscale does not apply below full hp',
+    move: 'thunderbolt',
+    atk: atkPikachuSpecial,
+    def: side('dragonite', {
+      ability: 'multiscale',
+      evs: { hp: 32, spd: 32 },
+      nature: 'careful',
+      hpPct: 0.99,
+    }),
+    field: field(),
+    expected: {
+      damages: [34, 36, 36, 36, 36, 37, 37, 37, 39, 39, 39, 39, 40, 40, 40, 42],
+      minPct: 17.2,
+      maxPct: 21.2,
+      effectiveness: 1,
+      moveType: 'Electric',
+      category: 'Special',
+      bp: 90,
+      atk: 112,
+      def: 167,
+      defHP: 198,
+    },
+  },
+  {
+    name: 'final gambit uses attacker current hp',
+    move: 'finalgambit',
+    atk: side('incineroar', {
+      evs: { hp: 32 },
+      hpPct: 0.5,
+    }),
+    def: side('venusaur', {
+      evs: { hp: 32 },
+    }),
+    field: field(),
+    expected: {
+      damages: [101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101],
+      minPct: 54,
+      maxPct: 54,
+      effectiveness: 1,
+      moveType: 'Fighting',
+      category: 'Special',
+      bp: 0,
+      atk: 0,
+      def: 0,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'temper flare doubles after failed move',
+    move: 'temperflare',
+    atk: side('incineroar', {
+      evs: { atk: 32 },
+      nature: 'adamant',
+      lastMoveFailed: true,
+    }),
+    def: side('venusaur', {
+      evs: { hp: 32, def: 32 },
+      nature: 'bold',
+    }),
+    field: field(),
+    expected: {
+      damages: [210, 212, 216, 218, 218, 222, 224, 228, 230, 234, 234, 236, 240, 242, 246, 248],
+      minPct: 112.3,
+      maxPct: 132.6,
+      effectiveness: 2,
+      moveType: 'Fire',
+      category: 'Physical',
+      bp: 150,
+      atk: 183,
+      def: 148,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'avalanche doubles when attacker was hit',
+    move: 'avalanche',
+    atk: side('mamoswine', {
+      evs: { atk: 32 },
+      nature: 'adamant',
+      wasHit: true,
+    }),
+    def: side('garchomp', {
+      evs: { hp: 32, def: 32 },
+      nature: 'impish',
+    }),
+    field: field(),
+    expected: {
+      damages: [336, 340, 348, 348, 352, 360, 360, 364, 372, 372, 376, 384, 384, 388, 396, 400],
+      minPct: 156.3,
+      maxPct: 186,
+      effectiveness: 4,
+      moveType: 'Ice',
+      category: 'Physical',
+      bp: 120,
+      atk: 200,
+      def: 161,
+      defHP: 215,
+    },
+  },
+  {
+    name: 'assurance doubles when target was hit',
+    move: 'assurance',
+    atk: side('incineroar', {
+      evs: { atk: 32 },
+      nature: 'adamant',
+    }),
+    def: side('gengar', {
+      evs: { hp: 32, def: 32 },
+      nature: 'bold',
+      wasHit: true,
+    }),
+    field: field(),
+    expected: {
+      damages: [204, 204, 206, 210, 212, 216, 216, 218, 222, 224, 228, 228, 230, 234, 236, 240],
+      minPct: 122.2,
+      maxPct: 143.7,
+      effectiveness: 2,
+      moveType: 'Dark',
+      category: 'Physical',
+      bp: 120,
+      atk: 183,
+      def: 123,
+      defHP: 167,
+    },
+  },
+  {
+    name: 'last respects clamps fallen allies for singles',
+    move: 'lastrespects',
+    atk: side('incineroar', {
+      evs: { atk: 32 },
+      nature: 'adamant',
+      fallenAllies: 5,
+    }),
+    def: side('gengar', {
+      evs: { hp: 32, def: 32 },
+      nature: 'bold',
+    }),
+    field: field({ gameType: 'Singles' }),
+    expected: {
+      damages: [170, 172, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192, 194, 196, 198, 200],
+      minPct: 101.8,
+      maxPct: 119.8,
+      effectiveness: 2,
+      moveType: 'Ghost',
+      category: 'Physical',
+      bp: 150,
+      atk: 183,
+      def: 123,
+      defHP: 167,
+    },
+  },
+  {
+    name: 'last respects clamps fallen allies for doubles',
+    move: 'lastrespects',
+    atk: side('incineroar', {
+      evs: { atk: 32 },
+      nature: 'adamant',
+      fallenAllies: 5,
+    }),
+    def: side('gengar', {
+      evs: { hp: 32, def: 32 },
+      nature: 'bold',
+    }),
+    field: field({ gameType: 'Doubles' }),
+    expected: {
+      damages: [224, 226, 228, 232, 234, 236, 240, 242, 244, 248, 250, 252, 256, 258, 260, 264],
+      minPct: 134.1,
+      maxPct: 158.1,
+      effectiveness: 2,
+      moveType: 'Ghost',
+      category: 'Physical',
+      bp: 200,
+      atk: 183,
+      def: 123,
+      defHP: 167,
+    },
+  },
+  {
+    name: 'flash fire active boosts fire offense',
+    move: 'flamethrower',
+    atk: side('charizard', {
+      ability: 'flashfire',
+      evs: { spa: 32 },
+      nature: 'modest',
+      flashFireActive: true,
+    }),
+    def: side('venusaur', {
+      evs: { hp: 32, spd: 32 },
+      nature: 'calm',
+    }),
+    field: field(),
+    expected: {
+      damages: [162, 164, 164, 168, 168, 170, 174, 174, 176, 180, 180, 182, 186, 186, 188, 192],
+      minPct: 86.6,
+      maxPct: 102.7,
+      effectiveness: 2,
+      moveType: 'Fire',
+      category: 'Special',
+      bp: 90,
+      atk: 265,
+      def: 167,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'supreme overlord clamps fallen allies for doubles',
+    move: 'crunch',
+    atk: side('incineroar', {
+      ability: 'supremeoverlord',
+      evs: { atk: 32 },
+      nature: 'adamant',
+      fallenAllies: 5,
+    }),
+    def: side('gengar', {
+      evs: { hp: 32, def: 32 },
+      nature: 'bold',
+    }),
+    field: field({ gameType: 'Doubles' }),
+    expected: {
+      damages: [176, 180, 180, 182, 186, 188, 188, 192, 194, 194, 198, 200, 200, 204, 206, 210],
+      minPct: 105.4,
+      maxPct: 125.7,
+      effectiveness: 2,
+      moveType: 'Dark',
+      category: 'Physical',
+      bp: 104,
+      atk: 183,
+      def: 123,
+      defHP: 167,
+    },
+  },
+  {
+    name: 'bolt beak doubles when speed condition says first',
+    move: 'boltbeak',
+    atk: side('pikachu', {
+      evs: { atk: 32, spe: 32 },
+      nature: 'jolly',
+    }),
+    def: side('azumarill', {
+      evs: { hp: 32, def: 32 },
+      nature: 'bold',
+    }),
+    field: field({ atkMovesFirst: true }),
+    expected: {
+      damages: [134, 134, 138, 138, 140, 140, 144, 144, 146, 146, 150, 150, 152, 152, 156, 158],
+      minPct: 64.7,
+      maxPct: 76.3,
+      effectiveness: 2,
+      moveType: 'Electric',
+      category: 'Physical',
+      bp: 160,
+      atk: 107,
+      def: 145,
+      defHP: 207,
     },
   },
   {
@@ -771,6 +1423,81 @@ const cases = [
     },
   },
   {
+    name: 'sheer cold deals target max hp as ohko damage',
+    move: 'sheercold',
+    atk: side('gengar', {
+      evs: { spa: 32 },
+      nature: 'modest',
+    }),
+    def: defVenusaur,
+    field: field(),
+    expected: {
+      damages: [187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187],
+      minPct: 100,
+      maxPct: 100,
+      effectiveness: 1,
+      moveType: 'Ice',
+      category: 'Special',
+      bp: 0,
+      atk: 0,
+      def: 0,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'sturdy blocks ohko move',
+    move: 'sheercold',
+    atk: side('gengar', {
+      evs: { spa: 32 },
+      nature: 'modest',
+    }),
+    def: side('venusaur', {
+      ability: 'sturdy',
+      evs: { hp: 32 },
+      nature: 'hardy',
+    }),
+    field: field(),
+    expected: {
+      damages: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      minPct: 0,
+      maxPct: 0,
+      effectiveness: 0,
+      moveType: 'Ice',
+      category: 'Special',
+      bp: 0,
+      atk: 0,
+      def: 0,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'mold breaker ignores sturdy ohko block',
+    move: 'sheercold',
+    atk: side('gengar', {
+      ability: 'moldbreaker',
+      evs: { spa: 32 },
+      nature: 'modest',
+    }),
+    def: side('venusaur', {
+      ability: 'sturdy',
+      evs: { hp: 32 },
+      nature: 'hardy',
+    }),
+    field: field(),
+    expected: {
+      damages: [187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187, 187],
+      minPct: 100,
+      maxPct: 100,
+      effectiveness: 1,
+      moveType: 'Ice',
+      category: 'Special',
+      bp: 0,
+      atk: 0,
+      def: 0,
+      defHP: 187,
+    },
+  },
+  {
     name: 'klutz ignores attack item',
     move: 'flareblitz',
     atk: side('incineroar', {
@@ -855,6 +1582,44 @@ if (api.RULES.teraDisabled !== true) {
   process.exitCode = 1;
 }
 
+assertDeepEqual(
+  api.RULES.fieldMechanics?.protect,
+  {
+    field: 'defProtect',
+    blockedLabel: '방어/막아내기로 차단',
+    bypassLabel: '방어 관통',
+  },
+  'field mechanics protect data is bundled',
+);
+assertDeepEqual(
+  api.RULES.fieldMechanics?.bpMods?.map(rule => rule.label),
+  ['일렉트릭필드×1.3', '그래스필드×1.3', '사이코필드×1.3', '미스트필드 드래곤×0.5', '그래스필드 지진×0.5', '도우미×1.5'],
+  'field mechanics bp mod data is bundled',
+);
+
+{
+  const lowHpDef = side('venusaur', {
+    evs: { hp: 32, spd: 32 },
+    nature: 'calm',
+    hpPct: 0.2,
+  });
+  const lowHpResult = api.calculateDamage(
+    side('charizard', {
+      ability: 'blaze',
+      evs: { spa: 32 },
+      nature: 'modest',
+    }),
+    lowHpDef,
+    api.MoveById.flamethrower,
+    field(),
+  );
+  assertDeepEqual(
+    api.hkoLabel(lowHpResult.damages, lowHpResult.defHP, lowHpDef, field()),
+    { label: '확정', turns: '1타', pct: '', cls: 'ohko' },
+    'hko label uses defender current hp',
+  );
+}
+
 assertMoveFields('bodyslam', { sec: true, tgt: 'normal' });
 assertMoveFields('flareblitz', { sec: true, recoil: [33, 100], tgt: 'normal' });
 assertMoveFields('earthquake', { tgt: 'allAdjacent' });
@@ -916,12 +1681,15 @@ assertAbilityFields('sniper', { finalDamageBoosts: [{ critical: true, mod: 'x1_5
 assertAbilityFields('levitate', { moldBreakerIgnored: true, grounded: false, immunities: [{ types: ['Ground'] }] });
 assertAbilityFields('moldbreaker', { ignoresTargetAbility: true });
 assertAbilityFields('cloudnine', { suppressesWeather: true });
+assertAbilityFields('terashell', { moldBreakerIgnored: true, teraShell: true });
 assertAbilityFields('sturdy', { moldBreakerIgnored: true, ohkoBlock: true, koSurvival: 'fullHpNoHazards' });
 assertAbilityFields('battlearmor', { moldBreakerIgnored: true, blocksCritical: true });
 assertAbilityFields('skilllink', { multiHitModifier: 'max' });
 assertAbilityFields('poisonheal', { residualRecovery: { fraction: [1, 8] } });
 assertAbilityFields('adaptability', { stabBoost: 'adaptability' });
 assertAbilityFields('protean', { volatileStab: true });
+assertAbilityFields('pixilate', { typeChange: { from: 'Normal', type: 'Fairy', mod: 4915 } });
+assertAbilityFields('liquidvoice', { typeChange: { flag: 'sound', type: 'Water' } });
 assertAbilityFields('heavymetal', { moldBreakerIgnored: true, weightModifier: 'double' });
 assertAbilityFields('quickfeet', { ignoresParalysisSpeedDrop: true });
 assertAbilityFields('ripen', { resistBerryMod: 'x0_25' });

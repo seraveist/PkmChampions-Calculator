@@ -27,6 +27,79 @@ function mechanicMod(key) {
   return MECHANIC_MODS[key] || 4096;
 }
 
+function formatCalcMultiplier(mod) {
+  const value = typeof mod === 'number' && Math.abs(mod) > 16 ? mod / 4096 : Number(mod);
+  if (!Number.isFinite(value)) return '';
+  const rounded = (Math.round(value * 100) / 100)
+    .toFixed(2)
+    .replace(/\.?0+$/, '');
+  return `×${rounded}`;
+}
+
+function formatModLabel(name, mod, detail = '') {
+  const prefix = name || '보정';
+  return `${prefix}${formatCalcMultiplier(mod)}${detail ? ` (${detail})` : ''}`;
+}
+
+function displayName(data, fallback = '') {
+  return data?.koName || data?.name || fallback || '';
+}
+
+function displayType(type) {
+  return TYPE_KO[type] || type || '';
+}
+
+function normalizeParadoxItemState(value) {
+  return ['auto', 'active', 'inactive'].includes(value) ? value : 'auto';
+}
+
+function sideParadoxItemActive(side, itemData) {
+  const mode = normalizeParadoxItemState(side?.boosterEnergyState);
+  if (mode === 'active') return true;
+  if (mode === 'inactive') return false;
+  return !!itemData?.paradoxActivation;
+}
+
+function asArray(value) {
+  if (Array.isArray(value)) return value;
+  return value === undefined || value === null ? [] : [value];
+}
+
+function fieldMechanics() {
+  return RULES.fieldMechanics || {};
+}
+
+function moveHasRuleFlag(move, flag) {
+  if (!flag) return true;
+  return !!move?.[flag] || !!move?.flags?.[flag];
+}
+
+function fieldRuleApplies(rule, ctx) {
+  if (!rule) return false;
+  if (rule.field && !ctx.field?.[rule.field]) return false;
+  if (rule.weather && !asArray(rule.weather).includes(ctx.damageWeather ?? ctx.weather)) return false;
+  if (rule.terrain && ctx.field?.terrain !== rule.terrain) return false;
+  if (rule.types && !rule.types.includes(ctx.moveType)) return false;
+  if (rule.category && rule.category !== ctx.category) return false;
+  if (rule.moveFlag && !moveHasRuleFlag(ctx.move, rule.moveFlag)) return false;
+  if (rule.attackerGrounded && !isGrounded(ctx.atkSide, ctx.field, ctx.atkAb, ctx.atkItem)) return false;
+  if (rule.defenderGrounded && !isGrounded(ctx.defSide, ctx.field, ctx.defAb, ctx.defItem)) return false;
+  if (rule.skipWhen && ctx[rule.skipWhen]) return false;
+  return true;
+}
+
+function applyFieldRuleMods(rules, ctx, outMods) {
+  for (const rule of rules || []) {
+    if (!fieldRuleApplies(rule, ctx)) continue;
+    outMods.push(mechanicMod(rule.mod));
+    if (rule.label) ctx.mods.push(rule.label);
+  }
+}
+
+function firstMatchingFieldRule(rules, ctx) {
+  return (rules || []).find(rule => fieldRuleApplies(rule, ctx)) || null;
+}
+
 function pokemonMatchesCondition(pokemon, condition) {
   if (!condition) return false;
   if (!condition.pokemon && !condition.baseSpecies) return true;
@@ -59,6 +132,37 @@ function statusMatches(rule, status) {
   return false;
 }
 
+function sideHpPct(side) {
+  const n = Number(side?.hpPct);
+  if (!Number.isFinite(n)) return 1;
+  const raw = n > 1 ? n / 100 : n;
+  return Math.max(0.01, Math.min(1, raw));
+}
+
+function sideCurrentHp(maxHp, side) {
+  return Math.max(1, Math.floor(maxHp * sideHpPct(side)));
+}
+
+function sideIsFullHp(side) {
+  if (side?.fullHP !== undefined) return !!side.fullHP;
+  return sideHpPct(side) >= 1;
+}
+
+function sideIsPinch(side) {
+  if (side?.pinch !== undefined) return !!side.pinch;
+  return sideHpPct(side) <= (1 / 3);
+}
+
+function battleMaxFallenAllies(field) {
+  return field?.gameType === 'Doubles' ? 3 : 2;
+}
+
+function battleFallenAllies(side, field) {
+  const n = Math.floor(Number(side?.fallenAllies || 0));
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(battleMaxFallenAllies(field), n));
+}
+
 function abilityRuleApplies(rule, ctx) {
   if (!rule) return false;
   const { move, field, bp, moveType, weather, effectiveness, isCritical } = ctx;
@@ -76,10 +180,10 @@ function abilityRuleApplies(rule, ctx) {
   if (rule.movesSecond && !field.atkMovesSecond) return false;
   if (rule.secondary && !move.sec) return false;
   if (rule.recoilOrCrash && !(move.recoil || move.hasCrashDamage)) return false;
-  if (rule.pinch && !ctx.atkSide?.pinch && !ctx.defSide?.pinch) return false;
+  if (rule.pinch && !sideIsPinch(ctx.atkSide)) return false;
   if (rule.flashFireActive && !ctx.atkSide?.flashFireActive) return false;
   if (rule.unburdenActive && !ctx.atkSide?.unburdenActive) return false;
-  if (rule.fullHP && !ctx.defSide?.fullHP) return false;
+  if (rule.fullHP && !sideIsFullHp(ctx.defSide)) return false;
   if (rule.critical && !isCritical) return false;
   if (rule.effectiveness === 'superEffective' && !(effectiveness > 1)) return false;
   if (rule.effectiveness === 'resisted' && !(effectiveness < 1)) return false;
@@ -89,14 +193,15 @@ function abilityRuleApplies(rule, ctx) {
 function applyAbilityRuleMods(rules, ctx, outMods, label) {
   for (const rule of rules || []) {
     if (!abilityRuleApplies(rule, ctx)) continue;
-    outMods.push(mechanicMod(rule.mod));
-    ctx.mods.push(`${label}×${mechanicMod(rule.mod) / 4096}`);
+    const mod = mechanicMod(rule.mod);
+    outMods.push(mod);
+    ctx.mods.push(formatModLabel(label, mod));
   }
 }
 
 function damageBlockApplies(block, pokemon, side, move, isPhysical) {
   if (!block) return false;
-  if (block.fullHP && !side.fullHP) return false;
+  if (block.fullHP && !sideIsFullHp(side)) return false;
   if (block.nonStatus && move.cat === 'Status') return false;
   if (block.category && block.category !== (isPhysical ? 'Physical' : 'Special')) return false;
   return pokemonMatchesCondition(pokemon, block);
@@ -119,8 +224,8 @@ function attackerBlocksBerries(atkAb) {
 }
 
 function fixedDamageAmount(move, atkSide, defSide, atkStats, defStats, defAbilityData) {
-  const atkHp = Math.max(1, Math.floor(atkStats.hp * (atkSide.hpPct ?? 1)));
-  const defHp = Math.max(1, Math.floor(defStats.hp * (defSide.hpPct ?? 1)));
+  const atkHp = sideCurrentHp(atkStats.hp, atkSide);
+  const defHp = sideCurrentHp(defStats.hp, defSide);
 
   if (move.damage === 'level') return RULES.level || 50;
   if (typeof move.damage === 'number') return move.damage;
@@ -220,12 +325,12 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     }
     case 'userHp150': {
       // 150 × HP / maxHP. 기본 가정: 풀피
-      const hp = atkSide.hpPct ?? 1.0;
+      const hp = sideHpPct(atkSide);
       return Math.max(1, Math.floor(150 * hp));
     }
     case 'lowHpFlail': {
       // 48분의 X 단위 비례
-      const hp = atkSide.hpPct ?? 1.0;
+      const hp = sideHpPct(atkSide);
       const p = Math.floor(hp * 48);
       if (p < 2) return 200;
       if (p < 5) return 150;
@@ -236,7 +341,7 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     }
     case 'targetHp100': {
       // 1 + floor(99 × targetHP / maxHP). 풀피 기본: 100
-      const hp = defSide.hpPct ?? 1.0;
+      const hp = sideHpPct(defSide);
       return Math.max(1, 1 + Math.floor(99 * hp));
     }
     case 'targetStatusDouble': {
@@ -323,7 +428,7 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
       return 20 + 20 * total;
     }
     case 'fallenAllies': {
-      const fa = atkSide.fallenAllies || 0;
+      const fa = battleFallenAllies(atkSide, field);
       return Math.min(350, 50 + 50 * fa);
     }
     case 'lastMoveFailedDouble':
@@ -439,7 +544,7 @@ function resolveDamagePreludeStage(ctx) {
       moveType: move.type, category: move.cat,
       bp: move.bp, atk: 0, def: 0,
       defHP: defStats.hp,
-      mods: [`${defAbilityData.koName || defAbilityData.name} blocked`]
+      mods: [`${displayName(defAbilityData)} 차단`]
     });
   }
 
@@ -456,7 +561,7 @@ function resolveDamagePreludeStage(ctx) {
     else if (wt === 'Rain' || wt === 'Heavy Rain') moveType = 'Water';
     else if (wt === 'Sand') moveType = 'Rock';
     else if (wt === 'Snow') moveType = 'Ice';
-    if (wt && wt !== 'none') mods.push(`웨더볼 → ${moveType}`);
+    if (wt && wt !== 'none') mods.push(`웨더볼 → ${displayType(moveType)}`);
   }
   // Terrain Pulse: 필드에 따라 타입 변경 (그라운드 시)
   if (move.typeChangeKind === 'terrainPulse') {
@@ -466,7 +571,7 @@ function resolveDamagePreludeStage(ctx) {
       else if (field.terrain === 'Grassy') moveType = 'Grass';
       else if (field.terrain === 'Misty') moveType = 'Fairy';
       else if (field.terrain === 'Psychic') moveType = 'Psychic';
-      if (field.terrain && field.terrain !== 'none') mods.push(`테레인펄스 → ${moveType}`);
+      if (field.terrain && field.terrain !== 'none') mods.push(`테레인펄스 → ${displayType(moveType)}`);
     }
   }
 
@@ -510,9 +615,9 @@ function resolveDamagePreludeStage(ctx) {
   let isCritical = !!field.isCritical || (criticalOnStatus === 'poison' && isPoisonStatus(defSide.status));
   if (isCritical && defAbilityData?.blocksCritical) {
     isCritical = false;
-    mods.push('critical blocked');
+    mods.push('급소 차단');
   } else if (criticalOnStatus === 'poison' && isPoisonStatus(defSide.status)) {
-    mods.push(`${atkAbilityData.koName || atkAbilityData.name} critical`);
+    mods.push(`${displayName(atkAbilityData)} 급소`);
   }
 
   // ─ 타입 상성 먼저 계산 (0배면 조기 종료) ─
@@ -559,13 +664,13 @@ function calculateBasePowerStage(ctx) {
       moveType, category,
       bp, atk: 0, def: 0,
       defHP: defStats.hp,
-      mods: [`${defAbilityData.koName || defAbilityData.name} blocked`]
+      mods: [`${displayName(defAbilityData)} 차단`]
     });
   }
 
   const fixedDamage = fixedDamageAmount(move, atkSide, defSide, atkStats, defStats, defAbilityData);
   if (fixedDamage !== null) {
-    return finishDamageStage(fixedDamageResult(fixedDamage, move, moveType, category, defStats, ['fixed damage']));
+    return finishDamageStage(fixedDamageResult(fixedDamage, move, moveType, category, defStats, ['고정 대미지']));
   }
   if (bp === 0) return finishDamageStage(null);
 
@@ -579,14 +684,16 @@ function calculateBasePowerStage(ctx) {
     const aura = abilityData?.aura;
     if (!aura || aura.type !== moveType) continue;
     const mod = auraBreakActive ? aura.reversedMod : aura.mod;
-    bpMods.push(mechanicMod(mod));
-    mods.push(`${abilityData.koName || abilityData.name}×${mechanicMod(mod) / 4096}`);
+    const auraMod = mechanicMod(mod);
+    bpMods.push(auraMod);
+    mods.push(formatModLabel(displayName(abilityData), auraMod));
   }
 
-  if (atkAbilityData?.supremeOverlord && atkSide.fallenAllies) {
-    const mod = 4096 + Math.min(5, atkSide.fallenAllies) * 410;  // 1.1~1.5×
+  const fallenAllies = battleFallenAllies(atkSide, field);
+  if (atkAbilityData?.supremeOverlord && fallenAllies) {
+    const mod = 4096 + fallenAllies * 410;  // Champions: 63 singles max 2, 64 doubles max 3
     bpMods.push(mod);
-    mods.push(`총대장 (동료 ${atkSide.fallenAllies}명 쓰러짐 ×${(mod/4096).toFixed(2)})`);
+    mods.push(`총대장 ${formatCalcMultiplier(mod)} (쓰러진 아군 ${fallenAllies})`);
   }
 
   // 재앙 효과는 Atk/Def 스탯 단계에서 처리됨 (아래 STAGE 2/3 참조)
@@ -599,7 +706,7 @@ function calculateBasePowerStage(ctx) {
   if (atkItemData) {
     if (atkItemData.typeBoostType === moveType) {
       bpMods.push(MOD.x1_2);
-      mods.push(`${atkItemData.koName}×1.2`);
+      mods.push(formatModLabel(atkItemData.koName, MOD.x1_2));
     }
 
     const powerBoostKind = atkItemData.powerBoostKind;
@@ -608,36 +715,20 @@ function calculateBasePowerStage(ctx) {
       (powerBoostKind === 'special' && !isPhysical) ||
       (powerBoostKind === 'punch' && move.flags?.punch);
     if (powerBoostApplies) {
-      bpMods.push(mechanicMod(atkItemData.powerBoostMod));
-      mods.push(`${atkItemData.koName}×1.1`);
+      const mod = mechanicMod(atkItemData.powerBoostMod);
+      bpMods.push(mod);
+      mods.push(formatModLabel(atkItemData.koName, mod));
     }
 
     const speciesTypeBoost = atkItemData.speciesTypeBoost;
     if (speciesTypeBoost && pokemonMatchesCondition(atkP, speciesTypeBoost) && speciesTypeBoost.types?.includes(moveType)) {
-      bpMods.push(mechanicMod(speciesTypeBoost.mod));
-      mods.push(`${atkItemData.koName}×1.2`);
+      const mod = mechanicMod(speciesTypeBoost.mod);
+      bpMods.push(mod);
+      mods.push(formatModLabel(atkItemData.koName, mod));
     }
   }
 
-  // Field BP modifiers
-  if (field.terrain === 'Electric' && moveType === 'Electric' && isGrounded(atkSide, field, atkAb, atkItem)) {
-    bpMods.push(MOD.x1_3); mods.push('일렉트릭필드×1.3');
-  }
-  if (field.terrain === 'Grassy' && moveType === 'Grass' && isGrounded(atkSide, field, atkAb, atkItem)) {
-    bpMods.push(MOD.x1_3); mods.push('그래스필드×1.3');
-  }
-  if (field.terrain === 'Psychic' && moveType === 'Psychic' && isGrounded(atkSide, field, atkAb, atkItem)) {
-    bpMods.push(MOD.x1_3); mods.push('사이코필드×1.3');
-  }
-  if (field.terrain === 'Misty' && moveType === 'Dragon' && isGrounded(defSide, field, defAb, defItem)) {
-    bpMods.push(MOD.x0_5); mods.push('미스트필드 드래곤×0.5');
-  }
-  if (field.terrain === 'Grassy' && move.weakenedByGrassyTerrain) {
-    bpMods.push(MOD.x0_5); mods.push('그래스필드 지진×0.5');
-  }
-
-  // 도우미 (Helping Hand)
-  if (field.atkHelpingHand) { bpMods.push(MOD.x1_5); mods.push('도우미×1.5'); }
+  applyFieldRuleMods(fieldMechanics().bpMods, ctx, bpMods);
 
   // 응용: 챔피언스 신규 메가 특성 "메가솔라" — 항상 쾌청 효과로 간주
   // 이건 실제 날씨를 세팅하지 않으므로 BP 단계에서 불꽃 ×1.5 추가하지 않고 Weather에서 처리
@@ -678,16 +769,17 @@ function calculateAttackStage(ctx) {
 
   // 고대활성 / 쿼크차지: 쾌청-or-부에가 / 일렉트릭-or-부에가 발동 시 최고 스탯 ×1.3 (HP는 ×1.5)
   // 어떤 스탯이 부스트 받는지 결정: 가장 높은 실수치 스탯
-  const atkParadoxBoost = activeParadoxBoost(atkAbilityData, field, weather, ctx.atkItemData);
+  const atkParadoxBoost = activeParadoxBoost(atkAbilityData, field, weather, ctx.atkItemData, atkSide);
 
   if (atkParadoxBoost) {
     // 가장 높은 base+EV+nature 스탯 결정 (HP 제외)
     const boostStat = highestBattleStat(atkStats);
 
     if ((isPhysical && boostStat === 'atk') || (!isPhysical && boostStat === 'spa')) {
-      atkMods.push(mechanicMod(atkParadoxBoost.mod));
+      const mod = mechanicMod(atkParadoxBoost.mod);
+      atkMods.push(mod);
       const name = atkAbilityData?.koName || atkAbilityData?.name || atkAb;
-      mods.push(`${name}×${mechanicMod(atkParadoxBoost.mod) / 4096} (${STAT_LABEL[boostStat]})`);
+      mods.push(formatModLabel(name, mod, STAT_LABEL[boostStat]));
     }
   }
 
@@ -711,8 +803,9 @@ function calculateAttackStage(ctx) {
   if (ctx.atkItemData?.attackStatBoost) {
     const statBoost = ctx.atkItemData.attackStatBoost;
     if (statBoostApplies(atkP, statBoost, attackStatId)) {
-      atkMods.push(mechanicMod(statBoost.mod));
-      mods.push(`${ctx.atkItemData.koName}×${mechanicMod(statBoost.mod) / 4096}`);
+      const mod = mechanicMod(statBoost.mod);
+      atkMods.push(mod);
+      mods.push(formatModLabel(ctx.atkItemData.koName, mod));
     }
   }
 
@@ -724,12 +817,12 @@ function calculateAttackStage(ctx) {
   return null;
 }
 
-function activeParadoxBoost(abilityData, field, weather, itemData) {
+function activeParadoxBoost(abilityData, field, weather, itemData, side) {
   const boost = abilityData?.paradoxBoost;
   if (!boost) return null;
   const weatherMatches = boost.weather && asArray(boost.weather).includes(weather);
   const terrainMatches = boost.terrain && field.terrain === boost.terrain;
-  const itemMatches = boost.itemActivation && itemData?.paradoxActivation;
+  const itemMatches = boost.itemActivation && sideParadoxItemActive(side, itemData);
   return (weatherMatches || terrainMatches || itemMatches) ? boost : null;
 }
 
@@ -784,13 +877,14 @@ function calculateDefenseStage(ctx) {
   }, defMods, defAbilityData?.koName || defAbilityData?.name || defAb);
 
   // 고대활성/쿼크차지 방어 부스트 (방어/특방이 최고 스탯일 때)
-  const defParadoxBoost = activeParadoxBoost(defAbilityData, field, weather, ctx.defItemData);
+  const defParadoxBoost = activeParadoxBoost(defAbilityData, field, weather, ctx.defItemData, defSide);
   if (defParadoxBoost) {
     const boostStat = highestBattleStat(defStats);
     if ((usesDefStat && boostStat === 'def') || (!usesDefStat && boostStat === 'spd')) {
-      defMods.push(mechanicMod(defParadoxBoost.mod));
+      const mod = mechanicMod(defParadoxBoost.mod);
+      defMods.push(mod);
       const name = defAbilityData?.koName || defAbilityData?.name || defAb;
-      mods.push(`${name}(방어)×${mechanicMod(defParadoxBoost.mod) / 4096} (${STAT_LABEL[boostStat]})`);
+      mods.push(formatModLabel(`${name} 방어`, mod, STAT_LABEL[boostStat]));
     }
   }
 
@@ -808,8 +902,9 @@ function calculateDefenseStage(ctx) {
   if (ctx.defItemData?.defenseStatBoost) {
     const statBoost = ctx.defItemData.defenseStatBoost;
     if (statBoostApplies(defP, statBoost, defenseStatId)) {
-      defMods.push(mechanicMod(statBoost.mod));
-      mods.push(`${ctx.defItemData.koName}×${mechanicMod(statBoost.mod) / 4096}`);
+      const mod = mechanicMod(statBoost.mod);
+      defMods.push(mod);
+      mods.push(formatModLabel(ctx.defItemData.koName, mod));
     }
   }
 
@@ -819,7 +914,7 @@ function calculateDefenseStage(ctx) {
 
 function calculateBaseDamageStage(ctx) {
   const {
-    move, field, mods, atkAb, atkAbilityData, atkItem, defItem, weather, defStats,
+    move, field, mods, atkAb, atkAbilityData, atkItem, atkItemData, defItem, defItemData, weather, defStats,
     moveType, category, bp, atkStat, defStat, effectiveness, isCritical,
   } = ctx;
 
@@ -848,27 +943,36 @@ function calculateBaseDamageStage(ctx) {
   const damageWeather = atkAbilityData?.weatherDamageOverride || weather;
   const ignoresWeatherDamagePenalty = !!atkAbilityData?.ignoreWeatherDamagePenalty;
 
-  if (!ItemById[atkItem]?.ignoresWeatherDamageModifiers && !ItemById[defItem]?.ignoresWeatherDamageModifiers) {
-    if (atkAbilityData?.weatherDamageOverride === 'Sun' && moveType === 'Fire') {
-      baseDmg = pokeRound(baseDmg * 6144 / 4096);
-      const name = atkAbilityData?.koName || atkAbilityData?.name || atkAb;
-      mods.push(`${name} 불꽃×1.5`);
-    } else if ((damageWeather === 'Sun' || damageWeather === 'Harsh Sunshine') && moveType === 'Fire') {
-      baseDmg = pokeRound(baseDmg * 6144 / 4096);
-      mods.push('쾌청 불꽃×1.5');
-    } else if ((damageWeather === 'Rain' || damageWeather === 'Heavy Rain') && moveType === 'Water') {
-      baseDmg = pokeRound(baseDmg * 6144 / 4096);
-      mods.push('비 물×1.5');
-    } else if (damageWeather === 'Sun' && moveType === 'Water' && !ignoresWeatherDamagePenalty) {
-      baseDmg = pokeRound(baseDmg * 2048 / 4096);
-      mods.push('쾌청 물×0.5');
-    } else if (damageWeather === 'Rain' && moveType === 'Fire' && !ignoresWeatherDamagePenalty) {
-      baseDmg = pokeRound(baseDmg * 2048 / 4096);
-      mods.push('비 불꽃×0.5');
-    } else if (damageWeather === 'Harsh Sunshine' && moveType === 'Water') {
-      return finishDamageStage({ damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness: 0, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: ['대쾌청: 물 기술 무효'] });
-    } else if (damageWeather === 'Heavy Rain' && moveType === 'Fire') {
-      return finishDamageStage({ damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness: 0, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: ['강한비: 불꽃 기술 무효'] });
+  if (!atkItemData?.ignoresWeatherDamageModifiers && !defItemData?.ignoresWeatherDamageModifiers) {
+    const weatherRule = firstMatchingFieldRule(fieldMechanics().weatherDamageMods, {
+      ...ctx,
+      damageWeather,
+      ignoresWeatherDamagePenalty,
+    });
+
+    if (weatherRule?.nullDamage) {
+      return finishDamageStage({
+        damages: new Array(16).fill(0),
+        minPct: 0,
+        maxPct: 0,
+        effectiveness: 0,
+        moveType,
+        category,
+        bp,
+        atk: atkStat,
+        def: defStat,
+        defHP: defStats.hp,
+        mods: [weatherRule.label],
+      });
+    }
+    if (weatherRule) {
+      baseDmg = pokeRound(baseDmg * mechanicMod(weatherRule.mod) / 4096);
+      if (atkAbilityData?.weatherDamageOverride && weatherRule.types?.includes(moveType)) {
+        const name = atkAbilityData?.koName || atkAbilityData?.name || atkAb;
+        mods.push(formatModLabel(`${name} ${displayType(moveType)}`, weatherRule.mod));
+      } else {
+        mods.push(weatherRule.label);
+      }
     }
   }
 
@@ -900,14 +1004,13 @@ function calculateFinalDamageStage(ctx) {
 
   const finalMods = [];
 
-  // Screens
-  const screenActive = (
-    (field.defReflect && isPhysical) ||
-    (field.defLightScreen && !isPhysical)
-  );
-  if (screenActive && !isCritical && !ctx.atkAbilityData?.ignoresScreens) {
-    finalMods.push(field.gameType === 'Doubles' ? 2732 : 2048);
-    mods.push(isPhysical ? '리플렉터×0.5' : '빛의장막×0.5');
+  if (!isCritical && !ctx.atkAbilityData?.ignoresScreens) {
+    for (const rule of fieldMechanics().screenFinalMods || []) {
+      if (!fieldRuleApplies(rule, ctx)) continue;
+      const mod = field.gameType === 'Doubles' ? rule.doublesMod : rule.singlesMod;
+      finalMods.push(mechanicMod(mod));
+      mods.push(rule.label);
+    }
   }
 
   applyAbilityRuleMods(ctx.defAbilityData?.defensiveFinalMods, ctx, finalMods, ctx.defAbilityData?.koName || ctx.defAbilityData?.name || defAb);
@@ -920,8 +1023,9 @@ function calculateFinalDamageStage(ctx) {
     const boost = atkItemData.finalDamageBoost;
     const applies = boost.kind === 'always' || (boost.kind === 'superEffective' && effectiveness > 1);
     if (applies) {
-      finalMods.push(mechanicMod(boost.mod));
-      mods.push(`${atkItemData.koName}×${mechanicMod(boost.mod) / 4096}`);
+      const mod = mechanicMod(boost.mod);
+      finalMods.push(mod);
+      mods.push(formatModLabel(atkItemData.koName, mod));
     }
   }
   // Metronome item requires consecutive-move context and is intentionally omitted for one-shot damage.
@@ -935,12 +1039,13 @@ function calculateFinalDamageStage(ctx) {
     finalMods.push(ripenMod ? mechanicMod(ripenMod) : MOD.x0_5);
     const berryName = defItemData?.koName || defItem;
     const ripenName = ctx.defAbilityData?.koName || ctx.defAbilityData?.name || defAb;
-    mods.push(`${berryName}${ripenMod ? `+${ripenName}` : ''}x${ripenMod ? mechanicMod(ripenMod) / 4096 : '0.5'}`);
+    mods.push(`${berryName}${ripenMod ? `+${ripenName}` : ''}${formatCalcMultiplier(ripenMod ? mechanicMod(ripenMod) : MOD.x0_5)}`);
   }
 
   // ─ 방어 관통 메커니즘 ─
   // 방어/막아내기는 모든 공격 차단 (단, 일부 기술은 무시)
-  if (field.defProtect) {
+  const protectRule = fieldMechanics().protect || {};
+  if (field[protectRule.field || 'defProtect']) {
     const ignoresProtect = !!move.breaksProtect;
 
     if (!ignoresProtect) {
@@ -948,12 +1053,13 @@ function calculateFinalDamageStage(ctx) {
       // 연격의태세 (Unseen Fist): 접촉기로 방어 관통, 25% 대미지 (챔피언스 너프)
       const protectBypass = ctx.atkAbilityData?.protectBypass;
       if (protectBypass?.flag && move.flags?.[protectBypass.flag]) {
-        finalMods.push(mechanicMod(protectBypass.mod));
+        const mod = mechanicMod(protectBypass.mod);
+        finalMods.push(mod);
         const abName = ctx.atkAbilityData?.koName || ctx.atkAbilityData?.name || atkAb;
-        mods.push(`${abName} ×${mechanicMod(protectBypass.mod) / 4096} (방어 관통)`);
+        mods.push(formatModLabel(abName, mod, protectRule.bypassLabel || '방어 관통'));
       } else {
         // 일반 공격은 방어막에 막힘 → 대미지 0
-        return { damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: ['방어/막아내기로 차단'] };
+        return { damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: [protectRule.blockedLabel || '방어/막아내기로 차단'] };
       }
     }
   }
@@ -1111,12 +1217,13 @@ function hkoLabel(damages, hp, defSide, field) {
 
   // 진입 위험 (스텔스록/압정뿌리기) 데미지를 시작 HP 에서 차감
   const hazardDmg = field ? calcHazardDamage(defSide, field) : 0;
-  const startHp = Math.max(1, hp - hazardDmg);
+  const currentHp = sideCurrentHp(hp, defSide);
+  const startHp = Math.max(1, currentHp - hazardDmg);
   const hazardActive = hazardDmg > 0;
 
   // 기합의띠/옹골참은 HP 풀피일 때만 발동. 진입 위험으로 1HP 라도 깎였다면 무효.
-  const hasFocusSash = defItemData?.koSurvival === 'fullHpNoHazards' && defSide.fullHP && !hazardActive;
-  const hasSturdy = defAbilityData?.koSurvival === 'fullHpNoHazards' && defSide.fullHP && !hazardActive;
+  const hasFocusSash = defItemData?.koSurvival === 'fullHpNoHazards' && sideIsFullHp(defSide) && !hazardActive;
+  const hasSturdy = defAbilityData?.koSurvival === 'fullHpNoHazards' && sideIsFullHp(defSide) && !hazardActive;
   const survives1HKO = hasFocusSash || hasSturdy;
 
   // 1타 판정은 진입 위험 후의 startHp 기준

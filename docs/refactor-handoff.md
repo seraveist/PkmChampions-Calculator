@@ -6,6 +6,19 @@
 
 이번 분기점에서 완료된 핵심 작업:
 
+- `pokemon-showdown-damage-calc`를 구현 범위의 상한으로 삼아 구현/수동 조건/보류 기준을 정리했다.
+- `coverage:matrix`가 코드 문자열뿐 아니라 `data/overrides/*-mechanics.json`과 빌드된 메타데이터를 지원 근거로 인식하도록 수정했다.
+- `Body Press`는 공격측 방어 실수치/랭크를 공격값으로 사용하도록 구현 및 golden test가 완료된 상태다.
+- 공격측/방어측 현재 HP% 입력을 추가했고, `fullHP`와 `pinch`는 HP%에서 파생하도록 정리했다.
+- Eruption/Water Spout, Final Gambit/Endeavor, Multiscale/Shadow Shield, Sturdy/Focus Sash 계열은 현재 HP% 기반으로 계산된다.
+- 조건부 기술/특성 UI를 추가했다. 실속도 기준 선공/후공은 자동 판정 상태를 표시하고, 직전 기술 실패/피격 여부/Flash Fire 활성/쓰러진 아군 수는 필요한 경우에만 입력한다.
+- 쓰러진 아군 수는 Champions 룰 기준으로 싱글 0~2, 더블 0~3으로 제한한다.
+- `data/overrides/field-mechanics.json`을 추가해 날씨 대미지 보정, 지형 BP 보정, 스크린 보정, Protect 처리를 데이터 선언으로 분리했다.
+- 그래스필드 지진 약화, 리플렉터, Protect 차단은 golden test로 고정했다.
+- `coverage:matrix`가 필드/상태 후보도 추적하도록 확장했고, Magic Room/Wonder Room/Aurora Veil/Friend Guard/Battery/Power Spot은 명시 보류로 표시한다.
+- 결과 카드의 `mods` 라벨은 짧은 `×N` 배율과 한국어 라벨 중심으로 정리했고, 카드에는 중복 제거 후 앞 6개만 표시한다.
+- Booster Energy는 `auto` / `active` / `inactive` 상태로 분리했다. Protosynthesis/Quark Drive는 날씨/필드 조건과 별개로 도구 소모 후 활성 상태를 계산할 수 있다.
+- Showdown damage calculator 참조 축에 맞춰 Tera Shell, Mold Breaker, Pixilate/Liquid Voice, Protosynthesis/Quark Drive, OHKO/Sturdy 케이스를 golden test로 추가했다.
 - 대미지 계산기의 남은 특성/아이템 하드코딩 일부를 데이터 메타데이터로 이동했다.
 - `Klutz`는 `ability-mechanics.json`의 `suppressesItem`으로 처리한다.
 - `Sticky Hold`는 `blocksItemRemoval`로 처리해 Knock Off 가변 위력 분기에서 직접 특성명을 비교하지 않는다.
@@ -22,7 +35,6 @@ npm.cmd run coverage:matrix
 
 주의:
 
-- 이 PC에는 `git` 실행 파일이 PATH에 없어 로컬 `git commit/push`는 수행하지 못했다.
 - 다른 PC에서 이어받을 때는 아래 빠른 시작 절차로 브랜치를 받은 뒤, 이 문서의 최신 분기점 요약을 먼저 확인한다.
 
 이 문서는 다른 PC 또는 새 대화에서 현재 작업을 이어받기 위한 시작점이다.
@@ -89,14 +101,16 @@ npm run coverage:matrix
 ## 지금까지 확정된 핵심 방향
 
 - 대미지 계산은 Showdown 기반 로직을 유지한다.
-- 선공/후공 자동 판정과 기술 우선도 계산은 제외한다.
-- 행동 순서가 필요한 기술은 수동 조건으로 처리한다.
+- 기술 우선도 계산은 제외한다.
+- 행동 순서가 대미지에 필요한 기술은 현재 실속도 기준 자동 판정을 유지하되, 조건 UI에 자동 적용 상태를 명시한다.
 - 테라스탈은 현재 Champions 룰상 비활성이다.
 - 자동 진입 효과는 유지한다.
 - 자동 효과는 source state를 직접 변경하지 않고 derived state에만 적용한다.
 - 수동 변경값은 자동값보다 우선한다.
 - 계산 근거 표시는 현재처럼 간단하게 유지한다.
 - Showdown 데이터가 기본값이고, PokeAPI 한글명 이후 manual override가 마지막에 적용된다.
+- `pokemon-showdown` 전체 배틀 엔진은 참고 대상이지만, 현재 구현 범위는 damage calculator 전용 로직을 기준으로 줄인다.
+- 직전 기술 실패, 대상 피격 여부, Flash Fire 활성, 현재 HP%, 쓰러진 아군 수처럼 자동 판정보다 사용자 지정이 안전한 값은 조건 UI로 둔다.
 
 자세한 이유는 `docs/decision-log.md`를 참조한다.
 
@@ -150,6 +164,10 @@ npm run coverage:matrix
 - `src/js/02-engine.js`
 - `src/js/01-core.js`
 - `src/js/03-calc-ui.js`
+- `data/overrides/move-mechanics.json`
+- `data/overrides/ability-mechanics.json`
+- `data/overrides/item-mechanics.json`
+- `data/overrides/field-mechanics.json`
 
 검증:
 
@@ -167,15 +185,9 @@ npm run coverage:matrix
 
 ## 현재 점검 필요 항목
 
-`docs/damage-calculator-coverage-matrix.md` 기준 현재 명확한 다음 구현 항목:
+`docs/damage-calculator-coverage-matrix.md` 기준 현재 점검 필요 요약은 없음이다.
 
-- `bodypress`
-
-요구:
-
-- 공격측 방어 실수치와 방어 랭크를 공격값으로 사용한다.
-- 골든 테스트를 추가한다.
-- 구현 후 `npm run coverage:matrix`를 다시 실행한다.
+필드/상태 메커니즘 데이터화 1차 범위는 완료했다.
 
 현재 보류:
 
@@ -184,19 +196,22 @@ npm run coverage:matrix
 - `metalburst`
 - `comeuppance`
 - `ficklebeam`
+- `magicroom`
+- `wonderroom`
+- `auroraveil`
+- `friendguard`
+- `battery`
+- `powerspot`
 
 보류 이유:
 
-- 이전 피해량 또는 랜덤 강화 분기처럼 단발 대미지 계산기 외부 컨텍스트가 필요하다.
+- 이전 피해량, 랜덤 강화 분기, 별도 사이드 상태, 아군 위치처럼 단발 대미지 계산기 외부 컨텍스트가 필요하다.
 
 ## 추천 다음 작업
 
-1. `bodypress` 계산 로직 구현
-2. `bodypress` 골든 테스트 추가
-3. `npm test` 실행
-4. `npm run coverage:matrix` 실행
-5. HP% 입력 UI 설계 및 구현
-6. 조건부 기술 UI 정리
+1. 노력치 세부조정 재개발을 위한 계산 상태 재사용 지점 정리
+2. 내구 역계산 재개발을 위한 HP%/필드 조건 재사용 지점 정리
+3. `npm test`와 `npm run coverage:matrix` 실행
 
 ## 작업 전 주의
 

@@ -35,6 +35,20 @@ const moves = readJsonScript(html, 'data-moves');
 const abilities = readJsonScript(html, 'data-abilities');
 const items = readJsonScript(html, 'data-items');
 
+function readJsonFile(relativePath, fallback) {
+  try {
+    return JSON.parse(readFileSync(path.join(ROOT, relativePath), 'utf8'));
+  } catch (err) {
+    if (err?.code === 'ENOENT') return fallback;
+    throw err;
+  }
+}
+
+const moveMechanics = readJsonFile(path.join('data', 'overrides', 'move-mechanics.json'), {});
+const abilityMechanics = readJsonFile(path.join('data', 'overrides', 'ability-mechanics.json'), {});
+const itemMechanics = readJsonFile(path.join('data', 'overrides', 'item-mechanics.json'), {});
+const fieldMechanics = readJsonFile(path.join('data', 'overrides', 'field-mechanics.json'), {});
+
 const moveById = byId(moves);
 const abilityById = byId(abilities);
 const itemById = byId(items);
@@ -55,7 +69,137 @@ function codeMentions(id) {
     new RegExp(`(?:^|[\\s,{])${escaped}\\s*:`, 'm').test(codeFiles);
 }
 
+const MOVE_MECHANIC_FIELDS = [
+  'variableBpKind',
+  'fixedDamageKind',
+  'typeChangeKind',
+  'categoryChangeKind',
+  'effectivenessKind',
+  'overrideOffensiveStat',
+  'overrideDefensiveStat',
+  'overrideOffensivePokemon',
+  'overrideDefensivePokemon',
+  'ignoreOffensive',
+  'ignoreDefensive',
+  'ignoreNegativeOffensive',
+  'ignorePositiveDefensive',
+  'weakenedByGrassyTerrain',
+  'breaksProtect',
+  'damage',
+  'ohko',
+];
+
+const ABILITY_MECHANIC_FIELDS = [
+  'gasExempt',
+  'moldBreakerIgnored',
+  'ignoresTargetAbility',
+  'suppressesWeather',
+  'suppressesItem',
+  'grounded',
+  'immunities',
+  'blocksCritical',
+  'criticalOnTargetStatus',
+  'blocksBerries',
+  'protectBypass',
+  'extraHitModifier',
+  'multiHitModifier',
+  'residualRecovery',
+  'resistBerryMod',
+  'ignoresScreens',
+  'paradoxBoost',
+  'speedStatBoosts',
+  'typeChange',
+  'stabBoost',
+  'volatileStab',
+  'bpBoosts',
+  'aura',
+  'reversesAura',
+  'supremeOverlord',
+  'attackStatBoosts',
+  'defensiveAttackMods',
+  'defenseStatBoosts',
+  'defensiveFinalMods',
+  'ignoreOffensiveBoosts',
+  'ignoreDefensiveBoosts',
+  'weightModifier',
+  'blocksItemRemoval',
+  'ruinExemption',
+];
+
+const ITEM_MECHANIC_FIELDS = [
+  'typeBoostType',
+  'powerBoostKind',
+  'powerBoostMod',
+  'attackStatBoost',
+  'defenseStatBoost',
+  'finalDamageBoost',
+  'paradoxActivation',
+  'multiHitModifier',
+  'koSurvival',
+  'hpRecovery',
+  'residualRecovery',
+  'speedStatBoost',
+  'grounded',
+  'groundImmunity',
+  'ignoresWeatherDamageModifiers',
+  'speciesTypeBoost',
+  'resistBerryType',
+];
+
+const FIELD_MECHANIC_KEYS = {
+  weatherdamage: 'weatherDamageMods',
+  terrainbp: 'bpMods',
+  screens: 'screenFinalMods',
+  protect: 'protect',
+};
+
+const FIELD_NAMES = {
+  weatherdamage: '날씨 대미지 보정',
+  terrainbp: '지형 BP 보정',
+  screens: '스크린 보정',
+  protect: 'Protect 처리',
+  magicroom: 'Magic Room',
+  wonderroom: 'Wonder Room',
+  auroraveil: 'Aurora Veil',
+  friendguard: 'Friend Guard',
+  battery: 'Battery',
+  powerspot: 'Power Spot',
+};
+
+function hasField(row, fields) {
+  return fields.some(field => row && row[field] !== undefined && row[field] !== null && row[field] !== false);
+}
+
+function hasDeclaredMechanics(kind, id) {
+  if (kind === 'move') return Object.keys(moveMechanics[id] || {}).length > 0;
+  if (kind === 'ability') return Object.keys(abilityMechanics[id] || {}).length > 0;
+  if (kind === 'item') return Object.keys(itemMechanics[id] || {}).length > 0;
+  if (kind === 'field') {
+    const key = FIELD_MECHANIC_KEYS[id];
+    if (!key) return false;
+    const value = fieldMechanics[key];
+    return Array.isArray(value) ? value.length > 0 : !!value;
+  }
+  return false;
+}
+
+function hasBuiltMechanics(kind, id) {
+  if (kind === 'move') return hasField(moveById[id], MOVE_MECHANIC_FIELDS);
+  if (kind === 'ability') return hasField(abilityById[id], ABILITY_MECHANIC_FIELDS);
+  if (kind === 'item') return hasField(itemById[id], ITEM_MECHANIC_FIELDS);
+  return false;
+}
+
+function supportEvidence(row) {
+  const evidence = [];
+  if (hasDeclaredMechanics(row.kind, row.id)) evidence.push('mechanics');
+  if (hasBuiltMechanics(row.kind, row.id)) evidence.push('built-data');
+  if (codeMentions(row.id)) evidence.push('code');
+  return evidence;
+}
+
 function entityName(kind, id) {
+  if (kind === 'field') return FIELD_NAMES[id] || id;
   const table = kind === 'move' ? moveById : kind === 'ability' ? abilityById : itemById;
   const row = table[id];
   if (!row) return id;
@@ -77,40 +221,43 @@ function readCoverageCandidates() {
     moveCandidates: expandKind('move'),
     abilityCandidates: expandKind('ability'),
     itemCandidates: expandKind('item'),
+    fieldCandidates: expandKind('field'),
   };
 }
 
-const { moveCandidates, abilityCandidates, itemCandidates } = readCoverageCandidates();
+const { moveCandidates, abilityCandidates, itemCandidates, fieldCandidates } = readCoverageCandidates();
 
 function scopeFor(kind) {
   if (kind === 'move') return legalMoveIds;
   if (kind === 'ability') return pokemonAbilityIds;
-  return itemIds;
+  if (kind === 'item') return itemIds;
+  return new Set(fieldCandidates.map(row => row.id));
 }
 
 function statusFor(row) {
   const inScope = scopeFor(row.kind).has(row.id);
   if (!inScope) return null;
   if (row.expectation === 'deferred') return '보류';
-  if (row.expectation === 'missing') return codeMentions(row.id) ? '검토 필요' : '미구현';
-  return codeMentions(row.id) ? '지원 감지' : '코드 감지 실패';
+  const detected = supportEvidence(row).length > 0;
+  if (row.expectation === 'missing') return detected ? '검토 필요' : '미구현';
+  return detected ? '지원 감지' : '지원 근거 없음';
 }
 
 function tableFor(title, rows) {
   const scoped = rows
-    .map(row => ({ ...row, status: statusFor(row), mentioned: codeMentions(row.id) }))
+    .map(row => ({ ...row, status: statusFor(row), evidence: supportEvidence(row) }))
     .filter(row => row.status)
     .sort((a, b) => a.group.localeCompare(b.group) || a.id.localeCompare(b.id));
 
   const lines = [
     `## ${title}`,
     '',
-    '| 그룹 | 항목 | 판정 | 코드 감지 | 비고 |',
+    '| 그룹 | 항목 | 판정 | 지원 근거 | 비고 |',
     '| --- | --- | --- | --- | --- |',
   ];
 
   for (const row of scoped) {
-    lines.push(`| ${md(row.group)} | ${md(entityName(row.kind, row.id))} | ${row.status} | ${row.mentioned ? 'Y' : 'N'} | ${md(row.note)} |`);
+    lines.push(`| ${md(row.group)} | ${md(entityName(row.kind, row.id))} | ${row.status} | ${row.evidence.length ? row.evidence.join(', ') : '-'} | ${md(row.note)} |`);
   }
   lines.push('');
   return lines.join('\n');
@@ -120,10 +267,10 @@ function countBy(rows, kind, predicate) {
   return rows.filter(row => row.kind === kind && predicate(row)).length;
 }
 
-const allCandidates = [...moveCandidates, ...abilityCandidates, ...itemCandidates];
+const allCandidates = [...moveCandidates, ...abilityCandidates, ...itemCandidates, ...fieldCandidates];
 const scopedCandidates = allCandidates.filter(row => statusFor(row));
 const missingRows = scopedCandidates
-  .filter(row => ['미구현', '코드 감지 실패', '검토 필요'].includes(statusFor(row)))
+  .filter(row => ['미구현', '지원 근거 없음', '검토 필요'].includes(statusFor(row)))
   .sort((a, b) => a.kind.localeCompare(b.kind) || a.group.localeCompare(b.group) || a.id.localeCompare(b.id));
 const deferredRows = scopedCandidates
   .filter(row => statusFor(row) === '보류')
@@ -136,6 +283,8 @@ const out = [
   '',
   '범위는 현재 빌드된 Champions 데이터 기준이다.',
   '',
+  '지원 근거는 `code`, `mechanics`, `built-data`로 표시한다. 이 표는 구현 후보 추적용이며, 계산 결과 회귀 검증은 golden test가 담당한다.',
+  '',
   '| 범위 | 개수 |',
   '| --- | ---: |',
   `| 챔피언스 포켓몬 | ${pokemon.length} |`,
@@ -145,6 +294,7 @@ const out = [
   `| 추적 후보 기술 | ${countBy(scopedCandidates, 'move', () => true)} |`,
   `| 추적 후보 특성 | ${countBy(scopedCandidates, 'ability', () => true)} |`,
   `| 추적 후보 도구 | ${countBy(scopedCandidates, 'item', () => true)} |`,
+  `| 추적 후보 필드/상태 | ${countBy(scopedCandidates, 'field', () => true)} |`,
   '',
   '## 점검 필요 요약',
   '',
@@ -161,6 +311,7 @@ const out = [
   tableFor('기술 매트릭스', moveCandidates),
   tableFor('특성 매트릭스', abilityCandidates),
   tableFor('도구 매트릭스', itemCandidates),
+  tableFor('필드/상태 매트릭스', fieldCandidates),
 ].join('\n');
 
 writeFileSync(OUTPUT_PATH, `${out.trim()}\n`, 'utf8');

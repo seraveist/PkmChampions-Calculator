@@ -17,8 +17,14 @@ function makeSideState(defaultIdx) {
     item: "",
     tera: false,
     teraType: p ? p.types[0] : 'Normal',
+    hpPct: 1,
     pinch: false,
     fullHP: true,
+    lastMoveFailed: false,
+    wasHit: false,
+    fallenAllies: 0,
+    flashFireActive: false,
+    boosterEnergyState: 'auto',
     moves: [],
     moveBpOverrides: [null, null, null, null]
   };
@@ -82,6 +88,229 @@ function manualBpForSlot(side, slot, move) {
 function moveWithManualBp(move, manualBp) {
   const bp = normalizeManualBp(manualBp);
   return bp === null ? move : { ...move, bp, manualBp: true };
+}
+
+function normalizeHpPct(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 1;
+  const raw = n > 1 ? n / 100 : n;
+  return Math.max(0.01, Math.min(1, raw));
+}
+
+function hpPercentInputValue(side) {
+  return Number((normalizeHpPct(side.hpPct) * 100).toFixed(1)).toString();
+}
+
+function currentHpValue(maxHp, hpPct) {
+  return Math.max(1, Math.floor(maxHp * normalizeHpPct(hpPct)));
+}
+
+function deriveHpFlags(side) {
+  const hpPct = normalizeHpPct(side.hpPct);
+  side.hpPct = hpPct;
+  side.fullHP = hpPct >= 1;
+  side.pinch = hpPct <= (1 / 3);
+  return side;
+}
+
+function setSideHpPct(side, value) {
+  side.hpPct = normalizeHpPct(value);
+  deriveHpFlags(side);
+}
+
+function renderHpConditionPills(side) {
+  const hpPct = normalizeHpPct(side.hpPct);
+  const pills = [];
+  if (hpPct >= 1) pills.push('<span class="hp-state-pill full">풀피</span>');
+  if (hpPct <= (1 / 3)) pills.push('<span class="hp-state-pill pinch">핀치</span>');
+  return pills.length ? pills.join('') : '<span class="hp-state-pill neutral">일반</span>';
+}
+
+function selectedAttackMoves() {
+  return (state.atk.moves || []).map(id => MoveById[id]).filter(Boolean);
+}
+
+function selectedMoveHasVariableKind(kinds) {
+  const wanted = Array.isArray(kinds) ? kinds : [kinds];
+  return selectedAttackMoves().some(move => wanted.includes(move.variableBpKind));
+}
+
+function attackerAbilityData() {
+  return state.atk.ability ? AbilityById[state.atk.ability] : null;
+}
+
+function sideAbilityData(sideKey) {
+  const side = state[sideKey];
+  return side?.ability ? AbilityById[side.ability] : null;
+}
+
+function attackerNeedsFlashFireToggle() {
+  return !!attackerAbilityData()?.attackStatBoosts?.some(rule => rule.flashFireActive);
+}
+
+function normalizeBoosterEnergyState(value) {
+  return ['auto', 'active', 'inactive'].includes(value) ? value : 'auto';
+}
+
+function sideNeedsBoosterEnergyControl(sideKey) {
+  const side = state[sideKey];
+  return !!sideAbilityData(sideKey)?.paradoxBoost || !!ItemById[side?.item]?.paradoxActivation;
+}
+
+function attackerNeedsFallenAllies() {
+  return selectedMoveHasVariableKind('fallenAllies') || !!attackerAbilityData()?.supremeOverlord;
+}
+
+function maxFallenAllies(gameType = state.field.gameType) {
+  return gameType === 'Doubles' ? 3 : 2;
+}
+
+function clampFallenAllies(value, gameType = state.field.gameType) {
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(maxFallenAllies(gameType), n));
+}
+
+function normalizeBattleConditionState() {
+  state.atk.fallenAllies = clampFallenAllies(state.atk.fallenAllies);
+  state.atk.lastMoveFailed = !!state.atk.lastMoveFailed;
+  state.atk.wasHit = !!state.atk.wasHit;
+  state.def.wasHit = !!state.def.wasHit;
+  state.atk.flashFireActive = !!state.atk.flashFireActive;
+  state.atk.boosterEnergyState = normalizeBoosterEnergyState(state.atk.boosterEnergyState);
+  state.def.boosterEnergyState = normalizeBoosterEnergyState(state.def.boosterEnergyState);
+}
+
+function speedConditionInfo() {
+  const calcState = makeCalcState();
+  const atkSpe = effectiveSpeed(calcState.atk, calcState.field);
+  const defSpe = effectiveSpeed(calcState.def, calcState.field);
+  const first = atkSpe > defSpe;
+  const second = atkSpe < defSpe;
+  return {
+    atkSpe,
+    defSpe,
+    first,
+    second,
+    verdict: first ? '공격측 선공' : second ? '공격측 후공' : '동속',
+  };
+}
+
+function renderConditionToggle({ sideKey, field, checked, label, detail }) {
+  return `
+    <label class="condition-toggle">
+      <input type="checkbox" data-action="conditionFlag" data-side="${sideKey}" data-field="${field}" ${checked ? 'checked' : ''}>
+      <span>${label}</span>
+      ${detail ? `<em>${detail}</em>` : ''}
+    </label>
+  `;
+}
+
+function renderBattleConditions(sideKey = 'atk') {
+  normalizeBattleConditionState();
+  const side = state[sideKey];
+  const isAttacker = sideKey === 'atk';
+  const needsFirst = isAttacker && selectedMoveHasVariableKind('userMovesFirstDouble');
+  const needsSecond = isAttacker && (selectedMoveHasVariableKind('userMovesSecondDouble') || !!attackerAbilityData()?.bpBoosts?.some(rule => rule.movesSecond));
+  const needsLastMoveFailed = isAttacker && selectedMoveHasVariableKind('lastMoveFailedDouble');
+  const needsAttackerWasHit = isAttacker && selectedMoveHasVariableKind('userWasHitDouble');
+  const needsTargetWasHit = isAttacker && selectedMoveHasVariableKind('targetWasHitDouble');
+  const needsFallenAllies = isAttacker && attackerNeedsFallenAllies();
+  const needsFlashFire = isAttacker && attackerNeedsFlashFireToggle();
+  const needsBoosterEnergy = sideNeedsBoosterEnergyControl(sideKey);
+  const hasConditions = needsFirst || needsSecond || needsLastMoveFailed || needsAttackerWasHit ||
+    needsTargetWasHit || needsFallenAllies || needsFlashFire || needsBoosterEnergy;
+  if (!hasConditions) return '';
+
+  const rows = [];
+  if (needsBoosterEnergy) {
+    const mode = normalizeBoosterEnergyState(side.boosterEnergyState);
+    const ab = sideAbilityData(sideKey);
+    rows.push(`
+      <label class="condition-number condition-select">
+        <span>부스트 에너지</span>
+        <select data-action="conditionMode" data-side="${sideKey}" data-field="boosterEnergyState">
+          <option value="auto" ${mode === 'auto' ? 'selected' : ''}>자동</option>
+          <option value="active" ${mode === 'active' ? 'selected' : ''}>활성</option>
+          <option value="inactive" ${mode === 'inactive' ? 'selected' : ''}>비활성</option>
+        </select>
+        <em>${ab?.koName || ab?.name || 'Paradox'} · 도구 보유/소모 상태</em>
+      </label>
+    `);
+  }
+  if (needsFirst || needsSecond) {
+    const info = speedConditionInfo();
+    const active = (needsFirst && info.first) || (needsSecond && info.second);
+    const reason = [
+      needsFirst ? '선공 시 위력 상승' : '',
+      needsSecond ? '후공 시 위력 상승' : '',
+    ].filter(Boolean).join(' · ');
+    rows.push(`
+      <div class="condition-auto ${active ? 'active' : ''}">
+        <div>
+          <span>실속도 기준 자동 적용</span>
+          <b>${info.verdict}</b>
+        </div>
+        <em>${info.atkSpe} : ${info.defSpe}${reason ? ` · ${reason}` : ''}</em>
+      </div>
+    `);
+  }
+  if (needsLastMoveFailed) {
+    rows.push(renderConditionToggle({
+      sideKey: 'atk',
+      field: 'lastMoveFailed',
+      checked: state.atk.lastMoveFailed,
+      label: '직전 기술 실패',
+      detail: '열불내기/분함의발구르기',
+    }));
+  }
+  if (needsAttackerWasHit) {
+    rows.push(renderConditionToggle({
+      sideKey: 'atk',
+      field: 'wasHit',
+      checked: state.atk.wasHit,
+      label: '공격측이 먼저 피격',
+      detail: '눈사태',
+    }));
+  }
+  if (needsTargetWasHit) {
+    rows.push(renderConditionToggle({
+      sideKey: 'def',
+      field: 'wasHit',
+      checked: state.def.wasHit,
+      label: '방어측이 이미 피격',
+      detail: '승부굳히기',
+    }));
+  }
+  if (needsFlashFire) {
+    rows.push(renderConditionToggle({
+      sideKey: 'atk',
+      field: 'flashFireActive',
+      checked: state.atk.flashFireActive,
+      label: '타오르는불꽃 활성',
+      detail: '불꽃 공격 강화',
+    }));
+  }
+  if (needsFallenAllies) {
+    const max = maxFallenAllies();
+    rows.push(`
+      <label class="condition-number">
+        <span>쓰러진 아군 수</span>
+        <input type="number" data-action="fallenAllies" data-side="atk" value="${clampFallenAllies(state.atk.fallenAllies)}" min="0" max="${max}" step="1">
+        <em>0~${max} · ${state.field.gameType === 'Doubles' ? '64 더블' : '63 싱글'}</em>
+      </label>
+    `);
+  }
+
+  return `
+    <div class="battle-conditions">
+      <div class="field-label">
+        <span>조건</span>
+        <span class="hint">선택 기술/특성에 필요한 값만 표시</span>
+      </div>
+      <div class="condition-grid">${rows.join('')}</div>
+    </div>
+  `;
 }
 
 function applyMoveBpInput(el, renderAfter = false) {
@@ -172,7 +401,12 @@ function estimateMovePower(side, move) {
   const stats = calcStats(side);
   // 가변 위력 기술 위력은 자기 자신을 상대로 가정한 추정치로 보여준다 (estimate 용도)
   const defStats = calcStats(state.def);
-  const variableBp = computeVariableBp(move, side, state.def, state.field, stats, defStats);
+  const estimateField = { ...state.field };
+  const estimateAtkSpe = effectiveSpeed(side, estimateField);
+  const estimateDefSpe = effectiveSpeed(state.def, estimateField);
+  estimateField.atkMovesFirst = estimateAtkSpe > estimateDefSpe;
+  estimateField.atkMovesSecond = estimateAtkSpe < estimateDefSpe;
+  const variableBp = computeVariableBp(move, side, state.def, estimateField, stats, defStats);
 
   let moveType = move.type;
   let bp = variableBp || move.bp;
@@ -294,6 +528,8 @@ function renderSide(sideKey) {
   if (!p) { container.innerHTML = '<div class="empty-state">포켓몬 선택 필요</div>'; return; }
   
   const stats = calcStats(side);
+  deriveHpFlags(side);
+  const currentHp = currentHpValue(stats.hp, side.hpPct);
   const totalEV = Object.values(side.evs).reduce((a,b) => a+b, 0);
   const overEV = totalEV > 66;
   const types = effectiveTypes(side);
@@ -330,6 +566,8 @@ function renderSide(sideKey) {
         <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 -->
       </div>
     </div>
+
+    ${sideKey === 'def' ? renderBattleConditions('def') : ''}
 
     <div class="section-divider"></div>
 
@@ -371,6 +609,21 @@ function renderSide(sideKey) {
           <option value="Sleep" ${side.status === 'Sleep' ? 'selected' : ''}>잠듦</option>
           <option value="Freeze" ${side.status === 'Freeze' ? 'selected' : ''}>얼음</option>
         </select>
+      </div>
+    </div>
+
+    <!-- 현재 HP -->
+    <div class="field">
+      <div class="field-label">
+        <span>현재 HP</span>
+        <span class="hint">${currentHp} / ${stats.hp}</span>
+      </div>
+      <div class="hp-control-row">
+        <label class="hp-percent-control">
+          <input type="number" data-action="hpPct" data-side="${sideKey}" value="${hpPercentInputValue(side)}" min="1" max="100" step="1">
+          <span>%</span>
+        </label>
+        <div class="hp-state-pills">${renderHpConditionPills(side)}</div>
       </div>
     </div>
 
@@ -456,10 +709,7 @@ function renderSide(sideKey) {
     <div class="field">
       <div class="field-label">
         <span>기술 배치</span>
-        <label class="pinch-toggle">
-          <input type="checkbox" data-action="pinch" data-side="atk" ${side.pinch ? 'checked' : ''}>
-          핀치 (HP 1/3 이하, 맹화·격류 등)
-        </label>
+        <span class="hint">HP 조건은 현재 HP에서 자동 파생</span>
       </div>
       <div class="moves-list">
         ${[0,1,2,3].map(i => {
@@ -484,6 +734,8 @@ function renderSide(sideKey) {
         }).join('')}
       </div>
     </div>
+
+    ${renderBattleConditions('atk')}
     ` : ''}
 
     ${sideKey === 'def' ? `
@@ -638,7 +890,30 @@ function wireSide(sideKey) {
       if (action === 'ability') side.ability = el.value;
       else if (action === 'nature') side.nature = el.value;
       else if (action === 'status') side.status = el.value;
-      else if (action === 'pinch') side.pinch = el.checked;
+      else if (action === 'hpPct') {
+        setSideHpPct(side, el.value);
+        renderSide(el.dataset.side);
+        triggerCalc();
+        return;
+      }
+      else if (action === 'conditionFlag') {
+        side[el.dataset.field] = el.checked;
+        renderSide(el.dataset.side);
+        triggerCalc();
+        return;
+      }
+      else if (action === 'conditionMode') {
+        side[el.dataset.field] = el.value;
+        renderSide(el.dataset.side);
+        triggerCalc();
+        return;
+      }
+      else if (action === 'fallenAllies') {
+        side.fallenAllies = clampFallenAllies(el.value);
+        renderSide('atk');
+        triggerCalc();
+        return;
+      }
       else if (action === 'teraToggle') { side.tera = !side.tera; renderSide(el.dataset.side); return; }
       else if (action === 'teraType') side.teraType = el.value;
       else if (action === 'ev') {
@@ -757,13 +1032,13 @@ function emptyEntryMeta() {
 }
 
 function cloneSideForCalc(side) {
-  return {
+  return deriveHpFlags({
     ...side,
     evs: { ...side.evs },
     ranks: { ...side.ranks },
     moves: Array.isArray(side.moves) ? [...side.moves] : [],
     moveBpOverrides: Array.isArray(side.moveBpOverrides) ? [...side.moveBpOverrides] : [null, null, null, null],
-  };
+  });
 }
 
 function cloneFieldForCalc(field) {
@@ -865,6 +1140,7 @@ function makeCalcState() {
     def: cloneSideForCalc(state.def),
     field: cloneFieldForCalc(state.field),
   };
+  calcState.atk.fallenAllies = clampFallenAllies(calcState.atk.fallenAllies, calcState.field.gameType);
   calcState.entryMeta = applyEntryEffectsToCalcState(calcState);
   return calcState;
 }
@@ -982,8 +1258,9 @@ function runCalc() {
     const result = calculateDamage(calcAtk, calcDef, move, calcField);
     if (!result) return { empty: true, slot: i+1, move };
     const hko = hkoLabel(result.damages, result.defHP, calcDef, calcField);
+    const defStartHp = Math.max(1, sideCurrentHp(result.defHP, calcDef) - calcHazardDamage(calcDef, calcField));
     const first = firstMover(move.pri, atkSpe, defSpe, calcField);
-    return { ...result, hko, first, slot: i+1, move };
+    return { ...result, hko, first, slot: i+1, move, defStartHp };
   });
   
   // 틀깨기 / 다능 등 공격측 특성으로 무시되는 방어측 특성 체크
@@ -1056,6 +1333,17 @@ function runCalc() {
   `;
 }
 
+function renderModsTrace(mods, limit = 6) {
+  const labels = [...new Set((mods || []).filter(Boolean).map(m => m.toString()))];
+  if (!labels.length) return '';
+  const visible = labels.slice(0, limit);
+  const hidden = labels.length - visible.length;
+  const title = escapeHTML(labels.join(' · '));
+  const parts = visible.map(m => `<b>${escapeHTML(m)}</b>`);
+  if (hidden > 0) parts.push(`<b title="${title}">+${hidden}</b>`);
+  return `<div class="mods-trace" title="${title}">${parts.join('<span class="sep">·</span>')}</div>`;
+}
+
 function renderMoveCard(r) {
   if (r.empty) {
     if (r.statusMove) {
@@ -1102,8 +1390,9 @@ function renderMoveCard(r) {
   
   const min = r.damages[0];
   const max = r.damages[15];
-  const hpRemMin = Math.max(0, r.defHP - max);
-  const hpRemMax = Math.max(0, r.defHP - min);
+  const startHp = r.defStartHp || r.defHP;
+  const hpRemMin = Math.max(0, startHp - max);
+  const hpRemMax = Math.max(0, startHp - min);
   
   const moveData = r.move;
   const typeChange = r.moveType !== moveData.type;
@@ -1172,7 +1461,7 @@ function renderMoveCard(r) {
         <div class="dmg-info">
           <span>실제 대미지 <b>${min}–${max}</b></span>
         </div>
-        ${r.mods.length ? `<div class="mods-trace">${r.mods.map(m => `<b>${m}</b>`).join('<span class="sep">·</span>')}</div>` : ''}
+        ${renderModsTrace(r.mods)}
         ${sideEffect}
       </div>
       <div class="hko-badge">
@@ -1268,7 +1557,12 @@ document.getElementById('btnAutoCalc').classList.add('active');
    ════════════════════════════════════════════════════════════ */
 document.getElementById('weather').addEventListener('change', e => { markManualAutoFieldOverride('weather'); state.field.weather = e.target.value; triggerCalc(); });
 document.getElementById('terrain').addEventListener('change', e => { markManualAutoFieldOverride('terrain'); state.field.terrain = e.target.value; triggerCalc(); });
-document.getElementById('gameType').addEventListener('change', e => { state.field.gameType = e.target.value; triggerCalc(); });
+document.getElementById('gameType').addEventListener('change', e => {
+  state.field.gameType = e.target.value;
+  state.atk.fallenAllies = clampFallenAllies(state.atk.fallenAllies);
+  renderSide('atk');
+  triggerCalc();
+});
 document.getElementById('critHit').addEventListener('change', e => { state.field.isCritical = e.target.checked; triggerCalc(); });
 document.getElementById('defReflect').addEventListener('change', e => { state.field.defReflect = e.target.checked; triggerCalc(); });
 document.getElementById('defLightScreen').addEventListener('change', e => { state.field.defLightScreen = e.target.checked; triggerCalc(); });
