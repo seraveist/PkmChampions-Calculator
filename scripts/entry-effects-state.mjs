@@ -72,14 +72,20 @@ function loadUiApi() {
       globalThis.__entryApi = {
         state,
         calcStats,
+        effectiveTypes,
         makeCalcState,
         setSideHpPct,
         maxFallenAllies,
         clampFallenAllies,
         normalizeBattleConditionState,
+        PokemonById,
+        applyPokemonToCalcSide,
+        setSideType,
         markManualAutoFieldOverride,
         resetManualAutoFieldOverrides,
         manualAutoFieldOverrides,
+        resetSideManualValues,
+        defaultPokemonAbilityId,
         setAutoEntry(value) { autoEntryEffects = value; },
         refresh() {
           const calc = makeCalcState();
@@ -131,6 +137,8 @@ function resetScenario() {
   state.def.pinch = false;
   state.atk.fullHP = true;
   state.def.fullHP = true;
+  state.atk.types = api.PokemonById[state.atk.pokemonIdx]?.types?.slice() || [];
+  state.def.types = api.PokemonById[state.def.pokemonIdx]?.types?.slice() || [];
   state.atk.lastMoveFailed = false;
   state.atk.wasHit = false;
   state.def.wasHit = false;
@@ -138,6 +146,8 @@ function resetScenario() {
   state.atk.flashFireActive = false;
   state.atk.boosterEnergyState = 'auto';
   state.def.boosterEnergyState = 'auto';
+  state.atk.damageBlockActive = false;
+  state.def.damageBlockActive = false;
   state.atk.ranks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
   state.def.ranks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
   state.field.weather = 'none';
@@ -164,6 +174,33 @@ calc = api.refresh();
 assertEqual(calc.def.fullHP, false, 'defender hp pct below 100 disables full hp');
 
 resetScenario();
+state.def.pokemonIdx = 'mimikyu';
+state.def.ability = 'disguise';
+state.def.hpPct = 1;
+state.def.damageBlockActive = false;
+calc = api.refresh();
+let mimikyuHp = api.calcStats(calc.def).hp;
+let expectedDisguiseConsumedHp = mimikyuHp - Math.floor(mimikyuHp / 8);
+assertEqual(Math.floor(mimikyuHp * calc.def.hpPct), expectedDisguiseConsumedHp, 'disguise off derives consumed hp');
+assertEqual(calc.def.fullHP, false, 'disguise off derives not full hp');
+state.def.damageBlockActive = true;
+calc = api.refresh();
+assertEqual(calc.def.hpPct, 1, 'disguise on keeps source hp pct');
+assertEqual(calc.def.fullHP, true, 'disguise on keeps full hp flag');
+
+resetScenario();
+state.atk.types = ['Water'];
+calc = api.refresh();
+assertDeepEqual(api.effectiveTypes(calc.atk), ['Water'], 'manual type override is used by calc state');
+state.atk.types = ['Fire', 'Flying'];
+api.setSideType('atk', 0, 'Water');
+assertDeepEqual(state.atk.types, ['Water'], 'manual first type change clears second type');
+api.resetSideManualValues('atk');
+calc = api.refresh();
+assertDeepEqual(api.effectiveTypes(calc.atk), api.PokemonById[state.atk.pokemonIdx].types, 'manual reset restores default pokemon type');
+assertEqual(state.atk.ability, api.defaultPokemonAbilityId(api.PokemonById[state.atk.pokemonIdx]), 'manual reset restores default ability');
+
+resetScenario();
 state.field.gameType = 'Singles';
 state.atk.fallenAllies = 5;
 api.normalizeBattleConditionState();
@@ -172,6 +209,28 @@ state.field.gameType = 'Doubles';
 state.atk.fallenAllies = 5;
 api.normalizeBattleConditionState();
 assertEqual(state.atk.fallenAllies, 3, 'fallen allies clamps to doubles party max');
+
+resetScenario();
+state.atk.item = 'charcoal';
+state.atk.moves = ['flareblitz'];
+state.atk.moveBpOverrides = [120, null, null, null];
+api.applyPokemonToCalcSide('atk', state.atk.pokemonIdx);
+assertEqual(state.atk.item, 'charcoal', 'same pokemon apply keeps custom item');
+assertDeepEqual(state.atk.moves, ['flareblitz'], 'same pokemon apply keeps selected moves');
+assertDeepEqual(state.atk.moveBpOverrides, [120, null, null, null], 'same pokemon apply keeps manual move power');
+
+resetScenario();
+state.atk.ability = 'drought';
+api.refresh();
+api.markManualAutoFieldOverride('weather');
+state.field.weather = 'Rain';
+state.atk.moves = ['flareblitz'];
+state.atk.moveBpOverrides = [120, null, null, null];
+const alternatePokemon = Object.keys(api.PokemonById).find(id => id !== state.atk.pokemonIdx);
+api.applyPokemonToCalcSide('atk', alternatePokemon);
+assertEqual(state.field.weather, 'none', 'pokemon helper resets manual auto weather on species change');
+assertDeepEqual(state.atk.moves, [], 'pokemon helper clears attacker moves on species change');
+assertDeepEqual(state.atk.moveBpOverrides, [null, null, null, null], 'pokemon helper clears manual move power on species change');
 
 resetScenario();
 state.atk.ability = 'drought';

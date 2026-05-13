@@ -66,7 +66,7 @@ const EMPTY_EVS = Object.fromEntries(STATS.map(stat => [stat, 0]));
 const EMPTY_RANKS = Object.fromEntries(STATS.filter(stat => stat !== 'hp').map(stat => [stat, 0]));
 
 function normalizeId(name) {
-  return name.toLowerCase().replace(/[\s'\-()]/g, '');
+  return String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 function normalizeHpPct(value) {
@@ -176,6 +176,16 @@ function assertDeepEqual(actual, expected, label) {
     console.error(`\n[FAIL] ${label}`);
     console.error('expected:', expectedJson);
     console.error('actual:  ', actualJson);
+    process.exitCode = 1;
+    return;
+  }
+  console.log(`[PASS] ${label}`);
+}
+
+function assertOk(condition, label, detail = '') {
+  if (!condition) {
+    console.error(`[FAIL] ${label}`);
+    if (detail) console.error(detail);
     process.exitCode = 1;
     return;
   }
@@ -383,6 +393,29 @@ const cases = [
       category: 'Special',
       bp: 90,
       atk: 102,
+      def: 120,
+      defHP: 187,
+    },
+  },
+  {
+    name: 'light ball uses baseSpecies condition for pikachu special attack',
+    move: 'thunderbolt',
+    atk: side('pikachu', {
+      item: 'lightball',
+      evs: { spa: 32 },
+      nature: 'modest',
+    }),
+    def: side('venusaur', { evs: { hp: 32 }, nature: 'hardy' }),
+    field: field(),
+    expected: {
+      damages: [47, 48, 48, 49, 49, 50, 51, 51, 51, 52, 53, 54, 54, 54, 55, 56],
+      minPct: 25.1,
+      maxPct: 29.9,
+      effectiveness: 0.5,
+      moveType: 'Electric',
+      category: 'Special',
+      bp: 90,
+      atk: 224,
       def: 120,
       defHP: 187,
     },
@@ -1596,6 +1629,16 @@ assertDeepEqual(
   ['일렉트릭필드×1.3', '그래스필드×1.3', '사이코필드×1.3', '미스트필드 드래곤×0.5', '그래스필드 지진×0.5', '도우미×1.5'],
   'field mechanics bp mod data is bundled',
 );
+assertDeepEqual(
+  api.RULES.entryEffects?.intimidate,
+  { opponentBoost: { atk: -1 }, label: '진입 시 상대 공격 -1', blockable: true },
+  'entry effects data is bundled',
+);
+assertDeepEqual(
+  api.RULES.entryEffectBlockers?.intimidate?.includes('owntempo'),
+  true,
+  'entry effect blockers data is bundled',
+);
 
 {
   const lowHpDef = side('venusaur', {
@@ -1657,6 +1700,8 @@ assertOptionalItemFields('punchingglove', { powerBoostKind: 'punch', powerBoostM
 assertItemFields('occaberry', { resistBerryType: 'Fire' });
 assertOptionalItemFields('chilanberry', { resistBerryType: 'Normal', resistBerryRequiresWeakness: false });
 assertOptionalItemFields('choiceband', { attackStatBoost: { stat: 'atk', mod: 'x1_5' } });
+assertItemFields('lightball', { attackStatBoost: { baseSpecies: ['Pikachu'], stats: ['atk', 'spa'], mod: 'x2_0' } });
+assertOptionalItemFields('griseousorb', { speciesTypeBoost: { baseSpecies: ['Giratina'], types: ['Dragon', 'Ghost'], mod: 'x1_2' } });
 assertOptionalItemFields('lifeorb', { finalDamageBoost: { kind: 'always', mod: 5324 } });
 assertOptionalItemFields('deepseatooth', { attackStatBoost: { pokemon: ['clamperl'], stat: 'spa', mod: 'x2_0' } });
 assertOptionalItemFields('metalpowder', { defenseStatBoost: { pokemon: ['ditto'], stat: 'def', mod: 'x2_0' } });
@@ -1677,6 +1722,8 @@ assertAbilityFields('waterbubble', {
 });
 assertAbilityFields('furcoat', { defenseStatBoosts: [{ stat: 'def', mod: 'x2_0' }] });
 assertAbilityFields('multiscale', { defensiveFinalMods: [{ fullHP: true, mod: 'x0_5' }] });
+assertAbilityFields('disguise', { damageBlock: { manual: true, pokemon: ['mimikyu', 'mimikyutotem'], nonStatus: true, consumedHpFraction: [1, 8] } });
+assertAbilityFields('iceface', { damageBlock: { manual: true, pokemon: ['eiscue'], category: 'Physical' } });
 assertAbilityFields('sniper', { finalDamageBoosts: [{ critical: true, mod: 'x1_5' }] });
 assertAbilityFields('levitate', { moldBreakerIgnored: true, grounded: false, immunities: [{ types: ['Ground'] }] });
 assertAbilityFields('moldbreaker', { ignoresTargetAbility: true });
@@ -1712,4 +1759,35 @@ for (const testCase of cases) {
   } else {
     assertDeepEqual(actual, testCase.expected, testCase.name);
   }
+}
+
+const disguiseOff = runCase({
+  name: 'disguise off does not block damage',
+  atk: side('incineroar', { evs: { atk: 32 }, nature: 'adamant' }),
+  def: side('mimikyu', { ability: 'disguise', damageBlockActive: false }),
+  move: 'flareblitz',
+  field: field(),
+});
+assertOk(disguiseOff.maxPct > 0, 'disguise off does not block damage', JSON.stringify(disguiseOff));
+
+const disguiseOn = runCase({
+  name: 'disguise on blocks damage',
+  atk: side('incineroar', { evs: { atk: 32 }, nature: 'adamant' }),
+  def: side('mimikyu', { ability: 'disguise', damageBlockActive: true }),
+  move: 'flareblitz',
+  field: field(),
+});
+assertDeepEqual(disguiseOn.damages, new Array(16).fill(0), 'disguise on blocks damage');
+
+if (api.PokemonById.eiscue) {
+  const iceFaceOff = runCase({
+    name: 'ice face off does not block physical damage',
+    atk: side('incineroar', { evs: { atk: 32 }, nature: 'adamant' }),
+    def: side('eiscue', { ability: 'iceface', damageBlockActive: false }),
+    move: 'flareblitz',
+    field: field(),
+  });
+  assertOk(iceFaceOff.maxPct > 0, 'ice face off does not block physical damage', JSON.stringify(iceFaceOff));
+} else {
+  console.log('[SKIP] ice face off damage behavior requires Eiscue in Champions data');
 }

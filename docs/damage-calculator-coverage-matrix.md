@@ -8,7 +8,7 @@
 
 | 범위 | 개수 |
 | --- | ---: |
-| 챔피언스 포켓몬 | 272 |
+| 챔피언스 포켓몬 | 276 |
 | 챔피언스 learnset 기술 | 490 |
 | 챔피언스 포켓몬이 보유한 특성 | 192 |
 | 챔피언스 도구 데이터 | 118 |
@@ -148,7 +148,7 @@
 | 면역/상성 | 피뢰침 (lightningrod) | 지원 감지 | mechanics, built-data |  |
 | 면역/상성 | 전기엔진 (motordrive) | 지원 감지 | mechanics, built-data |  |
 | 면역/상성 | 초식 (sapsipper) | 지원 감지 | mechanics, built-data |  |
-| 면역/상성 | 배짱 (scrappy) | 지원 감지 | mechanics, code |  |
+| 면역/상성 | 배짱 (scrappy) | 지원 감지 | mechanics |  |
 | 면역/상성 | 방음 (soundproof) | 지원 감지 | mechanics, built-data |  |
 | 면역/상성 | 축전 (voltabsorb) | 지원 감지 | mechanics, built-data |  |
 | 면역/상성 | 저수 (waterabsorb) | 지원 감지 | mechanics, built-data |  |
@@ -161,17 +161,17 @@
 | 방어 예외/아이템 상호작용 | 점착 (stickyhold) | 지원 감지 | mechanics, built-data |  |
 | 방어 예외/아이템 상호작용 | 옹골참 (sturdy) | 지원 감지 | mechanics, built-data |  |
 | 방어 예외/아이템 상호작용 | 긴장감 (unnerve) | 지원 감지 | mechanics, built-data, code |  |
-| 위협 차단 | 클리어바디 (clearbody) | 지원 감지 | code | ENTRY_EFFECTS의 위협 적용 전 차단 |
-| 위협 차단 | 정신력 (innerfocus) | 지원 감지 | code | ENTRY_EFFECTS의 위협 적용 전 차단 |
-| 위협 차단 | 둔감 (oblivious) | 지원 감지 | code | ENTRY_EFFECTS의 위협 적용 전 차단 |
-| 위협 차단 | 마이페이스 (owntempo) | 지원 감지 | code | ENTRY_EFFECTS의 위협 적용 전 차단 |
-| 위협 차단 | 하얀연기 (whitesmoke) | 지원 감지 | code | ENTRY_EFFECTS의 위협 적용 전 차단 |
-| 자동 진입 효과 | 잔비 (drizzle) | 지원 감지 | code | makeCalcState()에서 source state를 복제해 적용 |
-| 자동 진입 효과 | 가뭄 (drought) | 지원 감지 | code | makeCalcState()에서 source state를 복제해 적용 |
-| 자동 진입 효과 | 위협 (intimidate) | 지원 감지 | code | makeCalcState()에서 source state를 복제해 적용 |
-| 자동 진입 효과 | 모래뿜기 (sandspit) | 지원 감지 | code | makeCalcState()에서 source state를 복제해 적용 |
-| 자동 진입 효과 | 모래날림 (sandstream) | 지원 감지 | code | makeCalcState()에서 source state를 복제해 적용 |
-| 자동 진입 효과 | 눈퍼뜨리기 (snowwarning) | 지원 감지 | code | makeCalcState()에서 source state를 복제해 적용 |
+| 위협 차단 | 클리어바디 (clearbody) | 지원 감지 | mechanics | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
+| 위협 차단 | 정신력 (innerfocus) | 지원 감지 | mechanics | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
+| 위협 차단 | 둔감 (oblivious) | 지원 감지 | mechanics | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
+| 위협 차단 | 마이페이스 (owntempo) | 지원 감지 | mechanics | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
+| 위협 차단 | 하얀연기 (whitesmoke) | 지원 감지 | mechanics | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
+| 자동 진입 효과 | 잔비 (drizzle) | 지원 감지 | mechanics | entry-effects.json을 makeCalcState()에서 계산용 복사본에 적용 |
+| 자동 진입 효과 | 가뭄 (drought) | 지원 감지 | mechanics | entry-effects.json을 makeCalcState()에서 계산용 복사본에 적용 |
+| 자동 진입 효과 | 위협 (intimidate) | 지원 감지 | mechanics | entry-effects.json을 makeCalcState()에서 계산용 복사본에 적용 |
+| 자동 진입 효과 | 모래뿜기 (sandspit) | 지원 감지 | mechanics | entry-effects.json을 makeCalcState()에서 계산용 복사본에 적용 |
+| 자동 진입 효과 | 모래날림 (sandstream) | 지원 감지 | mechanics | entry-effects.json을 makeCalcState()에서 계산용 복사본에 적용 |
+| 자동 진입 효과 | 눈퍼뜨리기 (snowwarning) | 지원 감지 | mechanics | entry-effects.json을 makeCalcState()에서 계산용 복사본에 적용 |
 
 ## 도구 매트릭스
 

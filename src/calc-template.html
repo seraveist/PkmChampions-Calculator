@@ -59,30 +59,49 @@
       </div>
       <div class="panel-body">
         <div class="field-grid">
-          <div class="field"><label class="field-label" for="weather">날씨</label><select id="weather"><option value="none">없음</option><option value="Sun">쾌청</option><option value="Rain">비</option><option value="Sand">모래바람</option><option value="Snow">눈</option><option value="Harsh Sunshine">대쾌청</option><option value="Heavy Rain">강한비</option></select></div>
-          <div class="field"><label class="field-label" for="terrain">필드</label><select id="terrain"><option value="none">없음</option><option value="Electric">일렉트릭필드</option><option value="Grassy">그래스필드</option><option value="Psychic">사이코필드</option><option value="Misty">미스트필드</option></select></div>
-          <div class="field"><label class="field-label" for="gameType">배틀 룰</label><select id="gameType"><option value="Singles">싱글배틀</option><option value="Doubles">더블배틀</option></select></div>
+          <div class="field">
+            <label class="field-label" for="weather">날씨</label>
+            <div class="combobox field-combobox" data-cb="field-weather">
+              <input type="text" id="weather" class="cb-input" value="없음" data-cb-type="weather" data-field="weather" data-value="none" autocomplete="off" aria-label="날씨 선택" aria-expanded="false">
+              <div class="combobox-options" role="listbox"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="terrain">필드</label>
+            <div class="combobox field-combobox" data-cb="field-terrain">
+              <input type="text" id="terrain" class="cb-input" value="없음" data-cb-type="terrain" data-field="terrain" data-value="none" autocomplete="off" aria-label="필드 선택" aria-expanded="false">
+              <div class="combobox-options" role="listbox"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="gameType">배틀 룰</label>
+            <div class="combobox field-combobox" data-cb="field-game-type">
+              <input type="text" id="gameType" class="cb-input" value="싱글배틀" data-cb-type="gameType" data-field="gameType" data-value="Singles" autocomplete="off" aria-label="배틀 룰 선택" aria-expanded="false">
+              <div class="combobox-options" role="listbox"></div>
+            </div>
+          </div>
         </div>
         <div class="field-checkbox-grid">
-          <label class="checkbox-label"><input type="checkbox" id="critHit"> 급소 명중</label>
-          <label class="checkbox-label"><input type="checkbox" id="defReflect"> 방어측 리플렉터</label>
-          <label class="checkbox-label"><input type="checkbox" id="defLightScreen"> 방어측 빛의장막</label>
-          <label class="checkbox-label"><input type="checkbox" id="atkHelpingHand"> 공격측 도우미</label>
-          <label class="checkbox-label"><input type="checkbox" id="defProtect"> 방어측 방어/막아내기</label>
-          <label class="checkbox-label" style="color: var(--tera);"><input type="checkbox" id="ruinSword"> ⚔️ 검의재앙 (방어 ×0.75)</label>
-          <label class="checkbox-label" style="color: var(--tera);"><input type="checkbox" id="ruinTablet"> ⚔️ 목간의재앙 (공격 ×0.75)</label>
-          <label class="checkbox-label" style="color: var(--tera);"><input type="checkbox" id="ruinBeads"> ⚔️ 구슬의재앙 (특방 ×0.75)</label>
-          <label class="checkbox-label" style="color: var(--tera);"><input type="checkbox" id="ruinVessel"> ⚔️ 그릇의재앙 (특공 ×0.75)</label>
-          <label class="checkbox-label"><input type="checkbox" id="defStealthRock"> 🪨 방어측 스텔스록</label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="defSpikes"> 🛡️ 방어측 압정뿌리기
-            <select id="defSpikesLayers" style="margin-left: 4px; font-size: 11px;">
-              <option value="1">1층</option><option value="2">2층</option><option value="3">3층</option>
-            </select>
+          <label class="checkbox-label"><input type="checkbox" id="critHit"><span>급소 명중</span></label>
+          <label class="checkbox-label"><input type="checkbox" id="defReflect"><span>방어측 리플렉터</span></label>
+          <label class="checkbox-label"><input type="checkbox" id="defLightScreen"><span>방어측 빛의장막</span></label>
+          <label class="checkbox-label"><input type="checkbox" id="atkHelpingHand"><span>공격측 도우미</span></label>
+          <label class="checkbox-label"><input type="checkbox" id="defProtect"><span>방어측 방어/막아내기</span></label>
+          <label class="checkbox-label ruin"><input type="checkbox" id="ruinSword"><span>검의재앙</span><em>방어 ×0.75</em></label>
+          <label class="checkbox-label ruin"><input type="checkbox" id="ruinTablet"><span>목간의재앙</span><em>공격 ×0.75</em></label>
+          <label class="checkbox-label ruin"><input type="checkbox" id="ruinBeads"><span>구슬의재앙</span><em>특방 ×0.75</em></label>
+          <label class="checkbox-label ruin"><input type="checkbox" id="ruinVessel"><span>그릇의재앙</span><em>특공 ×0.75</em></label>
+          <label class="checkbox-label"><input type="checkbox" id="defStealthRock"><span>방어측 스텔스록</span></label>
+          <label class="checkbox-label spikes">
+            <input type="checkbox" id="defSpikes"><span>방어측 압정뿌리기</span>
+            <div class="combobox field-inline-combobox" data-cb="field-spikes-layers">
+              <input type="text" id="defSpikesLayers" class="cb-input field-inline-input" value="1중첩" data-cb-type="spikesLayers" data-field="defSpikesLayers" data-value="1" autocomplete="off" aria-label="압정뿌리기 중첩 수" aria-expanded="false">
+              <div class="combobox-options" role="listbox"></div>
+            </div>
           </label>
-          <label class="checkbox-label"><input type="checkbox" id="trickRoom"> 🔄 트릭룸 (느린 쪽 선공)</label>
-          <label class="checkbox-label"><input type="checkbox" id="gravity"> 🌐 중력장 (Ground 면역 무효 / Sapple ×1.5)</label>
-          <label class="checkbox-label" style="color: var(--ok); grid-column: 1/-1;"><input type="checkbox" id="autoEntry" checked> 📋 자동 진입 효과 (위협, 가뭄, 다운로드 등)</label>
+          <label class="checkbox-label"><input type="checkbox" id="trickRoom"><span>트릭룸</span><em>느린 쪽 선공</em></label>
+          <label class="checkbox-label wide"><input type="checkbox" id="gravity"><span>중력장</span><em>Ground 면역 무효 / Sapple ×1.5</em></label>
+          <label class="checkbox-label auto wide"><input type="checkbox" id="autoEntry" checked><span>자동 진입 효과</span><em>위협, 가뭄, 다운로드 등</em></label>
         </div>
       </div>
     </section>
@@ -91,11 +110,12 @@
   <div class="calc-row">
     <button class="btn-calculate" id="btnCalculate">계산 실행</button>
     <button class="btn-secondary active" id="btnAutoCalc">자동 계산: ON</button>
+    <button class="btn-secondary" id="btnResetManual">수동값 초기화</button>
   </div>
   <section class="results">
     <div class="results-head">
       <div class="results-title">결과</div>
-      <div class="mono" style="font-size: 10px; color: var(--text-faint);">pokeRound · chainMods · 16롤 · Gen 9 공식 방식</div>
+      <div class="results-meta mono">pokeRound · chainMods · 16롤 · Gen 9 공식 방식</div>
     </div>
     <div class="results-body" id="results-body"></div>
   </section>
@@ -110,7 +130,7 @@
     <button class="dex-tab" data-dex="items">도구</button>
   </div>
   <div class="dex-search">
-    <input type="text" id="dexSearch" placeholder="이름 또는 영문명으로 검색..." autocomplete="off">
+    <input type="text" id="dexSearch" placeholder="이름, 영문명, 타입, 설명 키워드 검색..." autocomplete="off">
     <span class="dex-count" id="dexCount"></span>
   </div>
   <div class="dex-type-filter" id="dexTypeFilter"></div>
@@ -125,10 +145,13 @@
 <!-- 상성표 페이지 -->
 <!-- 세부조정 페이지 -->
 <main id="page-finetune" class="page">
-  <div class="finetune-grid">
-    <section class="panel ft-my">
+  <div class="finetune-grid ft-layout">
+    <section class="panel ft-editor">
       <div class="panel-head">
-        <div class="panel-title">내 포켓몬 (세부조정)</div>
+        <div>
+          <div class="panel-title">세부조정</div>
+          <div class="ft-panel-subtitle">포켓몬 세트 · 노력치 편집</div>
+        </div>
         <div class="panel-head-actions">
           <button class="ft-action-btn atk" id="ftApplyAtk" title="현재 세팅을 계산기 공격측으로 적용 (상대는 방어측으로)">⚔️ 공격측 적용</button>
           <button class="ft-action-btn def" id="ftApplyDef" title="현재 세팅을 계산기 방어측으로 적용 (상대는 공격측으로)">🛡️ 방어측 적용</button>
@@ -136,25 +159,40 @@
       </div>
       <div class="panel-body" id="ft-my-body"></div>
     </section>
-    <section class="panel ft-opp">
+    <aside class="panel ft-hp-panel">
       <div class="panel-head">
-        <div class="panel-title">상대 포켓몬 (스피드 비교용)</div>
-        <span class="ft-hint">특성 무시 · 스카프와 랭크만 반영</span>
+        <div>
+          <div class="panel-title">HP 브레이크포인트</div>
+          <div class="ft-panel-subtitle">HP 기준점 · 조정 포인트</div>
+        </div>
       </div>
-      <div class="panel-body" id="ft-opp-body"></div>
+      <div class="panel-body" id="ft-hp-body"></div>
+    </aside>
+    <section class="panel ft-speed-panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">상대 / 스피드</div>
+          <div class="ft-panel-subtitle">상대 기준 · 추월 필요 EV</div>
+        </div>
+      </div>
+      <div class="panel-body ft-speed-panel-body">
+        <div id="ft-opp-body"></div>
+        <div class="ft-speed-embedded">
+          <div class="ft-speed-head">
+            <div>
+              <span class="ft-section-title">스피드 비교</span>
+              <span class="ft-speed-subtitle">상대 실수치 추월 필요 EV</span>
+            </div>
+            <label class="ft-margin-field">
+              <span>+n</span>
+              <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftMargin" value="1" aria-label="추월 마진">
+            </label>
+          </div>
+          <div id="ft-speed-body"></div>
+        </div>
+      </div>
     </section>
   </div>
-
-  <section class="panel ft-results">
-    <div class="panel-head">
-      <div class="panel-title">스피드 비교</div>
-      <div class="panel-head-actions">
-        <span class="field-label" style="margin-right:6px;">추월 마진 (+n):</span>
-        <input type="number" id="ftMargin" value="1" min="0" max="100" style="width: 60px;">
-      </div>
-    </div>
-    <div class="panel-body" id="ft-speed-body"></div>
-  </section>
 </main>
 
 <!-- 내구 역계산 페이지 -->

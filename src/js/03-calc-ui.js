@@ -13,8 +13,9 @@ function makeSideState(defaultIdx) {
     nature: 'hardy',  // 25성격 중 하나 (기본값: 노력 - 보정 없음)
     ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
     status: "none",
-    ability: p ? (p.ab['0'] || p.ab['H']).toLowerCase().replace(/[\s'\-()]/g, '') : "",
+    ability: p ? toId(p.ab['0'] || p.ab['H']) : "",
     item: "",
+    types: p ? [...p.types] : [],
     tera: false,
     teraType: p ? p.types[0] : 'Normal',
     hpPct: 1,
@@ -25,6 +26,7 @@ function makeSideState(defaultIdx) {
     fallenAllies: 0,
     flashFireActive: false,
     boosterEnergyState: 'auto',
+    damageBlockActive: false,
     moves: [],
     moveBpOverrides: [null, null, null, null]
   };
@@ -73,6 +75,220 @@ function mvName(m) { return m.koName || m.name; }
 function abName(a) { return a ? (a.koName || a.name) : '없음'; }
 function itName(i) { return i ? (i.koName || i.name) : '없음'; }
 
+const CALC_MOVE_CATEGORY_LABEL = { Physical: '물리', Special: '특수', Status: '변화' };
+const CALC_STATUS_OPTIONS = [
+  { id: 'none', label: '건강', sub: '상태 이상 없음' },
+  { id: 'Burn', label: '화상', sub: '물리 공격 약화' },
+  { id: 'Paralysis', label: '마비', sub: '속도 약화' },
+  { id: 'Poison', label: '독', sub: '독 상태' },
+  { id: 'Badly Poison', label: '맹독', sub: '턴마다 독 누적' },
+  { id: 'Sleep', label: '잠듦', sub: '수면 상태' },
+  { id: 'Freeze', label: '얼음', sub: '얼음 상태' },
+];
+const CALC_STATUS_BY_ID = Object.fromEntries(CALC_STATUS_OPTIONS.map(s => [s.id, s]));
+const CALC_WEATHER_OPTIONS = [
+  { id: 'none', label: '없음' },
+  { id: 'Sun', label: '쾌청' },
+  { id: 'Rain', label: '비' },
+  { id: 'Sand', label: '모래바람' },
+  { id: 'Snow', label: '눈' },
+  { id: 'Harsh Sunshine', label: '대쾌청' },
+  { id: 'Heavy Rain', label: '강한비' },
+];
+const CALC_TERRAIN_OPTIONS = [
+  { id: 'none', label: '없음' },
+  { id: 'Electric', label: '일렉트릭필드' },
+  { id: 'Grassy', label: '그래스필드' },
+  { id: 'Psychic', label: '사이코필드' },
+  { id: 'Misty', label: '미스트필드' },
+];
+const CALC_GAME_TYPE_OPTIONS = [
+  { id: 'Singles', label: '싱글배틀', sub: '63 싱글' },
+  { id: 'Doubles', label: '더블배틀', sub: '64 더블' },
+];
+const CALC_SPIKES_LAYER_OPTIONS = [
+  { id: '1', label: '1중첩' },
+  { id: '2', label: '2중첩' },
+  { id: '3', label: '3중첩' },
+];
+const CALC_FIELD_OPTION_SETS = {
+  weather: CALC_WEATHER_OPTIONS,
+  terrain: CALC_TERRAIN_OPTIONS,
+  gameType: CALC_GAME_TYPE_OPTIONS,
+  spikesLayers: CALC_SPIKES_LAYER_OPTIONS,
+};
+const CALC_FIELD_OPTION_BY_TYPE = Object.fromEntries(
+  Object.entries(CALC_FIELD_OPTION_SETS).map(([type, options]) => [type, Object.fromEntries(options.map(option => [option.id, option]))])
+);
+const CALC_TYPE_OPTIONS = BATTLE_TYPES.map(type => ({ id: type, label: TYPE_KO[type] || type, sub: type }));
+const CALC_SECOND_TYPE_OPTIONS = [{ id: '', label: '없음', sub: '단일 타입' }, ...CALC_TYPE_OPTIONS];
+
+function calcSearchText(value) {
+  return String(value || '').toLowerCase();
+}
+function calcMatches(query, ...values) {
+  if (!query) return true;
+  return values.some(value => calcSearchText(value).includes(query));
+}
+function calcMoveCategoryLabel(cat) {
+  return CALC_MOVE_CATEGORY_LABEL[cat] || cat || '';
+}
+function calcNatureLabel(nature) {
+  if (!nature) return '';
+  return nature.ko || nature.name || nature.id;
+}
+function calcAbilityDisplayLabel(sideKey) {
+  const side = state[sideKey];
+  const data = AbilityById[side?.ability];
+  if (data) return abName(data);
+  const pokemon = PokemonById[side?.pokemonIdx];
+  return Object.values(pokemon?.ab || {}).find(name => toId(name) === side?.ability) || '없음';
+}
+function calcStatusDisplayLabel(statusId) {
+  return CALC_STATUS_BY_ID[statusId]?.label || statusId || '건강';
+}
+function calcFieldOptionLabel(type, id) {
+  return CALC_FIELD_OPTION_BY_TYPE[type]?.[id]?.label || id || '';
+}
+function calcFieldOptionSub(type, id) {
+  return CALC_FIELD_OPTION_BY_TYPE[type]?.[id]?.sub || '';
+}
+function setComboboxValue(inputId, value, type) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.dataset.value = value;
+  input.value = calcFieldOptionLabel(type, value);
+}
+function calcItemCategoryLabel(item) {
+  if (item?.ms) return '메가스톤';
+  if (item?.isBerry) return '열매';
+  if (item?.isChoice) return '고집계';
+  if (item?.isGem) return '젬';
+  return '장착형';
+}
+function calcItemCategoryRank(item) {
+  if (item?.ms) return 2;
+  if (item?.isBerry) return 1;
+  return 0;
+}
+function sortMovesForCalcSelect(moves) {
+  return moves.slice().sort((a, b) => {
+    const typeA = BATTLE_TYPES.indexOf(a.type);
+    const typeB = BATTLE_TYPES.indexOf(b.type);
+    if (typeA !== typeB) return typeA - typeB;
+    return mvName(a).localeCompare(mvName(b), 'ko', { numeric: true, sensitivity: 'base' });
+  });
+}
+function sortItemsForCalcSelect(items) {
+  return items.slice().sort((a, b) => {
+    const catA = calcItemCategoryRank(a);
+    const catB = calcItemCategoryRank(b);
+    if (catA !== catB) return catA - catB;
+    return itName(a).localeCompare(itName(b), 'ko', { numeric: true, sensitivity: 'base' });
+  });
+}
+function sortPokemonForCalcSelect(pokemon) {
+  return pokemon.slice().sort((a, b) => pkName(a).localeCompare(pkName(b), 'ko', { numeric: true, sensitivity: 'base' }));
+}
+function defaultPokemonTypes(pokemon) {
+  return Array.isArray(pokemon?.types) ? pokemon.types.slice(0, 2) : [];
+}
+function normalizeSideTypes(side) {
+  const pokemon = PokemonById[side?.pokemonIdx];
+  const fallback = defaultPokemonTypes(pokemon);
+  const source = Array.isArray(side?.types) && side.types.length ? side.types : fallback;
+  const types = [];
+  for (const type of source || []) {
+    if (BATTLE_TYPES.includes(type) && !types.includes(type)) types.push(type);
+  }
+  return types.length ? types.slice(0, 2) : fallback;
+}
+function sideTypeId(side, slot) {
+  return normalizeSideTypes(side)[slot] || '';
+}
+function setSideType(sideKey, slot, value) {
+  const side = state[sideKey];
+  if (!side) return;
+  const pokemon = PokemonById[side.pokemonIdx];
+  const fallback = defaultPokemonTypes(pokemon);
+  const current = normalizeSideTypes(side);
+  const first = slot === 0 ? (BATTLE_TYPES.includes(value) ? value : (fallback[0] || 'Normal')) : (current[0] || fallback[0] || 'Normal');
+  const secondCandidate = slot === 0 ? '' : value;
+  const second = BATTLE_TYPES.includes(secondCandidate) && secondCandidate !== first ? secondCandidate : '';
+  side.types = [first, second].filter(Boolean);
+  if (!side.teraType || !BATTLE_TYPES.includes(side.teraType)) side.teraType = first;
+}
+function resetSideTypes(sideKey) {
+  const side = state[sideKey];
+  const pokemon = PokemonById[side?.pokemonIdx];
+  side.types = defaultPokemonTypes(pokemon);
+  side.teraType = side.types[0] || 'Normal';
+}
+function calcPokemonAbilityTerms(pokemon) {
+  return Object.values(pokemon?.ab || {}).flatMap(name => {
+    const data = AbilityById[toId(name)];
+    return [name, data?.name, data?.koName, data?.desc, data?.descLong];
+  });
+}
+function calcDatasetForCombobox(sideKey, type) {
+  if (type === 'pokemon') return sortPokemonForCalcSelect(POKEMON);
+  if (type === 'type1') return CALC_TYPE_OPTIONS;
+  if (type === 'type2') return CALC_SECOND_TYPE_OPTIONS;
+  if (type === 'move') {
+    const p = PokemonById[state[sideKey]?.pokemonIdx];
+    const learnset = (p?.ls || []).map(id => MoveById[id]).filter(Boolean);
+    return sortMovesForCalcSelect(learnset.length > 0 ? learnset : MOVES);
+  }
+  if (type === 'ability') {
+    const p = PokemonById[state[sideKey]?.pokemonIdx];
+    const abilities = Object.values(p?.ab || {})
+      .map(name => AbilityById[toId(name)] || { id: toId(name), name })
+      .filter(a => a.id);
+    return abilities.length > 0 ? abilities : ABILITIES;
+  }
+  if (type === 'nature') return NATURES;
+  if (type === 'status') return CALC_STATUS_OPTIONS;
+  if (CALC_FIELD_OPTION_SETS[type]) return CALC_FIELD_OPTION_SETS[type];
+  return sortItemsForCalcSelect(ITEMS);
+}
+
+function defaultPokemonAbilityId(pokemon) {
+  return toId(pokemon?.ab?.['0'] || pokemon?.ab?.['H'] || '');
+}
+
+function defaultPokemonItemId(pokemon) {
+  const itemId = toId(pokemon?.requiredItem || '');
+  return itemId && ItemById[itemId] ? itemId : '';
+}
+
+function applyPokemonToCalcSide(sideKey, pokemonId, options = {}) {
+  const side = state[sideKey];
+  const pokemon = PokemonById[pokemonId];
+  if (!side || !pokemon) return { applied: false, changed: false, resetAutoFields: false };
+
+  const changed = side.pokemonIdx !== pokemonId;
+  let resetAutoFields = false;
+  if (changed && autoEntryEffects) {
+    resetAutoFields = resetManualAutoFieldOverrides();
+  }
+
+  side.pokemonIdx = pokemonId;
+  if (changed || options.forceDefaults) {
+    side.ability = defaultPokemonAbilityId(pokemon);
+    side.types = defaultPokemonTypes(pokemon);
+    side.teraType = side.types?.[0] || 'Normal';
+    side.tera = false;
+    side.item = defaultPokemonItemId(pokemon);
+    side.damageBlockActive = false;
+    if (sideKey === 'atk' && options.resetMoves !== false) {
+      side.moves = [];
+      side.moveBpOverrides = [null, null, null, null];
+    }
+  }
+
+  return { applied: true, changed, resetAutoFields };
+}
+
 function normalizeManualBp(value) {
   if (value === null || value === undefined || value === '') return null;
   const n = Number(value);
@@ -110,6 +326,41 @@ function deriveHpFlags(side) {
   side.hpPct = hpPct;
   side.fullHP = hpPct >= 1;
   side.pinch = hpPct <= (1 / 3);
+  return side;
+}
+
+function calcPokemonMatchesBlock(pokemon, block) {
+  if (!pokemon || !block) return false;
+  if (block.pokemon && !block.pokemon.includes(pokemon.id)) return false;
+  if (block.baseSpecies && !block.baseSpecies.includes(pokemon.base || pokemon.name)) return false;
+  return true;
+}
+
+function sideManualDamageBlock(side) {
+  const pokemon = PokemonById[side?.pokemonIdx];
+  const block = AbilityById[side?.ability]?.damageBlock;
+  if (!block?.manual || !calcPokemonMatchesBlock(pokemon, block)) return null;
+  return block;
+}
+
+function fractionHpLoss(maxHp, fraction) {
+  if (!Array.isArray(fraction) || fraction.length !== 2) return 0;
+  const [num, den] = fraction.map(Number);
+  if (!Number.isFinite(num) || !Number.isFinite(den) || den <= 0) return 0;
+  return Math.floor(maxHp * num / den);
+}
+
+function applyManualDamageBlockHpAdjustment(side) {
+  const block = sideManualDamageBlock(side);
+  if (!block?.consumedHpFraction || side.damageBlockActive) return side;
+  const maxHp = calcStats(side).hp;
+  const loss = fractionHpLoss(maxHp, block.consumedHpFraction);
+  if (loss <= 0) return side;
+  const currentHp = currentHpValue(maxHp, side.hpPct);
+  const adjustedHp = Math.max(1, currentHp - loss);
+  side.hpPct = adjustedHp / maxHp;
+  side.fullHP = false;
+  side.pinch = side.hpPct <= (1 / 3);
   return side;
 }
 
@@ -179,6 +430,8 @@ function normalizeBattleConditionState() {
   state.atk.flashFireActive = !!state.atk.flashFireActive;
   state.atk.boosterEnergyState = normalizeBoosterEnergyState(state.atk.boosterEnergyState);
   state.def.boosterEnergyState = normalizeBoosterEnergyState(state.def.boosterEnergyState);
+  state.atk.damageBlockActive = !!state.atk.damageBlockActive;
+  state.def.damageBlockActive = !!state.def.damageBlockActive;
 }
 
 function speedConditionInfo() {
@@ -313,6 +566,120 @@ function renderBattleConditions(sideKey = 'atk') {
   `;
 }
 
+function renderManualDamageBlockToggle(sideKey, side) {
+  const block = sideManualDamageBlock(side);
+  if (!block) return '';
+  const ability = AbilityById[side.ability];
+  const label = abName(ability);
+  const active = !!side.damageBlockActive;
+  const title = active
+    ? `${label} ON: 이번 공격을 차단`
+    : `${label} OFF: 소모된 상태로 계산`;
+  return `
+    <button type="button" class="manual-ability-toggle ${active ? 'active' : ''}" data-action="damageBlockToggle" data-side="${sideKey}" title="${escapeHTML(title)}">
+      ${escapeHTML(label)} ${active ? 'ON' : 'OFF'}
+    </button>
+  `;
+}
+
+function sideCalcHpInfo(side, stats = null) {
+  if (!side) return null;
+  const sourceStats = stats || calcStats(side);
+  const inputHp = currentHpValue(sourceStats.hp, side.hpPct);
+  const calcSide = cloneSideForCalc(side);
+  const calcStatsForSide = calcStats(calcSide);
+  const calcHp = currentHpValue(calcStatsForSide.hp, calcSide.hpPct);
+  if (inputHp === calcHp && sourceStats.hp === calcStatsForSide.hp) return null;
+  return {
+    inputHp,
+    inputMaxHp: sourceStats.hp,
+    calcHp,
+    calcMaxHp: calcStatsForSide.hp,
+    calcPct: Number((calcHp / calcStatsForSide.hp * 100).toFixed(1)).toString(),
+  };
+}
+
+function renderCalcHpNote(side, stats) {
+  const info = sideCalcHpInfo(side, stats);
+  if (!info) return '';
+  return `
+    <div class="calc-hp-note">
+      <span>계산 HP</span>
+      <b>${info.calcHp} / ${info.calcMaxHp}</b>
+      <em>입력 ${info.inputHp} / ${info.inputMaxHp} → ${info.calcPct}%</em>
+    </div>
+  `;
+}
+
+function renderTypeControls(sideKey, side) {
+  const type1 = sideTypeId(side, 0);
+  const type2 = sideTypeId(side, 1);
+  return `
+    <div class="type-edit-row">
+      <div class="combobox type-combobox type-pill-combobox t-${type1 || 'Normal'}" data-cb="${sideKey}-type-1">
+        <input type="text" class="cb-input" value="${escapeHTML(TYPE_KO[type1] || type1)}" data-cb-type="type1" data-side="${sideKey}" data-field="types.0" placeholder="타입1" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 타입1 선택" aria-expanded="false">
+        <div class="combobox-options" role="listbox"></div>
+      </div>
+      <div class="combobox type-combobox type-pill-combobox ${type2 ? `t-${type2}` : 'type-none'}" data-cb="${sideKey}-type-2">
+        <input type="text" class="cb-input" value="${escapeHTML(type2 ? (TYPE_KO[type2] || type2) : '없음')}" data-cb-type="type2" data-side="${sideKey}" data-field="types.1" placeholder="타입2" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 타입2 선택" aria-expanded="false">
+        <div class="combobox-options" role="listbox"></div>
+      </div>
+      <button type="button" class="type-reset-btn" data-action="typeReset" data-side="${sideKey}" title="포켓몬 기본 타입으로 복구">기본</button>
+    </div>
+  `;
+}
+
+function resetSideManualValues(sideKey) {
+  const side = state[sideKey];
+  const pokemon = PokemonById[side?.pokemonIdx];
+  if (!side || !pokemon) return;
+  side.ability = defaultPokemonAbilityId(pokemon);
+  side.types = defaultPokemonTypes(pokemon);
+  side.tera = false;
+  side.teraType = side.types[0] || 'Normal';
+  side.hpPct = 1;
+  side.status = 'none';
+  side.ranks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  side.lastMoveFailed = false;
+  side.wasHit = false;
+  side.fallenAllies = 0;
+  side.flashFireActive = false;
+  side.boosterEnergyState = 'auto';
+  side.damageBlockActive = false;
+  if (sideKey === 'atk') side.moveBpOverrides = [null, null, null, null];
+  deriveHpFlags(side);
+}
+
+function resetFieldManualValues() {
+  Object.keys(manualAutoFieldOverrides).forEach(key => { manualAutoFieldOverrides[key] = null; });
+  state.field.weather = 'none';
+  state.field.terrain = 'none';
+  state.field.isCritical = false;
+  state.field.isTrickRoom = false;
+  state.field.isGravity = false;
+  state.field.defReflect = false;
+  state.field.defLightScreen = false;
+  state.field.atkHelpingHand = false;
+  state.field.defProtect = false;
+  state.field.ruinSword = false;
+  state.field.ruinTablet = false;
+  state.field.ruinBeads = false;
+  state.field.ruinVessel = false;
+  state.field.defStealthRock = false;
+  state.field.defSpikesLayers = 0;
+}
+
+function resetCalcManualValues() {
+  resetSideManualValues('atk');
+  resetSideManualValues('def');
+  resetFieldManualValues();
+  lastAutoEntry = emptyEntryMeta();
+  renderSide('atk');
+  renderSide('def');
+  syncFieldControls(state.field);
+  triggerCalc();
+}
+
 function applyMoveBpInput(el, renderAfter = false) {
   const side = state[el.dataset.side];
   const slot = parseInt(el.dataset.slot);
@@ -333,59 +700,10 @@ let championsMode = true;
 let autoEntryEffects = true;
 
 /* ════════════════════════════════════════════════════════════
-   특성별 진입 효과 정의
-   - weather: 날씨 자동 세팅
-   - terrain: 필드 자동 세팅
-   - boost: 자기 능력 +n (검/방패 등)
-   - opponentBoost: 상대 능력 변화 (위협 등)
-   - download: 상대 D/SD 비교해서 자기 공/특공 +1
-   - ruin: 재앙 효과 활성
+   특성별 진입 효과 정의는 data/overrides/entry-effects.json 에서 빌드된다.
    ════════════════════════════════════════════════════════════ */
-const ENTRY_EFFECTS = {
-  // 날씨 메이커
-  'drought':       { weather: 'Sun', label: '진입 시 쾌청' },
-  'orichalcumpulse': { weather: 'Sun', label: '진입 시 쾌청 + 공격 ×1.33' },
-  'drizzle':       { weather: 'Rain', label: '진입 시 비' },
-  'sandstream':    { weather: 'Sand', label: '진입 시 모래바람' },
-  'sandspit':      { weather: 'Sand', label: '진입 시 모래바람' },
-  'snowwarning':   { weather: 'Snow', label: '진입 시 눈' },
-  'desolateland':  { weather: 'Harsh Sunshine', label: '진입 시 대쾌청' },
-  'primordialsea': { weather: 'Heavy Rain', label: '진입 시 강한비' },
-
-  // 필드 메이커
-  'electricsurge': { terrain: 'Electric', label: '진입 시 일렉트릭필드' },
-  'hadronengine':  { terrain: 'Electric', label: '진입 시 일렉트릭필드 + 특공 ×1.33' },
-  'grassysurge':   { terrain: 'Grassy', label: '진입 시 그래스필드' },
-  'psychicsurge':  { terrain: 'Psychic', label: '진입 시 사이코필드' },
-  'mistysurge':    { terrain: 'Misty', label: '진입 시 미스트필드' },
-
-  // 자기 능력치 부스트
-  'intrepidsword':  { selfBoost: { atk: 1 }, label: '진입 시 자기 공격 +1' },
-  'dauntlessshield': { selfBoost: { def: 1 }, label: '진입 시 자기 방어 +1' },
-  'embodyaspectteal':       { selfBoost: { spe: 1 }, label: '진입 시 자기 속도 +1' },
-  'embodyaspectwellspring': { selfBoost: { spd: 1 }, label: '진입 시 자기 특방 +1' },
-  'embodyaspecthearthflame':{ selfBoost: { atk: 1 }, label: '진입 시 자기 공격 +1' },
-  'embodyaspectcornerstone':{ selfBoost: { def: 1 }, label: '진입 시 자기 방어 +1' },
-
-  // 상대 능력치 변화 (위협)
-  'intimidate': { opponentBoost: { atk: -1 }, label: '진입 시 상대 공격 -1', blockable: true },
-
-  // 다운로드: 자기 공/특공 +1 (상대 D/SD 보고 결정)
-  'download': { download: true, label: '상대 D/SD 비교해서 자기 공/특공 +1' },
-
-  // 재앙 (상대 4스탯 중 하나 0.75×)
-  'beadsofruin':   { ruin: 'spd', label: '구슬의재앙: 상대 특방 ×0.75' },
-  'tabletsofruin': { ruin: 'atk', label: '목간의재앙: 상대 공격 ×0.75' },
-  'swordofruin':   { ruin: 'def', label: '검의재앙: 상대 방어 ×0.75' },
-  'vesselofruin':  { ruin: 'spa', label: '그릇의재앙: 상대 특공 ×0.75' },
-};
-
-// 위협 무시 특성
-const INTIMIDATE_BLOCKERS = [
-  'innerfocus', 'oblivious', 'owntempo', 'scrappy',
-  'clearbody', 'fullmetalbody', 'whitesmoke', 'mypace', 'rattled',  // rattled은 +속도
-  'guarddog'  // 경비견 +1 공격 (역효과)
-];
+const ENTRY_EFFECTS = RULES.entryEffects || {};
+const INTIMIDATE_BLOCKERS = RULES.entryEffectBlockers?.intimidate || [];
 
 // 틀깨기에 무시되는 방어측 특성
 // 기술 위력 / 결정력 추정
@@ -507,18 +825,269 @@ function estimateMovePower(side, move) {
   return { bp, eff, atkStat };
 }
 
-function makeCombobox(sideKey, type, onSelect) {
-  const dataset = type === 'pokemon' ? POKEMON : type === 'move' ? MOVES : type === 'ability' ? ABILITIES : ITEMS;
+function makeCombobox(sideKey, type) {
+  const dataset = calcDatasetForCombobox(sideKey, type);
   // 필터링 함수
   return (searchText) => {
-    const s = searchText.toLowerCase();
-    return dataset.filter(d => {
-      const ko = (d.koName || '').toLowerCase();
-      const en = (d.name || '').toLowerCase();
+    const s = calcSearchText(searchText).trim();
+    const matches = dataset.filter(d => {
+      if (type === 'pokemon') {
+        const abilityTerms = calcPokemonAbilityTerms(d);
+        const typeTerms = (d.types || []).map(t => TYPE_KO[t] || t);
+        return calcMatches(s, d.id, d.name, d.koName, d.base, d.forme, (d.types || []).join(' '), ...typeTerms, ...abilityTerms);
+      }
+      if (type === 'move') {
+        return calcMatches(s, d.id, d.name, d.koName, d.type, TYPE_KO[d.type], d.cat, calcMoveCategoryLabel(d.cat), d.desc, d.descLong);
+      }
+      if (type === 'type1' || type === 'type2') {
+        return calcMatches(s, d.id, d.label, d.sub);
+      }
+      if (type === 'ability') {
+        return calcMatches(s, d.id, d.name, d.koName, d.desc, d.descLong);
+      }
+      if (type === 'nature') {
+        return calcMatches(s, d.id, d.ko, calcNatureLabel(d), STAT_LABEL[d.up], STAT_LABEL[d.down], d.up, d.down);
+      }
+      if (type === 'status') {
+        return calcMatches(s, d.id, d.label, d.sub);
+      }
+      if (CALC_FIELD_OPTION_SETS[type]) {
+        return calcMatches(s, d.id, d.label, d.sub);
+      }
       // 챔피언스 빌드는 build 단계에서 이미 Past 아이템을 걸러내므로 런타임 필터 불필요.
-      return ko.includes(s) || en.includes(s);
-    }).slice(0, 30);
+      return calcMatches(s, d.id, d.name, d.koName, d.desc, d.descLong, calcItemCategoryLabel(d), ...(d.itemUser || []));
+    });
+    return type === 'pokemon' ? matches : matches.slice(0, 30);
   };
+}
+
+let calcComboboxUid = 0;
+
+function calcComboboxOptionLabel(type, option) {
+  if (option?.label) return option.label;
+  if (type === 'pokemon') return pkName(option);
+  if (type === 'move') return mvName(option);
+  if (type === 'ability') return abName(option);
+  if (type === 'type1' || type === 'type2') return option?.label || TYPE_KO[option?.id] || option?.id || '';
+  if (type === 'nature') return calcNatureLabel(option);
+  if (type === 'status') return option?.label || '';
+  if (CALC_FIELD_OPTION_SETS[type]) return option?.label || '';
+  return itName(option);
+}
+
+function calcComboboxOptionSub(type, option) {
+  if (option?.sub) return option.sub;
+  if (option?.label && !option.type && !option.ab && !option.up) return '';
+  if (type === 'move') return `${TYPE_KO[option.type] || option.type} ${calcMoveCategoryLabel(option.cat)} ${option.bp || '??'}`;
+  if (type === 'pokemon') {
+    const abilities = Object.values(option.ab || {}).map(name => {
+      const data = AbilityById[toId(name)];
+      return data ? abName(data) : name;
+    }).join(', ');
+    return `${(option.types || []).map(t => TYPE_KO[t] || t).join('/')} / BST ${option.bst} / ${abilities}`;
+  }
+  if (type === 'type1' || type === 'type2') return option.sub || '';
+  if (type === 'ability') return `${(option.desc || option.descLong || '').slice(0, 48)}`;
+  if (type === 'nature') return option.up ? `${STAT_LABEL[option.up]} 상승 / ${STAT_LABEL[option.down]} 하락` : '능력 보정 없음';
+  if (type === 'status') return option.sub || '';
+  if (CALC_FIELD_OPTION_SETS[type]) return option.sub || '';
+  return '';
+}
+
+function calcComboboxExtraOptions(type) {
+  if (type === 'item') return [{ id: '', label: '없음' }];
+  if (type === 'move') return [{ id: '', label: '(없음)' }];
+  if (type === 'ability') return [{ id: '', label: '(없음)', sub: '특성 효과를 적용하지 않음' }];
+  return [];
+}
+
+function calcComboboxCurrentId(input) {
+  const type = input.dataset.cbType;
+  const sideKey = input.dataset.side;
+  const field = input.dataset.field || '';
+  if (CALC_FIELD_OPTION_SETS[type]) return input.dataset.value || '';
+  const side = sideKey ? state[sideKey] : null;
+  if (!side) return '';
+  if (field === 'pokemonIdx') return side.pokemonIdx || '';
+  if (field === 'ability') return side.ability || '';
+  if (field === 'item') return side.item || '';
+  if (field === 'types.0') return sideTypeId(side, 0);
+  if (field === 'types.1') return sideTypeId(side, 1);
+  if (field === 'nature') return side.nature || 'hardy';
+  if (field === 'status') return side.status || 'none';
+  if (field.startsWith('moves.')) {
+    const idx = parseInt(field.split('.')[1], 10);
+    return state.atk.moves[idx] || '';
+  }
+  return '';
+}
+
+function calcComboboxDisplayLabel(input) {
+  const type = input.dataset.cbType;
+  const id = calcComboboxCurrentId(input);
+  const sideKey = input.dataset.side;
+  if (CALC_FIELD_OPTION_SETS[type]) return calcFieldOptionLabel(type, input.dataset.value);
+  if (type === 'pokemon') return PokemonById[id] ? pkName(PokemonById[id]) : '';
+  if (type === 'move') return id && MoveById[id] ? mvName(MoveById[id]) : '';
+  if (type === 'ability') return calcAbilityDisplayLabel(sideKey);
+  if (type === 'type1' || type === 'type2') return id ? (TYPE_KO[id] || id) : '없음';
+  if (type === 'item') return id && ItemById[id] ? itName(ItemById[id]) : '없음';
+  if (type === 'nature') return calcNatureLabel(NATURE_BY_ID[id]);
+  if (type === 'status') return calcStatusDisplayLabel(id);
+  return id || '';
+}
+
+function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
+  const cbParent = input.closest('.combobox');
+  const optsEl = cbParent?.querySelector('.combobox-options');
+  if (!cbParent || !optsEl) return;
+
+  const cbType = input.dataset.cbType;
+  const side = input.dataset.side || null;
+  const filter = filterFn || makeCombobox(side, cbType);
+  let activeIndex = -1;
+
+  if (!optsEl.id) optsEl.id = `calc-cb-list-${++calcComboboxUid}`;
+  input.setAttribute('role', 'combobox');
+  input.setAttribute('aria-haspopup', 'listbox');
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('aria-controls', optsEl.id);
+
+  function getOptionEls() {
+    return [...optsEl.querySelectorAll('.combobox-option:not(.empty)')];
+  }
+
+  function closeOptions() {
+    optsEl.classList.remove('open');
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+    activeIndex = -1;
+  }
+
+  function restoreDisplayLabel() {
+    input.value = calcComboboxDisplayLabel(input);
+  }
+
+  function setActiveOption(nextIndex) {
+    const options = getOptionEls();
+    activeIndex = options.length ? Math.max(-1, Math.min(nextIndex, options.length - 1)) : -1;
+    input.removeAttribute('aria-activedescendant');
+    options.forEach((option, index) => {
+      const active = index === activeIndex;
+      option.classList.toggle('active', active);
+      if (active) {
+        input.setAttribute('aria-activedescendant', option.id);
+        if (typeof option.scrollIntoView === 'function') option.scrollIntoView({ block: 'nearest' });
+      }
+    });
+  }
+
+  function optionTemplate(option, currentId) {
+    const id = option?.id || '';
+    const label = calcComboboxOptionLabel(cbType, option);
+    const sub = calcComboboxOptionSub(cbType, option);
+    const selected = String(id) === String(currentId);
+    const subHtml = sub ? `<small>${escapeHTML(sub)}</small>` : '';
+    return `<div class="combobox-option${selected ? ' selected' : ''}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(label)}</b>${subHtml}</div>`;
+  }
+
+  function showOptions(query, { activateFirst = false } = {}) {
+    const matches = filter(query);
+    const hasQuery = !!calcSearchText(query).trim();
+    const extraOptions = hasQuery ? [] : calcComboboxExtraOptions(cbType);
+    const currentId = calcComboboxCurrentId(input);
+    const optionData = [...extraOptions, ...matches];
+    const html = optionData.map(option => optionTemplate(option, currentId));
+    if (!matches.length) {
+      html.push('<div class="combobox-option empty" aria-disabled="true"><b>검색 결과 없음</b></div>');
+    }
+    optsEl.innerHTML = html.join('');
+    getOptionEls().forEach((option, index) => {
+      option.id = `${optsEl.id}-opt-${index}`;
+    });
+
+    if (typeof document.querySelectorAll === 'function') {
+      document.querySelectorAll('.combobox-options.open').forEach(el => {
+        if (el !== optsEl) el.classList.remove('open');
+      });
+      document.querySelectorAll('.cb-input[aria-expanded="true"]').forEach(el => {
+        if (el !== input) el.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    optsEl.classList.add('open');
+    input.setAttribute('aria-expanded', 'true');
+    const selectedIndex = optionData.findIndex(option => String(option?.id || '') === String(currentId));
+    setActiveOption(activateFirst ? 0 : selectedIndex);
+
+    const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : fn => setTimeout(fn, 0);
+    schedule(() => {
+      if (typeof window === 'undefined' || typeof optsEl.getBoundingClientRect !== 'function') return;
+      const rect = optsEl.getBoundingClientRect();
+      const overflowRight = rect.right > window.innerWidth - 8;
+      optsEl.style.left = overflowRight ? 'auto' : '';
+      optsEl.style.right = overflowRight ? '0' : '';
+    });
+  }
+
+  function selectOption(opt) {
+    if (!opt || opt.classList.contains('empty')) return;
+    const id = opt.dataset.id || '';
+    closeOptions();
+    if (onSelect) onSelect(id, opt);
+  }
+
+  input.addEventListener('focus', () => {
+    showOptions('');
+    const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : fn => setTimeout(fn, 0);
+    schedule(() => {
+      if (typeof input.select === 'function') input.select();
+    });
+  });
+  input.addEventListener('input', () => showOptions(input.value, { activateFirst: true }));
+  input.addEventListener('keydown', e => {
+    const isOpen = optsEl.classList.contains('open');
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!isOpen) showOptions(input.value);
+      const options = getOptionEls();
+      if (!options.length) return;
+      const delta = e.key === 'ArrowDown' ? 1 : -1;
+      const start = activeIndex < 0 ? (delta > 0 ? -1 : 0) : activeIndex;
+      setActiveOption((start + delta + options.length) % options.length);
+    } else if (e.key === 'Enter' && isOpen && activeIndex >= 0) {
+      e.preventDefault();
+      selectOption(getOptionEls()[activeIndex]);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeOptions();
+      restoreDisplayLabel();
+      if (typeof input.select === 'function') input.select();
+    }
+  });
+  input.addEventListener('blur', () => {
+    setTimeout(() => {
+      closeOptions();
+      restoreDisplayLabel();
+    }, 200);
+  });
+
+  function handleOptionSelect(e) {
+    const opt = e.target.closest('.combobox-option');
+    if (!opt || opt.classList.contains('empty')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    selectOption(opt);
+  }
+
+  optsEl.addEventListener('mousedown', handleOptionSelect);
+  optsEl.addEventListener('touchstart', handleOptionSelect, { passive: false });
+  optsEl.addEventListener('mousemove', e => {
+    const opt = e.target.closest('.combobox-option:not(.empty)');
+    if (!opt) return;
+    const index = getOptionEls().indexOf(opt);
+    if (index >= 0 && index !== activeIndex) setActiveOption(index);
+  });
 }
 
 function renderSide(sideKey) {
@@ -532,35 +1101,21 @@ function renderSide(sideKey) {
   const currentHp = currentHpValue(stats.hp, side.hpPct);
   const totalEV = Object.values(side.evs).reduce((a,b) => a+b, 0);
   const overEV = totalEV > 66;
-  const types = effectiveTypes(side);
-  
-  // 특성 옵션 (해당 포켓몬이 가진 특성만)
-  const abOptions = Object.values(p.ab).map(abName => {
-    const id = abName.toLowerCase().replace(/[\s'\-()]/g, '');
-    const data = AbilityById[id];
-    return data ? { id, label: `${data.koName || data.name}` } : { id, label: abName };
-  });
-  // 중복 제거
-  const uniqueAbs = [...new Map(abOptions.map(o => [o.id, o])).values()];
-  
-  // 메가스톤 필터 (해당 포켓몬만)
-  const megaStones = ITEMS.filter(i => {
-    if (!i.ms) return false;
-    const keys = Object.keys(i.ms);
-    return keys.includes(p.base) || keys.includes(p.name);
-  });
+  const manualDamageBlockToggle = renderManualDamageBlockToggle(sideKey, side);
   
   container.innerHTML = `
     <!-- 포켓몬 선택 -->
-    <div class="field combobox" data-cb="${sideKey}-poke">
+    <div class="field">
       <div class="field-label">
         <span>포켓몬</span>
         <span class="hint mono">${p.bs.hp}/${p.bs.atk}/${p.bs.def}/${p.bs.spa}/${p.bs.spd}/${p.bs.spe}</span>
       </div>
-      <input type="text" class="cb-input" value="${pkName(p)}" data-cb-type="pokemon" data-side="${sideKey}" data-field="pokemonIdx">
-      <div class="combobox-options"></div>
+      <div class="pokemon-select combobox" data-cb="${sideKey}-poke">
+        <input type="text" class="cb-input" value="${escapeHTML(pkName(p))}" data-cb-type="pokemon" data-side="${sideKey}" data-field="pokemonIdx" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 포켓몬 선택" aria-expanded="false">
+        <div class="combobox-options" role="listbox"></div>
+      </div>
       <div class="types-display">
-        ${types.map(t => `<span class="type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}
+        ${renderTypeControls(sideKey, side)}
         <button type="button" class="ft-jump-btn" data-ft-from-side="${sideKey}" title="이 포켓몬의 세팅을 세부조정 탭으로 가져가기">🔧 세부조정</button>
         <button type="button" class="ft-jump-btn" data-rc-from-side="${sideKey}" title="이 포켓몬의 세팅을 내구 역계산 탭으로 가져가기">🔍 역계산</button>
         <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 -->
@@ -571,60 +1126,51 @@ function renderSide(sideKey) {
 
     <div class="section-divider"></div>
 
-    <!-- 특성 · 도구 -->
+    <!-- 특성/도구 + 성격/HP/상태 -->
     <div class="field">
-      <div class="field-label"><span>특성 · 도구</span></div>
-      <div class="dual-grid">
-        <select data-action="ability" data-side="${sideKey}">
-          ${uniqueAbs.map(a => `<option value="${a.id}" ${side.ability === a.id ? 'selected' : ''}>${a.label}</option>`).join('')}
-        </select>
-        <div class="combobox" data-cb="${sideKey}-item">
-          <input type="text" class="cb-input" value="${side.item ? (ItemById[side.item] ? itName(ItemById[side.item]) : '') : '없음'}" data-cb-type="item" data-side="${sideKey}" data-field="item" placeholder="도구 선택">
-          <div class="combobox-options"></div>
+      <div class="calc-pair-grid">
+        <div class="calc-control-cell">
+          <span class="calc-control-label">특성</span>
+          <div class="compound-control ability-toggle-cell">
+            <div class="combobox" data-cb="${sideKey}-ability">
+              <input type="text" class="cb-input" value="${escapeHTML(calcAbilityDisplayLabel(sideKey))}" data-cb-type="ability" data-side="${sideKey}" data-field="ability" placeholder="특성 선택" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 특성 선택" aria-expanded="false">
+              <div class="combobox-options" role="listbox"></div>
+            </div>
+            ${manualDamageBlockToggle || '<span class="manual-ability-spacer" aria-hidden="true"></span>'}
+          </div>
+        </div>
+        <div class="calc-control-cell">
+          <span class="calc-control-label">도구</span>
+          <div class="combobox" data-cb="${sideKey}-item">
+            <input type="text" class="cb-input" value="${side.item ? (ItemById[side.item] ? escapeHTML(itName(ItemById[side.item])) : '') : '없음'}" data-cb-type="item" data-side="${sideKey}" data-field="item" placeholder="도구 선택" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 도구 선택" aria-expanded="false">
+            <div class="combobox-options" role="listbox"></div>
+          </div>
+        </div>
+        <div class="calc-control-cell">
+          <span class="calc-control-label">성격</span>
+          <div class="compound-control nature-spacer-cell">
+            <div class="combobox" data-cb="${sideKey}-nature">
+              <input type="text" class="cb-input" value="${escapeHTML(calcNatureLabel(NATURE_BY_ID[side.nature]))}" data-cb-type="nature" data-side="${sideKey}" data-field="nature" placeholder="성격 선택" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 성격 선택" aria-expanded="false">
+              <div class="combobox-options" role="listbox"></div>
+            </div>
+            <span class="manual-ability-spacer" aria-hidden="true"></span>
+          </div>
+        </div>
+        <div class="calc-control-cell">
+          <span class="calc-control-label">상태</span>
+          <div class="compound-control hp-status-cell">
+            <label class="hp-inline-control">
+              <input type="text" class="hp-percent-input" data-action="hpPct" data-side="${sideKey}" value="${hpPercentInputValue(side)}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 현재 HP 퍼센트">
+              <span>%</span>
+            </label>
+            <div class="combobox" data-cb="${sideKey}-status">
+              <input type="text" class="cb-input" value="${escapeHTML(calcStatusDisplayLabel(side.status))}" data-cb-type="status" data-side="${sideKey}" data-field="status" placeholder="상태 선택" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 상태 및 조건 선택" aria-expanded="false">
+              <div class="combobox-options" role="listbox"></div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- 성격 + 상태 (가로 2열) -->
-    <div class="field">
-      <div class="field-label">
-        <span>성격</span>
-        <span class="hint" style="flex: 1; text-align: right; padding-right: 4px;">상태 및 조건</span>
-      </div>
-      <div class="dual-grid">
-        <select data-action="nature" data-side="${sideKey}">
-          ${NATURES.map(n => {
-            const upTxt = n.up ? `↑${STAT_LABEL[n.up]}` : '';
-            const downTxt = n.down ? ` ↓${STAT_LABEL[n.down]}` : '';
-            const suffix = n.up ? ` (${upTxt}${downTxt})` : ' (보정 없음)';
-            return `<option value="${n.id}" ${side.nature === n.id ? 'selected' : ''}>${n.ko}${suffix}</option>`;
-          }).join('')}
-        </select>
-        <select data-action="status" data-side="${sideKey}">
-          <option value="none">건강</option>
-          <option value="Burn" ${side.status === 'Burn' ? 'selected' : ''}>화상</option>
-          <option value="Paralysis" ${side.status === 'Paralysis' ? 'selected' : ''}>마비</option>
-          <option value="Poison" ${side.status === 'Poison' ? 'selected' : ''}>독</option>
-          <option value="Badly Poison" ${side.status === 'Badly Poison' ? 'selected' : ''}>맹독</option>
-          <option value="Sleep" ${side.status === 'Sleep' ? 'selected' : ''}>잠듦</option>
-          <option value="Freeze" ${side.status === 'Freeze' ? 'selected' : ''}>얼음</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 현재 HP -->
-    <div class="field">
-      <div class="field-label">
-        <span>현재 HP</span>
-        <span class="hint">${currentHp} / ${stats.hp}</span>
-      </div>
-      <div class="hp-control-row">
-        <label class="hp-percent-control">
-          <input type="number" data-action="hpPct" data-side="${sideKey}" value="${hpPercentInputValue(side)}" min="1" max="100" step="1">
-          <span>%</span>
-        </label>
-        <div class="hp-state-pills">${renderHpConditionPills(side)}</div>
-      </div>
+      ${renderCalcHpNote(side, stats)}
     </div>
 
     <div class="section-divider"></div>
@@ -720,10 +1266,12 @@ function renderSide(sideKey) {
           const moveForCalc = move ? moveWithManualBp(move, manualBp) : null;
           const power = moveForCalc ? estimateMovePower(side, moveForCalc) : null;
           return `
-            <div class="move-slot combobox" data-cb="${sideKey}-move-${i}">
+            <div class="move-slot" data-move-slot="${i}">
               <span class="move-slot-num">${i+1}</span>
-              <input type="text" class="cb-input" value="${move ? mvName(move) : ''}" data-cb-type="move" data-side="atk" data-field="moves.${i}" placeholder="기술 검색...">
-              <div class="combobox-options"></div>
+              <div class="move-select combobox" data-cb="${sideKey}-move-${i}">
+                <input type="text" class="cb-input" value="${move ? escapeHTML(mvName(move)) : ''}" data-cb-type="move" data-side="atk" data-field="moves.${i}" placeholder="기술 검색..." autocomplete="off" aria-label="기술 ${i+1} 선택" aria-expanded="false">
+                <div class="combobox-options" role="listbox"></div>
+              </div>
               <label class="move-bp-control" title="계산용 위력">
                 <span>위력</span>
                 <input type="number" class="move-bp-input" data-action="moveBp" data-side="atk" data-slot="${i}" value="${move ? slotBp : ''}" min="0" max="999" ${move ? '' : 'disabled'}>
@@ -778,102 +1326,38 @@ function wireSide(sideKey) {
   
   // Combobox 입력
   container.querySelectorAll('.cb-input').forEach(input => {
-    const cbParent = input.closest('.combobox');
-    const optsEl = cbParent.querySelector('.combobox-options');
-    const cbType = input.dataset.cbType;
     const side = input.dataset.side;
-    const field = input.dataset.field;
-    const filterFn = makeCombobox(side, cbType);
-    
-    function showOptions(query) {
-      const matches = filterFn(query);
-      optsEl.innerHTML = matches.map(m => {
-        const label = cbType === 'pokemon' ? pkName(m) : cbType === 'move' ? mvName(m) : cbType === 'ability' ? abName(m) : itName(m);
-        const id = m.id;
-        let sub = cbType === 'move' ? `${m.type} ${m.cat} ${m.bp}` :
-                    cbType === 'pokemon' ? `BST ${m.bst}` :
-                    cbType === 'item' ? (m.desc || '').slice(0, 40) : '';
-        return `<div class="combobox-option" data-id="${id}"><b>${label}</b> <small>${sub}</small></div>`;
-      }).join('');
-      if (cbType === 'item') {
-        optsEl.insertAdjacentHTML('afterbegin',
-          `<div class="combobox-option" data-id=""><b>없음</b></div>`);
-      }
-      optsEl.classList.add('open');
+    const field = input.dataset.field || '';
+    wireCalcCombobox(input, {
+      onSelect(id) {
+        let resetAutoFields = false;
 
-      // 화면 우측 가장자리 감지 → right alignment로 전환
-      requestAnimationFrame(() => {
-        const rect = optsEl.getBoundingClientRect();
-        const overflowRight = rect.right > window.innerWidth - 8;
-        if (overflowRight) {
-          optsEl.style.left = 'auto';
-          optsEl.style.right = '0';
-        } else {
-          optsEl.style.left = '';
-          optsEl.style.right = '';
+        if (field === 'pokemonIdx') {
+          resetAutoFields = applyPokemonToCalcSide(side, id).resetAutoFields;
+        } else if (field === 'ability') {
+          state[side].ability = id || '';
+          state[side].damageBlockActive = false;
+        } else if (field === 'item') {
+          state[side].item = id || '';
+        } else if (field === 'types.0') {
+          setSideType(side, 0, id);
+        } else if (field === 'types.1') {
+          setSideType(side, 1, id);
+        } else if (field === 'nature') {
+          state[side].nature = id || 'hardy';
+        } else if (field === 'status') {
+          state[side].status = id || 'none';
+        } else if (field.startsWith('moves.')) {
+          const idx = parseInt(field.split('.')[1], 10);
+          state.atk.moves[idx] = id || '';
+          state.atk.moveBpOverrides[idx] = null;
         }
-      });
-    }
-    
-    input.addEventListener('focus', () => showOptions(''));
-    input.addEventListener('input', () => showOptions(input.value));
-    input.addEventListener('blur', () => {
-      setTimeout(() => optsEl.classList.remove('open'), 200);
+
+        renderSide(side);
+        if (resetAutoFields) syncFieldControls();
+        triggerCalc();
+      },
     });
-    
-    // 콤보박스 옵션 선택 핸들러 (모바일/데스크톱 모두 대응)
-    function handleOptionSelect(e) {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt) return;
-      // 기본 동작 막기 (input blur 방지로 깜빡임 줄임)
-      e.preventDefault();
-      e.stopPropagation();
-      const id = opt.dataset.id;
-      let resetAutoFields = false;
-
-      if (field === 'pokemonIdx') {
-        const oldIdx = state[side].pokemonIdx;
-        resetAutoFields = id !== oldIdx && autoEntryEffects && resetManualAutoFieldOverrides();
-        state[side].pokemonIdx = id;
-        // 포켓몬 변경 시: 특성/도구/테라타입 기본값 + 기술 초기화 (다른 종)
-        const p = PokemonById[id];
-        if (p && id !== oldIdx) {
-          state[side].ability = (p.ab['0'] || p.ab['H']).toLowerCase().replace(/[\s'\-()]/g, '');
-          state[side].teraType = p.types[0];
-          state[side].tera = false;
-          // 메가 폼 직접 선택 시 메가스톤 자동 매칭
-          // (build 단계에서 Past 아이템은 이미 걸러졌으므로 존재만 확인)
-          if (p.requiredItem) {
-            const stoneId = p.requiredItem.toLowerCase().replace(/[\s'\-()]/g, '');
-            if (ItemById[stoneId]) {
-              state[side].item = stoneId;
-            } else {
-              state[side].item = '';
-            }
-          } else {
-            state[side].item = '';
-          }
-          // 기술 초기화 (공격측만)
-          if (side === 'atk') {
-            state[side].moves = [];
-            state[side].moveBpOverrides = [null, null, null, null];
-          }
-        }
-      } else if (field === 'item') {
-        state[side].item = id || '';
-      } else if (field.startsWith('moves.')) {
-        const idx = parseInt(field.split('.')[1]);
-        state.atk.moves[idx] = id || '';
-        state.atk.moveBpOverrides[idx] = null;
-      }
-      // 옵션 닫기 + 사이드 재렌더 (위력/결정력/내구력 등 모두 갱신)
-      optsEl.classList.remove('open');
-      renderSide(side);
-      if (resetAutoFields) syncFieldControls();
-      triggerCalc();
-    }
-    optsEl.addEventListener('mousedown', handleOptionSelect);
-    optsEl.addEventListener('touchstart', handleOptionSelect, { passive: false });
   });
   
   // 일반 input/select
@@ -887,10 +1371,7 @@ function wireSide(sideKey) {
     const evt = el.tagName === 'BUTTON' ? 'click' : 'change';
     el.addEventListener(evt, () => {
       const side = state[el.dataset.side];
-      if (action === 'ability') side.ability = el.value;
-      else if (action === 'nature') side.nature = el.value;
-      else if (action === 'status') side.status = el.value;
-      else if (action === 'hpPct') {
+      if (action === 'hpPct') {
         setSideHpPct(side, el.value);
         renderSide(el.dataset.side);
         triggerCalc();
@@ -902,8 +1383,20 @@ function wireSide(sideKey) {
         triggerCalc();
         return;
       }
+      else if (action === 'damageBlockToggle') {
+        side.damageBlockActive = !side.damageBlockActive;
+        renderSide(el.dataset.side);
+        triggerCalc();
+        return;
+      }
       else if (action === 'conditionMode') {
         side[el.dataset.field] = el.value;
+        renderSide(el.dataset.side);
+        triggerCalc();
+        return;
+      }
+      else if (action === 'typeReset') {
+        resetSideTypes(el.dataset.side);
         renderSide(el.dataset.side);
         triggerCalc();
         return;
@@ -1032,13 +1525,14 @@ function emptyEntryMeta() {
 }
 
 function cloneSideForCalc(side) {
-  return deriveHpFlags({
+  return applyManualDamageBlockHpAdjustment(deriveHpFlags({
     ...side,
     evs: { ...side.evs },
     ranks: { ...side.ranks },
+    types: Array.isArray(side.types) ? [...side.types] : [],
     moves: Array.isArray(side.moves) ? [...side.moves] : [],
     moveBpOverrides: Array.isArray(side.moveBpOverrides) ? [...side.moveBpOverrides] : [null, null, null, null],
-  });
+  }));
 }
 
 function cloneFieldForCalc(field) {
@@ -1174,10 +1668,23 @@ function resetManualAutoFieldOverrides() {
 
 function syncFieldControls(fieldState = null) {
   const f = fieldState || makeCalcState().field;
-  const weatherEl = document.getElementById('weather');
-  const terrainEl = document.getElementById('terrain');
-  if (weatherEl) weatherEl.value = f.weather;
-  if (terrainEl) terrainEl.value = f.terrain;
+  const setChecked = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.checked = !!value;
+  };
+  setComboboxValue('weather', f.weather, 'weather');
+  setComboboxValue('terrain', f.terrain, 'terrain');
+  setComboboxValue('gameType', f.gameType || state.field.gameType, 'gameType');
+  setChecked('critHit', f.isCritical);
+  setChecked('defReflect', f.defReflect);
+  setChecked('defLightScreen', f.defLightScreen);
+  setChecked('atkHelpingHand', f.atkHelpingHand);
+  setChecked('defProtect', f.defProtect);
+  setChecked('defStealthRock', f.defStealthRock);
+  setChecked('defSpikes', f.defSpikesLayers > 0);
+  setComboboxValue('defSpikesLayers', String(Math.max(1, f.defSpikesLayers || 1)), 'spikesLayers');
+  setChecked('trickRoom', f.isTrickRoom);
+  setChecked('gravity', f.isGravity);
   if (typeof updateFieldSummary === 'function') updateFieldSummary(f, lastAutoEntry);
   if (typeof updateRuinCheckboxes === 'function') updateRuinCheckboxes(f);
 }
@@ -1305,18 +1812,24 @@ function runCalc() {
     <!-- 속도 대결 -->
     <div class="speed-row">
       <div class="speed-side atk">
-        <div>
-          <div class="mono" style="font-size:10px;color:var(--text-faint);letter-spacing:0.15em;">공격측 속도</div>
-          <div class="speed-name">${pkName(atkP)}</div>
+        <div class="speed-name-card">
+          <span>공격측</span>
+          <b>${pkName(atkP)}</b>
         </div>
-        <div class="speed-value">${atkSpe}</div>
+        <div class="speed-value">
+          <span>속도</span>
+          <b>${atkSpe}</b>
+        </div>
       </div>
       <div class="speed-vs">VS</div>
       <div class="speed-side def">
-        <div class="speed-value">${defSpe}</div>
-        <div style="text-align:right;">
-          <div class="mono" style="font-size:10px;color:var(--text-faint);letter-spacing:0.15em;">방어측 속도</div>
-          <div class="speed-name">${pkName(defP)}</div>
+        <div class="speed-value">
+          <span>속도</span>
+          <b>${defSpe}</b>
+        </div>
+        <div class="speed-name-card">
+          <span>방어측</span>
+          <b>${pkName(defP)}</b>
         </div>
       </div>
       <div class="speed-verdict">
@@ -1341,31 +1854,27 @@ function renderModsTrace(mods, limit = 6) {
   const title = escapeHTML(labels.join(' · '));
   const parts = visible.map(m => `<b>${escapeHTML(m)}</b>`);
   if (hidden > 0) parts.push(`<b title="${title}">+${hidden}</b>`);
-  return `<div class="mods-trace" title="${title}">${parts.join('<span class="sep">·</span>')}</div>`;
+  return `<span class="mods-trace" title="${title}">${parts.join('<span class="sep">·</span>')}</span>`;
 }
 
 function renderMoveCard(r) {
   if (r.empty) {
     if (r.statusMove) {
       return `
-        <div class="move-card none">
-          <div class="move-card-main">
-            <div class="move-card-head move-card-head-simple">
-              <span class="move-slot-num mono">${r.slot}</span>
-              <span class="move-name" style="color:var(--text-faint);">${mvName(r.move)} (변화기)</span>
-              <span class="move-meta"><span class="cat-stat">STAT</span> · ${r.move.desc || ''}</span>
-            </div>
+        <div class="move-card none compact">
+          <div class="move-card-placeholder">
+            <span class="move-slot-num mono">${r.slot}</span>
+            <span class="move-name">${mvName(r.move)} (변화기)</span>
+            <span class="move-meta"><span class="cat-stat">STAT</span>${r.move.desc ? ` · ${r.move.desc}` : ''}</span>
           </div>
         </div>
       `;
     }
     return `
-      <div class="move-card none">
-        <div class="move-card-main">
-          <div class="move-card-head move-card-head-simple">
-            <span class="move-slot-num mono">${r.slot}</span>
-            <span class="move-name" style="color:var(--text-faint);">기술 미설정</span>
-          </div>
+      <div class="move-card none compact">
+        <div class="move-card-placeholder">
+          <span class="move-slot-num mono">${r.slot}</span>
+          <span class="move-name">기술 미설정</span>
         </div>
       </div>
     `;
@@ -1379,14 +1888,11 @@ function renderMoveCard(r) {
   const eff = r.effectiveness;
   const effCls = eff === 0 ? 'eff-0' : eff === 0.25 ? 'eff-0-25' : eff === 0.5 ? 'eff-0-5' :
                  eff === 2 ? 'eff-2' : eff === 4 ? 'eff-4' : 'eff-1';
-  const effText = eff === 0 ? '효과없음' : eff === 0.25 ? '¼배' : eff === 0.5 ? '½배' :
+  const effText = eff === 0 ? '효과없음' : eff === 0.25 ? '1/4배' : eff === 0.5 ? '1/2배' :
                   eff === 2 ? '2배' : eff === 4 ? '4배' : '1배';
   
   const cat = r.category === 'Physical' ? '물리' : '특수';
   const catCls = r.category === 'Physical' ? 'cat-phys' : 'cat-spec';
-  
-  const firstLabel = r.first === 'atk' ? '공격측 선공' : r.first === 'def' ? '방어측 선공' : '동속';
-  const firstCls = r.first === 'atk' ? '' : r.first === 'def' ? 'def-first' : 'tie';
   
   const min = r.damages[0];
   const max = r.damages[15];
@@ -1408,7 +1914,7 @@ function renderMoveCard(r) {
     const recoilMax = Math.floor(max * num / den);
     const recoilMinPct = (recoilMin / atkHP * 100).toFixed(1);
     const recoilMaxPct = (recoilMax / atkHP * 100).toFixed(1);
-    sideEffect += `<div class="side-effect">반동: 공격측 HP <b>${recoilMin}~${recoilMax}</b> (${recoilMinPct}~${recoilMaxPct}%) 감소</div>`;
+    sideEffect += `<span class="side-effect"><span>반동</span><b>${recoilMinPct}% ~ ${recoilMaxPct}%</b><span>(${recoilMin}~${recoilMax})</span></span>`;
   }
   if (moveData.drain) {
     const [num, den] = moveData.drain;
@@ -1417,7 +1923,7 @@ function renderMoveCard(r) {
     const healMax = Math.floor(max * num / den);
     const healMinPct = (healMin / atkHP * 100).toFixed(1);
     const healMaxPct = (healMax / atkHP * 100).toFixed(1);
-    sideEffect += `<div class="side-effect">흡수: 공격측 HP <b>${healMin}~${healMax}</b> (${healMinPct}~${healMaxPct}%) 회복</div>`;
+    sideEffect += `<span class="side-effect"><span>흡수</span><b>${healMinPct}% ~ ${healMaxPct}%</b><span>(${healMin}~${healMax})</span></span>`;
   }
 
   // 다단 히트 표시
@@ -1433,38 +1939,43 @@ function renderMoveCard(r) {
   if (r.mods?.some(m => m.includes('부자유친'))) {
     multihitLabel = `<span style="color:var(--warn)">· 1타 + 0.25타</span>`;
   }
+  const stabBadge = r.stab ? '<span class="stab-mark">자속</span>' : '';
+  const metaHtml = multihitLabel ? `<span class="move-meta">${multihitLabel}</span>` : '';
+  const hkoTone = r.hko.cls === 'no' ? 'no' :
+                  r.hko.label === '난수' ? 'chance' :
+                  r.hko.turns === '1타' ? 'ko-strong' : 'ko-stable';
   
   return `
     <div class="move-card">
       <div class="move-card-main">
-        <div class="move-card-head">
-          <span class="move-slot-num mono">${r.slot}</span>
-          ${typeLabel}
-          <span class="cat-badge ${catCls}">${cat}</span>
-          <span class="move-name">${mvName(moveData)}</span>
-          <span class="stab-mark${r.stab ? '' : ' empty'}">${r.stab ? '자속' : ''}</span>
-          <span class="eff-badge ${effCls}">${effText}</span>
-          <span class="move-meta">
-            ${moveData.pri !== 0 ? `<span>· 우선도 ${moveData.pri > 0 ? '+' : ''}${moveData.pri}</span>` : ''}
-            ${multihitLabel}
-          </span>
-          <span class="first-indicator ${firstCls}">${firstLabel}</span>
+        <div class="move-card-top">
+          <div class="move-title-row">
+            <span class="move-slot-num mono">${r.slot}</span>
+            <span class="move-name">${mvName(moveData)}</span>
+          </div>
+          <div class="move-badges">
+            ${typeLabel}
+            <span class="cat-badge ${catCls}">${cat}</span>
+            ${stabBadge}
+            <span class="eff-badge ${effCls}">${effText}</span>
+            ${metaHtml}
+          </div>
+        </div>
+        <div class="dmg-summary">
+          <span class="dmg-pct">${pctMin} ~ ${pctMax}%</span>
+          <span class="hp-remain">잔여 HP ${hpRemMin}-${hpRemMax} / ${r.defHP}</span>
         </div>
         <div class="dmg-bar">
           <div class="dmg-bar-fill" style="width: ${barMax}%"></div>
           <div class="dmg-bar-fill min" style="width: ${barMin}%"></div>
-          <div class="dmg-bar-text">
-            <span>${pctMin} ~ ${pctMax}%</span>
-            <span class="hp-remain">잔여 ${hpRemMin}-${hpRemMax} / ${r.defHP}</span>
-          </div>
         </div>
         <div class="dmg-info">
           <span>실제 대미지 <b>${min}–${max}</b></span>
+          ${renderModsTrace(r.mods)}
+          ${sideEffect}
         </div>
-        ${renderModsTrace(r.mods)}
-        ${sideEffect}
       </div>
-      <div class="hko-badge">
+      <div class="hko-badge ${hkoTone}">
         <div class="hko-main ${r.hko.cls}">
           <span class="hko-label">${r.hko.label}</span>
           <span class="hko-turns">${r.hko.turns}</span>
@@ -1551,18 +2062,46 @@ document.getElementById('btnAutoCalc').addEventListener('click', e => {
 });
 // 초기 활성 표시
 document.getElementById('btnAutoCalc').classList.add('active');
+document.getElementById('btnResetManual').addEventListener('click', resetCalcManualValues);
 
 /* ════════════════════════════════════════════════════════════
    필드 이벤트
    ════════════════════════════════════════════════════════════ */
-document.getElementById('weather').addEventListener('change', e => { markManualAutoFieldOverride('weather'); state.field.weather = e.target.value; triggerCalc(); });
-document.getElementById('terrain').addEventListener('change', e => { markManualAutoFieldOverride('terrain'); state.field.terrain = e.target.value; triggerCalc(); });
-document.getElementById('gameType').addEventListener('change', e => {
-  state.field.gameType = e.target.value;
-  state.atk.fallenAllies = clampFallenAllies(state.atk.fallenAllies);
-  renderSide('atk');
-  triggerCalc();
-});
+function wireFieldComboboxes() {
+  if (typeof document.querySelectorAll !== 'function') return;
+  document.querySelectorAll('#field-panel .cb-input').forEach(input => {
+    const cbType = input.dataset.cbType;
+    const field = input.dataset.field;
+    wireCalcCombobox(input, {
+      filterFn: makeCombobox(null, cbType),
+      onSelect(id) {
+        if (field === 'weather') {
+          markManualAutoFieldOverride('weather');
+          state.field.weather = id || 'none';
+          setComboboxValue('weather', state.field.weather, 'weather');
+        } else if (field === 'terrain') {
+          markManualAutoFieldOverride('terrain');
+          state.field.terrain = id || 'none';
+          setComboboxValue('terrain', state.field.terrain, 'terrain');
+        } else if (field === 'gameType') {
+          state.field.gameType = id || 'Singles';
+          setComboboxValue('gameType', state.field.gameType, 'gameType');
+          state.atk.fallenAllies = clampFallenAllies(state.atk.fallenAllies);
+          renderSide('atk');
+        } else if (field === 'defSpikesLayers') {
+          const layers = Math.max(1, Math.min(3, parseInt(id, 10) || 1));
+          setComboboxValue('defSpikesLayers', String(layers), 'spikesLayers');
+          if (document.getElementById('defSpikes')?.checked) {
+            state.field.defSpikesLayers = layers;
+          }
+        }
+        triggerCalc();
+      },
+    });
+  });
+}
+
+wireFieldComboboxes();
 document.getElementById('critHit').addEventListener('change', e => { state.field.isCritical = e.target.checked; triggerCalc(); });
 document.getElementById('defReflect').addEventListener('change', e => { state.field.defReflect = e.target.checked; triggerCalc(); });
 document.getElementById('defLightScreen').addEventListener('change', e => { state.field.defLightScreen = e.target.checked; triggerCalc(); });
@@ -1576,14 +2115,10 @@ document.getElementById('ruinVessel').addEventListener('change', e => { markManu
 // 진입 위험 (스텔스록 / 압정뿌리기)
 document.getElementById('defStealthRock').addEventListener('change', e => { state.field.defStealthRock = e.target.checked; triggerCalc(); });
 document.getElementById('defSpikes').addEventListener('change', e => {
-  state.field.defSpikesLayers = e.target.checked ? parseInt(document.getElementById('defSpikesLayers').value, 10) || 1 : 0;
+  const layerInput = document.getElementById('defSpikesLayers');
+  const layers = parseInt(layerInput?.dataset.value || layerInput?.value, 10) || 1;
+  state.field.defSpikesLayers = e.target.checked ? layers : 0;
   triggerCalc();
-});
-document.getElementById('defSpikesLayers').addEventListener('change', e => {
-  if (document.getElementById('defSpikes').checked) {
-    state.field.defSpikesLayers = parseInt(e.target.value, 10) || 1;
-    triggerCalc();
-  }
 });
 // 트릭룸 / 중력장
 document.getElementById('trickRoom').addEventListener('change', e => { state.field.isTrickRoom = e.target.checked; triggerCalc(); });

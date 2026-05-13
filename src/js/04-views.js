@@ -6,7 +6,74 @@
 let currentDex = 'pokemon';
 let dexTypeFilter = [];          // 빈 배열 = 전체. 포켓몬 탭은 최대 2개, 기술 탭은 최대 1개.
 let dexItemCategory = null;      // 도구 탭의 카테고리 필터 (null = 전체, 'equip'/'berry'/'mega')
-const BATTLE_TYPES = ['Normal','Fire','Water','Electric','Grass','Ice','Fighting','Poison','Ground','Flying','Psychic','Bug','Rock','Ghost','Dragon','Dark','Steel','Fairy'];
+const DEX_TABS = ['pokemon', 'moves', 'abilities', 'items'];
+const dexViewState = Object.fromEntries(DEX_TABS.map(tab => [tab, {
+  query: '',
+  typeFilter: [],
+  itemCategory: null,
+  scrollTop: 0,
+  scrollLeft: 0,
+}]));
+const dexSortState = Object.fromEntries(DEX_TABS.map(tab => [tab, { key: null, dir: 'asc' }]));
+
+const MOVE_CATEGORY_LABEL = { Physical: '물리', Special: '특수', Status: '변화' };
+const FORM_LABEL_KO = {
+  Alola: '알로라', Galar: '가라르', Hisui: '히스이', Paldea: '팔데아',
+  Blade: '블레이드 폼', Shield: '실드 폼', Sunny: '태양의 모습', Rainy: '빗방울의 모습', Snowy: '설운의 모습',
+  Busted: '들킨 모습', Hangry: '배고픈 모양', Hero: '마이티 폼',
+  Mega: '메가', 'Mega-X': '메가 X', 'Mega-Y': '메가 Y', Primal: '원시',
+};
+const VARIABLE_BP_NOTE = {
+  gyroball: '느릴수록 위력 ↑', electroball: '빠를수록 위력 ↑',
+  heatcrash: '무거울수록 위력 ↑', heavyslam: '무거울수록 위력 ↑',
+  lowkick: '대상이 무거울수록', grassknot: '대상이 무거울수록',
+  eruption: 'HP 비율에 비례', waterspout: 'HP 비율에 비례',
+  flail: 'HP 적을수록', reversal: 'HP 적을수록', hardpress: '대상 HP 적을수록 ↓',
+  hex: '상태이상 시 ×2', infernalparade: '상태이상 시 ×2',
+  venoshock: '독 상태 시 ×2', facade: '화상/마비/독 시 ×2',
+  knockoff: '도구 보유 시 ×1.5', boltbeak: '선공 시 ×2', fishiousrend: '선공 시 ×2',
+  payback: '후공 시 ×2', avalanche: '피격 시 ×2', assurance: '대상 피격 시 ×2',
+  risingvoltage: '일렉트릭필드 ×2', expandingforce: '사이코필드 ×1.5',
+  mistyexplosion: '미스트필드 ×1.5', gravapple: '중력장 ×1.5',
+  solarbeam: '쾌청 외 ×0.5', solarblade: '쾌청 외 ×0.5',
+  weatherball: '날씨 → 타입+위력 변경', terrainpulse: '필드 → 타입+위력 변경',
+  storedpower: '+부스트 단계당 +20', powertrip: '+부스트 단계당 +20',
+  lastrespects: '쓰러진 동료당 +50', acrobatics: '도구 미보유 시 ×2',
+  tripleaxel: '1/2/3타 BP 20/40/60', temperflare: '직전 실패 시 ×2',
+  stompingtantrum: '직전 실패 시 ×2',
+};
+
+function dexSearchText(value) {
+  return String(value || '').toLowerCase();
+}
+function dexMatches(query, ...values) {
+  if (!query) return true;
+  return values.some(value => dexSearchText(value).includes(query));
+}
+function dexTypeTerms(types = []) {
+  return types.flatMap(t => [t, TYPE_KO[t] || '']);
+}
+function moveCategoryLabel(cat) {
+  return MOVE_CATEGORY_LABEL[cat] || cat || '';
+}
+function moveAccuracyLabel(move) {
+  return move.acc === 0 || move.acc === true ? '필중' : (move.acc || '—');
+}
+function movePowerLabel(move) {
+  if (VARIABLE_BP_NOTE[move.id] && (!move.bp || move.bp === 1)) return '가변';
+  return move.bp || '—';
+}
+function pokemonFormLabel(p) {
+  if (!p?.forme) return '';
+  return FORM_LABEL_KO[p.forme] || p.forme;
+}
+function pokemonListName(p) {
+  const name = pkName(p);
+  const form = pokemonFormLabel(p);
+  const hasVisibleForm = !form || name.includes('(') || name.includes(form) || (p.mega && name.includes('메가'));
+  const formBadge = form && !hasVisibleForm ? ` <span class="dex-form-badge">${escapeHTML(form)}</span>` : '';
+  return `${p.mega ? '<span class="badge-mega">[메가]</span> ' : ''}${escapeHTML(name)}${formBadge}`;
+}
 
 function itemCategoryOf(it) {
   if (it.ms) return 'mega';
@@ -15,6 +82,17 @@ function itemCategoryOf(it) {
 }
 const ITEM_CATEGORY_ORDER = ['equip', 'berry', 'mega'];
 const ITEM_CATEGORY_LABEL = { equip: '장착형', berry: '열매', mega: '메가스톤' };
+
+function dexPokemonByLooseName(name) {
+  return PokemonById[toId(name)];
+}
+
+function dexItemUserTerms(item) {
+  return (item.itemUser || []).flatMap(user => {
+    const p = dexPokemonByLooseName(user);
+    return [user, p?.id, p?.name, p?.koName, p ? pkName(p) : ''];
+  });
+}
 
 // 타입 필터 토글 — 포켓몬은 최대 2개 (FIFO), 기술은 단일.
 function toggleTypeFilter(t) {
@@ -56,9 +134,106 @@ function renderTypeFilter() {
   }
 }
 
+function dexTableWrap(tab = currentDex) {
+  return document.querySelector(`#dex-${tab} .dex-table-wrap`);
+}
+function saveDexViewState(tab = currentDex) {
+  const state = dexViewState[tab];
+  if (!state) return;
+  if (tab === currentDex) {
+    state.query = dexSearchEl?.value || '';
+    state.typeFilter = [...dexTypeFilter];
+    state.itemCategory = dexItemCategory;
+  }
+  const wrap = dexTableWrap(tab);
+  if (wrap) {
+    state.scrollTop = wrap.scrollTop;
+    state.scrollLeft = wrap.scrollLeft;
+  }
+}
+function restoreDexViewState(tab = currentDex) {
+  const state = dexViewState[tab] || dexViewState.pokemon;
+  dexTypeFilter = [...(state.typeFilter || [])];
+  dexItemCategory = state.itemCategory || null;
+  if (dexSearchEl) dexSearchEl.value = state.query || '';
+  renderTypeFilter();
+  renderDexContent(state.query || '');
+  restoreDexScroll(tab);
+}
+function restoreDexScroll(tab = currentDex) {
+  const state = dexViewState[tab];
+  if (!state) return;
+  requestAnimationFrame(() => {
+    const wrap = dexTableWrap(tab);
+    if (!wrap) return;
+    wrap.scrollTop = state.scrollTop || 0;
+    wrap.scrollLeft = state.scrollLeft || 0;
+  });
+}
+function updateDexSortIndicators(tab = currentDex) {
+  const sort = dexSortState[tab] || {};
+  document.querySelectorAll(`#dex-${tab} th.sortable`).forEach(th => {
+    th.classList.toggle('sorted-asc', sort.key === th.dataset.sort && sort.dir === 'asc');
+    th.classList.toggle('sorted-desc', sort.key === th.dataset.sort && sort.dir === 'desc');
+  });
+}
+function updateDexCount(count, total) {
+  const el = document.getElementById('dexCount');
+  if (!el) return;
+  const sort = dexSortState[currentDex];
+  const sortText = sort?.key ? ` · 정렬 ${sort.dir === 'asc' ? '오름차순' : '내림차순'}` : '';
+  el.textContent = count === total ? `${total}개${sortText}` : `${count}/${total}개${sortText}`;
+}
+function compareDexValues(a, b, dir) {
+  const av = a ?? '';
+  const bv = b ?? '';
+  const result = (typeof av === 'number' && typeof bv === 'number')
+    ? av - bv
+    : String(av).localeCompare(String(bv), 'ko', { numeric: true, sensitivity: 'base' });
+  return dir === 'desc' ? -result : result;
+}
+function dexSortValue(entry, tab, key) {
+  if (!entry || !key) return '';
+  if (tab === 'pokemon') {
+    if (['hp','atk','def','spa','spd','spe'].includes(key)) return entry.bs?.[key] ?? 0;
+    if (key === 'bst') return entry.bst ?? 0;
+    if (key === 'koName') return pkName(entry);
+  }
+  if (tab === 'moves') {
+    if (key === 'koName') return mvName(entry);
+    if (key === 'bp') return entry.bp || 0;
+    if (key === 'acc') return entry.acc === true ? 0 : (entry.acc || 0);
+    if (key === 'pp') return entry.pp || 0;
+    if (key === 'pri') return entry.pri || 0;
+  }
+  if (tab === 'abilities') {
+    if (key === 'koName') return abName(entry);
+  }
+  if (tab === 'items') {
+    if (key === 'koName') return itName(entry);
+  }
+  return entry[key] ?? '';
+}
+function applyDexSort(data, tab = currentDex) {
+  const sort = dexSortState[tab];
+  if (!sort?.key) return data;
+  return data.sort((a, b) => {
+    if (tab === 'items') {
+      const ca = ITEM_CATEGORY_ORDER.indexOf(itemCategoryOf(a));
+      const cb = ITEM_CATEGORY_ORDER.indexOf(itemCategoryOf(b));
+      if (ca !== cb) return ca - cb;
+    }
+    const primary = compareDexValues(dexSortValue(a, tab, sort.key), dexSortValue(b, tab, sort.key), sort.dir);
+    if (primary !== 0) return primary;
+    return pkName(a).localeCompare(pkName(b), 'ko');
+  });
+}
+
 document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
   const typeBtn = e.target.closest('[data-filter-type]');
   if (typeBtn) {
+    closeDexDetail();
+    closeDexFullPage();
     const t = typeBtn.dataset.filterType;
     if (t === '') dexTypeFilter = [];   // 전체 클릭 → 모두 해제
     else toggleTypeFilter(t);
@@ -86,17 +261,38 @@ if (dexSearchEl) {
 
 document.querySelectorAll('.dex-tab').forEach(tab => {
   tab.addEventListener('click', () => {
+    saveDexViewState(currentDex);
     document.querySelectorAll('.dex-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     document.querySelectorAll('.dex-content').forEach(c => c.classList.remove('active'));
     document.getElementById('dex-' + tab.dataset.dex).classList.add('active');
     currentDex = tab.dataset.dex;
-    dexTypeFilter = [];          // 탭 전환 시 필터 초기화
-    dexItemCategory = null;
     closeDexFullPage();           // 탭 전환 시 풀페이지 상세 닫기
-    renderTypeFilter();
-    if(dexSearchEl) dexSearchEl.value = '';
-    renderDexContent('');
+    restoreDexViewState(currentDex);
+  });
+});
+
+document.querySelectorAll('.dex-content .dex-table-wrap').forEach(wrap => {
+  wrap.addEventListener('scroll', () => {
+    const tab = wrap.closest('.dex-content')?.id?.replace('dex-', '');
+    if (!tab || !dexViewState[tab]) return;
+    dexViewState[tab].scrollTop = wrap.scrollTop;
+    dexViewState[tab].scrollLeft = wrap.scrollLeft;
+  });
+});
+
+document.querySelectorAll('.dex-table th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    const tab = th.closest('.dex-content')?.id?.replace('dex-', '');
+    if (!tab || !dexSortState[tab]) return;
+    saveDexViewState(tab);
+    const sort = dexSortState[tab];
+    if (sort.key === th.dataset.sort) sort.dir = sort.dir === 'asc' ? 'desc' : 'asc';
+    else {
+      sort.key = th.dataset.sort;
+      sort.dir = th.classList.contains('num') ? 'desc' : 'asc';
+    }
+    renderDexContent(dexSearchEl?.value || '');
   });
 });
 
@@ -111,55 +307,79 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
 
 // 도감 렌더링 함수들
 function renderDexContent(query = '') {
-  const q = query.toLowerCase();
+  const q = dexSearchText(query).trim();
+  if (dexViewState[currentDex]) {
+    dexViewState[currentDex].query = query || '';
+    dexViewState[currentDex].typeFilter = [...dexTypeFilter];
+    dexViewState[currentDex].itemCategory = dexItemCategory;
+  }
   if (currentDex === 'pokemon') renderPokemonDex(q);
   else if (currentDex === 'moves') renderMovesDex(q);
   else if (currentDex === 'abilities') renderAbilitiesDex(q);
   else if (currentDex === 'items') renderItemsDex(q);
+  updateDexSortIndicators(currentDex);
 }
 
 function renderPokemonDex(query) {
   let data = [...POKEMON];
-  if (query) data = data.filter(p => (p.koName||'').toLowerCase().includes(query) || p.name.toLowerCase().includes(query));
+  if (query) data = data.filter(p => {
+    const abilityTerms = Object.values(p.ab || {}).flatMap(abN => {
+      const data = AbilityById[toId(abN)];
+      return [abN, data?.koName, data?.name, data?.desc, data?.descLong];
+    });
+    return dexMatches(query, p.id, p.name, p.koName, p.base, p.forme, p.tier, ...dexTypeTerms(p.types), ...abilityTerms);
+  });
   // 멀티 타입: 선택된 타입을 모두 가져야(AND)
   if (dexTypeFilter.length > 0) data = data.filter(p => dexTypeFilter.every(t => p.types.includes(t)));
+  applyDexSort(data, 'pokemon');
+  updateDexCount(data.length, POKEMON.length);
   const tbody = document.getElementById('dexBodyPokemon');
   if(!tbody) return;
-  tbody.innerHTML = data.slice(0, 200).map(p => {
-    // 특성 한글명 매핑 — abilityIdNorm 으로 ID 변환 후 AbilityById lookup
+  tbody.innerHTML = data.map(p => {
+    // 특성 한글명 매핑 — toId 로 ID 변환 후 AbilityById lookup
     const abLabels = Object.values(p.ab || {}).map(abN => {
-      const data = AbilityById[abilityIdNorm(abN)];
+      const data = AbilityById[toId(abN)];
       return escapeHTML(data ? abName(data) : abN);
     }).join(', ');
-    return `<tr data-dex-id="${p.id}"><td>${p.mega ? '<span class="badge-mega" style="color:var(--tera);font-size:10px;">[메가]</span> ' : ''}${escapeHTML(p.koName || p.name)}</td><td>${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join(' ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num" style="font-weight:700; color:var(--warn);">${p.bst}</td><td class="dim" style="font-size:10px;">${abLabels}</td></tr>`;
+    return `<tr data-dex-id="${p.id}"><td>${pokemonListName(p)}</td><td>${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join(' ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num" style="font-weight:700; color:var(--warn);">${p.bst}</td><td class="dim" style="font-size:10px;">${abLabels}</td></tr>`;
   }).join('');
 }
 function renderMovesDex(query) {
   let data = [...MOVES];
-  if (query) data = data.filter(m => (m.koName||'').toLowerCase().includes(query) || m.name.toLowerCase().includes(query));
+  if (query) data = data.filter(m => dexMatches(query, m.id, m.name, m.koName, m.desc, m.descLong, m.type, TYPE_KO[m.type], m.cat, moveCategoryLabel(m.cat), VARIABLE_BP_NOTE[m.id], Object.keys(m.flags || {}).join(' ')));
   if (dexTypeFilter.length > 0) data = data.filter(m => dexTypeFilter.includes(m.type));
+  applyDexSort(data, 'moves');
+  updateDexCount(data.length, MOVES.length);
   const tbody = document.getElementById('dexBodyMoves');
   if(!tbody) return;
-  tbody.innerHTML = data.slice(0, 300).map(m => `<tr data-dex-id="${m.id}"><td>${escapeHTML(m.koName || m.name)}</td><td><span class="type-pill t-${m.type}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[m.type] || m.type}</span></td><td>${m.cat}</td><td class="num">${m.bp || '—'}</td><td class="num">${m.acc || '—'}</td><td class="num">${m.pp || '—'}</td><td class="num">${m.pri || 0}</td><td class="desc-cell">${escapeHTML(m.desc || '')}</td></tr>`).join('');
+  tbody.innerHTML = data.map(m => {
+    const powerLabel = movePowerLabel(m);
+    const variableBadge = VARIABLE_BP_NOTE[m.id] && powerLabel !== '가변' ? '<span class="dex-var-badge">가변</span>' : '';
+    return `<tr data-dex-id="${m.id}"><td>${escapeHTML(mvName(m))}</td><td><span class="type-pill t-${m.type}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[m.type] || m.type}</span></td><td><span class="cat-badge ${m.cat === 'Physical' ? 'cat-phys' : m.cat === 'Special' ? 'cat-spec' : 'cat-stat'}">${moveCategoryLabel(m.cat)}</span></td><td class="num">${powerLabel}${variableBadge}</td><td class="num">${moveAccuracyLabel(m)}</td><td class="num">${m.pp || '—'}</td><td class="num">${m.pri || 0}</td><td class="desc-cell">${escapeHTML(m.desc || '')}</td></tr>`;
+  }).join('');
 }
 function renderAbilitiesDex(query) {
   let data = [...ABILITIES];
-  if (query) data = data.filter(a => (a.koName||'').toLowerCase().includes(query) || a.name.toLowerCase().includes(query));
+  if (query) data = data.filter(a => dexMatches(query, a.id, a.name, a.koName, a.desc, a.descLong, ...(PokemonByAbility[a.id] || []).map(p => pkName(p))));
+  applyDexSort(data, 'abilities');
+  updateDexCount(data.length, ABILITIES.length);
   const tbody = document.getElementById('dexBodyAbilities');
   if(!tbody) return;
-  tbody.innerHTML = data.map(a => `<tr data-dex-id="${a.id}"><td>${escapeHTML(a.koName || a.name)}</td><td class="dim">${a.name}</td><td class="desc-cell">${escapeHTML(a.desc || '')}</td></tr>`).join('');
+  tbody.innerHTML = data.map(a => `<tr data-dex-id="${a.id}"><td>${escapeHTML(abName(a))}</td><td class="dim">${escapeHTML(a.name)}</td><td class="desc-cell">${escapeHTML(a.desc || '')}</td></tr>`).join('');
 }
 function renderItemsDex(query) {
   let data = [...ITEMS];
-  if (query) data = data.filter(i => (i.koName||'').toLowerCase().includes(query) || i.name.toLowerCase().includes(query));
+  if (query) data = data.filter(i => dexMatches(query, i.id, i.name, i.koName, i.desc, i.descLong, ITEM_CATEGORY_LABEL[itemCategoryOf(i)], ...dexItemUserTerms(i)));
   if (dexItemCategory) data = data.filter(i => itemCategoryOf(i) === dexItemCategory);
   // 카테고리 → 이름 정렬 (장착형 → 열매 → 메가스톤)
-  data.sort((a, b) => {
+  if (dexSortState.items.key) applyDexSort(data, 'items');
+  else data.sort((a, b) => {
     const ca = ITEM_CATEGORY_ORDER.indexOf(itemCategoryOf(a));
     const cb = ITEM_CATEGORY_ORDER.indexOf(itemCategoryOf(b));
     if (ca !== cb) return ca - cb;
     return (a.koName || a.name).localeCompare(b.koName || b.name, 'ko');
   });
+  updateDexCount(data.length, ITEMS.length);
   const tbody = document.getElementById('dexBodyItems');
   if(!tbody) return;
   // 카테고리별 그룹 헤더가 있는 단일 테이블 — 행 사이에 헤더 row 삽입
@@ -176,7 +396,7 @@ function renderItemsDex(query) {
       : (i.isChoice ? '<span style="color:var(--warn);font-size:10px;">고집계</span>'
         : i.isGem ? '<span style="color:var(--def);font-size:10px;">젬</span>'
         : '<span style="color:var(--text-faint);font-size:10px;">장착형</span>');
-    rows.push(`<tr data-dex-id="${i.id}"><td>${escapeHTML(i.koName || i.name)}</td><td class="dim">${i.name}</td><td class="desc-cell">${escapeHTML(i.desc || '')}</td><td>${tag}</td></tr>`);
+    rows.push(`<tr data-dex-id="${i.id}"><td>${escapeHTML(itName(i))}</td><td class="dim">${escapeHTML(i.name)}</td><td class="desc-cell">${escapeHTML(i.desc || '')}</td><td>${tag}</td></tr>`);
   }
   tbody.innerHTML = rows.join('');
 }
@@ -238,9 +458,9 @@ function wireMatchupSlots() {
 
     const showOptions = (query) => {
       const s = (query || '').toLowerCase();
-      const matches = POKEMON.filter(p =>
+      const matches = sortPokemonForCalcSelect(POKEMON).filter(p =>
         (p.koName || '').toLowerCase().includes(s) || p.name.toLowerCase().includes(s)
-      ).slice(0, 30);
+      );
       optsEl.innerHTML = matches.map(p =>
         `<div class="combobox-option" data-id="${p.id}">
           <b>${escapeHTML(pkName(p))}</b>
@@ -335,14 +555,12 @@ function renderMatchupTable() {
 /* ════════════════════════════════════════════════════════════
    도감 상세 모달 — Cross-reference 인덱스 + 렌더러
    ════════════════════════════════════════════════════════════ */
-function abilityIdNorm(name) { return (name || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
-
 // 특성 → 보유 포켓몬 인덱스 (한 번만 빌드)
 const PokemonByAbility = (() => {
   const idx = {};
   for (const p of POKEMON) {
     for (const abName of Object.values(p.ab || {})) {
-      const aId = abilityIdNorm(abName);
+      const aId = toId(abName);
       if (!aId) continue;
       (idx[aId] = idx[aId] || []).push(p);
     }
@@ -362,9 +580,23 @@ const PokemonByMove = (() => {
   return idx;
 })();
 
+const PokemonFormsByBase = (() => {
+  const idx = {};
+  for (const p of POKEMON) {
+    const baseId = toId(p.base) || p.id;
+    (idx[baseId] = idx[baseId] || []).push(p);
+  }
+  return idx;
+})();
+
+function relatedPokemonForms(p) {
+  const baseId = toId(p.base) || p.id;
+  return (PokemonFormsByBase[baseId] || []).filter(form => form.id !== p.id);
+}
+
 // 컨텍스트 — 풀페이지와 모달을 분리해서 추적 (적용 버튼이 어떤 항목을 가리키는지)
 let dexFullPageCtx = { type: null, id: null };
-let dexModalCtx = { type: null, id: null };
+let dexModalCtx = { type: null, id: null, parent: null };
 
 // 공통: 타입+id 로 표시용 컨텐츠 생성
 function buildDexContent(type, id) {
@@ -408,6 +640,7 @@ function openDexDetail(type, id, parentCtx = null) {
 function openDexDetailPage(type, id) {
   const content = buildDexContent(type, id);
   if (!content) return;
+  saveDexViewState(currentDex);
   dexFullPageCtx = { type, id };
   const container = document.getElementById('dexFullPageDetail');
   if (!container) return;
@@ -433,6 +666,7 @@ function closeDexFullPage() {
   // currentDex 의 원래 컨텐츠 다시 표시
   const target = document.getElementById('dex-' + currentDex);
   if (target) target.classList.add('active');
+  restoreDexScroll(currentDex);
 }
 
 // 모달 → 풀페이지로 이동 (현재 모달 닫고, 필요 시 서브탭 전환 후 풀페이지 표시).
@@ -475,9 +709,11 @@ function renderPokemonDetail(p) {
 
   // 특성 표시 (모든 슬롯을 동일하게 표기 — 0/1/H 구분 없음)
   const abEntries = Object.entries(p.ab || {}).map(([slot, abN]) => {
-    const id = abilityIdNorm(abN);
+    const id = toId(abN);
     const data = AbilityById[id];
-    const label = data ? `${abName(data)}${data.koName && data.name !== data.koName ? ` <small style="color:var(--text-faint)">${data.name}</small>` : ''}` : abN;
+    const label = data
+      ? `${escapeHTML(abName(data))}${data.koName && data.name !== data.koName ? ` <small style="color:var(--text-faint)">${escapeHTML(data.name)}</small>` : ''}`
+      : escapeHTML(abN);
     return `<button class="dex-link" data-dex-link="ability" data-id="${id}">${label}</button>`;
   }).join('');
 
@@ -488,9 +724,20 @@ function renderPokemonDetail(p) {
   const learnable = (p.ls || []).map(mid => MoveById[mid]).filter(Boolean);
   const learnsetHtml = renderLearnsetByType(learnable);
 
+  const relatedForms = relatedPokemonForms(p);
+  const relatedFormsHtml = relatedForms.length > 0 ? `
+    <div class="dex-modal-section">
+      <div class="dex-modal-section-title">다른 폼</div>
+      <div class="dex-link-list">
+        ${relatedForms.map(form => `<button class="dex-link" data-dex-link="pokemon" data-id="${form.id}">${pokemonListName(form)}</button>`).join('')}
+      </div>
+    </div>
+  ` : '';
+
   const flags = [];
   if (p.mega) flags.push('<span style="color:var(--tera)">메가진화</span>');
   if (p.primal) flags.push('<span style="color:var(--warn)">원시회귀</span>');
+  if (p.forme && !p.mega && !p.primal) flags.push(`폼: <b>${escapeHTML(pokemonFormLabel(p))}</b>`);
   if (p.weightkg) flags.push(`무게: <b>${p.weightkg}</b>kg`);
 
   const body = `
@@ -508,6 +755,7 @@ function renderPokemonDetail(p) {
       <div class="dex-modal-section-title">특성</div>
       <div class="dex-modal-flag-row">${abEntries || '<span style="color:var(--text-faint)">없음</span>'}</div>
     </div>
+    ${relatedFormsHtml}
     <div class="dex-modal-section">
       <div class="dex-modal-section-title">방어 타입 상성</div>
       ${matchupHtml}
@@ -518,7 +766,7 @@ function renderPokemonDetail(p) {
     </div>
     ${p.requiredItem ? (() => {
       // requiredItem 은 영문명 ("Charizardite X" 등) — id 정규화 후 한글 매핑
-      const reqId = p.requiredItem.toLowerCase().replace(/[\s'\-()]/g, '');
+      const reqId = toId(p.requiredItem);
       const reqData = ItemById[reqId];
       const label = reqData ? itName(reqData) : p.requiredItem;
       return `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">필요 도구</span><b>${escapeHTML(label)}</b>${reqData ? ` <small style="color:var(--text-faint);">${escapeHTML(reqData.name)}</small>` : ''}</div></div>`;
@@ -534,12 +782,12 @@ function renderPokemonDetail(p) {
 
 // 방어 타입 매치업 (18 타입 각각의 공격이 들어왔을 때 받는 배율)
 function renderDefensiveMatchup(defTypes) {
-  const buckets = { x4: [], x2: [], x05: [], x025: [], x0: [] };
-  // 1× (보통 효과) 는 표시 생략 (시각적 노이즈 감소)
+  const buckets = { x4: [], x2: [], x1: [], x05: [], x025: [], x0: [] };
   for (const t of BATTLE_TYPES) {
     const eff = typeEff(t, defTypes);
     if (eff === 4) buckets.x4.push(t);
     else if (eff === 2) buckets.x2.push(t);
+    else if (eff === 1) buckets.x1.push(t);
     else if (eff === 0.5) buckets.x05.push(t);
     else if (eff === 0.25) buckets.x025.push(t);
     else if (eff === 0) buckets.x0.push(t);
@@ -549,13 +797,13 @@ function renderDefensiveMatchup(defTypes) {
     <div class="matchup-types">${types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:2px 7px;">${TYPE_KO[t]}</span>`).join('')}</div>
   `;
   const html = `
-    ${row('×4', 'x4', buckets.x4)}
-    ${row('×2', 'x2', buckets.x2)}
-    ${row('×0.5', 'x05', buckets.x05)}
-    ${row('×0.25', 'x025', buckets.x025)}
+    ${row('4배', 'x4', buckets.x4)}
+    ${row('2배', 'x2', buckets.x2)}
+    ${row('1배', 'x1', buckets.x1)}
+    ${row('1/2배', 'x05', buckets.x05)}
+    ${row('1/4배', 'x025', buckets.x025)}
     ${row('무효', 'x0', buckets.x0)}
   `;
-  if (!html.trim()) return '<div style="color:var(--text-faint);font-size:12px;">모든 타입 1배 (특이 상성 없음)</div>';
   return `<div class="matchup-grid">${html}</div>`;
 }
 
@@ -621,26 +869,6 @@ function renderMoveDetail(m) {
   // 다단히트
   let multihit = '';
   if (m.mh) multihit = Array.isArray(m.mh) ? `${m.mh[0]}~${m.mh[1]}타` : `${m.mh}타`;
-  // 가변 BP 안내
-  const VARIABLE_BP_NOTE = {
-    gyroball: '느릴수록 위력 ↑', electroball: '빠를수록 위력 ↑',
-    heatcrash: '무거울수록 위력 ↑', heavyslam: '무거울수록 위력 ↑',
-    lowkick: '대상이 무거울수록', grassknot: '대상이 무거울수록',
-    eruption: 'HP 비율에 비례', waterspout: 'HP 비율에 비례',
-    flail: 'HP 적을수록', reversal: 'HP 적을수록', hardpress: '대상 HP 적을수록 ↓',
-    hex: '상태이상 시 ×2', infernalparade: '상태이상 시 ×2',
-    venoshock: '독 상태 시 ×2', facade: '화상/마비/독 시 ×2',
-    knockoff: '도구 보유 시 ×1.5', boltbeak: '선공 시 ×2', fishiousrend: '선공 시 ×2',
-    payback: '후공 시 ×2', avalanche: '피격 시 ×2', assurance: '대상 피격 시 ×2',
-    risingvoltage: '일렉트릭필드 ×2', expandingforce: '사이코필드 ×1.5',
-    mistyexplosion: '미스트필드 ×1.5', gravapple: '중력장 ×1.5',
-    solarbeam: '쾌청 외 ×0.5', solarblade: '쾌청 외 ×0.5',
-    weatherball: '날씨 → 타입+위력 변경', terrainpulse: '필드 → 타입+위력 변경',
-    storedpower: '+부스트 단계당 +20', powertrip: '+부스트 단계당 +20',
-    lastrespects: '쓰러진 동료당 +50', acrobatics: '도구 미보유 시 ×2',
-    tripleaxel: '1/2/3타 BP 20/40/60', temperflare: '직전 실패 시 ×2',
-    stompingtantrum: '직전 실패 시 ×2',
-  };
   const variableNote = VARIABLE_BP_NOTE[m.id];
 
   // 사용 가능 포켓몬
@@ -721,8 +949,8 @@ function renderAbilityDetail(a) {
   // 현재 양측 포켓몬이 이 특성을 가질 수 있는지 체크
   const atkP = PokemonById[state.atk.pokemonIdx];
   const defP = PokemonById[state.def.pokemonIdx];
-  const atkCanHave = atkP && Object.values(atkP.ab || {}).some(n => abilityIdNorm(n) === a.id);
-  const defCanHave = defP && Object.values(defP.ab || {}).some(n => abilityIdNorm(n) === a.id);
+  const atkCanHave = atkP && Object.values(atkP.ab || {}).some(n => toId(n) === a.id);
+  const defCanHave = defP && Object.values(defP.ab || {}).some(n => toId(n) === a.id);
   const actions = `
     <button class="dex-modal-btn atk" data-dex-apply="ability-atk" ${atkCanHave ? '' : 'disabled'} title="${atkCanHave ? '' : '현재 공격측 포켓몬이 이 특성을 가질 수 없음'}">⚔️ 공격측에 적용</button>
     <button class="dex-modal-btn def" data-dex-apply="ability-def" ${defCanHave ? '' : 'disabled'} title="${defCanHave ? '' : '현재 방어측 포켓몬이 이 특성을 가질 수 없음'}">🛡️ 방어측에 적용</button>
@@ -751,8 +979,8 @@ function renderItemDetail(it) {
         <div class="dex-modal-section-title">메가스톤 — 변환 대상</div>
         <div class="dex-link-list">
           ${targets.map(([orig, mega]) => {
-            const origId = orig.toLowerCase().replace(/[^a-z0-9]/g, '');
-            const megaId = mega.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const origId = toId(orig);
+            const megaId = toId(mega);
             const origData = PokemonById[origId];
             const megaData = PokemonById[megaId];
             const origLabel = origData ? pkName(origData) : orig;
@@ -793,9 +1021,10 @@ function renderItemDetail(it) {
     ${it.flingBp ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">던지기 위력</span><b>${it.flingBp}</b></div></div>` : ''}
     ${megaInfo}
     ${it.itemUser ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">전용</span>${it.itemUser.map(u => {
-      const uid = u.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const ud = PokemonById[uid];
-      return `<span class="dex-modal-flag">${escapeHTML(ud ? pkName(ud) : u)}</span>`;
+      const ud = dexPokemonByLooseName(u);
+      return ud
+        ? `<button class="dex-link" data-dex-link="pokemon" data-id="${ud.id}">${escapeHTML(pkName(ud))}</button>`
+        : `<span class="dex-modal-flag">${escapeHTML(u)}</span>`;
     }).join(' ')}</div></div>` : ''}
   `;
   const actions = `
@@ -805,14 +1034,9 @@ function renderItemDetail(it) {
   return [body, actions];
 }
 
-// 헬퍼: 포켓몬을 한 사이드에 적용 (기본 특성 / 테라타입 자동 설정, atk 면 기존 기술 슬롯 초기화)
+// 도감에서 계산기 사이드로 포켓몬 적용. 실제 상태 변경 규칙은 03-calc-ui.js의 공통 헬퍼에 위임한다.
 function applyPokemonToSide(pokemonId, sideKey) {
-  const p = PokemonById[pokemonId]; if (!p) return false;
-  state[sideKey].pokemonIdx = pokemonId;
-  state[sideKey].ability = abilityIdNorm(p.ab['0'] || p.ab['H'] || '');
-  state[sideKey].teraType = p.types[0];
-  if (sideKey === 'atk') state[sideKey].moves = [];
-  return true;
+  return !!applyPokemonToCalcSide(sideKey, pokemonId).applied;
 }
 
 // 적용 액션 처리 — ctx 는 풀페이지/모달 어느 곳의 항목인지 명시.
@@ -868,6 +1092,7 @@ function applyDexAction(action, ctx) {
 function closeDexDetail() {
   const modal = document.getElementById('dexDetailModal');
   if (modal && modal.open) modal.close();
+  dexModalCtx = { type: null, id: null, parent: null };
 }
 
 function switchToCalcTab() {
@@ -880,6 +1105,7 @@ document.querySelectorAll('.dex-content tbody').forEach(tbody => {
   tbody.addEventListener('click', e => {
     const tr = e.target.closest('tr[data-dex-id]');
     if (!tr) return;
+    saveDexViewState(currentDex);
     const id = tr.dataset.dexId;
     const typeMap = { pokemon: 'pokemon', moves: 'move', abilities: 'ability', items: 'item' };
     const t = typeMap[currentDex];
@@ -955,6 +1181,7 @@ const fineTuneState = {
     pokemonIdx: PokemonById['amoonguss'] ? 'amoonguss' : (PokemonById['azumarill'] ? 'azumarill' : Object.keys(PokemonById)[0]),
     scarf: false,
     speRank: 0,  // 상대 스피드 랭크 (-6 ~ +6)
+    manualSpeed: '',
   },
   margin: 1,                 // 추월 +n
   weatherAbilityActive: false, // 내 쪽 SwiftSwim/Chlorophyll 등 발동 체크
@@ -1079,7 +1306,7 @@ function renderFineTuneMy() {
 
   // 특성 옵션
   const abOptions = Object.values(p.ab || {}).map(abN => {
-    const id = abilityIdNorm(abN);
+    const id = toId(abN);
     const data = AbilityById[id];
     return data ? `<option value="${id}" ${my.ability === id ? 'selected' : ''}>${escapeHTML(abName(data))}</option>`
                 : `<option value="${id}" ${my.ability === id ? 'selected' : ''}>${escapeHTML(abN)}</option>`;
@@ -1309,8 +1536,9 @@ function ftWireMyComboboxes() {
     const optsEl = cb.querySelector('.combobox-options');
     const showOptions = (q) => {
       const s = (q || '').toLowerCase();
-      const data = target === 'my' ? POKEMON : ITEMS;
-      const matches = data.filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s)).slice(0, 30);
+      const data = target === 'my' ? sortPokemonForCalcSelect(POKEMON) : ITEMS;
+      const allMatches = data.filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s));
+      const matches = target === 'my' ? allMatches : allMatches.slice(0, 30);
       const items = matches.map(m => {
         const label = target === 'my' ? pkName(m) : itName(m);
         const sub = target === 'my' ? `${m.types.join('/')} · BST ${m.bst}` : (m.desc || '').slice(0, 30);
@@ -1333,7 +1561,7 @@ function ftWireMyComboboxes() {
         const p = PokemonById[id];
         fineTuneState.my.pokemonIdx = id;
         if (p) {
-          fineTuneState.my.ability = abilityIdNorm(p.ab['0'] || p.ab['H'] || '');
+          fineTuneState.my.ability = toId(p.ab['0'] || p.ab['H'] || '');
           fineTuneState.my.teraType = p.types[0];
         }
       } else {
@@ -1351,7 +1579,7 @@ function ftWireOppComboboxes() {
     const optsEl = cb.querySelector('.combobox-options');
     const showOptions = (q) => {
       const s = (q || '').toLowerCase();
-      const matches = POKEMON.filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s)).slice(0, 30);
+      const matches = sortPokemonForCalcSelect(POKEMON).filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s));
       optsEl.innerHTML = matches.map(m =>
         `<div class="combobox-option" data-id="${m.id}"><b>${escapeHTML(pkName(m))}</b> <small>${m.types.join('/')} · BST ${m.bst}</small></div>`
       ).join('');
@@ -1371,24 +1599,1063 @@ function ftWireOppComboboxes() {
 }
 
 // 위임된 입력 핸들러 (페이지 전체)
+// Fine-tune logic v2: keep this tab aligned with the calculator engine.
+function ftStatKeys() {
+  return typeof STATS !== 'undefined' ? STATS : ['hp','atk','def','spa','spd','spe'];
+}
+
+function ftClampInt(value, min, max) {
+  const n = parseInt(value, 10);
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, n));
+}
+
+function ftClampEvValue(stat, requested, evs = fineTuneState.my.evs) {
+  const wanted = ftClampInt(requested, 0, 32);
+  const otherSum = ftStatKeys().reduce((a, key) => key === stat ? a : a + (evs[key] || 0), 0);
+  return Math.min(wanted, Math.max(0, 66 - otherSum));
+}
+
+function ftSetEv(stat, requested) {
+  if (!ftStatKeys().includes(stat)) return;
+  fineTuneState.my.evs[stat] = ftClampEvValue(stat, requested, fineTuneState.my.evs);
+}
+
+function ftDefaultField() {
+  return {
+    weather: 'none',
+    terrain: 'none',
+    gameType: state?.field?.gameType || 'Singles',
+    isCritical: false,
+    isTrickRoom: false,
+    isGravity: false,
+  };
+}
+
+function ftAbilitySpeedActivation(abilityId) {
+  const id = toId(abilityId || '');
+  const map = {
+    swiftswim: { label: '비/강한비 속도 특성', field: { weather: 'Rain' } },
+    chlorophyll: { label: '쾌청 속도 특성', field: { weather: 'Sun' } },
+    sandrush: { label: '모래바람 속도 특성', field: { weather: 'Sand' } },
+    slushrush: { label: '눈 속도 특성', field: { weather: 'Snow' } },
+    surgesurfer: { label: '일렉트릭필드 속도 특성', field: { terrain: 'Electric' } },
+    unburden: { label: '곡예 발동', side: { unburdenActive: true } },
+    quickfeet: { label: '속보 발동', side: { status: 'Paralysis' } },
+  };
+  return map[id] || null;
+}
+
+function ftSpeedFieldFor(side) {
+  const field = ftDefaultField();
+  const activation = fineTuneState.weatherAbilityActive ? ftAbilitySpeedActivation(side?.ability) : null;
+  if (activation?.field) Object.assign(field, activation.field);
+  return field;
+}
+
+function ftSpeedSideFor(side) {
+  const out = JSON.parse(JSON.stringify(side || {}));
+  const activation = fineTuneState.weatherAbilityActive ? ftAbilitySpeedActivation(out.ability) : null;
+  if (activation?.side) Object.assign(out, activation.side);
+  if (!out.ranks) out.ranks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  if (!out.evs) out.evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  if (typeof deriveHpFlags === 'function') deriveHpFlags(out);
+  return out;
+}
+
+function ftMySpeedV2(my) {
+  if (!PokemonById[my?.pokemonIdx]) return 0;
+  return effectiveSpeed(ftSpeedSideFor(my), ftSpeedFieldFor(my));
+}
+
+function ftOpponentManualSpeed(opp = fineTuneState.opp) {
+  const text = String(opp.manualSpeed ?? '').trim();
+  if (!text) return null;
+  const n = parseInt(text, 10);
+  return Number.isFinite(n) ? Math.max(1, Math.min(9999, n)) : null;
+}
+
+function ftNatureForSpeedCase(natureSpec) {
+  if (typeof natureSpec === 'string') return natureSpec;
+  return Number(natureSpec) > 1 ? 'jolly' : 'hardy';
+}
+
+function ftOpponentSideForCase(opp, ev, natureSpec) {
+  const side = makeSideState(opp.pokemonIdx);
+  side.evs.spe = ftClampInt(ev, 0, 32);
+  side.nature = ftNatureForSpeedCase(natureSpec);
+  side.item = opp.scarf ? 'choicescarf' : '';
+  side.ranks.spe = opp.speRank || 0;
+  return side;
+}
+
+function ftOppSpeedCaseV2(opp, ev, natureSpec, options = {}) {
+  const manual = ftOpponentManualSpeed(opp);
+  if (!options.ignoreManual && manual !== null) return manual;
+  if (!PokemonById[opp?.pokemonIdx]) return 0;
+  return effectiveSpeed(ftOpponentSideForCase(opp, ev, natureSpec), ftDefaultField());
+}
+
+function ftFindMinSpeedEvV2(my, targetSpeed) {
+  const otherSum = ftStatKeys().reduce((a, key) => key === 'spe' ? a : a + (my.evs?.[key] || 0), 0);
+  const maxSpeEv = Math.min(32, Math.max(0, 66 - otherSum));
+  for (let ev = 0; ev <= maxSpeEv; ev++) {
+    const tmp = { ...my, evs: { ...my.evs, spe: ev } };
+    if (ftMySpeed(tmp) >= targetSpeed) return ev;
+  }
+  return null;
+}
+
+function ftSpeedCases() {
+  const manual = ftOpponentManualSpeed();
+  const cases = [
+    { label: '최속', sub: 'N+/E32', ev: 32, nature: 'jolly' },
+    { label: '준속', sub: 'N0/E32', ev: 32, nature: 'hardy' },
+    { label: '무보정', sub: 'N0/E0', ev: 0, nature: 'hardy' },
+  ];
+  return manual === null ? cases : [{ label: '직접', sub: '입력값', manual: true }, ...cases];
+}
+
+function ftBuildSpeedTableV2() {
+  const my = fineTuneState.my;
+  const opp = fineTuneState.opp;
+  const margin = Math.max(0, parseInt(fineTuneState.margin, 10) || 1);
+  const manual = ftOpponentManualSpeed(opp);
+  return ftSpeedCases().map(c => {
+    const oppSpe = c.manual ? manual : ftOppSpeedCase(opp, c.ev, c.nature, { ignoreManual: true });
+    const target = oppSpe + margin;
+    const need = ftFindMinSpeedEv(my, target);
+    return { ...c, oppSpe, target, need };
+  });
+}
+
+function ftAbilityOptionsForCurrentPokemon() {
+  const pokemon = PokemonById[fineTuneState.my.pokemonIdx];
+  const abilities = Object.values(pokemon?.ab || {})
+    .map(name => AbilityById[toId(name)] || { id: toId(name), name })
+    .filter(a => a.id);
+  if (fineTuneState.my.ability && !abilities.some(a => a.id === fineTuneState.my.ability)) {
+    abilities.push(AbilityById[fineTuneState.my.ability] || { id: fineTuneState.my.ability, name: fineTuneState.my.ability });
+  }
+  return [{ id: '', label: '(없음)', sub: '특성 없음' }, ...abilities.map(a => ({ id: a.id, label: abName(a), sub: a.name || a.id }))];
+}
+
+function sortPokemonForFineTuneSelect(pokemon) {
+  return pokemon.slice().sort((a, b) => {
+    const speedDiff = (b.bs?.spe || 0) - (a.bs?.spe || 0);
+    if (speedDiff !== 0) return speedDiff;
+    return pkName(a).localeCompare(pkName(b), 'ko', { numeric: true, sensitivity: 'base' });
+  });
+}
+
+function ftComboData(target) {
+  if (target === 'my' || target === 'opp') {
+    return sortPokemonForFineTuneSelect(POKEMON).map(p => ({ id: p.id, label: pkName(p), sub: `SPE ${p.bs?.spe || 0} · ${p.types.join('/')} · BST ${p.bst}`, raw: p }));
+  }
+  if (target === 'item') {
+    return [{ id: '', label: '(없음)', sub: '' }, ...sortItemsForCalcSelect(ITEMS).map(i => ({ id: i.id, label: itName(i), sub: i.name || i.id, raw: i }))];
+  }
+  if (target === 'nature') {
+    return NATURES.map(n => ({ id: n.id, label: calcNatureLabel(n), sub: n.up ? `${n.up}+ / ${n.down}-` : '보정 없음', raw: n }));
+  }
+  if (target === 'ability') return ftAbilityOptionsForCurrentPokemon();
+  return [];
+}
+
+function ftComboLabel(target, id) {
+  if (target === 'my' || target === 'opp') return pkName(PokemonById[id] || { name: '' });
+  if (target === 'item') return id ? itName(ItemById[id] || { name: id }) : '(없음)';
+  if (target === 'nature') return calcNatureLabel(NATURE_BY_ID[id]) || id;
+  if (target === 'ability') return id ? abName(AbilityById[id] || { name: id }) : '(없음)';
+  return id || '';
+}
+
+function ftSearchMatches(query, option) {
+  const q = String(query || '').toLowerCase();
+  if (!q) return true;
+  return [option.id, option.label, option.sub, option.raw?.name, option.raw?.koName]
+    .some(value => String(value || '').toLowerCase().includes(q));
+}
+
+function ftApplyPokemonToFineTune(pokemonId) {
+  const pokemon = PokemonById[pokemonId];
+  if (!pokemon) return;
+  const changed = fineTuneState.my.pokemonIdx !== pokemonId;
+  fineTuneState.my.pokemonIdx = pokemonId;
+  if (changed) {
+    fineTuneState.my.ability = defaultPokemonAbilityId(pokemon);
+    fineTuneState.my.types = defaultPokemonTypes(pokemon);
+    fineTuneState.my.teraType = fineTuneState.my.types?.[0] || 'Normal';
+    fineTuneState.my.tera = false;
+    fineTuneState.my.item = defaultPokemonItemId(pokemon);
+    fineTuneState.my.damageBlockActive = false;
+    fineTuneState.my.boosterEnergyState = 'auto';
+    fineTuneState.my.moves = [];
+    fineTuneState.my.moveBpOverrides = [null, null, null, null];
+  }
+  if (!ftAbilitySpeedActivation(fineTuneState.my.ability)) fineTuneState.weatherAbilityActive = false;
+}
+
+function ftSelectCombo(target, id) {
+  if (target === 'my') ftApplyPokemonToFineTune(id);
+  if (target === 'opp' && PokemonById[id]) fineTuneState.opp.pokemonIdx = id;
+  if (target === 'item') fineTuneState.my.item = id || '';
+  if (target === 'nature') fineTuneState.my.nature = id || 'hardy';
+  if (target === 'ability') {
+    fineTuneState.my.ability = id || '';
+    if (!ftAbilitySpeedActivation(fineTuneState.my.ability)) fineTuneState.weatherAbilityActive = false;
+  }
+}
+
+function ftWireComboboxes(rootId) {
+  const container = document.getElementById(rootId);
+  if (!container) return;
+  container.querySelectorAll('.ft-cb-input').forEach(input => {
+    if (input.dataset.ftWired === '1') return;
+    input.dataset.ftWired = '1';
+    const target = input.dataset.ftPick;
+    const cb = input.closest('.combobox');
+    const optsEl = cb?.querySelector('.combobox-options');
+    if (!optsEl) return;
+    const showOptions = q => {
+      const query = String(q || '').trim();
+      const allMatches = ftComboData(target).filter(option => ftSearchMatches(query, option));
+      const matches = query ? allMatches.slice(0, target === 'item' ? 50 : 80) : allMatches;
+      optsEl.innerHTML = matches.length ? matches.map(option =>
+        `<div class="combobox-option" data-id="${escapeHTML(option.id)}"><b>${escapeHTML(option.label)}</b>${option.sub ? ` <small>${escapeHTML(option.sub)}</small>` : ''}</div>`
+      ).join('') : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
+      optsEl.classList.add('open');
+    };
+    input.addEventListener('focus', () => showOptions(''));
+    input.addEventListener('click', () => showOptions(''));
+    input.addEventListener('input', e => showOptions(e.target.value));
+    input.addEventListener('blur', () => setTimeout(() => optsEl.classList.remove('open'), 180));
+    optsEl.addEventListener('mousedown', e => {
+      const opt = e.target.closest('.combobox-option');
+      if (!opt || opt.classList.contains('empty')) return;
+      e.preventDefault();
+      ftSelectCombo(target, opt.dataset.id || '');
+      renderFineTuneAll();
+    });
+  });
+}
+
+function ftWireMyComboboxesV2() { ftWireComboboxes('ft-my-body'); }
+function ftWireOppComboboxesV2() { ftWireComboboxes('ft-opp-body'); }
+
+function ftHpAtEv(side, ev) {
+  const tmp = { ...side, evs: { ...side.evs, hp: ev } };
+  return calcStats(tmp).hp;
+}
+
+function ftMultiplierLabel(value) {
+  if (value === 0) return '무효';
+  if (value === 0.25) return '1/4배';
+  if (value === 0.5) return '1/2배';
+  return `${value}배`;
+}
+
+function ftHpBreakpointRules(side) {
+  const rules = [
+    { id: 'dot-plus', rule: '16n+1', desc: '도트 대미지 +1턴', predicate: hp => hp % 16 === 1, relevant: true },
+    { id: 'dot-min', rule: '16n-1', desc: '도트 대미지 최소', predicate: hp => hp % 16 === 15, relevant: true },
+    { id: 'seed-plus', rule: '8n+1', desc: '씨뿌리기 +1턴', predicate: hp => hp % 8 === 1, relevant: true },
+    { id: 'seed-min', rule: '8n-1', desc: '씨뿌리기 최소', predicate: hp => hp % 8 === 7, relevant: true },
+    { id: 'sub', rule: '4n+1~3', desc: '대타출동 HP 잔여', predicate: hp => hp % 4 !== 0, relevant: true },
+  ];
+  if (ItemById.lifeorb) rules.push({ id: 'lifeorb', rule: '10n-1', desc: '생명의구슬 반동 최소', predicate: hp => hp % 10 === 9, relevant: side.item === 'lifeorb' });
+  if (ItemById.leftovers) rules.push({ id: 'leftovers', rule: '16n', desc: '먹다남은음식 회복 극대', predicate: hp => hp % 16 === 0, relevant: side.item === 'leftovers' });
+  if (ItemById.sitrusberry) rules.push({ id: 'sitrus', rule: '2n', desc: '자뭉열매 50% 기준', predicate: hp => hp % 2 === 0, relevant: side.item === 'sitrusberry' });
+  if (AbilityById.poisonheal) rules.push({ id: 'poisonheal', rule: '8n', desc: '포이즌힐 회복 극대', predicate: hp => hp % 8 === 0, relevant: side.ability === 'poisonheal' });
+
+  const rockEff = typeEff('Rock', effectiveTypes(side));
+  if (rockEff > 0) {
+    const denom = Math.max(1, Math.round(8 / rockEff));
+    rules.push({
+      id: `sr-${denom}`,
+      rule: `${denom}n+1`,
+      desc: `스텔스록 ${ftMultiplierLabel(rockEff)} +1턴`,
+      predicate: hp => hp % denom === 1,
+      relevant: true,
+    });
+  }
+
+  if (isGrounded(side, ftDefaultField())) {
+    [
+      { layer: 1, denom: 8 },
+      { layer: 2, denom: 6 },
+      { layer: 3, denom: 4 },
+    ].forEach(({ layer, denom }) => {
+      rules.push({
+        id: `spikes-${layer}`,
+        rule: `${denom}n+1`,
+        desc: `압정뿌리기 ${layer}중첩 +1턴`,
+        predicate: hp => hp % denom === 1,
+        relevant: true,
+      });
+    });
+  }
+  return rules;
+}
+
+function ftHpBreakpointDeltas(side, rule) {
+  const curEv = side.evs?.hp || 0;
+  const otherSum = ftStatKeys().reduce((a, key) => key === 'hp' ? a : a + (side.evs?.[key] || 0), 0);
+  const maxEv = Math.min(32, Math.max(0, 66 - otherSum));
+  const hits = [];
+  for (let ev = 0; ev <= maxEv; ev++) {
+    const hp = ftHpAtEv(side, ev);
+    if (rule.predicate(hp)) hits.push({ ev, hp });
+  }
+  const current = hits.find(hit => hit.ev === curEv) || null;
+  const prev = [...hits].reverse().find(hit => hit.ev < curEv) || null;
+  const next = hits.find(hit => hit.ev > curEv) || null;
+  return { rule, current, prev, next, currentHp: ftHpAtEv(side, curEv), maxEv };
+}
+
+function ftHpBreakpoints(side) {
+  return ftHpBreakpointRules(side).map(rule => ftHpBreakpointDeltas(side, rule));
+}
+
+function ftRenderHpBreakpoints(side) {
+  const rows = ftHpBreakpoints(side);
+  return rows.map(info => {
+    const badges = [];
+    if (info.current) badges.push(`<span class="ft-breakpoint-delta current">충족</span>`);
+    if (!info.current && info.next) badges.push(`<span class="ft-breakpoint-delta next">+${info.next.ev - (side.evs.hp || 0)}pt</span>`);
+    if (!info.current && info.prev) badges.push(`<span class="ft-breakpoint-delta prev">-${(side.evs.hp || 0) - info.prev.ev}pt</span>`);
+    if (!badges.length) badges.push(`<span class="ft-breakpoint-delta none">불가</span>`);
+    const targetBits = [
+      info.current ? `HP ${info.current.hp}` : null,
+      !info.current && info.next ? `+ HP ${info.next.hp}` : null,
+      !info.current && info.prev ? `- HP ${info.prev.hp}` : null,
+    ].filter(Boolean).join(' · ');
+    return `
+      <div class="ft-breakpoint-item ${info.current ? 'active' : ''} ${info.rule.relevant ? '' : 'muted'}">
+        <div class="ft-breakpoint-main">
+          <b>${escapeHTML(info.rule.rule)}</b>
+          <span>${escapeHTML(info.rule.desc)}</span>
+        </div>
+        <div class="ft-breakpoint-target">${targetBits || `현재 HP ${info.currentHp}`}</div>
+        <div class="ft-breakpoint-deltas">${badges.join('')}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function ftBreakpointDeltaText(side, info) {
+  const curEv = side.evs?.hp || 0;
+  if (info.current) return '충족';
+  const parts = [];
+  if (info.next) parts.push(`+${info.next.ev - curEv}pt`);
+  if (info.prev) parts.push(`-${curEv - info.prev.ev}pt`);
+  return parts.join(' / ') || '불가';
+}
+
+function ftBreakpointTargetText(info) {
+  const targets = [
+    info.current ? `HP ${info.current.hp}` : null,
+    !info.current && info.next ? `+ HP ${info.next.hp}` : null,
+    !info.current && info.prev ? `- HP ${info.prev.hp}` : null,
+  ].filter(Boolean);
+  return targets.join(' · ') || `현재 HP ${info.currentHp}`;
+}
+
+function ftRenderHpPointChips(side) {
+  const rows = ftHpBreakpoints(side).filter(info => info.rule.relevant || info.current);
+  return rows.map(info => {
+    const cls = info.current ? 'active' : info.next ? 'next' : info.prev ? 'prev' : 'none';
+    const title = `${info.rule.desc} · ${ftBreakpointTargetText(info)}`;
+    return `
+      <span class="ft-point-chip ${cls}" title="${escapeHTML(title)}">
+        <b>${escapeHTML(info.rule.rule)}</b>
+        <em>${escapeHTML(ftBreakpointDeltaText(side, info))}</em>
+      </span>
+    `;
+  }).join('');
+}
+
+function ftMagicNumbersV2(side, stat) {
+  if (stat === 'hp') return null;
+  const nature = NATURE_BY_ID?.[side.nature];
+  if (!nature || nature.up !== stat) return null;
+  const p = PokemonById[side.pokemonIdx];
+  if (!p) return null;
+  const base = p.bs[stat];
+  let firstMagic = (10 - (base + 20) % 10) % 10;
+  if (firstMagic === 0) firstMagic = 10;
+  const magicEvs = [];
+  for (let m = firstMagic; m <= 32; m += 10) magicEvs.push(m);
+  const cur = side.evs[stat] || 0;
+  return {
+    magicEvs,
+    cur,
+    current: magicEvs.includes(cur) ? cur : null,
+    prev: [...magicEvs].reverse().find(m => m < cur) ?? null,
+    next: magicEvs.find(m => m > cur) ?? null,
+  };
+}
+
+function renderFineTuneMyV2() {
+  const container = document.getElementById('ft-my-body');
+  if (!container) return;
+  const my = fineTuneState.my;
+  const p = PokemonById[my.pokemonIdx];
+  if (!p) {
+    container.innerHTML = '<div class="empty-state">포켓몬 선택 필요</div>';
+    return;
+  }
+  const stats = calcStats(my);
+  const totalEV = ftStatKeys().reduce((a, s) => a + (my.evs[s] || 0), 0);
+  const overEV = totalEV > 66;
+  const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
+  const RANK_STATS = ['atk','def','spa','spd','spe'];
+  const typeBadges = normalizeSideTypes(my).map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join('');
+  const speedActivation = ftAbilitySpeedActivation(my.ability);
+  const statRows = ['hp', ...RANK_STATS].map(s => {
+    const ev = my.evs[s] || 0;
+    const nature = NATURE_BY_ID?.[my.nature];
+    const natureMark = nature?.up === s ? '<span class="ft-nature-up">▲</span>' : nature?.down === s ? '<span class="ft-nature-down">▼</span>' : '';
+    const rank = my.ranks?.[s] || 0;
+    const rankCtrl = s === 'hp' ? '<div class="ft-rank-empty"></div>' : `
+      <div class="ft-rank">
+        <button class="ft-rank-btn" data-ft-rank="${s}" data-ft-dir="-1">−</button>
+        <span class="ft-rank-val ${rank > 0 ? 'pos' : rank < 0 ? 'neg' : ''}">${rank > 0 ? '+' + rank : rank}</span>
+        <button class="ft-rank-btn" data-ft-rank="${s}" data-ft-dir="1">+</button>
+      </div>
+    `;
+    const magic = ftMagicNumbers(my, s);
+    const pointHtml = s === 'hp' ? `
+      <div class="ft-magic ft-hp-points">${ftRenderHpPointChips(my)}</div>
+    ` : magic ? `
+      <div class="ft-magic">
+        ${magic.current !== null ? `<span class="ft-magic-current" title="현재 매직 넘버">현재</span>` : ''}
+        ${magic.prev !== null ? `<span class="ft-magic-prev" title="이전 매직 포인트: ${magic.prev}pt">-${ev - magic.prev}pt</span>` : '<span class="ft-magic-prev empty"></span>'}
+        ${magic.next !== null ? `<span class="ft-magic-next" title="다음 매직 포인트: ${magic.next}pt">+${magic.next - ev}pt</span>` : '<span class="ft-magic-next empty"></span>'}
+      </div>
+    ` : '<div class="ft-magic empty"></div>';
+    return `
+      <div class="ft-stat-row">
+        <div class="ft-stat-name">${STAT_KO[s]} ${natureMark}</div>
+        <div class="ft-stat-base">${p.bs[s]}</div>
+        <div class="ft-stat-ev">
+          <button class="ft-ev-quick" data-ft-evset="${s}" data-ft-evval="0" title="0">0</button>
+          <div class="ft-ev-stepper">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" class="ft-ev-input" data-ft-ev="${s}" value="${ev}" aria-label="${STAT_KO[s]} 노력치">
+            <div class="ft-ev-spin">
+              <button type="button" class="ft-ev-spin-btn" data-ft-evstep="${s}" data-ft-dir="1" title="+1">+</button>
+              <button type="button" class="ft-ev-spin-btn" data-ft-evstep="${s}" data-ft-dir="-1" title="-1">−</button>
+            </div>
+          </div>
+          <button class="ft-ev-quick" data-ft-evset="${s}" data-ft-evval="32" title="32">32</button>
+        </div>
+        <div class="ft-stat-final">${stats[s]}</div>
+        ${rankCtrl}
+        ${pointHtml}
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="ft-poke-row">
+      <div class="ft-pickname">
+        <span class="ft-section-title">포켓몬</span>
+        <div class="combobox" style="flex:1;">
+          <input type="text" class="cb-input ft-cb-input" data-ft-pick="my" value="${escapeHTML(pkName(p))}" placeholder="검색...">
+          <div class="combobox-options"></div>
+        </div>
+        <div class="types-display" style="margin-left:8px;">
+          ${typeBadges}
+          ${p.mega ? '<span class="badge-mega" style="color:var(--tera);">[메가]</span>' : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="ft-controls-row ft-controls-grid">
+      <label class="field ft-cb-field"><span class="field-label">성격</span>
+        <div class="combobox">
+          <input type="text" class="cb-input ft-cb-input" data-ft-pick="nature" value="${escapeHTML(ftComboLabel('nature', my.nature))}" placeholder="성격 검색...">
+          <div class="combobox-options"></div>
+        </div>
+      </label>
+      <label class="field ft-cb-field"><span class="field-label">특성</span>
+        <div class="combobox">
+          <input type="text" class="cb-input ft-cb-input" data-ft-pick="ability" value="${escapeHTML(ftComboLabel('ability', my.ability))}" placeholder="특성 검색...">
+          <div class="combobox-options"></div>
+        </div>
+      </label>
+      ${speedActivation ? `<label class="checkbox-label ft-speed-toggle" title="${escapeHTML(speedActivation.label)}"><input type="checkbox" id="ftWeatherAbility" ${fineTuneState.weatherAbilityActive ? 'checked' : ''}>${escapeHTML(speedActivation.label)}</label>` : '<div></div>'}
+      <label class="field ft-cb-field"><span class="field-label">도구</span>
+        <div class="combobox">
+          <input type="text" class="cb-input ft-cb-input" data-ft-pick="item" value="${escapeHTML(ftComboLabel('item', my.item))}" placeholder="도구 검색...">
+          <div class="combobox-options"></div>
+        </div>
+      </label>
+    </div>
+
+    <div class="ft-stats-grid">
+      <div class="ft-stats-head">
+        <div>스탯</div>
+        <div>종족값</div>
+        <div>노력치(0-32)</div>
+        <div>실수치</div>
+        <div>랭크</div>
+        <div>조정 포인트</div>
+      </div>
+      ${statRows}
+    </div>
+
+    <div class="ft-ev-total ${overEV ? 'over' : ''}">
+      노력치 합계: <b>${totalEV}</b> / 66 ${overEV ? '<span style="color:var(--atk);">초과!</span>' : ''}
+    </div>
+
+  `;
+  ftWireMyComboboxes();
+}
+
+function renderFineTuneOppV2() {
+  const container = document.getElementById('ft-opp-body');
+  if (!container) return;
+  const opp = fineTuneState.opp;
+  const p = PokemonById[opp.pokemonIdx];
+  const refCases = [
+    { label: '최속(N+/E32)', ev: 32, nature: 'jolly' },
+    { label: '준속(N0/E32)', ev: 32, nature: 'hardy' },
+    { label: '무보정(N0/E0)', ev: 0, nature: 'hardy' },
+  ];
+  const manual = ftOpponentManualSpeed(opp);
+
+  container.innerHTML = `
+    <div class="ft-poke-row">
+      <div class="ft-pickname">
+        <span class="ft-section-title">포켓몬</span>
+        <div class="combobox" style="flex:1;">
+          <input type="text" class="cb-input ft-cb-input" data-ft-pick="opp" value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="검색...">
+          <div class="combobox-options"></div>
+        </div>
+        ${p ? `<div class="types-display" style="margin-left:8px;">${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join('')}</div>` : ''}
+      </div>
+    </div>
+    <div class="ft-controls-row">
+      <label class="checkbox-label">
+        <input type="checkbox" id="ftOppScarf" ${opp.scarf ? 'checked' : ''}>
+        구애스카프
+      </label>
+      <div class="field ft-rank-field"><span class="field-label">상대 속도 랭크</span>
+        <div class="ft-rank">
+          <button class="ft-rank-btn" data-ft-opprank="-1">−</button>
+          <span class="ft-rank-val ${opp.speRank > 0 ? 'pos' : opp.speRank < 0 ? 'neg' : ''}">${opp.speRank > 0 ? '+' + opp.speRank : opp.speRank}</span>
+          <button class="ft-rank-btn" data-ft-opprank="1">+</button>
+        </div>
+      </div>
+      <label class="field ft-direct-speed-field"><span class="field-label">직접 속도</span>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftOppManualSpeed" value="${escapeHTML(opp.manualSpeed || '')}" placeholder="자동">
+      </label>
+    </div>
+    <div class="ft-section-title">참고: 상대 속도 실수치</div>
+    <div class="ft-tag-row">
+      ${manual !== null ? `<span class="ft-tag">직접 입력: <b>${manual}</b></span>` : ''}
+      ${p ? refCases.map(c => `<span class="ft-tag">${c.label}: <b>${ftOppSpeedCase(opp, c.ev, c.nature, { ignoreManual: true })}</b></span>`).join(' ') : ''}
+    </div>
+  `;
+  ftWireOppComboboxes();
+}
+
+function renderFineTuneSpeedV2() {
+  const container = document.getElementById('ft-speed-body');
+  if (!container) return;
+  const my = fineTuneState.my;
+  const opp = fineTuneState.opp;
+  const myP = PokemonById[my.pokemonIdx];
+  const oppP = PokemonById[opp.pokemonIdx];
+  if (!myP || !oppP) {
+    container.innerHTML = '<div class="empty-state">양쪽 포켓몬 선택 필요</div>';
+    return;
+  }
+  const rows = ftBuildSpeedTable();
+  const margin = Math.max(0, parseInt(fineTuneState.margin, 10) || 1);
+  const speedActivation = ftAbilitySpeedActivation(my.ability);
+  const activeSpeedNote = speedActivation && fineTuneState.weatherAbilityActive
+    ? `<span class="ft-tag" style="color:var(--ok);">${escapeHTML(speedActivation.label)}</span>`
+    : '';
+  const myCurrentSpe = ftMySpeed(my);
+
+  container.innerHTML = `
+    <div class="ft-myspe-info">
+      <span>내 현재 속도 실수치 <b>${myCurrentSpe}</b></span>
+      ${my.item === 'choicescarf' ? '<span class="ft-tag" style="color:var(--warn);">스카프 적용</span>' : ''}
+      ${activeSpeedNote}
+      ${(my.ranks?.spe || 0) !== 0 ? `<span class="ft-tag">랭크 ${my.ranks.spe > 0 ? '+' : ''}${my.ranks.spe}</span>` : ''}
+    </div>
+    <div class="ft-speed-table-wrap">
+      <table class="ft-speed-table">
+        <colgroup>
+          <col class="ft-speed-row-label-col">
+          ${rows.map(() => '<col class="ft-speed-value-col">').join('')}
+        </colgroup>
+        <thead>
+          <tr>
+            <th>구분</th>
+            ${rows.map(r => `<th>${escapeHTML(r.label)}<small>${escapeHTML(r.sub || '')}</small></th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th>상대 실수치</th>${rows.map(r => `<td>${r.oppSpe}</td>`).join('')}</tr>
+          <tr><th>+${margin} 추월 필요 EV</th>${rows.map(r => {
+            const cls = r.need === null ? 'ft-cell-impossible' : 'ft-cell-possible';
+            const valHtml = r.need === null ? '<b>불가</b>' : `<b>${r.need}</b> EV`;
+            return `<td class="${cls}" title="필요 속도 ${r.target} 이상 (상대 ${r.oppSpe} + ${margin})">${valHtml}</td>`;
+          }).join('')}</tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderFineTuneAllV2() {
+  renderFineTuneMy();
+  renderFineTuneOpp();
+  renderFineTuneSpeed();
+}
+
+function ftEvSummaryV3(side) {
+  const total = ftStatKeys().reduce((sum, stat) => sum + (side.evs?.[stat] || 0), 0);
+  return {
+    total,
+    remaining: Math.max(0, 66 - total),
+    over: total > 66,
+  };
+}
+
+function ftRenderTypePillsV3(types) {
+  return (types || [])
+    .filter(Boolean)
+    .map(type => `<span class="type-pill t-${type}">${TYPE_KO[type] || type}</span>`)
+    .join('');
+}
+
+function ftNatureMarkV3(stat, natureId) {
+  const nature = NATURE_BY_ID?.[natureId];
+  if (nature?.up === stat) return '<span class="ft-nature-up">+</span>';
+  if (nature?.down === stat) return '<span class="ft-nature-down">-</span>';
+  return '';
+}
+
+function ftRenderMagicCellV3(side, stat, ev) {
+  const magic = ftMagicNumbers(side, stat);
+  if (!magic) return '<div class="ft-magic empty"></div>';
+  return `
+    <div class="ft-magic">
+      ${magic.current !== null ? '<span class="ft-magic-current" title="현재 매직 포인트">현재</span>' : ''}
+      ${magic.prev !== null ? `<span class="ft-magic-prev" title="이전 매직 포인트: ${magic.prev}pt">-${ev - magic.prev}pt</span>` : '<span class="ft-magic-prev empty"></span>'}
+      ${magic.next !== null ? `<span class="ft-magic-next" title="다음 매직 포인트: ${magic.next}pt">+${magic.next - ev}pt</span>` : '<span class="ft-magic-next empty"></span>'}
+    </div>
+  `;
+}
+
+function ftBulkMetricsV3(side) {
+  const stats = calcStats(side);
+  return {
+    stats,
+    phys: Math.round(stats.hp * stats.def / 0.411),
+    spec: Math.round(stats.hp * stats.spd / 0.411),
+  };
+}
+
+function ftBaseStatsMiniV3(p) {
+  if (!p?.bs) return '';
+  const labels = { hp: 'HP', atk: '공', def: '방', spa: '특공', spd: '특방', spe: '속' };
+  return `
+    <div class="ft-base-mini">
+      ${['hp','atk','def','spa','spd','spe'].map(stat => `
+        <span><em>${labels[stat]}</em><b>${p.bs[stat]}</b></span>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderFineTuneSummaryV3() {
+  const container = document.getElementById('ft-summary-body');
+  if (!container) return;
+  const my = fineTuneState.my;
+  const p = PokemonById[my.pokemonIdx];
+  if (!p) {
+    container.innerHTML = '';
+    return;
+  }
+  const ev = ftEvSummaryV3(my);
+  const pct = Math.min(100, Math.round(ev.total / 66 * 100));
+  const chips = ftStatKeys()
+    .filter(stat => (my.evs?.[stat] || 0) > 0)
+    .map(stat => `<span class="ft-ev-chip"><b>${STAT_LABEL?.[stat] || stat}</b>${my.evs[stat]}</span>`)
+    .join('');
+
+  container.innerHTML = `
+    <section class="ft-analysis-section ft-summary-section">
+      <div class="ft-ev-footer-head">
+        <span>EV 합계 <b class="${ev.over ? 'over' : ''}">${ev.total}/66</b></span>
+        <span>남은 <b>${ev.remaining}</b></span>
+      </div>
+      <div class="ft-ev-meter ${ev.over ? 'over' : ''}"><span style="width:${pct}%"></span></div>
+      <div class="ft-ev-chip-row">${chips || '<span class="ft-muted">분배 없음</span>'}</div>
+    </section>
+  `;
+}
+
+function ftBreakpointDistanceV3(side, info) {
+  const curEv = side.evs?.hp || 0;
+  if (info.current) return 0;
+  const candidates = [];
+  if (info.next) candidates.push(info.next.ev - curEv);
+  if (info.prev) candidates.push(curEv - info.prev.ev);
+  return candidates.length ? Math.min(...candidates) : 999;
+}
+
+function ftBreakpointTargetTextV3(side, info) {
+  const curEv = side.evs?.hp || 0;
+  if (info.current) return `HP ${info.current.hp}`;
+  const parts = [];
+  if (info.next) parts.push(`+${info.next.ev - curEv}pt / HP ${info.next.hp}`);
+  if (info.prev) parts.push(`-${curEv - info.prev.ev}pt / HP ${info.prev.hp}`);
+  return parts.join(' · ') || `현재 HP ${info.currentHp}`;
+}
+
+function ftBreakpointBadgesV3(side, info) {
+  const curEv = side.evs?.hp || 0;
+  const badges = [];
+  if (info.current) badges.push('<span class="ft-breakpoint-delta current">충족</span>');
+  if (!info.current && info.next) badges.push(`<span class="ft-breakpoint-delta next">+${info.next.ev - curEv}pt</span>`);
+  if (!info.current && info.prev) badges.push(`<span class="ft-breakpoint-delta prev">-${curEv - info.prev.ev}pt</span>`);
+  if (!badges.length) badges.push('<span class="ft-breakpoint-delta none">불가</span>');
+  return badges.join('');
+}
+
+function ftBreakpointGroupKeyV3(info) {
+  return info.rule.rule;
+}
+
+function ftUniqueJoinV3(values, separator = ' · ') {
+  return [...new Set(values.filter(Boolean))].join(separator);
+}
+
+function ftGroupHpBreakpointsV3(side, rows) {
+  const groups = new Map();
+  rows.forEach(info => {
+    const key = ftBreakpointGroupKeyV3(info);
+    if (!groups.has(key)) {
+      groups.set(key, {
+        key,
+        entries: [],
+        current: false,
+        relevant: false,
+        distance: 999,
+        sample: info,
+      });
+    }
+    const group = groups.get(key);
+    group.entries.push(info);
+    group.current ||= !!info.current;
+    group.relevant ||= !!info.rule.relevant;
+    group.distance = Math.min(group.distance, ftBreakpointDistanceV3(side, info));
+    if (info.current || !group.sample.current) group.sample = info;
+  });
+  return [...groups.values()];
+}
+
+function renderFineTuneHpV3() {
+  const container = document.getElementById('ft-hp-body');
+  if (!container) return;
+  const my = fineTuneState.my;
+  if (!PokemonById[my.pokemonIdx]) {
+    container.innerHTML = '';
+    return;
+  }
+  const rows = ftHpBreakpoints(my)
+    .filter(info => info.rule.relevant || info.current || info.next || info.prev);
+  const groups = ftGroupHpBreakpointsV3(my, rows);
+
+  container.innerHTML = `
+    <section class="ft-analysis-section ft-hp-section">
+      <div class="ft-analysis-title">
+        <span>HP 기준점</span>
+        <b>HP ${calcStats(my).hp}</b>
+      </div>
+      <div class="ft-breakpoint-list">
+        ${groups.map(group => `
+          <div class="ft-breakpoint-item ${group.current ? 'active' : ''} ${group.relevant ? '' : 'muted'}">
+            <div class="ft-breakpoint-main">
+              <b>${escapeHTML(ftUniqueJoinV3(group.entries.map(info => info.rule.rule)))}</b>
+              <span>${escapeHTML(ftUniqueJoinV3(group.entries.map(info => info.rule.desc), ' / '))}</span>
+            </div>
+            <div class="ft-breakpoint-deltas">${ftBreakpointBadgesV3(my, group.sample)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderFineTuneMyV3() {
+  const container = document.getElementById('ft-my-body');
+  if (!container) return;
+  const my = fineTuneState.my;
+  const p = PokemonById[my.pokemonIdx];
+  if (!p) {
+    container.innerHTML = '<div class="empty-state">포켓몬 선택 필요</div>';
+    return;
+  }
+
+  const stats = calcStats(my);
+  const bulk = ftBulkMetricsV3(my);
+  const rankStats = ['atk','def','spa','spd','spe'];
+  const typeBadges = ftRenderTypePillsV3(normalizeSideTypes(my));
+  const speedActivation = ftAbilitySpeedActivation(my.ability);
+  const statRows = ['hp', ...rankStats].map(stat => {
+    const ev = my.evs[stat] || 0;
+    const rank = my.ranks?.[stat] || 0;
+    const rankCtrl = stat === 'hp' ? '<div class="ft-rank-empty"></div>' : `
+      <div class="ft-rank">
+        <button class="ft-rank-btn" data-ft-rank="${stat}" data-ft-dir="-1">-</button>
+        <span class="ft-rank-val ${rank > 0 ? 'pos' : rank < 0 ? 'neg' : ''}">${rank > 0 ? '+' + rank : rank}</span>
+        <button class="ft-rank-btn" data-ft-rank="${stat}" data-ft-dir="1">+</button>
+      </div>
+    `;
+    return `
+      <div class="ft-stat-row">
+        <div class="ft-stat-name">${STAT_LABEL?.[stat] || stat} ${ftNatureMarkV3(stat, my.nature)}</div>
+        <div class="ft-stat-base">${p.bs[stat]}</div>
+        <div class="ft-stat-ev">
+          <button class="ft-ev-quick" data-ft-evset="${stat}" data-ft-evval="0" title="0">0</button>
+          <div class="ft-ev-stepper">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" class="ft-ev-input" data-ft-ev="${stat}" value="${ev}" aria-label="${STAT_LABEL?.[stat] || stat} 노력치">
+            <div class="ft-ev-spin">
+              <button type="button" class="ft-ev-spin-btn" data-ft-evstep="${stat}" data-ft-dir="1" title="+1">+</button>
+              <button type="button" class="ft-ev-spin-btn" data-ft-evstep="${stat}" data-ft-dir="-1" title="-1">-</button>
+            </div>
+          </div>
+          <button class="ft-ev-quick" data-ft-evset="${stat}" data-ft-evval="32" title="32">32</button>
+        </div>
+        ${ftRenderMagicCellV3(my, stat, ev)}
+        <div class="ft-stat-final">${stats[stat]}</div>
+        ${rankCtrl}
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="ft-setup-grid">
+      <label class="field ft-cb-field ft-pokemon-field"><span class="field-label">포켓몬</span>
+        <div class="combobox">
+          <input type="text" class="cb-input ft-cb-input" data-ft-pick="my" value="${escapeHTML(pkName(p))}" placeholder="검색...">
+          <div class="combobox-options"></div>
+        </div>
+      </label>
+      <div class="ft-type-strip" aria-label="타입">${typeBadges}${p.mega ? '<span class="badge-mega">[메가]</span>' : ''}</div>
+      <label class="field ft-cb-field"><span class="field-label">성격</span>
+        <div class="combobox">
+          <input type="text" class="cb-input ft-cb-input" data-ft-pick="nature" value="${escapeHTML(ftComboLabel('nature', my.nature))}" placeholder="성격 검색...">
+          <div class="combobox-options"></div>
+        </div>
+      </label>
+      <label class="field ft-cb-field"><span class="field-label">특성</span>
+        <div class="combobox">
+          <input type="text" class="cb-input ft-cb-input" data-ft-pick="ability" value="${escapeHTML(ftComboLabel('ability', my.ability))}" placeholder="특성 검색...">
+          <div class="combobox-options"></div>
+        </div>
+      </label>
+      ${speedActivation ? `<label class="checkbox-label ft-speed-toggle" title="${escapeHTML(speedActivation.label)}"><input type="checkbox" id="ftWeatherAbility" ${fineTuneState.weatherAbilityActive ? 'checked' : ''}>${escapeHTML(speedActivation.label)}</label>` : '<div class="ft-speed-toggle-placeholder"></div>'}
+      <label class="field ft-cb-field"><span class="field-label">도구</span>
+        <div class="combobox">
+          <input type="text" class="cb-input ft-cb-input" data-ft-pick="item" value="${escapeHTML(ftComboLabel('item', my.item))}" placeholder="도구 검색...">
+          <div class="combobox-options"></div>
+        </div>
+      </label>
+    </div>
+
+    <div class="ft-table-section">
+      <div class="ft-table-title">노력치 편집</div>
+      <div class="ft-edit-layout">
+        <div class="ft-stats-column">
+          <div class="ft-stats-grid">
+            <div class="ft-stats-head">
+              <div>스탯</div>
+              <div>종족값</div>
+              <div>노력치</div>
+              <div>매직넘버</div>
+              <div>실수치</div>
+              <div>랭크</div>
+            </div>
+            ${statRows}
+          </div>
+          <div id="ft-summary-body"></div>
+        </div>
+        <div class="ft-side-metrics">
+          <div class="ft-bulk-panel">
+            <div class="ft-bulk-title">내구력</div>
+            <div class="ft-bulk-card phys">
+              <span>물리내구</span>
+              <b>${bulk.phys.toLocaleString()}</b>
+              <em>HP ${bulk.stats.hp} × 방어 ${bulk.stats.def}</em>
+            </div>
+            <div class="ft-bulk-card spec">
+              <span>특수내구</span>
+              <b>${bulk.spec.toLocaleString()}</b>
+              <em>HP ${bulk.stats.hp} × 특방 ${bulk.stats.spd}</em>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  ftWireMyComboboxes();
+}
+
+function renderFineTuneOppV3() {
+  const container = document.getElementById('ft-opp-body');
+  if (!container) return;
+  const opp = fineTuneState.opp;
+  const p = PokemonById[opp.pokemonIdx];
+  const refCases = [
+    { label: '최속', ev: 32, nature: 'jolly' },
+    { label: '준속', ev: 32, nature: 'hardy' },
+    { label: '무보정', ev: 0, nature: 'hardy' },
+  ];
+  const manual = ftOpponentManualSpeed(opp);
+
+  container.innerHTML = `
+    <section class="ft-analysis-section ft-opp-section">
+      <div class="ft-analysis-title">
+        <span>상대 기준</span>
+        <em>스카프 · 랭크 반영</em>
+      </div>
+      <label class="field ft-cb-field"><span class="field-label">포켓몬</span>
+        <div class="combobox">
+          <input type="text" class="cb-input ft-cb-input" data-ft-pick="opp" value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="검색...">
+          <div class="combobox-options"></div>
+        </div>
+      </label>
+      ${p ? `<div class="ft-type-strip">${ftRenderTypePillsV3(p.types)}</div>${ftBaseStatsMiniV3(p)}` : ''}
+      <div class="ft-opp-control-grid">
+        <label class="checkbox-label ft-opp-scarf">
+          <input type="checkbox" id="ftOppScarf" ${opp.scarf ? 'checked' : ''}>
+          구애스카프
+        </label>
+        <div class="field ft-rank-field"><span class="field-label">속도 랭크</span>
+          <div class="ft-rank">
+            <button class="ft-rank-btn" data-ft-opprank="-1">-</button>
+            <span class="ft-rank-val ${opp.speRank > 0 ? 'pos' : opp.speRank < 0 ? 'neg' : ''}">${opp.speRank > 0 ? '+' + opp.speRank : opp.speRank}</span>
+            <button class="ft-rank-btn" data-ft-opprank="1">+</button>
+          </div>
+        </div>
+        <label class="field ft-direct-speed-field"><span class="field-label">직접 속도</span>
+          <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftOppManualSpeed" value="${escapeHTML(opp.manualSpeed || '')}" placeholder="자동">
+        </label>
+      </div>
+      <div class="ft-tag-row">
+        ${manual !== null ? `<span class="ft-tag">직접 입력 <b>${manual}</b></span>` : ''}
+        ${p ? refCases.map(c => `<span class="ft-tag">${c.label} <b>${ftOppSpeedCase(opp, c.ev, c.nature, { ignoreManual: true })}</b></span>`).join('') : ''}
+      </div>
+    </section>
+  `;
+  ftWireOppComboboxes();
+}
+
+function renderFineTuneSpeedV3() {
+  const container = document.getElementById('ft-speed-body');
+  if (!container) return;
+  const my = fineTuneState.my;
+  const opp = fineTuneState.opp;
+  const myP = PokemonById[my.pokemonIdx];
+  const oppP = PokemonById[opp.pokemonIdx];
+  if (!myP || !oppP) {
+    container.innerHTML = '<div class="empty-state">양쪽 포켓몬 선택 필요</div>';
+    return;
+  }
+  const rows = ftBuildSpeedTable();
+  const margin = Math.max(0, parseInt(fineTuneState.margin, 10) || 1);
+  const speedActivation = ftAbilitySpeedActivation(my.ability);
+  const activeSpeedNote = speedActivation && fineTuneState.weatherAbilityActive
+    ? `<span class="ft-tag ok">${escapeHTML(speedActivation.label)}</span>`
+    : '';
+  const myCurrentSpe = ftMySpeed(my);
+
+  container.innerHTML = `
+    <div class="ft-myspe-info">
+      <span>현재 속도 <b>${myCurrentSpe}</b></span>
+      ${my.item === 'choicescarf' ? '<span class="ft-tag warn">스카프 적용</span>' : ''}
+      ${activeSpeedNote}
+      ${(my.ranks?.spe || 0) !== 0 ? `<span class="ft-tag">랭크 ${my.ranks.spe > 0 ? '+' : ''}${my.ranks.spe}</span>` : ''}
+    </div>
+    <div class="ft-speed-table-wrap">
+      <table class="ft-speed-table">
+        <colgroup>
+          <col class="ft-speed-row-label-col">
+          ${rows.map(() => '<col class="ft-speed-value-col">').join('')}
+        </colgroup>
+        <thead>
+          <tr>
+            <th>구분</th>
+            ${rows.map(row => `<th>${escapeHTML(row.label)}<small>${escapeHTML(row.sub || '')}</small></th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th>상대 실수치</th>${rows.map(row => `<td>${row.oppSpe}</td>`).join('')}</tr>
+          <tr><th>+${margin} 추월 EV</th>${rows.map(row => {
+            const cls = row.need === null ? 'ft-cell-impossible' : 'ft-cell-possible';
+            const valHtml = row.need === null ? '<b>불가</b>' : `<b>${row.need}</b> EV`;
+            return `<td class="${cls}" title="필요 속도 ${row.target} 이상 (상대 ${row.oppSpe} + ${margin})">${valHtml}</td>`;
+          }).join('')}</tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderFineTuneAllV3() {
+  renderFineTuneMyV3();
+  renderFineTuneSummaryV3();
+  renderFineTuneHpV3();
+  renderFineTuneOppV3();
+  renderFineTuneSpeedV3();
+}
+
+ftMySpeed = ftMySpeedV2;
+ftOppSpeedCase = ftOppSpeedCaseV2;
+ftFindMinSpeedEv = ftFindMinSpeedEvV2;
+ftBuildSpeedTable = ftBuildSpeedTableV2;
+ftWireMyComboboxes = ftWireMyComboboxesV2;
+ftWireOppComboboxes = ftWireOppComboboxesV2;
+ftMagicNumbers = ftMagicNumbersV2;
+renderFineTuneMy = renderFineTuneMyV3;
+renderFineTuneOpp = renderFineTuneOppV3;
+renderFineTuneSpeed = renderFineTuneSpeedV3;
+renderFineTuneAll = renderFineTuneAllV3;
+
 document.getElementById('page-finetune')?.addEventListener('change', e => {
   const t = e.target;
   if (t.id === 'ftMargin') { fineTuneState.margin = t.value; renderFineTuneSpeed(); return; }
   if (t.id === 'ftOppScarf') { fineTuneState.opp.scarf = t.checked; renderFineTuneOpp(); renderFineTuneSpeed(); return; }
-  if (t.id === 'ftWeatherAbility') { fineTuneState.weatherAbilityActive = t.checked; renderFineTuneSpeed(); return; }
+  if (t.id === 'ftWeatherAbility') { fineTuneState.weatherAbilityActive = t.checked; renderFineTuneAll(); return; }
+  if (t.id === 'ftOppManualSpeed') { fineTuneState.opp.manualSpeed = t.value; renderFineTuneOpp(); renderFineTuneSpeed(); return; }
   if (t.dataset.ftEv) {
     const stat = t.dataset.ftEv;
-    const evs = fineTuneState.my.evs;
-    const requested = Math.max(0, Math.min(32, parseInt(t.value, 10) || 0));
-    // 66 캡 적용: 다른 stat 합 + 새 값이 66 초과면 잘라냄
-    const otherSum = ['hp','atk','def','spa','spd','spe'].reduce((a, k) => k === stat ? a : a + (evs[k] || 0), 0);
-    const capped = Math.min(requested, Math.max(0, 66 - otherSum));
-    evs[stat] = capped;
-    renderFineTuneMy(); renderFineTuneSpeed();
+    ftSetEv(stat, t.value);
+    renderFineTuneAll();
     return;
   }
-  if (t.dataset.ftAction === 'nature') { fineTuneState.my.nature = t.value; renderFineTuneMy(); renderFineTuneSpeed(); return; }
-  if (t.dataset.ftAction === 'ability') { fineTuneState.my.ability = t.value; renderFineTuneSpeed(); return; }
+  if (t.dataset.ftAction === 'nature') { fineTuneState.my.nature = t.value; renderFineTuneAll(); return; }
+  if (t.dataset.ftAction === 'ability') {
+    fineTuneState.my.ability = t.value;
+    if (!ftAbilitySpeedActivation(fineTuneState.my.ability)) fineTuneState.weatherAbilityActive = false;
+    renderFineTuneAll();
+    return;
+  }
+});
+
+document.getElementById('page-finetune')?.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'ftMargin') { fineTuneState.margin = t.value; renderFineTuneSpeed(); return; }
+  if (t.id === 'ftOppManualSpeed') { fineTuneState.opp.manualSpeed = t.value; renderFineTuneSpeed(); return; }
 });
 
 document.getElementById('page-finetune')?.addEventListener('click', e => {
@@ -1396,11 +2663,15 @@ document.getElementById('page-finetune')?.addEventListener('click', e => {
   // EV quick set 버튼 (0/32) — 66 캡 적용
   if (t.dataset.ftEvset !== undefined) {
     const stat = t.dataset.ftEvset;
-    const evs = fineTuneState.my.evs;
-    const requested = parseInt(t.dataset.ftEvval, 10) || 0;
-    const otherSum = ['hp','atk','def','spa','spd','spe'].reduce((a, k) => k === stat ? a : a + (evs[k] || 0), 0);
-    evs[stat] = Math.min(requested, Math.max(0, 66 - otherSum));
-    renderFineTuneMy(); renderFineTuneSpeed();
+    ftSetEv(stat, t.dataset.ftEvval);
+    renderFineTuneAll();
+    return;
+  }
+  if (t.dataset.ftEvstep !== undefined) {
+    const stat = t.dataset.ftEvstep;
+    const dir = parseInt(t.dataset.ftDir, 10) || 0;
+    ftSetEv(stat, (fineTuneState.my.evs[stat] || 0) + dir);
+    renderFineTuneAll();
     return;
   }
   // 내 측 랭크
@@ -1409,7 +2680,7 @@ document.getElementById('page-finetune')?.addEventListener('click', e => {
     const dir = parseInt(t.dataset.ftDir, 10);
     const cur = fineTuneState.my.ranks[stat] || 0;
     fineTuneState.my.ranks[stat] = Math.max(-6, Math.min(6, cur + dir));
-    renderFineTuneMy(); renderFineTuneSpeed();
+    renderFineTuneAll();
     return;
   }
   // 상대 측 랭크
@@ -1457,6 +2728,8 @@ function loadSideToFineTune(sideKey) {
   fineTuneState.opp.pokemonIdx = state[otherKey].pokemonIdx;
   fineTuneState.opp.scarf = state[otherKey].item === 'choicescarf';
   fineTuneState.opp.speRank = state[otherKey].ranks?.spe || 0;
+  fineTuneState.opp.manualSpeed = '';
+  fineTuneState.weatherAbilityActive = false;
   // 세부조정 탭 이동
   const ftNav = document.querySelector('.nav-tab[data-page="finetune"]');
   if (ftNav) ftNav.click();
@@ -1532,7 +2805,7 @@ function rcBuildDefState(oppP, oppOverrides) {
     nature: oppOverrides.nature || 'hardy',
     ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(revCalcState.opp.ranks || {}) },
     status: revCalcState.opp.status || 'none',
-    ability: oppOverrides.ability || (oppP.ab && (oppP.ab['0'] || oppP.ab['H']))?.toLowerCase().replace(/[\s'\-()]/g, '') || '',
+    ability: oppOverrides.ability || toId(oppP.ab && (oppP.ab['0'] || oppP.ab['H'])) || '',
     item: oppOverrides.item || '',
     tera: false,
     teraType: oppP.types[0],
@@ -1720,7 +2993,7 @@ function renderRevCalcMy() {
   const overEV = totalEV > 66;
 
   const abOptions = Object.values(p.ab || {}).map(abN => {
-    const id = abilityIdNorm(abN);
+    const id = toId(abN);
     return `<option value="${id}" ${my.ability === id ? 'selected' : ''}>${escapeHTML(abName(AbilityById[id] || { name: abN }))}</option>`;
   }).join('');
 
@@ -2046,8 +3319,9 @@ function rcWireMyComboboxes() {
     const optsEl = cb.querySelector('.combobox-options');
     const showOpts = q => {
       const s = (q || '').toLowerCase();
-      const data = target === 'my' ? POKEMON : ITEMS;
-      const matches = data.filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s)).slice(0, 30);
+      const data = target === 'my' ? sortPokemonForCalcSelect(POKEMON) : ITEMS;
+      const allMatches = data.filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s));
+      const matches = target === 'my' ? allMatches : allMatches.slice(0, 30);
       const items = matches.map(m => {
         const label = target === 'my' ? pkName(m) : itName(m);
         const sub = target === 'my' ? `${m.types.join('/')} BST ${m.bst}` : (m.desc || '').slice(0, 30);
@@ -2069,7 +3343,7 @@ function rcWireMyComboboxes() {
         const p = PokemonById[id];
         revCalcState.my.pokemonIdx = id;
         if (p) {
-          revCalcState.my.ability = abilityIdNorm(p.ab['0'] || p.ab['H'] || '');
+          revCalcState.my.ability = toId(p.ab['0'] || p.ab['H'] || '');
           revCalcState.my.teraType = p.types[0];
         }
         revCalcState.myMove = '';
@@ -2088,7 +3362,7 @@ function rcWireOppComboboxes() {
     const optsEl = cb.querySelector('.combobox-options');
     const showOpts = q => {
       const s = (q || '').toLowerCase();
-      const matches = POKEMON.filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s)).slice(0, 30);
+      const matches = sortPokemonForCalcSelect(POKEMON).filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s));
       optsEl.innerHTML = matches.map(m =>
         `<div class="combobox-option" data-id="${m.id}"><b>${escapeHTML(pkName(m))}</b> <small>${m.types.join('/')} BST ${m.bst}</small></div>`
       ).join('');

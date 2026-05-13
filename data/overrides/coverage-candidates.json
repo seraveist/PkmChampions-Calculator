@@ -47,7 +47,7 @@
     {
       "group": "자동 진입 효과",
       "expectation": "supported",
-      "note": "makeCalcState()에서 source state를 복제해 적용",
+      "note": "entry-effects.json을 makeCalcState()에서 계산용 복사본에 적용",
       "ids": ["drought", "orichalcumpulse", "drizzle", "sandstream", "sandspit", "snowwarning", "desolateland", "primordialsea", "electricsurge", "hadronengine", "grassysurge", "psychicsurge", "mistysurge", "intrepidsword", "dauntlessshield", "embodyaspectteal", "embodyaspectwellspring", "embodyaspecthearthflame", "embodyaspectcornerstone", "intimidate", "download", "beadsofruin", "tabletsofruin", "swordofruin", "vesselofruin"]
     },
     {
@@ -78,7 +78,7 @@
     {
       "group": "위협 차단",
       "expectation": "supported",
-      "note": "ENTRY_EFFECTS의 위협 적용 전 차단",
+      "note": "entry-effects.json의 위협 차단 목록으로 적용 전 차단",
       "ids": ["innerfocus", "oblivious", "owntempo", "clearbody", "fullmetalbody", "whitesmoke", "mypace", "rattled", "guarddog"]
     }
   ],

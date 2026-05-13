@@ -62,6 +62,14 @@ function isAvailable(entry, kind, id, filters) {
   if (filters?.exclude?.[kind]?.has(id)) return false;
   return !isPast(entry) && !isUnofficial(entry);
 }
+function toId(value) {
+  return (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+function battleOnlyBaseIds(pokemon) {
+  const value = pokemon?.battleOnly;
+  if (!value) return [];
+  return (Array.isArray(value) ? value : [value]).map(toId).filter(Boolean);
+}
 function moveMechanicFlags(id, move, moveMechanics) {
   const flags = { ...(moveMechanics[id] || {}) };
   if ((move.damage || move.ohko) && flags.fixedDamageKind) delete flags.fixedDamageKind;
@@ -150,6 +158,7 @@ async function build() {
   const itemMechanics = readJsonFile(path.join(OVERRIDES, 'item-mechanics.json'), {});
   const abilityMechanics = readJsonFile(path.join(OVERRIDES, 'ability-mechanics.json'), {});
   const fieldMechanics = readJsonFile(path.join(OVERRIDES, 'field-mechanics.json'), {});
+  const entryEffects = readJsonFile(path.join(OVERRIDES, 'entry-effects.json'), { effects: {}, blockers: {} });
 
   // 설명 우선순위: 모드 오버라이드 → 베이스 text/ → 빈 문자열
   // text/ 항목엔 desc(긴 설명) 와 shortDesc(짧은 설명) 가 모두 존재. shortDesc 우선.
@@ -174,13 +183,26 @@ async function build() {
     if (!isAvailable(fd, 'pokemon', id, dataFilters)) continue;
     legalPokemonIds.add(id);
   }
+  const battleOnlyBaseById = new Map();
+  for (const [id, fd] of Object.entries(mergedFormats)) {
+    if (legalPokemonIds.has(id)) continue;
+    if (dataFilters?.exclude?.pokemon?.has(id)) continue;
+    if (!fd || fd.tier === 'Illegal' || isUnofficial(fd)) continue;
+    const p = mergedPokedex[id];
+    if (!p?.name) continue;
+    const legalBaseId = battleOnlyBaseIds(p).find(baseId => legalPokemonIds.has(baseId));
+    if (!legalBaseId) continue;
+    legalPokemonIds.add(id);
+    battleOnlyBaseById.set(id, legalBaseId);
+  }
 
   const finalPokemon = [];
-  for (const id of legalPokemonIds) {
+  for (const id of Object.keys(mergedPokedex).filter(id => legalPokemonIds.has(id))) {
     const p = mergedPokedex[id];
     if (!p) continue;
     const fd = mergedFormats[id] || {};
-    const ls = mergedLearnsets[id]?.learnset || mergedLearnsets[(p.baseSpecies || '').toLowerCase().replace(/[^a-z0-9]/g, '')]?.learnset;
+    const inheritedFd = battleOnlyBaseById.has(id) ? (mergedFormats[battleOnlyBaseById.get(id)] || {}) : {};
+    const ls = mergedLearnsets[id]?.learnset || mergedLearnsets[toId(p.baseSpecies)]?.learnset;
     const learnset = ls ? Object.keys(ls).filter(moveId => isAvailable(mergedMoves[moveId], 'moves', moveId, dataFilters)) : undefined;
     finalPokemon.push({
       id,
@@ -195,7 +217,7 @@ async function build() {
       weightkg: p.weightkg,
       mega: /^Mega/.test(p.forme || '') || undefined,
       primal: /^Primal/.test(p.forme || '') || undefined,
-      tier: fd.tier,
+      tier: fd.tier || inheritedFd.tier,
       requiredItem: p.requiredItem,
       requiredMove: p.requiredMove,
       changesFrom: p.changesFrom,
@@ -351,6 +373,8 @@ async function build() {
     parChance: 1/8,
     teraDisabled: true,
     fieldMechanics,
+    entryEffects: entryEffects.effects || {},
+    entryEffectBlockers: entryEffects.blockers || {},
   };
 
   console.log(`  포켓몬: ${finalPokemon.length}`);

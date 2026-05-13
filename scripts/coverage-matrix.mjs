@@ -14,7 +14,7 @@ function readJsonScript(html, id) {
 }
 
 function normalizeId(name) {
-  return (name || '').toString().toLowerCase().replace(/[\s'\-()]/g, '');
+  return (name || '').toString().toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 function byId(rows) {
@@ -48,6 +48,7 @@ const moveMechanics = readJsonFile(path.join('data', 'overrides', 'move-mechanic
 const abilityMechanics = readJsonFile(path.join('data', 'overrides', 'ability-mechanics.json'), {});
 const itemMechanics = readJsonFile(path.join('data', 'overrides', 'item-mechanics.json'), {});
 const fieldMechanics = readJsonFile(path.join('data', 'overrides', 'field-mechanics.json'), {});
+const entryEffects = readJsonFile(path.join('data', 'overrides', 'entry-effects.json'), { effects: {}, blockers: {} });
 
 const moveById = byId(moves);
 const abilityById = byId(abilities);
@@ -172,7 +173,11 @@ function hasField(row, fields) {
 
 function hasDeclaredMechanics(kind, id) {
   if (kind === 'move') return Object.keys(moveMechanics[id] || {}).length > 0;
-  if (kind === 'ability') return Object.keys(abilityMechanics[id] || {}).length > 0;
+  if (kind === 'ability') {
+    return Object.keys(abilityMechanics[id] || {}).length > 0 ||
+      !!entryEffects.effects?.[id] ||
+      Object.values(entryEffects.blockers || {}).some(ids => Array.isArray(ids) && ids.includes(id));
+  }
   if (kind === 'item') return Object.keys(itemMechanics[id] || {}).length > 0;
   if (kind === 'field') {
     const key = FIELD_MECHANIC_KEYS[id];

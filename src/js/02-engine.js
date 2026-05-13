@@ -100,11 +100,21 @@ function firstMatchingFieldRule(rules, ctx) {
   return (rules || []).find(rule => fieldRuleApplies(rule, ctx)) || null;
 }
 
+function conditionListIncludes(values, candidates) {
+  const ids = new Set(candidates.filter(Boolean).map(toId));
+  return asArray(values).some(value => ids.has(toId(value)));
+}
+
 function pokemonMatchesCondition(pokemon, condition) {
   if (!condition) return false;
   if (!condition.pokemon && !condition.baseSpecies) return true;
-  if (condition.pokemon?.includes(pokemon.id)) return true;
-  if (condition.baseSpecies?.includes(pokemon.baseSpecies)) return true;
+  if (condition.pokemon && conditionListIncludes(condition.pokemon, [pokemon.id, pokemon.name])) return true;
+  if (condition.baseSpecies && conditionListIncludes(condition.baseSpecies, [
+    pokemon.baseSpecies,
+    pokemon.base,
+    pokemon.name,
+    pokemon.id,
+  ])) return true;
   return false;
 }
 
@@ -201,6 +211,7 @@ function applyAbilityRuleMods(rules, ctx, outMods, label) {
 
 function damageBlockApplies(block, pokemon, side, move, isPhysical) {
   if (!block) return false;
+  if (block.manual && !side?.damageBlockActive) return false;
   if (block.fullHP && !sideIsFullHp(side)) return false;
   if (block.nonStatus && move.cat === 'Status') return false;
   if (block.category && block.category !== (isPhysical ? 'Physical' : 'Special')) return false;

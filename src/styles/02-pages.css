@@ -14,15 +14,20 @@
     flex-wrap: wrap; gap: 10px;
   }
   .results-title { font-family: 'Black Han Sans', sans-serif; font-size: 18px; }
+  .results-meta { font-size: 10px; color: var(--text-faint); }
   .results-body { padding: 16px 18px; }
 
   /* Speed */
   .speed-row {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
-    gap: 14px; align-items: center;
-    background: var(--bg-elev); border: 1px solid var(--border);
-    border-radius: 4px; padding: 12px 18px; margin-bottom: 14px;
+    gap: 10px;
+    align-items: stretch;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 14px;
   }
 
   /* 진입 효과 박스 */
@@ -140,105 +145,167 @@
     font-weight: 700;
     letter-spacing: 0.05em;
   }
-  .speed-side { display: flex; align-items: center; gap: 10px; }
-  .speed-side.def { justify-content: flex-end; }
-  .speed-name { font-weight: 600; font-size: 13px; }
-  .speed-value {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 22px; font-weight: 700;
+  .speed-side {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 64px;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
   }
-  .speed-side.atk .speed-value { color: var(--atk); }
-  .speed-side.def .speed-value { color: var(--def); }
-  .speed-vs {
-    font-family: 'Black Han Sans', sans-serif; font-size: 14px;
+  .speed-side.def {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+  .speed-name-card,
+  .speed-value {
+    min-width: 0;
+    min-height: 42px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .speed-name-card span,
+  .speed-value span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
     color: var(--text-faint);
-    padding: 4px 12px; border: 1px solid var(--border); border-radius: 2px;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+  }
+  .speed-name-card b {
+    display: block;
+    max-width: 100%;
+    margin-top: 3px;
+    font-weight: 700;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .speed-value b {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+    margin-top: 3px;
+  }
+  .speed-side.atk .speed-value b { color: var(--atk); }
+  .speed-side.def .speed-value b { color: var(--def); }
+  .speed-vs {
+    align-self: center;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text-faint);
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-panel);
   }
   .speed-verdict {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; color: var(--text-dim);
-    letter-spacing: 0.1em; text-align: center;
-    padding-top: 8px; border-top: 1px dashed var(--border);
-    grid-column: 1 / -1; margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-input);
+    grid-column: 1 / -1;
   }
-  .speed-verdict b { color: var(--ok); font-weight: 600; }
+  .speed-verdict b { color: var(--ok); font-weight: 800; }
 
   /* Move results */
   .move-results { display: grid; grid-template-columns: 1fr; gap: 8px; }
   .move-card {
     background: var(--bg-elev); border: 1px solid var(--border);
-    border-radius: 4px; padding: 12px 16px;
-    display: grid; grid-template-columns: 1fr auto; gap: 12px;
-    align-items: center;
+    border-radius: 4px; padding: 12px 14px;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(150px, auto); gap: 14px;
+    align-items: stretch;
     animation: cardIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
   @keyframes cardIn {
     from { opacity: 0; transform: translateX(-4px); }
     to { opacity: 1; transform: translateX(0); }
   }
-  .move-card.none { opacity: 0.5; }
-  .move-card-main { min-width: 0; }
-  .move-card-head {
-    display: grid;
-    /* 슬롯번호 | 타입 | 카테고리 | 기술명 | 자속 | 상성 | 메타 | 선공 */
-    grid-template-columns: 18px 48px 52px 1fr 44px 52px auto auto;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
+  .move-card.none {
+    opacity: 0.62;
+    background: transparent;
   }
-  /* 변화기/빈 슬롯용: 그리드 대신 flex */
-  .move-card-head.move-card-head-simple {
+  .move-card.none.compact {
+    display: block;
+    padding: 7px 12px;
+  }
+  .move-card-placeholder {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
+    color: var(--text-faint);
+  }
+  .move-card-placeholder .move-name {
+    color: var(--text-faint);
+    font-size: 12px;
+  }
+  .move-card-main {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .move-card-top {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) auto;
+    align-items: start;
+    gap: 8px 12px;
+  }
+  .move-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .move-badges {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
     flex-wrap: wrap;
+    gap: 5px;
+    min-width: 0;
   }
-  .move-card-head > * {
-    min-width: 0;  /* 그리드 셀 overflow 방지 */
-  }
-  .move-card-head .type-pill {
-    text-align: center;
-    width: 100%;
-    box-sizing: border-box;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .move-card-head .cat-badge {
-    text-align: center;
-    width: 100%;
-    box-sizing: border-box;
-    white-space: nowrap;
-  }
-  .move-card-head .move-name {
+  .move-name {
+    font-weight: 800;
+    font-size: 16px;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .move-card-head .stab-mark {
-    text-align: center;
-    width: 100%;
-    box-sizing: border-box;
+  .move-badges .type-pill,
+  .move-badges .cat-badge,
+  .move-badges .stab-mark,
+  .move-badges .eff-badge {
+    min-height: 21px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     white-space: nowrap;
   }
-  .move-card-head .stab-mark.empty {
-    visibility: hidden;
-  }
-  .move-card-head .eff-badge {
-    text-align: center;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .move-name { font-weight: 700; font-size: 14px; }
+  .move-badges .type-pill { min-width: 46px; }
+  .move-badges .cat-badge { min-width: 44px; }
+  .move-badges .eff-badge { min-width: 48px; }
   .move-meta {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px; color: var(--text-dim);
     display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
     justify-self: end;
+    max-width: 180px;
+    opacity: 0.82;
   }
-  .move-meta .cat-phys { color: #ff9466; }
-  .move-meta .cat-spec { color: #66b3ff; }
-
   /* 카드 헤더 카테고리 배지 */
   .cat-badge {
     font-family: 'JetBrains Mono', monospace;
@@ -258,6 +325,11 @@
     color: #66b3ff;
     border: 1px solid rgba(102, 179, 255, 0.4);
   }
+  .cat-badge.cat-stat {
+    background: rgba(168, 176, 191, 0.12);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
 
   /* 자속 (STAB) 마크 */
   .stab-mark {
@@ -272,10 +344,31 @@
     letter-spacing: 0.05em;
   }
 
+  .dmg-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+  }
+  .dmg-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .dmg-summary .hp-remain {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+
   .dmg-bar {
-    position: relative; height: 22px;
+    position: relative; height: 9px;
     background: var(--bg-input); border-radius: 2px;
-    overflow: hidden; margin-bottom: 5px;
+    overflow: hidden;
   }
   .dmg-bar-fill {
     position: absolute; top: 0; bottom: 0;
@@ -283,32 +376,43 @@
     transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .dmg-bar-fill.min { opacity: 0.45; }
-  .dmg-bar-text {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; padding: 0 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; font-weight: 600; color: white;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    justify-content: space-between;
-  }
-  .dmg-bar-text .hp-remain { color: var(--text-dim); font-weight: 500; }
-
   .dmg-info {
-    display: flex; justify-content: space-between;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 5px 8px;
+    flex-wrap: wrap;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px; color: var(--text-dim);
+  }
+  .dmg-info > span {
+    white-space: nowrap;
+  }
+  .dmg-info > .mods-trace {
+    white-space: normal;
   }
   .dmg-info b { color: var(--text); font-weight: 500; }
 
   .mods-trace {
-    display: flex; flex-wrap: wrap; gap: 2px 4px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 2px 4px;
+    min-width: 0;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10.5px; color: var(--text-faint);
-    margin-top: 4px; letter-spacing: 0;
+    letter-spacing: 0;
     line-height: 1.5;
   }
-  .mods-trace b { color: var(--warn); font-weight: 500; }
-  .mods-trace .sep { color: var(--text-faint); margin: 0; }
+  .mods-trace b {
+    color: var(--warn);
+    font-weight: 600;
+    white-space: nowrap;
+    background: rgba(255, 181, 71, 0.08);
+    border: 1px solid rgba(255, 181, 71, 0.18);
+    border-radius: 2px;
+    padding: 1px 5px;
+  }
+  .mods-trace .sep { display: none; }
 
   .eff-badge {
     font-family: 'JetBrains Mono', monospace;
@@ -323,17 +427,37 @@
 
   .hko-badge {
     background: var(--bg-input); border: 1px solid var(--border);
-    padding: 10px 14px; border-radius: 3px;
+    padding: 10px 12px; border-radius: 3px;
     text-align: center;
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: stretch;
+  }
+  .hko-badge.ko-strong {
+    border-color: rgba(255, 71, 102, 0.42);
+    background: rgba(255, 71, 102, 0.09);
+  }
+  .hko-badge.ko-stable {
+    border-color: rgba(255, 181, 71, 0.34);
+    background: rgba(255, 181, 71, 0.07);
+  }
+  .hko-badge.chance {
+    border-color: rgba(245, 158, 11, 0.42);
+    background: rgba(245, 158, 11, 0.08);
+  }
+  .hko-badge.no {
+    opacity: 0.76;
   }
   .hko-main {
     font-family: 'Black Han Sans', sans-serif;
-    font-size: 17px;
-    /* "난수 99타 99.9%" 기준 그리드: 라벨 / 타수 / 퍼센트 */
+    font-size: 18px;
     display: grid;
-    grid-template-columns: 36px 44px 60px;
+    grid-template-columns: auto auto auto;
+    justify-content: center;
     align-items: baseline;
-    gap: 4px;
+    gap: 5px;
     text-align: center;
     white-space: nowrap;
   }
@@ -351,20 +475,19 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px; color: var(--text-faint); margin-top: 2px;
   }
-  .first-indicator {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px; padding: 2px 6px; border-radius: 2px;
-    letter-spacing: 0.1em;
-    background: var(--atk); color: white; font-weight: 700;
-    margin-left: auto;
-  }
-  .first-indicator.def-first { background: var(--def); }
-  .first-indicator.tie { background: var(--text-faint); }
-
   .side-effect {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    white-space: nowrap;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9.5px; color: var(--text-faint);
-    margin-top: 4px;
+    font-size: 10px;
+    color: var(--text-faint);
+    background: rgba(102, 179, 255, 0.07);
+    border: 1px solid rgba(102, 179, 255, 0.18);
+    border-radius: 2px;
+    padding: 1px 5px;
   }
   .side-effect b { color: var(--warn); font-weight: 500; }
 
@@ -540,8 +663,8 @@
   .dex-modal-stat-grid .total .stat-name { color: var(--warn); font-weight: 700; }
   .dex-modal-stat-grid .total .stat-val { color: var(--warn); font-weight: 700; }
   .dex-link-list { display: flex; flex-wrap: wrap; gap: 4px; max-height: 200px; overflow-y: auto; padding: 8px; background: var(--bg-input); border-radius: 4px; border: 1px solid var(--border); }
-  .dex-link-list .dex-link { background: var(--bg-panel); border: 1px solid var(--border); color: var(--text); padding: 3px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; cursor: pointer; border-radius: 2px; }
-  .dex-link-list .dex-link:hover { background: var(--bg-elev); border-color: var(--border-bright); color: var(--warn); }
+  .dex-link { background: var(--bg-panel); border: 1px solid var(--border); color: var(--text); padding: 3px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; cursor: pointer; border-radius: 2px; }
+  .dex-link:hover { background: var(--bg-elev); border-color: var(--border-bright); color: var(--warn); }
   .dex-modal-flag-row { display: flex; flex-wrap: wrap; gap: 4px; }
   .dex-modal-flag { background: var(--bg-input); border: 1px solid var(--border); padding: 2px 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; border-radius: 2px; color: var(--text-dim); }
   .dex-modal-btn { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim); padding: 7px 14px; font-family: inherit; font-size: 12px; border-radius: 3px; cursor: pointer; }
@@ -587,12 +710,22 @@
 
   /* 방어 타입 매치업 (포켓몬 상세) */
   .matchup-grid { display: grid; grid-template-columns: 70px 1fr; gap: 6px 10px; align-items: start; }
-  .matchup-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; padding-top: 3px; }
-  .matchup-label.x4 { color: #ff4766; }
-  .matchup-label.x2 { color: #ff8a65; }
-  .matchup-label.x05 { color: #4ade80; }
-  .matchup-label.x025 { color: #22c55e; }
-  .matchup-label.x0 { color: var(--text-faint); }
+  .matchup-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 7px;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .matchup-label.x4 { color: #ff4766; background: rgba(255, 71, 102, 0.10); }
+  .matchup-label.x2 { color: #ff9f43; background: rgba(255, 159, 67, 0.10); }
+  .matchup-label.x1 { color: #a7b0c2; background: rgba(167, 176, 194, 0.10); }
+  .matchup-label.x05 { color: #4ade80; background: rgba(74, 222, 128, 0.10); }
+  .matchup-label.x025 { color: #22d3ee; background: rgba(34, 211, 238, 0.10); }
+  .matchup-label.x0 { color: #a78bfa; background: rgba(167, 139, 250, 0.10); }
   .matchup-types { display: flex; flex-wrap: wrap; gap: 4px; }
 
   /* 학습기 그룹 (포켓몬 상세) */
@@ -739,13 +872,86 @@
   }
 
   .checkbox-label {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 11px; color: var(--text-dim);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 8px;
+    min-height: 38px;
+    font-size: 11px;
+    color: var(--text-dim);
     font-family: 'JetBrains Mono', monospace;
-    cursor: pointer; user-select: none;
-    padding: 4px 0;
+    cursor: pointer;
+    user-select: none;
+    padding: 7px 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    transition: border-color 0.14s, background 0.14s, color 0.14s;
   }
-  .checkbox-label input { width: auto; cursor: pointer; }
+  .checkbox-label:hover {
+    border-color: var(--border-bright);
+    color: var(--text);
+    background: rgba(255,255,255,0.035);
+  }
+  .checkbox-label:has(input:checked) {
+    border-color: rgba(255, 181, 71, 0.44);
+    background: rgba(255, 181, 71, 0.07);
+    color: var(--text);
+  }
+  .checkbox-label.ruin {
+    color: var(--tera);
+  }
+  .checkbox-label.ruin:has(input:checked) {
+    border-color: rgba(192, 132, 252, 0.5);
+    background: rgba(192, 132, 252, 0.08);
+  }
+  .checkbox-label.auto {
+    color: var(--ok);
+  }
+  .checkbox-label.auto:has(input:checked) {
+    border-color: rgba(74, 222, 128, 0.42);
+    background: rgba(74, 222, 128, 0.07);
+  }
+  .checkbox-label.wide {
+    grid-column: 1 / -1;
+  }
+  .checkbox-label input {
+    width: auto;
+    cursor: pointer;
+    accent-color: var(--warn);
+  }
+  .checkbox-label span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .checkbox-label em {
+    color: var(--text-faint);
+    font-style: normal;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .checkbox-label.spikes {
+    grid-template-columns: auto minmax(0, 1fr) 92px;
+  }
+  .field-inline-combobox {
+    min-width: 0;
+  }
+  .field-inline-combobox::after {
+    top: 13px;
+    right: 8px;
+  }
+  .field-inline-input {
+    height: 26px;
+    padding: 2px 22px 2px 7px;
+    font-size: 11px !important;
+    font-family: 'JetBrains Mono', monospace !important;
+  }
+  .field-inline-combobox .combobox-options {
+    min-width: 120px;
+    right: auto;
+  }
 
   /* Scrollbar */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -888,6 +1094,24 @@
     border-radius: 2px;
     font-weight: 600;
   }
+  .dex-form-badge {
+    display: inline-block;
+    margin-left: 4px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text-dim);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 1px 5px;
+  }
+  .dex-var-badge {
+    display: inline-block;
+    margin-left: 4px;
+    color: var(--warn);
+    font-size: 9px;
+    font-weight: 700;
+  }
 
   /* 도감 모바일 */
   @media (max-width: 640px) {
@@ -895,6 +1119,52 @@
     .dex-table { font-size: 11px; }
     .dex-table th, .dex-table td { padding: 5px 6px; }
     .nav-tab { font-size: 13px; padding: 8px 14px; }
+    .dex-modal {
+      width: 96%;
+      max-height: 90vh;
+    }
+    .dex-modal-head {
+      padding: 12px 14px;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .dex-modal-title { font-size: 18px; }
+    .dex-modal-title-en {
+      display: block;
+      margin-left: 0;
+      margin-top: 2px;
+    }
+    .dex-modal-body {
+      padding: 12px 14px;
+      max-height: calc(90vh - 128px);
+    }
+    .dex-modal-actions {
+      padding: 10px 14px;
+      justify-content: stretch;
+    }
+    .dex-modal-actions .dex-modal-btn {
+      flex: 1 1 130px;
+    }
+    .dex-modal-stat-grid {
+      grid-template-columns: 48px minmax(0, 1fr) 44px;
+      gap: 4px 8px;
+    }
+    .matchup-grid {
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 6px 8px;
+    }
+    .dex-fullpage-back { margin-bottom: 10px; }
+    .dex-fullpage-head,
+    .dex-fullpage-body,
+    .dex-fullpage-actions {
+      padding-left: 14px;
+      padding-right: 14px;
+    }
+    .dex-fullpage-title { font-size: 22px; }
+    .dex-fullpage-body .dex-modal-stat-grid {
+      grid-template-columns: 54px minmax(0, 1fr) 46px;
+      gap: 5px 10px;
+    }
   }
   @media (max-width: 480px) {
     .dex-tab { font-size: 11px; padding: 8px 2px; }
@@ -917,6 +1187,48 @@
 
     .panel-body { padding: 10px 12px; }
     .panel-header { padding: 10px 12px; font-size: 12px; }
+    .speed-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 10px;
+    }
+    .speed-vs {
+      justify-self: center;
+      padding: 4px 10px;
+    }
+    .speed-verdict {
+      grid-column: auto;
+    }
+    .move-slot {
+      grid-template-columns: 16px minmax(0, 1fr) auto;
+      grid-template-areas:
+        "num select stat"
+        ". bp bp";
+      align-items: stretch;
+      row-gap: 7px;
+      padding: 5px 0;
+    }
+    .move-slot > .move-slot-num { grid-area: num; align-self: center; }
+    .move-select { grid-area: select; }
+    .move-bp-control {
+      grid-area: bp;
+      min-width: 0;
+      justify-content: flex-end;
+    }
+    .move-stat-info {
+      grid-area: stat;
+      align-self: center;
+      min-width: 74px;
+    }
+    .type-edit-row { flex-wrap: wrap; }
+    .calc-hp-note {
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .calc-hp-note em {
+      width: 100%;
+      margin-left: 0;
+    }
 
     /* 결과 카드: 그리드를 좌측 메인 + 하단 hko-badge로 변경 (vertical) */
     .move-card {
@@ -924,9 +1236,23 @@
       padding: 10px 12px;
       gap: 8px;
     }
+    .move-card-top {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .move-title-row {
+      align-items: baseline;
+    }
+    .move-badges {
+      justify-content: flex-start;
+    }
+    .dmg-summary {
+      align-items: flex-start;
+    }
     .hko-badge {
       padding: 6px 10px;
       width: 100%;
+      min-width: 0;
     }
     .hko-main {
       grid-template-columns: 1fr 1fr 1fr;
@@ -934,23 +1260,9 @@
     }
     .hko-main .hko-pct { font-size: 12px; }
 
-    /* 카드 헤더: 2줄 구조 (1줄: 슬롯+타입+카테고리+자속+상성, 2줄: 기술명+메타) */
-    .move-card-head {
-      grid-template-columns: 18px 48px 50px 44px 52px 1fr;
-      grid-template-rows: auto auto;
-      grid-template-areas:
-        "slot type cat   stab eff meta"
-        "name name name  name name name";
-      gap: 6px 6px;
+    .checkbox-label.wide {
+      grid-column: 1 / -1;
     }
-    .move-card-head .move-slot-num { grid-area: slot; }
-    .move-card-head .type-pill { grid-area: type; }
-    .move-card-head .cat-badge { grid-area: cat; }
-    .move-card-head .stab-mark { grid-area: stab; }
-    .move-card-head .eff-badge { grid-area: eff; }
-    .move-card-head .move-meta { grid-area: meta; justify-self: end; font-size: 9px; }
-    .move-card-head .move-name { grid-area: name; font-size: 15px; }
-    .move-card-head .first-indicator { display: none; }
   }
 
   /* 폰 (480px 이하): 폰트 + 입력 영역 축소 */
@@ -967,12 +1279,34 @@
     .ko-fetch-btn { font-size: 10px; padding: 4px 6px; }
     .champions-toggle { font-size: 10px; padding: 4px 6px; }
     .header-status { font-size: 9px; }
-
-    /* 콤보박스 옵션: 화면 폭 가득 사용 */
-    .combobox-options {
-      max-width: calc(100vw - 32px);
+    .calc-row {
+      flex-direction: column;
+      gap: 8px;
+    }
+    .calc-pair-grid {
+      grid-template-columns: 1fr;
     }
 
+    .combobox-options { max-height: 240px; }
+    .move-slot {
+      grid-template-columns: 18px minmax(0, 1fr);
+      grid-template-areas:
+        "num select"
+        ". bp"
+        ". stat";
+      padding: 7px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .move-slot:last-child { border-bottom: none; }
+    .move-bp-control {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .move-stat-info {
+      min-width: 0;
+      text-align: left;
+      padding-left: 0;
+    }
     /* 폰트 사이즈 상향 (가독성) */
     .move-stat-info { font-size: 11px; }
     .hko-sub { font-size: 10px; }
@@ -990,22 +1324,18 @@
     .panel-header h2 { font-size: 13px; }
     .field-label { font-size: 10px; }
 
-    /* 결과 카드 헤더: 더 압축 (1줄: 타입+카테+자속+상성, 2줄: 기술명) */
-    .move-card-head {
-      grid-template-columns: 14px 40px 44px 38px 44px 1fr;
-      gap: 4px 4px;
-      font-size: 9px;
+    .move-name { font-size: 14px; }
+    .dmg-summary {
+      flex-direction: column;
+      gap: 2px;
     }
-    .move-card-head .move-name { font-size: 13px; }
-    .move-card-head .move-meta { display: none; }
+    .dmg-pct { font-size: 14px; }
+    .dmg-info { gap: 4px 8px; }
 
     /* 사이드 패널 패딩 축소 */
     .panel-body { padding: 8px 10px; }
   }
 
-
-  /* cb-input: 콤보박스 입력 (input[type=text]를 상속) */
-  .cb-input { /* 부가 스타일 — 기본 input 규칙 사용 */ }
 
   /* cat-stat: 변화기 카테고리 배지 */
   .cat-stat { background: var(--text-faint); color: var(--bg); padding: 2px 6px; border-radius: 2px; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; }
@@ -1016,15 +1346,29 @@
    ════════════════════════════════════════════════════════════ */
 .finetune-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.95fr);
   gap: 14px;
   margin-bottom: 14px;
+  align-items: stretch;
 }
 @media (max-width: 1000px) { .finetune-grid { grid-template-columns: 1fr; } }
 
 .ft-my .panel-head { background: linear-gradient(90deg, rgba(255, 71, 102, 0.12), transparent); }
 .ft-opp .panel-head { background: linear-gradient(90deg, rgba(51, 183, 255, 0.12), transparent); }
-.ft-results .panel-head { background: linear-gradient(90deg, rgba(255, 181, 71, 0.12), transparent); }
+.ft-my, .ft-opp { min-width: 0; }
+.ft-opp {
+  display: flex;
+  flex-direction: column;
+}
+.ft-opp > .panel-body {
+  flex: 1;
+}
+.ft-opp-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100%;
+}
 
 .ft-action-btn {
   background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim);
@@ -1054,12 +1398,33 @@
   border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border);
 }
 .ft-controls-row > .field { flex: 1; min-width: 140px; margin-bottom: 0; }
+.ft-controls-grid {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) auto minmax(180px, 1fr);
+  align-items: end;
+}
+.ft-controls-grid > .field { min-width: 0; }
+.ft-cb-field .combobox,
+.ft-cb-field .cb-input { width: 100%; }
+.ft-speed-toggle {
+  height: 32px;
+  align-self: end;
+  white-space: nowrap;
+}
+.ft-direct-speed-field {
+  max-width: 140px;
+}
+.ft-opp .ft-controls-row {
+  align-items: end;
+  margin-bottom: 6px;
+}
 
 .ft-stats-grid {
   display: grid;
-  grid-template-columns: 64px 56px 168px 60px 96px minmax(120px, 1fr);
+  grid-template-columns: 64px 56px 168px 60px 96px minmax(190px, 1fr);
   gap: 8px 10px;
   align-items: center;
+  justify-items: center;
   font-size: 13px;
 }
 /* HP 행은 랭크 컬럼이 비어 있어야 매직넘버 컬럼이 어긋나지 않음 */
@@ -1071,14 +1436,58 @@
   font-family: 'JetBrains Mono', monospace; font-size: 10px;
   color: var(--text-faint); letter-spacing: 0.1em; text-transform: uppercase;
   padding-bottom: 4px; border-bottom: 1px solid var(--border);
+  width: 100%;
+  text-align: center;
 }
 .ft-stat-row { display: contents; }
-.ft-stat-name { font-weight: 600; font-size: 13px; }
-.ft-stat-base { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; text-align: right; font-size: 13px; }
-.ft-stat-ev { display: flex; gap: 4px; align-items: center; }
+.ft-stat-name { font-weight: 600; font-size: 13px; text-align: center; }
+.ft-stat-base { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; text-align: center; font-size: 13px; }
+.ft-stat-ev { display: flex; gap: 4px; align-items: center; justify-content: center; }
+.ft-ev-stepper {
+  position: relative;
+  width: 86px;
+  height: 32px;
+}
 .ft-ev-input {
-  width: 80px; height: 32px; padding: 2px 8px; font-size: 14px;
+  width: 100%; height: 32px; padding: 2px 24px 2px 8px; font-size: 14px;
   text-align: center; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-input);
+  color: var(--text);
+  outline: none;
+}
+.ft-ev-input:focus {
+  border-color: var(--atk);
+  box-shadow: 0 0 0 2px rgba(255, 71, 102, 0.16);
+}
+.ft-ev-spin {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  bottom: 2px;
+  width: 18px;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 1px;
+  pointer-events: none;
+}
+.ft-ev-spin-btn {
+  pointer-events: auto;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text-faint);
+  font-size: 9px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+}
+.ft-ev-spin-btn:first-child { border-radius: 2px 2px 0 0; }
+.ft-ev-spin-btn:last-child { border-radius: 0 0 2px 2px; }
+.ft-ev-spin-btn:hover {
+  color: var(--warn);
+  border-color: var(--warn);
 }
 .ft-ev-quick {
   background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim);
@@ -1088,9 +1497,15 @@
 .ft-ev-quick:hover { color: var(--warn); border-color: var(--warn); }
 .ft-stat-final {
   font-family: 'JetBrains Mono', monospace; font-weight: 700;
-  text-align: right; color: var(--ok); font-size: 14px;
+  text-align: center; color: var(--ok); font-size: 14px;
 }
-.ft-rank { display: flex; gap: 3px; align-items: center; }
+.ft-rank { display: flex; gap: 3px; align-items: center; justify-content: center; }
+.ft-rank-field {
+  min-width: 120px;
+}
+.ft-rank-field .ft-rank {
+  width: max-content;
+}
 .ft-rank-btn {
   background: var(--bg-input); border: 1px solid var(--border); color: var(--text-dim);
   width: 22px; height: 22px; cursor: pointer; border-radius: 2px; font-size: 12px; line-height: 1;
@@ -1102,15 +1517,60 @@
 }
 .ft-rank-val.pos { color: var(--atk); }
 .ft-rank-val.neg { color: var(--def); }
-.ft-magic { display: flex; gap: 8px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text-dim); }
+.ft-magic {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+}
 .ft-magic.empty { color: transparent; }
-.ft-magic-prev, .ft-magic-next {
+.ft-magic-prev, .ft-magic-next, .ft-magic-current {
   padding: 1px 5px; border: 1px solid var(--border); border-radius: 2px;
   background: var(--bg-input);
 }
 .ft-magic-prev.empty, .ft-magic-next.empty { visibility: hidden; }
 .ft-magic-next { color: var(--ok); border-color: rgba(74, 222, 128, 0.3); }
 .ft-magic-prev { color: var(--text-faint); }
+.ft-magic-current { color: var(--warn); border-color: rgba(255, 181, 71, 0.35); }
+.ft-hp-points {
+  justify-content: flex-start;
+  align-content: center;
+  gap: 4px;
+}
+.ft-point-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 5px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-input);
+  color: var(--text-dim);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.ft-point-chip b {
+  color: var(--text);
+  font-weight: 700;
+}
+.ft-point-chip em {
+  color: var(--text-faint);
+  font-style: normal;
+}
+.ft-point-chip.active {
+  border-color: rgba(74, 222, 128, 0.42);
+  background: rgba(74, 222, 128, 0.08);
+}
+.ft-point-chip.active em { color: var(--ok); }
+.ft-point-chip.next em { color: var(--ok); }
+.ft-point-chip.prev em { color: var(--warn); }
+.ft-point-chip.none { opacity: 0.55; }
+.ft-nature-up { color: var(--atk); font-size: 10px; }
+.ft-nature-down { color: var(--def); font-size: 10px; }
 
 .ft-ev-total {
   margin-top: 12px; padding: 6px 10px;
@@ -1126,21 +1586,139 @@
   background: var(--bg-input); font-size: 11px; font-family: 'JetBrains Mono', monospace;
   color: var(--text-dim);
 }
+.ft-breakpoint-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.ft-breakpoint-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 8px;
+  align-items: center;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-input);
+}
+.ft-breakpoint-item.active {
+  border-color: rgba(74, 222, 128, 0.42);
+  background: rgba(74, 222, 128, 0.06);
+}
+.ft-breakpoint-item.muted { opacity: 0.72; }
+.ft-breakpoint-main {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  min-width: 0;
+}
+.ft-breakpoint-main b {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+}
+.ft-breakpoint-main span {
+  color: var(--text-dim);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ft-breakpoint-target {
+  grid-column: 1 / 2;
+  color: var(--text-faint);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.ft-breakpoint-deltas {
+  grid-column: 2;
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.ft-breakpoint-delta {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+.ft-breakpoint-delta.current { color: var(--ok); border-color: rgba(74, 222, 128, 0.38); }
+.ft-breakpoint-delta.next { color: var(--ok); }
+.ft-breakpoint-delta.prev { color: var(--warn); }
+.ft-breakpoint-delta.none { color: var(--text-faint); }
 
 /* 스피드 표 */
+.ft-speed-embedded {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 220px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+.ft-speed-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 10px;
+}
+.ft-speed-head .ft-section-title {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.ft-speed-subtitle {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-faint);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.ft-margin-field {
+  display: grid;
+  grid-template-columns: auto 52px;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-faint);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.ft-margin-field input {
+  height: 30px;
+  padding: 2px 7px;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
 .ft-myspe-info {
   display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
   margin-bottom: 10px; padding: 6px 10px;
   background: var(--bg-input); border: 1px solid var(--border); border-radius: 3px;
   font-size: 12px; font-family: 'JetBrains Mono', monospace;
 }
+.ft-speed-embedded .ft-myspe-info {
+  margin-bottom: 8px;
+  padding: 7px 9px;
+}
 .ft-speed-table-wrap { overflow-x: auto; }
 .ft-speed-table {
-  width: 100%; border-collapse: collapse;
-  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  width: 100%; border-collapse: collapse; table-layout: fixed;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
 }
+.ft-speed-row-label-col { width: 108px; }
+.ft-speed-value-col { width: auto; }
 .ft-speed-table th, .ft-speed-table td {
-  padding: 8px 12px; border: 1px solid var(--border); text-align: center;
+  padding: 7px 8px; border: 1px solid var(--border); text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .ft-speed-table thead th {
   background: var(--bg-elev); color: var(--text-dim); font-size: 11px; font-weight: 600;
@@ -1148,7 +1726,7 @@
 .ft-speed-table thead th small { display: block; color: var(--text-faint); font-size: 9px; margin-top: 2px; }
 .ft-speed-table tbody th {
   background: var(--bg-elev); color: var(--text); font-size: 11px;
-  text-align: left; padding-left: 12px; min-width: 140px;
+  text-align: left; padding-left: 10px;
 }
 .ft-speed-table .ft-cell-possible { background: rgba(74, 222, 128, 0.08); color: var(--ok); }
 .ft-speed-table .ft-cell-impossible { background: rgba(255, 71, 102, 0.08); color: var(--atk); }
@@ -1161,6 +1739,476 @@
   margin-left: auto;
 }
 .ft-jump-btn:hover { color: var(--warn); border-color: var(--warn); }
+
+@media (max-width: 760px) {
+  .ft-controls-grid { grid-template-columns: 1fr; }
+  .ft-direct-speed-field { max-width: none; }
+  .ft-speed-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .ft-margin-field {
+    grid-template-columns: auto minmax(60px, 1fr);
+  }
+  .ft-stats-grid {
+    grid-template-columns: 54px 44px minmax(138px, 1fr) 52px 82px;
+  }
+  .ft-stats-head > div:last-child,
+  .ft-stat-row .ft-magic {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+  .ft-breakpoint-list { grid-template-columns: 1fr; }
+}
+
+/* Fine-tune V3 layout */
+.ft-layout {
+  grid-template-columns: minmax(700px, 780px) minmax(340px, 420px);
+  grid-template-areas:
+    "editor hp"
+    "speed speed";
+  align-items: start;
+  justify-content: start;
+}
+.ft-editor,
+.ft-hp-panel,
+.ft-speed-panel {
+  min-width: 0;
+}
+.ft-editor { grid-area: editor; }
+.ft-hp-panel { grid-area: hp; }
+.ft-speed-panel { grid-area: speed; }
+.ft-editor .panel-head {
+  background: linear-gradient(90deg, rgba(255, 181, 71, 0.12), transparent);
+}
+.ft-hp-panel .panel-head {
+  background: linear-gradient(90deg, rgba(74, 222, 128, 0.12), transparent);
+}
+.ft-speed-panel .panel-head {
+  background: linear-gradient(90deg, rgba(51, 183, 255, 0.12), transparent);
+}
+.ft-panel-subtitle {
+  margin-top: 3px;
+  color: var(--text-faint);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+}
+.ft-analysis-body {
+  display: grid;
+  gap: 12px;
+}
+.ft-analysis-section {
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border);
+}
+.ft-analysis-section:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.ft-analysis-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.ft-analysis-title b {
+  color: var(--text);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.ft-analysis-title b.over {
+  color: var(--atk);
+}
+.ft-analysis-title em {
+  font-style: normal;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.ft-setup-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.2fr) minmax(120px, 0.55fr) minmax(180px, 1fr);
+  gap: 10px;
+  align-items: end;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border);
+}
+.ft-setup-grid .field {
+  margin-bottom: 0;
+  min-width: 0;
+}
+.ft-pokemon-field {
+  grid-column: span 2;
+}
+.ft-setup-grid > label:last-child {
+  grid-column: span 2;
+}
+.ft-type-strip {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  min-height: 32px;
+  min-width: 0;
+  overflow: hidden;
+}
+.ft-type-strip .type-pill {
+  font-size: 10px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+.ft-speed-toggle,
+.ft-speed-toggle-placeholder {
+  min-height: 32px;
+}
+.ft-speed-toggle {
+  align-self: end;
+  justify-content: center;
+  padding: 5px 9px;
+  margin: 0;
+  white-space: nowrap;
+}
+.ft-table-section {
+  margin-top: 13px;
+}
+.ft-table-title {
+  margin-bottom: 8px;
+  color: var(--text-faint);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.ft-edit-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 188px;
+  gap: 12px;
+  align-items: start;
+}
+.ft-stats-column {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.ft-editor .ft-stats-grid {
+  grid-template-columns: 58px 48px 152px 112px 54px 76px;
+  gap: 8px 9px;
+}
+.ft-editor .ft-stat-ev { gap: 3px; }
+.ft-editor .ft-ev-stepper { width: 80px; }
+.ft-editor .ft-ev-quick { width: 32px; }
+.ft-editor .ft-rank-btn {
+  width: 20px;
+  height: 22px;
+}
+.ft-editor .ft-magic {
+  min-width: 0;
+  justify-content: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.ft-editor .ft-magic.empty {
+  min-height: 22px;
+}
+.ft-editor .ft-stat-name {
+  width: 100%;
+}
+.ft-editor .ft-magic-prev,
+.ft-editor .ft-magic-next,
+.ft-editor .ft-magic-current {
+  min-width: 38px;
+  text-align: center;
+  white-space: nowrap;
+}
+.ft-side-metrics {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.ft-bulk-panel {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.ft-bulk-title {
+  color: var(--text-faint);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.ft-bulk-card {
+  display: grid;
+  gap: 4px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-input);
+}
+.ft-bulk-card.phys {
+  border-color: rgba(255, 71, 102, 0.22);
+}
+.ft-bulk-card.spec {
+  border-color: rgba(51, 183, 255, 0.22);
+}
+.ft-bulk-card span {
+  color: var(--text-faint);
+  font-size: 10px;
+}
+.ft-bulk-card b {
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 17px;
+}
+.ft-bulk-card em {
+  color: var(--text-faint);
+  font-style: normal;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  line-height: 1.35;
+}
+.ft-editor .ft-summary-section {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-input);
+}
+.ft-ev-footer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 7px;
+  color: var(--text-faint);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.06em;
+}
+.ft-ev-footer-head b {
+  color: var(--text);
+  font-size: 12px;
+}
+.ft-ev-footer-head b.over {
+  color: var(--atk);
+}
+.ft-ev-meter {
+  height: 7px;
+  overflow: hidden;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.ft-ev-meter span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--def), var(--ok));
+}
+.ft-ev-meter.over span {
+  background: var(--atk);
+}
+.ft-ev-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+.ft-ev-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-input);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.ft-ev-chip b {
+  color: var(--text);
+}
+.ft-muted {
+  color: var(--text-faint);
+  font-size: 11px;
+}
+.ft-hp-section .ft-breakpoint-list {
+  grid-template-columns: 1fr;
+  margin-bottom: 0;
+}
+.ft-hp-section .ft-breakpoint-item {
+  min-height: 45px;
+  padding: 10px 11px;
+}
+.ft-hp-section .ft-breakpoint-main {
+  gap: 8px;
+}
+.ft-hp-section .ft-breakpoint-main b {
+  font-size: 12px;
+}
+.ft-hp-section .ft-breakpoint-main span {
+  max-width: 100%;
+  font-size: 11px;
+}
+.ft-hp-section .ft-breakpoint-delta {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+.ft-hp-panel .ft-analysis-section {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.ft-speed-panel-body {
+  display: grid;
+  grid-template-columns: minmax(286px, 0.65fr) minmax(420px, 0.95fr);
+  gap: 12px;
+  align-items: start;
+}
+.ft-speed-panel .ft-analysis-section {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.ft-opp-section .field {
+  margin-bottom: 8px;
+}
+.ft-opp-section .ft-type-strip {
+  min-height: 24px;
+  margin-bottom: 8px;
+}
+.ft-base-mini {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.ft-base-mini span {
+  display: grid;
+  gap: 2px;
+  padding: 5px 4px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-input);
+  text-align: center;
+}
+.ft-base-mini em {
+  color: var(--text-faint);
+  font-style: normal;
+  font-size: 9px;
+}
+.ft-base-mini b {
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+.ft-opp-control-grid {
+  display: grid;
+  grid-template-columns: minmax(104px, 0.8fr) minmax(112px, 0.8fr) minmax(104px, 0.8fr);
+  gap: 8px;
+  align-items: end;
+  margin: 8px 0;
+}
+.ft-opp-scarf {
+  height: 32px;
+  margin: 0;
+  justify-content: center;
+}
+.ft-opp-control-grid .ft-rank-field,
+.ft-opp-control-grid .ft-direct-speed-field {
+  max-width: none;
+  min-width: 0;
+  margin-bottom: 0;
+}
+.ft-opp-control-grid .ft-rank {
+  width: max-content;
+}
+.ft-speed-panel .ft-tag-row {
+  margin-bottom: 0;
+}
+.ft-speed-embedded {
+  min-height: 0;
+  padding-top: 0;
+  border-top: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.ft-speed-head {
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--border);
+}
+.ft-speed-embedded .ft-myspe-info {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0 0 8px;
+}
+.ft-tag.ok {
+  color: var(--ok);
+}
+.ft-tag.warn {
+  color: var(--warn);
+}
+.ft-speed-table {
+  width: 100%;
+}
+.ft-speed-row-label-col { width: 130px; }
+.ft-speed-value-col { width: auto; }
+.ft-speed-table th,
+.ft-speed-table td {
+  padding: 10px 10px;
+  font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .ft-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "editor"
+      "hp"
+      "speed";
+  }
+  .ft-speed-panel-body {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .ft-setup-grid {
+    grid-template-columns: 1fr;
+  }
+  .ft-pokemon-field,
+  .ft-setup-grid > label:last-child {
+    grid-column: auto;
+  }
+  .ft-edit-layout {
+    grid-template-columns: 1fr;
+    overflow-x: auto;
+  }
+  .ft-editor .ft-stats-grid {
+    grid-template-columns: 54px 44px minmax(138px, 1fr) 104px 52px 82px;
+    min-width: 650px;
+  }
+  .ft-editor .ft-stats-head > div:last-child,
+  .ft-editor .ft-stat-row .ft-magic {
+    grid-column: auto;
+    justify-content: center;
+  }
+  .ft-side-metrics,
+  .ft-bulk-panel {
+    min-width: 0;
+  }
+  .ft-summary-grid,
+  .ft-opp-control-grid {
+    grid-template-columns: 1fr;
+  }
+  .ft-base-mini {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 
 
 /* ════════════════════════════════════════════════════════════

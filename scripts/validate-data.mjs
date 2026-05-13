@@ -32,7 +32,7 @@ function readChamp(file, exportName) {
 }
 
 function normalizeId(name) {
-  return (name || '').toLowerCase().replace(/[\s'\-()]/g, '');
+  return (name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 function cleanManual(name) {
@@ -69,6 +69,7 @@ const finalData = {
   items: readJsonScript(html, 'data-items'),
   natures: readJsonScript(html, 'data-natures'),
   typechart: readJsonScript(html, 'data-typechart'),
+  rules: readJsonScript(html, 'data-rules'),
 };
 
 const finalSets = Object.fromEntries(KINDS.map(kind => [kind, new Set(finalData[kind].map(entry => entry.id))]));
@@ -81,6 +82,7 @@ const source = {
   items: applyModOverrides(readBase('items.ts', 'Items'), readChamp('items.ts', 'Items')),
 };
 const filters = filterSets();
+const entryEffects = readJson(path.join(DATA, 'overrides', 'entry-effects.json'), { effects: {}, blockers: {} });
 
 let failed = false;
 function fail(message) {
@@ -89,7 +91,7 @@ function fail(message) {
 }
 
 for (const [kind, entries] of Object.entries(finalData)) {
-  if (!Array.isArray(entries) && kind !== 'typechart') fail(`${kind} is not an array`);
+  if (!Array.isArray(entries) && kind !== 'typechart' && kind !== 'rules') fail(`${kind} is not an array`);
   if (Array.isArray(entries) && entries.length === 0) fail(`${kind} is empty`);
 }
 
@@ -121,6 +123,9 @@ for (const [category, kind] of [['desc-moves', 'moves'], ['desc-abilities', 'abi
 }
 
 for (const pokemon of finalData.pokemon) {
+  if (!Array.isArray(pokemon.ls) || pokemon.ls.length === 0) {
+    fail(`pokemon.${pokemon.id} has empty learnset`);
+  }
   for (const ability of Object.values(pokemon.ab || {})) {
     const id = normalizeId(ability);
     if (id && !finalSets.abilities.has(id)) fail(`pokemon.${pokemon.id} references missing ability ${id}`);
@@ -141,6 +146,22 @@ for (const move of finalData.moves) {
   }
   if (original.recoil && !move.recoil) fail(`move.${move.id} is missing recoil data`);
   if (original.target && move.tgt !== original.target) fail(`move.${move.id} has mismatched tgt`);
+}
+
+for (const abilityId of Object.keys(entryEffects.effects || {})) {
+  if (!finalSets.abilities.has(abilityId)) fail(`entry-effects.${abilityId} references missing ability`);
+}
+for (const [group, abilityIds] of Object.entries(entryEffects.blockers || {})) {
+  if (!Array.isArray(abilityIds)) {
+    fail(`entry-effects.blockers.${group} must be an array`);
+    continue;
+  }
+  for (const abilityId of abilityIds) {
+    if (!finalSets.abilities.has(abilityId)) fail(`entry-effects.blockers.${group} references missing ability ${abilityId}`);
+  }
+}
+if (Object.keys(entryEffects.effects || {}).length && !finalData.rules.entryEffects) {
+  fail('rules.entryEffects is missing from built data');
 }
 
 if (!Object.keys(finalData.typechart || {}).length) fail('typechart is empty');

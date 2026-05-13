@@ -121,6 +121,10 @@ function typeEff(atkType, defTypes) {
   return eff;
 }
 
+function toId(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
 // 타입 한국어
 const TYPE_KO = {
   Normal: '노말', Fire: '불꽃', Water: '물', Grass: '풀', Electric: '전기', Ice: '얼음',
@@ -128,6 +132,7 @@ const TYPE_KO = {
   Rock: '바위', Ghost: '고스트', Dragon: '드래곤', Dark: '악', Steel: '강철', Fairy: '페어리',
   Stellar: '스텔라'
 };
+const BATTLE_TYPES = ['Normal','Fire','Water','Electric','Grass','Ice','Fighting','Poison','Ground','Flying','Psychic','Bug','Rock','Ghost','Dragon','Dark','Steel','Fairy'];
 
 /* ════════════════════════════════════════════════════════════
    스탯 계산 (챔피언스 룰)
@@ -233,6 +238,16 @@ function isTeraActive(side) {
   return isTeraEnabled() && !!side.tera;
 }
 
+function selectedTypes(side) {
+  const p = PokemonById[side?.pokemonIdx];
+  const source = Array.isArray(side?.types) && side.types.length ? side.types : p?.types;
+  const types = [];
+  for (const type of source || []) {
+    if (BATTLE_TYPES.includes(type) && !types.includes(type)) types.push(type);
+  }
+  return types.length ? types.slice(0, 2) : (p?.types || []);
+}
+
 function effectiveTypes(side) {
   const p = PokemonById[side.pokemonIdx];
   if (!p) return [];
@@ -240,12 +255,12 @@ function effectiveTypes(side) {
   if (isTeraActive(side) && side.teraType && side.teraType !== 'Stellar') {
     return [side.teraType];
   }
-  return p.types;
+  return selectedTypes(side);
 }
 
 function originalTypes(side) {
   const p = PokemonById[side.pokemonIdx];
-  return p ? p.types : [];
+  return p ? selectedTypes(side) : [];
 }
 
 function effectiveAbility(side) {

@@ -236,3 +236,34 @@ Recommended next step:
 4. Add deterministic candidate grouping and template labeling.
 5. Add golden tests before expanding UI polish.
 
+## 2026-05-14 Planning Update
+
+The reverse calculator should be handled after the team synergy table pass.
+
+Current product decisions:
+
+- Keep the feature scoped to Pokemon Champions rules.
+- Reuse `calcStats()` and `calculateDamage()`; do not introduce a second damage formula.
+- Preserve the Champions point rules: per stat `0..32`, total `<= 66`.
+- Treat "100 percent inference" as exhaustive logical filtering, not as a guarantee that the result is unique.
+- If multiple legal spreads remain, group and rank them instead of hiding ambiguity.
+
+Important UI decision:
+
+- The observed value must explicitly say whether it is damage percent or remaining HP percent.
+- Existing reverse calculation behavior is closer to remaining HP percent matching.
+- Damage percent mode should use `Math.floor(damage / maxHp * 100)`.
+- Remaining HP percent mode should use `Math.floor((maxHp - damage) / maxHp * 100)`.
+
+Recommended implementation sequence:
+
+1. Add a dedicated reverse calculation state/golden script before changing the UI.
+2. Extract candidate generation helpers from the large views file when practical.
+3. Normalize candidate objects around HP, defense side, offense side, item, nature, hit count, and tags.
+4. Implement one-sided defensive inference first.
+5. Implement one-sided offensive inference second.
+6. Add cross-validation with `offense + HP + defense <= 66`.
+7. Add H-priority as a soft scoring bonus.
+8. Add grouped result summaries and template labels.
+
+The next handoff document for current branch status is `docs/current-handoff-2026-05-14.md`.
