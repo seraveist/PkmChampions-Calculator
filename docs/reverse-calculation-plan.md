@@ -267,3 +267,23 @@ Recommended implementation sequence:
 8. Add grouped result summaries and template labels.
 
 The next handoff document for current branch status is `docs/current-handoff-2026-05-14.md`.
+
+## 2026-05-14 Implementation Status
+
+The feature has now been renamed from `내구 역계산` to `형태 역계산`.
+
+Current implementation direction:
+
+- Opponent HP observation is entered as remaining HP percent.
+- My HP observation is entered as remaining raw HP value.
+- Speed observation is included through turn order, with scarf inference planned as part of the same candidate filter.
+- Turn accumulation is intentionally excluded from the current scope.
+- The implementation should infer a one-turn form candidate set from defense, offense, and speed constraints, then filter by the Champions `<= 66` total point rule.
+
+Known blocking bug:
+
+- The live UI currently reports zero candidates for the Primarina vs Archaludon validation scenario.
+- The debug line reports `내구후보 0`, so the first defensive candidate stage is failing before cross-validation.
+- A direct engine-style check can produce candidates for the same mathematical scenario, which points to DOM/state synchronization or stale legacy state rather than an impossible formula.
+
+Detailed repro and TODO are recorded in `docs/form-reverse-handoff-2026-05-14.md`.

@@ -29,7 +29,7 @@
     <button class="nav-tab" data-page="dex">📖 도감</button>
     <button class="nav-tab" data-page="matchup">📊 상성표</button>
     <button class="nav-tab" data-page="finetune">🔧 세부조정</button>
-    <button class="nav-tab" data-page="revcalc">🔍 내구 역계산</button>
+    <button class="nav-tab" data-page="revcalc">🔎 형태 역계산</button>
   </nav>
   <div class="header-status" id="data-status">데이터 로딩 중...</div>
 </header>
@@ -195,19 +195,19 @@
   </div>
 </main>
 
-<!-- 내구 역계산 페이지 -->
+<!-- 형태 역계산 페이지 -->
 <main id="page-revcalc" class="page">
   <div class="rc-grid">
     <section class="panel rc-my">
       <div class="panel-head">
-        <div class="panel-title">내 포켓몬 (공격자)</div>
+        <div class="panel-title">내 포켓몬 (관측 기준)</div>
       </div>
       <div class="panel-body" id="rc-my-body"></div>
     </section>
     <section class="panel rc-opp">
       <div class="panel-head">
-        <div class="panel-title">상대 포켓몬 (역계산 대상)</div>
-        <span class="ft-hint">EV/성격/도구는 분석 결과로 추정</span>
+        <div class="panel-title">상대 포켓몬 (형태 역산 대상)</div>
+        <span class="ft-hint">투자/성격/도구/스피드는 분석 결과로 추정</span>
       </div>
       <div class="panel-body" id="rc-opp-body"></div>
     </section>
@@ -215,20 +215,20 @@
 
   <section class="panel">
     <div class="panel-head">
-      <div class="panel-title">관측 데이터 · 필드 상태</div>
+      <div class="panel-title">관측 데이터 · 속도 조건 · 필드 상태</div>
     </div>
     <div class="panel-body" id="rc-input-body"></div>
   </section>
 
   <section class="panel">
     <div class="panel-head">
-      <div class="panel-title">분석 결과</div>
+      <div class="panel-title">형태 분석 결과</div>
       <div class="panel-head-actions">
-        <button class="rc-analyze-btn" id="rcAnalyze">🔍 분석 시작</button>
+        <button class="rc-analyze-btn" id="rcAnalyze">🔎 형태 분석</button>
       </div>
     </div>
     <div class="panel-body" id="rc-results-body">
-      <div class="empty-state">위에 데이터를 입력하고 "분석 시작" 버튼을 눌러주세요.</div>
+      <div class="empty-state">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>
     </div>
   </section>
 </main>
@@ -241,24 +241,34 @@
     </div>
     <div class="panel-body">
       <div class="matchup-intro">최대 6마리의 포켓몬을 선택하면 18가지 공격 타입에 대한 방어 상성을 한눈에 비교할 수 있습니다.</div>
+      <div class="matchup-mode-tabs" id="matchupModeTabs">
+        <button class="matchup-mode-btn active" data-matchup-mode="defense">방어 상성</button>
+        <button class="matchup-mode-btn" data-matchup-mode="coverage">타점 체크</button>
+      </div>
       <div class="matchup-slots" id="matchupSlots"></div>
+      <div class="matchup-coverage-inputs" id="matchupCoverageInputs"></div>
     </div>
   </section>
   <section class="panel" style="margin-top: 14px;">
     <div class="panel-body">
-      <div class="matchup-table-wrap">
-        <table class="matchup-table" id="matchupTable">
+      <div class="matchup-result-layout">
+        <div class="matchup-main">
+          <div class="matchup-table-wrap">
+            <table class="matchup-table" id="matchupTable">
           <thead id="matchupHead"></thead>
           <tbody id="matchupBody"></tbody>
-        </table>
-      </div>
-      <div class="matchup-legend">
+            </table>
+          </div>
+          <div class="matchup-legend">
         <span><span class="cell-demo eff-4">◎</span> 4배 약점</span>
         <span><span class="cell-demo eff-2">○</span> 2배 약점</span>
         <span><span class="cell-demo eff-1">—</span> 1배</span>
         <span><span class="cell-demo eff-05">△</span> 1/2 저항</span>
         <span><span class="cell-demo eff-025">△△</span> 1/4 저항</span>
         <span><span class="cell-demo eff-0">✕</span> 무효</span>
+          </div>
+        </div>
+        <aside class="matchup-meta" id="matchupMeta"></aside>
       </div>
     </div>
   </section>
@@ -313,6 +323,7 @@
 <script id="data-natures" type="application/json">__NATURES_DATA__</script>
 <script id="data-typechart" type="application/json">__TYPECHART_DATA__</script>
 <script id="data-rules" type="application/json">__CHAMP_RULES__</script>
+<script id="data-meta-threats" type="application/json">__META_THREATS_DATA__</script>
 
 <script>
 "use strict";

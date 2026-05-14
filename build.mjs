@@ -159,6 +159,7 @@ async function build() {
   const abilityMechanics = readJsonFile(path.join(OVERRIDES, 'ability-mechanics.json'), {});
   const fieldMechanics = readJsonFile(path.join(OVERRIDES, 'field-mechanics.json'), {});
   const entryEffects = readJsonFile(path.join(OVERRIDES, 'entry-effects.json'), { effects: {}, blockers: {} });
+  const metaThreats = readJsonFile(path.join(OVERRIDES, 'meta-threats.json'), { defensiveThreats: [], coverageChecks: [] });
 
   // 설명 우선순위: 모드 오버라이드 → 베이스 text/ → 빈 문자열
   // text/ 항목엔 desc(긴 설명) 와 shortDesc(짧은 설명) 가 모두 존재. shortDesc 우선.
@@ -409,6 +410,7 @@ async function build() {
     '__NATURES_DATA__': JSON.stringify(finalNatures),
     '__TYPECHART_DATA__': JSON.stringify(finalTypeChart),
     '__CHAMP_RULES__': JSON.stringify(champRules),
+    '__META_THREATS_DATA__': JSON.stringify(metaThreats),
   };
 
   let outHTML = template;

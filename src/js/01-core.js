@@ -10,6 +10,7 @@ const ITEMS     = JSON.parse(document.getElementById('data-items').textContent);
 const NATURE_DATA = JSON.parse(document.getElementById('data-natures')?.textContent || '[]');
 const TYPE_CHART_DATA = JSON.parse(document.getElementById('data-typechart')?.textContent || '{}');
 const RULES     = JSON.parse(document.getElementById('data-rules')?.textContent || '{}');
+const META_THREATS = JSON.parse(document.getElementById('data-meta-threats')?.textContent || '{"defensiveThreats":[],"coverageChecks":[]}');
 
 const PokemonById   = Object.fromEntries(POKEMON.map(p => [p.id, p]));
 const MoveById      = Object.fromEntries(MOVES.map(m => [m.id, m]));

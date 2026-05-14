@@ -1,5 +1,29 @@
 # Decision Log
 
+## D026. Form reverse calculator is scoped to one-turn form inference first
+
+Decision:
+
+- Rename `내구 역계산` to `형태 역계산`.
+- Scope the first complete version to one-turn reverse inference only.
+- Use three constraint sources when available:
+  - damage dealt to the opponent;
+  - damage received by my Pokemon;
+  - turn order / speed observation for scarf-style inference.
+- Exclude turn accumulation for now.
+- Keep opponent observation as remaining HP percent and my HP observation as remaining raw HP value.
+
+Reason:
+
+- The Champions 32-per-stat and 66-total point rules are already strong enough to make one-turn cross-validation valuable.
+- Turn accumulation would require persistent battle state and would make the first reliable version harder to verify.
+- The current UI bug shows that the next priority is state isolation and regression testing before expanding the feature.
+
+Impact:
+
+- `docs/form-reverse-handoff-2026-05-14.md` records the current WIP state, live repro failure, and next TODO.
+- The next implementation pass should rebuild candidate generation around isolated form-reverse state instead of continuing to patch the older `revCalcState` flow.
+
 ## D017. Damage calculator 전용 레퍼런스를 구현 범위의 상한으로 둔다
 
 결정:

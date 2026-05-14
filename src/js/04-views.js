@@ -405,6 +405,8 @@ function renderItemsDex(query) {
    상성표 (matchup) — 6슬롯 포켓몬 × 18 공격 타입
    ════════════════════════════════════════════════════════════ */
 const matchupSlots = [null, null, null, null, null, null];
+const matchupCoverageMoves = Array.from({ length: 6 }, () => [null, null, null, null]);
+let matchupMode = 'defense';
 
 const EFF_SYMBOL = {
   4: '◎',
@@ -423,7 +425,110 @@ const EFF_CLASS = {
   0: 'eff-0',
 };
 // 매치업 테이블 고정 열 너비 (px). table-layout: fixed 와 함께 사용.
-const MATCHUP_COL = { type: 110, slot: 90, summary: 56 };
+const MATCHUP_COL = { type: 124, slot: 112, score: 84, coverageSummary: 84 };
+const DEFENSE_CONSISTENCY_SCORE = { 0: -1.8, 0.25: -1.3, 0.5: -0.8, 1: 0.15, 2: 1, 4: 2.5 };
+const THREAT_RANK = { safe: 0, normal: 1, check: 2, caution: 3, danger: 4, max: 5 };
+
+function matchupMetaIds(kind) {
+  return Array.isArray(META_THREATS?.[kind]) ? META_THREATS[kind].filter(Boolean) : [];
+}
+
+function matchupMetaPokemon(kind) {
+  return matchupMetaIds(kind).map(id => PokemonById[id]).filter(Boolean);
+}
+
+function defensiveThreatsByStab(type) {
+  return matchupMetaPokemon('defensiveThreats').filter(p => p.types?.includes(type));
+}
+
+function defenseScoreLabel(score) {
+  if (score <= 0.7) return { label: '안전', cls: 'safe' };
+  if (score <= 1.6) return { label: '보통', cls: 'normal' };
+  if (score <= 2.6) return { label: '주의', cls: 'caution' };
+  return { label: '위험', cls: 'danger' };
+}
+
+function defenseTypeProfile(type, pokes) {
+  const effects = pokes.map(p => typeEff(type, p.types));
+  const rawScore = effects.reduce((sum, eff) => sum + (DEFENSE_CONSISTENCY_SCORE[eff] ?? 0.15), 0);
+  const score = Math.max(0, rawScore);
+  const weakCount = effects.filter(eff => eff > 1).length;
+  const quadCount = effects.filter(eff => eff >= 4).length;
+  const neutralCount = effects.filter(eff => eff === 1).length;
+  const resistCount = effects.filter(eff => eff === 0.5).length;
+  const quarterCount = effects.filter(eff => eff === 0.25).length;
+  const immuneCount = effects.filter(eff => eff === 0).length;
+  return {
+    type,
+    score,
+    rawScore,
+    weakCount,
+    quadCount,
+    neutralCount,
+    resistCount,
+    quarterCount,
+    immuneCount,
+    grade: defenseScoreLabel(score),
+  };
+}
+
+function defenseTypeScore(type, pokes) {
+  return defenseTypeProfile(type, pokes).score;
+}
+
+function formatDefenseScore(score) {
+  return score.toFixed(2).replace(/0$/, '').replace(/\.0$/, '.0');
+}
+
+function selectedCoverageMoves() {
+  const moves = [];
+  matchupCoverageMoves.forEach((slotMoves, slot) => {
+    slotMoves.forEach(moveId => {
+      const move = moveId ? MoveById[moveId] : null;
+      if (move) moves.push({ slot, move });
+    });
+  });
+  return moves;
+}
+
+function coverageSlotHasType(slot, type) {
+  return (matchupCoverageMoves[slot] || []).some(moveId => MoveById[moveId]?.type === type);
+}
+
+function coverageCountByType(type, slot = null) {
+  if (slot !== null) return coverageSlotHasType(slot, type) ? 1 : 0;
+  return matchupCoverageMoves.reduce((sum, _, i) => sum + (coverageSlotHasType(i, type) ? 1 : 0), 0);
+}
+
+function coverageSlotCountForTypes(types) {
+  const targets = new Set(types);
+  return matchupCoverageMoves.reduce((sum, slotMoves) => {
+    const hit = slotMoves.some(moveId => targets.has(MoveById[moveId]?.type));
+    return sum + (hit ? 1 : 0);
+  }, 0);
+}
+
+function coverageThreatGrade(has4x, quadCovered, alt2Count) {
+  if (has4x && quadCovered) return { label: '안전', cls: 'safe' };
+  if (alt2Count >= 3) return { label: '안전', cls: 'safe' };
+  if (alt2Count === 2) return { label: '견제', cls: 'check' };
+  if (alt2Count === 1) return { label: '주의', cls: 'caution' };
+  return { label: '위험', cls: 'danger' };
+}
+
+function renderMatchupModeTabs() {
+  const tabs = document.getElementById('matchupModeTabs');
+  if (!tabs) return;
+  tabs.querySelectorAll('.matchup-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.matchupMode === matchupMode);
+    btn.onclick = () => {
+      matchupMode = btn.dataset.matchupMode || 'defense';
+      renderMatchupModeTabs();
+      renderMatchupCoverageInputs();
+      renderMatchupTable();
+    };
+  });
+}
 
 function renderMatchupSlots() {
   const container = document.getElementById('matchupSlots');
@@ -462,9 +567,9 @@ function wireMatchupSlots() {
         (p.koName || '').toLowerCase().includes(s) || p.name.toLowerCase().includes(s)
       );
       optsEl.innerHTML = matches.map(p =>
-        `<div class="combobox-option" data-id="${p.id}">
+        `<div class="combobox-option matchup-option" data-id="${p.id}">
           <b>${escapeHTML(pkName(p))}</b>
-          <small>${p.types.join(', ')} · BST ${p.bst}</small>
+          <small class="matchup-option-types">${p.types.map(t => `<span class="type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}</small>
         </div>`
       ).join('');
       optsEl.classList.add('open');
@@ -486,6 +591,7 @@ function wireMatchupSlots() {
       e.preventDefault();
       matchupSlots[slot] = opt.dataset.id;
       renderMatchupSlots();
+      renderMatchupCoverageInputs();
       renderMatchupTable();
     });
   });
@@ -493,19 +599,232 @@ function wireMatchupSlots() {
     btn.addEventListener('click', () => {
       const slot = parseInt(btn.dataset.slot, 10);
       matchupSlots[slot] = null;
+      matchupCoverageMoves[slot] = [null, null, null, null];
       renderMatchupSlots();
+      renderMatchupCoverageInputs();
       renderMatchupTable();
     });
   });
 }
 
+function coverageMovePool(slot) {
+  const p = matchupSlots[slot] ? PokemonById[matchupSlots[slot]] : null;
+  const pool = p?.ls?.length ? p.ls.map(id => MoveById[id]).filter(Boolean) : MOVES;
+  return pool.filter(m => m.cat !== 'Status' && m.type && BATTLE_TYPES.includes(m.type));
+}
+
+function renderMatchupCoverageInputs() {
+  const container = document.getElementById('matchupCoverageInputs');
+  if (!container) return;
+  if (matchupMode !== 'coverage') {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = matchupSlots.map((id, slot) => {
+    const p = id ? PokemonById[id] : null;
+    const title = p ? pkName(p) : `슬롯 ${slot + 1}`;
+    const rows = matchupCoverageMoves[slot].map((moveId, moveIndex) => {
+      const m = moveId ? MoveById[moveId] : null;
+      return `
+        <div class="matchup-move-field">
+          <span class="matchup-move-num">${moveIndex + 1}</span>
+          <div class="combobox matchup-move-combobox">
+            <input type="text" class="cb-input matchup-move-input" data-slot="${slot}" data-move-index="${moveIndex}"
+                   value="${m ? escapeHTML(mvName(m)) : ''}" placeholder="기술 검색">
+            <div class="combobox-options"></div>
+          </div>
+          ${m ? `<span class="type-pill t-${m.type}" style="font-size:9px;padding:1px 5px;">${TYPE_KO[m.type] || m.type}</span>` : ''}
+        </div>
+      `;
+    }).join('');
+    return `
+      <div class="matchup-coverage-card ${p ? 'filled' : ''}">
+        <div class="matchup-coverage-head">
+          <span>${escapeHTML(title)}</span>
+          ${p ? p.types.map(t => `<span class="type-pill t-${t}" style="font-size:9px;padding:1px 5px;">${TYPE_KO[t] || t}</span>`).join('') : ''}
+        </div>
+        <div class="matchup-move-grid">${rows}</div>
+      </div>
+    `;
+  }).join('');
+  wireMatchupCoverageInputs();
+}
+
+function wireMatchupCoverageInputs() {
+  const container = document.getElementById('matchupCoverageInputs');
+  if (!container) return;
+  container.querySelectorAll('.matchup-move-input').forEach(input => {
+    const slot = parseInt(input.dataset.slot, 10);
+    const moveIndex = parseInt(input.dataset.moveIndex, 10);
+    const cbParent = input.closest('.combobox');
+    const optsEl = cbParent.querySelector('.combobox-options');
+    const showOptions = (query) => {
+      const s = (query || '').toLowerCase();
+      const matches = coverageMovePool(slot).filter(m =>
+        (m.koName || '').toLowerCase().includes(s) ||
+        m.name.toLowerCase().includes(s) ||
+        (TYPE_KO[m.type] || '').toLowerCase().includes(s) ||
+        m.type.toLowerCase().includes(s)
+      ).slice(0, 80);
+      optsEl.innerHTML = matches.map(m =>
+        `<div class="combobox-option" data-id="${m.id}">
+          <b>${escapeHTML(mvName(m))}</b>
+          <small>${m.type} · ${moveCategoryLabel(m.cat)} · ${m.bp || '-'}</small>
+        </div>`
+      ).join('');
+      optsEl.classList.add('open');
+    };
+    input.addEventListener('focus', e => showOptions(e.target.value));
+    input.addEventListener('input', e => {
+      if (!e.target.value.trim()) {
+        matchupCoverageMoves[slot][moveIndex] = null;
+        renderMatchupTable();
+      }
+      showOptions(e.target.value);
+    });
+    input.addEventListener('blur', () => setTimeout(() => optsEl.classList.remove('open'), 200));
+    optsEl.addEventListener('mousedown', e => {
+      const opt = e.target.closest('.combobox-option');
+      if (!opt) return;
+      e.preventDefault();
+      matchupCoverageMoves[slot][moveIndex] = opt.dataset.id;
+      renderMatchupCoverageInputs();
+      renderMatchupTable();
+    });
+  });
+}
+
+function renderMatchupSideGroup(label, cls, rows, renderRow) {
+  if (!rows.length) return '';
+  return `
+    <div class="matchup-side-section ${cls}">
+      <div class="matchup-side-section-title ${cls}">${label}</div>
+      ${rows.map(renderRow).join('')}
+    </div>
+  `;
+}
+
+function renderMatchupMeta(kind, context = {}) {
+  const box = document.getElementById('matchupMeta');
+  if (!box) return;
+  if (kind === 'defensiveThreats') {
+    const pokes = context.pokes || [];
+    if (pokes.length < 3) {
+      box.innerHTML = '<div class="matchup-side-title">주의 포켓몬</div><div class="matchup-side-empty">3마리 이상 선택하면 메타 위협의 타입별 위험도를 표시합니다.</div>';
+      return;
+    }
+    const rows = matchupMetaPokemon('defensiveThreats').map(p => {
+      const profiles = (p.types || []).map(type => defenseTypeProfile(type, pokes));
+      const visibleProfiles = profiles.filter(profile => profile.grade.cls === 'danger' || profile.grade.cls === 'caution' || profile.grade.cls === 'max');
+      const maxScore = Math.max(...visibleProfiles.map(s => s.score), 0);
+      const maxRank = Math.max(...visibleProfiles.map(s => THREAT_RANK[s.grade.cls] || 0), 0);
+      const maxGrade = visibleProfiles.find(s => (THREAT_RANK[s.grade.cls] || 0) === maxRank)?.grade || { label: '안전', cls: 'safe' };
+      return { p, profiles: visibleProfiles, maxScore, maxRank, maxGrade };
+    }).filter(row => row.profiles.length)
+      .sort((a, b) => b.maxRank - a.maxRank || b.maxScore - a.maxScore || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
+    const dangerRows = rows.filter(row => row.maxGrade.cls === 'danger' || row.maxGrade.cls === 'max');
+    const cautionRows = rows.filter(row => row.maxGrade.cls === 'caution');
+    const renderDefenseRow = row => `
+      <div class="matchup-side-card ${row.maxGrade.cls}">
+        <div class="matchup-side-name">${escapeHTML(pkName(row.p))}</div>
+        <div class="matchup-side-badges">
+          ${row.profiles.map(s => `<span class="matchup-score-badge ${s.grade.cls}" title="${s.grade.label} · 약점 ${s.weakCount} · 반감 ${s.resistCount} · 1/4 ${s.quarterCount} · 무효 ${s.immuneCount}"><span class="type-pill t-${s.type}">${TYPE_KO[s.type] || s.type}</span>${formatDefenseScore(s.score)}</span>`).join('')}
+        </div>
+      </div>
+    `;
+    const sections = [
+      renderMatchupSideGroup('위험', 'danger', dangerRows, renderDefenseRow),
+      renderMatchupSideGroup('주의', 'caution', cautionRows, renderDefenseRow),
+    ].join('');
+    box.innerHTML = `
+      <div class="matchup-side-title">주의 포켓몬</div>
+      <div class="matchup-side-list">
+        ${sections || '<div class="matchup-side-empty">현재 선택 기준으로 위험/주의 메타 포켓몬이 없습니다.</div>'}
+      </div>
+    `;
+    return;
+  }
+  const coverageMoves = selectedCoverageMoves();
+  if (coverageMoves.length === 0) {
+    box.innerHTML = '<div class="matchup-side-title">메타 타점</div><div class="matchup-side-empty">타점 체크에서 기술을 입력하면 메타 포켓몬의 4배/2배 약점 커버를 표시합니다.</div>';
+    return;
+  }
+  const rows = matchupMetaPokemon('coverageChecks').map(p => {
+    const weaknesses = BATTLE_TYPES.map(type => {
+      const eff = typeEff(type, p.types);
+      if (eff <= 1) return null;
+      const count = coverageCountByType(type);
+      return { type, eff, count };
+    }).filter(Boolean);
+    const quadWeaknesses = weaknesses.filter(w => w.eff >= 4);
+    const doubleWeaknesses = weaknesses.filter(w => w.eff === 2);
+    const missing4 = quadWeaknesses.filter(w => w.count === 0);
+    const has4x = quadWeaknesses.length > 0;
+    const quadCovered = quadWeaknesses.some(w => w.count > 0);
+    const alt2Count = coverageSlotCountForTypes(doubleWeaknesses.map(w => w.type));
+    const grade = coverageThreatGrade(has4x, quadCovered, alt2Count);
+    return { p, weaknesses, quadWeaknesses, doubleWeaknesses, missing4, has4x, quadCovered, alt2Count, grade };
+  }).filter(row => row.grade.cls !== 'safe');
+  const dangerRows = rows
+    .filter(row => row.grade.cls === 'danger')
+    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
+  const cautionRows = rows
+    .filter(row => row.grade.cls === 'caution')
+    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
+  const checkRows = rows
+    .filter(row => row.grade.cls === 'check')
+    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
+  const renderCoverageRow = row => {
+    const shownWeaknesses = row.missing4.length ? [...row.missing4, ...row.doubleWeaknesses] : row.doubleWeaknesses;
+    const weakBadges = shownWeaknesses.map(w =>
+      `<span class="matchup-weak-badge ${w.count ? 'covered' : 'missing'} x${w.eff}"><span class="type-pill t-${w.type}">${TYPE_KO[w.type] || w.type}</span>${w.count}</span>`
+    ).join('');
+    return `
+    <div class="matchup-side-card ${row.grade.cls} matchup-coverage-threat-card">
+      <div class="matchup-side-name">${escapeHTML(pkName(row.p))}</div>
+      <div class="matchup-coverage-threat-body">
+        <div class="matchup-side-badges matchup-weakness-list">${weakBadges}</div>
+        <span class="matchup-cover-count ${row.grade.cls}"><span>${row.has4x ? '2배대체' : '2배타점'}</span><b>${row.alt2Count}</b></span>
+      </div>
+    </div>
+  `;
+  };
+  const sections = [
+    renderMatchupSideGroup('위험', 'danger', dangerRows, renderCoverageRow),
+    renderMatchupSideGroup('주의', 'caution', cautionRows, renderCoverageRow),
+    renderMatchupSideGroup('견제', 'check', checkRows, renderCoverageRow),
+  ].join('');
+  box.innerHTML = `
+    <div class="matchup-side-title">메타 타점</div>
+    <div class="matchup-side-list">
+      ${sections || '<div class="matchup-side-empty">현재 기술 기준으로 미커버 위험/주의/견제 메타 포켓몬이 없습니다.</div>'}
+    </div>
+  `;
+}
+
+function renderDefenseScoreCell(profile) {
+  const scoreText = formatDefenseScore(profile.score);
+  return `
+    <td class="summary score ${profile.grade.cls}" title="${profile.grade.label} · 약점 ${profile.weakCount} · 반감 ${profile.resistCount} · 1/4 ${profile.quarterCount} · 무효 ${profile.immuneCount}">
+      <div class="matchup-score-main">${scoreText}</div>
+    </td>
+  `;
+}
+
 function renderMatchupTable() {
+  if (matchupMode === 'coverage') return renderCoverageMatchupTable();
+  return renderDefenseMatchupTable();
+}
+
+function renderDefenseMatchupTable() {
   const tbl = document.getElementById('matchupTable');
   const head = document.getElementById('matchupHead');
   const body = document.getElementById('matchupBody');
   if (!tbl || !head || !body) return;
 
   const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
+  const valid = pokes.filter(Boolean);
+  renderMatchupMeta('defensiveThreats', { pokes: valid });
 
   // colgroup 으로 고정 열 너비 강제 (table-layout: fixed 와 함께)
   // 슬롯 채워지든 비어 있든 동일한 폭을 유지한다.
@@ -515,7 +834,7 @@ function renderMatchupTable() {
   cg.innerHTML =
     `<col style="width:${MATCHUP_COL.type}px">` +
     pokes.map(() => `<col style="width:${MATCHUP_COL.slot}px">`).join('') +
-    `<col style="width:${MATCHUP_COL.summary}px"><col style="width:${MATCHUP_COL.summary}px">`;
+    `<col style="width:${MATCHUP_COL.score}px">`;
   tbl.insertBefore(cg, tbl.firstChild);
 
   // 헤더: 공격 타입 컬럼 + 6 슬롯 + 무효/약점 요약
@@ -523,10 +842,14 @@ function renderMatchupTable() {
     <tr>
       <th style="text-align:left;">공격 타입</th>
       ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span style="color:var(--text-faint)">슬롯 ${i+1}</span>`}</th>`).join('')}
-      <th class="summary">무효</th>
-      <th class="summary">약점</th>
+      <th class="summary">일관성</th>
     </tr>
   `;
+
+  if (valid.length < 3) {
+    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하면 방어 상성 진단을 표시합니다.</td></tr>`;
+    return;
+  }
 
   // 본문: 18 행 × 6 셀 + 요약
   body.innerHTML = BATTLE_TYPES.map(t => {
@@ -538,16 +861,13 @@ function renderMatchupTable() {
       return `<td class="${cls}">${sym}</td>`;
     }).join('');
 
-    const valid = pokes.filter(Boolean);
-    const immuneCount = valid.filter(p => typeEff(t, p.types) === 0).length;
-    const weakCount = valid.filter(p => typeEff(t, p.types) > 1).length;
+    const profile = defenseTypeProfile(t, valid);
 
     return `
       <tr>
         <td><span class="type-pill t-${t}" style="font-size:11px;padding:2px 8px;">${TYPE_KO[t]}</span></td>
         ${cells}
-        <td class="summary immune">${immuneCount > 0 ? immuneCount : ''}</td>
-        <td class="summary weak">${weakCount > 0 ? weakCount : ''}</td>
+        ${renderDefenseScoreCell(profile)}
       </tr>
     `;
   }).join('');
@@ -556,6 +876,54 @@ function renderMatchupTable() {
    도감 상세 모달 — Cross-reference 인덱스 + 렌더러
    ════════════════════════════════════════════════════════════ */
 // 특성 → 보유 포켓몬 인덱스 (한 번만 빌드)
+function renderCoverageMatchupTable() {
+  const tbl = document.getElementById('matchupTable');
+  const head = document.getElementById('matchupHead');
+  const body = document.getElementById('matchupBody');
+  if (!tbl || !head || !body) return;
+  renderMatchupMeta('coverageChecks');
+
+  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
+  const valid = pokes.filter(Boolean);
+  const oldCG = tbl.querySelector('colgroup');
+  if (oldCG) oldCG.remove();
+  const cg = document.createElement('colgroup');
+  cg.innerHTML =
+    `<col style="width:${MATCHUP_COL.type}px">` +
+    pokes.map(() => `<col style="width:${MATCHUP_COL.slot}px">`).join('') +
+    `<col style="width:${MATCHUP_COL.coverageSummary}px">`;
+  tbl.insertBefore(cg, tbl.firstChild);
+
+  head.innerHTML = `
+    <tr>
+      <th style="text-align:left;">공격 타입</th>
+      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span style="color:var(--text-faint)">슬롯 ${i+1}</span>`}</th>`).join('')}
+      <th class="summary">커버</th>
+    </tr>
+  `;
+
+  if (valid.length < 3) {
+    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하고 타점 체크에서 기술을 입력하면 진단을 표시합니다.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = BATTLE_TYPES.map(t => {
+    const cells = pokes.map((p, slot) => {
+      if (!p) return '<td class="empty">-</td>';
+      const count = coverageCountByType(t, slot);
+      return `<td class="${count ? 'coverage-hit' : 'coverage-miss'}">${count || ''}</td>`;
+    }).join('');
+    const total = coverageCountByType(t);
+    return `
+      <tr>
+        <td><span class="type-pill t-${t}" style="font-size:11px;padding:2px 8px;">${TYPE_KO[t]}</span></td>
+        ${cells}
+        <td class="summary ${total ? 'coverage-hit' : 'coverage-miss'}">${total || ''}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
 const PokemonByAbility = (() => {
   const idx = {};
   for (const p of POKEMON) {
@@ -2739,17 +3107,28 @@ window.loadSideToFineTune = loadSideToFineTune; // 다른 모듈에서 호출 �
 
 
 /* ════════════════════════════════════════════════════════════
-   내구 역계산 (Reverse Calc) 탭
+   형태 역계산 (Reverse Form) 탭
    ────────────────────────────────────────────────────────────
    알고리즘:
      Stage 1 (def): 내가 친 기술 + 관측 → 상대 HP+Def(or SpD) 추정
      Stage 2     : 잔존 EV 계산 (66 - 내구합)
      Stage 3 (atk): 상대 친 기술 + 관측 → 상대 Atk(or SpA), 잔존 내에서
-     Stage 4     : 도구 추론 (Stage 3 매치 안 될 때 type-boost / 메가스톤 시도)
+     Stage 4     : 선후공 조건과 스카프 여부를 결합해 66포인트 룰 검증
    부분 입력:
      - 내 기술만 입력 → Stage 1 결과만
      - 상대 기술만 입력 → Stage 3 결과만 (HP/Def 검색 안 함)
    ════════════════════════════════════════════════════════════ */
+
+function rcDefaultField() {
+  return {
+    weather: 'none', terrain: 'none', isCritical: false,
+    defReflect: false, defLightScreen: false, gameType: 'Singles',
+    isTrickRoom: false, isGravity: false,
+    ruinSword: false, ruinTablet: false, ruinBeads: false, ruinVessel: false,
+    defStealthRock: false, defSpikesLayers: 0,
+    atkHelpingHand: false, defProtect: false,
+  };
+}
 
 const revCalcState = {
   my: makeSideState('incineroar'),
@@ -2764,16 +3143,11 @@ const revCalcState = {
   oppMove: '',
   oppMoveBp: '',
   observedMyPct: '',
-  field: {
-    weather: 'none', terrain: 'none', isCritical: false,
-    defReflect: false, defLightScreen: false, gameType: 'Singles',
-    isTrickRoom: false, isGravity: false,
-    ruinSword: false, ruinTablet: false, ruinBeads: false, ruinVessel: false,
-    defStealthRock: false, defSpikesLayers: 0,
-    atkHelpingHand: false, defProtect: false,
-  },
-  // 도구 후보 — 기본은 모든 type-boost 도구 + 빈 도구. 사용자가 추가/제거 가능.
-  itemCandidates: ['', 'silkscarf', 'charcoal', 'mysticwater', 'magnet', 'miracleseed',
+  turnOrder: 'unknown',
+  mySpeedOverride: '',
+  field: rcDefaultField(),
+  // 도구 후보 — 기본은 빈 도구, 구애스카프, type-boost 도구. 사용자가 추가/제거 가능.
+  itemCandidates: ['', 'choicescarf', 'silkscarf', 'charcoal', 'mysticwater', 'magnet', 'miracleseed',
                    'nevermeltice', 'blackbelt', 'poisonbarb', 'softsand', 'sharpbeak',
                    'twistedspoon', 'silverpowder', 'hardstone', 'spelltag', 'dragonfang',
                    'blackglasses', 'metalcoat', 'fairyfeather'],
@@ -2781,20 +3155,155 @@ const revCalcState = {
   analyzing: false,
 };
 
+function rcAnalysisField() {
+  return {
+    ...rcDefaultField(),
+    weather: revCalcState.field.weather || 'none',
+    terrain: revCalcState.field.terrain || 'none',
+    isCritical: !!revCalcState.field.isCritical,
+    defReflect: !!revCalcState.field.defReflect,
+    defLightScreen: !!revCalcState.field.defLightScreen,
+    isTrickRoom: !!revCalcState.field.isTrickRoom,
+  };
+}
+
+function rcActiveFieldSummary(field) {
+  const parts = [];
+  if (field.weather && field.weather !== 'none') parts.push(`weather=${field.weather}`);
+  if (field.terrain && field.terrain !== 'none') parts.push(`terrain=${field.terrain}`);
+  if (field.isCritical) parts.push('critical');
+  if (field.defReflect) parts.push('reflect');
+  if (field.defLightScreen) parts.push('lightscreen');
+  if (field.isTrickRoom) parts.push('trickroom');
+  return parts.join(',') || 'none';
+}
+
 // 방어 nature 7개 (Hardy = 무보정)
 const RC_DEF_NATURES = ['bold', 'impish', 'calm', 'careful', 'relaxed', 'sassy', 'hardy'];
 // 공격 nature 7개 (Atk 또는 SpA 보정 + 무보정)
 const RC_ATK_NATURES = ['adamant', 'naive', 'lonely', 'brave', 'modest', 'rash', 'mild', 'quiet', 'hardy'];
 
-function rcMatchingRolls(rolls, observedPct, defenderHp) {
+function rcMatchingRemainingPct(rolls, observedPct, defenderHp) {
   let matches = 0;
   for (const d of rolls) {
     if (d <= 0) continue;
     const remaining = Math.max(0, defenderHp - d);
-    const remPct = Math.floor(remaining / defenderHp * 100);
-    if (remPct === observedPct) matches++;
+    const remainingPct = Math.floor(remaining / defenderHp * 100);
+    if (remainingPct === observedPct) matches++;
   }
   return matches;
+}
+
+function rcMatchingRemainingHp(rolls, observedHp, startingHp) {
+  let matches = 0;
+  for (const d of rolls) {
+    if (d <= 0) continue;
+    const remaining = Math.max(0, startingHp - d);
+    if (remaining === observedHp) matches++;
+  }
+  return matches;
+}
+
+function rcCurrentHpValue(side) {
+  const stats = calcStats(side);
+  const rawPct = Number(side.hpPct ?? 1);
+  const hpPct = Number.isFinite(rawPct) ? Math.max(0.01, Math.min(1, rawPct > 1 ? rawPct / 100 : rawPct)) : 1;
+  return Math.max(1, Math.floor(stats.hp * hpPct));
+}
+
+function rcStageModifiedStat(value, stage) {
+  const rank = Math.max(-6, Math.min(6, parseInt(stage, 10) || 0));
+  if (rank >= 0) return Math.floor(value * (2 + rank) / 2);
+  return Math.floor(value * 2 / (2 - rank));
+}
+
+function rcSpeedWithMods(baseSpeed, rank, item, status) {
+  let speed = rcStageModifiedStat(baseSpeed, rank);
+  if (item === 'choicescarf') speed = Math.floor(speed * 1.5);
+  if (status === 'Paralysis') speed = Math.floor(speed * 0.5);
+  return Math.max(1, speed);
+}
+
+function rcMySpeedValue() {
+  const manual = parseInt(revCalcState.mySpeedOverride, 10);
+  if (Number.isFinite(manual) && manual > 0) return manual;
+  const stats = calcStats(revCalcState.my);
+  return rcSpeedWithMods(
+    stats.spe,
+    revCalcState.my.ranks?.spe || 0,
+    revCalcState.my.item || '',
+    revCalcState.my.status || 'none'
+  );
+}
+
+function rcOpponentSpeedValue(oppP, nature, item, speEv) {
+  const oppState = rcBuildDefState(oppP, {
+    evs: { spe: speEv },
+    nature,
+    item,
+  });
+  const baseSpeed = calcStats(oppState).spe;
+  return rcSpeedWithMods(baseSpeed, revCalcState.opp.ranks?.spe || 0, item || '', revCalcState.opp.status || 'none');
+}
+
+function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField()) {
+  const order = revCalcState.turnOrder || 'unknown';
+  const mySpeed = rcMySpeedValue();
+  if (order === 'unknown') {
+    return {
+      active: false,
+      valid: true,
+      speEv: 0,
+      speMin: 0,
+      speMax: 32,
+      mySpeed,
+      oppSpeed: rcOpponentSpeedValue(oppP, nature, item, 0),
+      label: '속도 조건 없음',
+    };
+  }
+
+  const ok = [];
+  for (let speEv = 0; speEv <= 32; speEv++) {
+    const oppSpeed = rcOpponentSpeedValue(oppP, nature, item, speEv);
+    let matches = false;
+    if (order === 'opp-first') {
+      matches = field.isTrickRoom ? oppSpeed < mySpeed : oppSpeed > mySpeed;
+    } else if (order === 'my-first') {
+      matches = field.isTrickRoom ? oppSpeed > mySpeed : oppSpeed < mySpeed;
+    } else if (order === 'speed-tie') {
+      matches = oppSpeed === mySpeed;
+    }
+    if (matches) ok.push({ speEv, oppSpeed });
+  }
+
+  if (!ok.length) {
+    return { active: true, valid: false, speEv: 33, speMin: null, speMax: null, mySpeed, oppSpeed: null, label: '속도 조건 불일치' };
+  }
+
+  const chosen = ok[0];
+  return {
+    active: true,
+    valid: true,
+    speEv: chosen.speEv,
+    speMin: ok[0].speEv,
+    speMax: ok[ok.length - 1].speEv,
+    mySpeed,
+    oppSpeed: chosen.oppSpeed,
+    label: item === 'choicescarf' ? '구애스카프 속도 조건 충족' : '속도 조건 충족',
+  };
+}
+
+function rcCandidatePointSum(c) {
+  return (c.hpEv || 0) + (c.defEv || 0) + (c.atkEv || 0) + (c.speEv || 0);
+}
+
+function rcRelevantOffenseItems(move) {
+  return revCalcState.itemCandidates.filter(item => {
+    if (!item || item === 'choicescarf') return true;
+    const itemData = ItemById[item];
+    if (!itemData?.typeBoostType) return true;
+    return itemData.typeBoostType === move.type;
+  });
 }
 
 // 베이스 defender state 빌드 (역계산 검색 중간 단계용)
@@ -2835,7 +3344,7 @@ function rcStage1Defense(my, oppP, myMove, observedPct, field, defStat) {
         const result = calculateDamage(my, oppState, myMove, field);
         if (!result || !result.damages) continue;
         const oppHp = calcStats(oppState).hp;
-        const matches = rcMatchingRolls(result.damages, observedPct, oppHp);
+        const matches = rcMatchingRemainingPct(result.damages, observedPct, oppHp);
         if (matches > 0) {
           candidates.push({
             nature: natureId,
@@ -2855,15 +3364,13 @@ function rcStage1Defense(my, oppP, myMove, observedPct, field, defStat) {
 // Stage 3: 공격 검색 (Stage 1 candidates 와 함께 정제)
 function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedPct, field, atkStat) {
   const refined = [];
-  const myHp = calcStats(my).hp;
+  const myHp = rcCurrentHpValue(my);
 
   for (const c of defCandidates) {
     const remainingEv = 66 - c.hpEv - c.defEv;
-    let bestForCand = null;
 
     for (let atkEv = 0; atkEv <= Math.min(32, remainingEv); atkEv++) {
-      // 도구 후보 시도 ('' = 도구 없음, 첫 번째)
-      for (const item of revCalcState.itemCandidates) {
+      for (const item of rcRelevantOffenseItems(oppMove)) {
         const oppState = rcBuildDefState(oppP, {
           evs: { hp: c.hpEv, [c.defStat]: c.defEv, [atkStat]: atkEv },
           nature: c.nature,
@@ -2871,7 +3378,7 @@ function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedPct, fi
         });
         const result = calculateDamage(oppState, my, oppMove, field);
         if (!result || !result.damages) continue;
-        const matches = rcMatchingRolls(result.damages, observedPct, myHp);
+        const matches = rcMatchingRemainingHp(result.damages, observedPct, myHp);
         if (matches > 0) {
           const atkScore = matches / 16;
           const totalScore = c.defScore * atkScore;
@@ -2882,14 +3389,10 @@ function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedPct, fi
             oppAtk: calcStats(oppState)[atkStat],
             myDamages: result.damages,
           };
-          if (!bestForCand || cand.totalScore > bestForCand.totalScore) bestForCand = cand;
-          // 첫 번째 매칭하는 도구 (없음 우선) 만 기록
-          if (item === '') break;
+          refined.push(cand);
         }
       }
-      if (bestForCand && bestForCand.atkEv === atkEv && bestForCand.item === '') break;
     }
-    if (bestForCand) refined.push(bestForCand);
   }
   return refined;
 }
@@ -2897,17 +3400,17 @@ function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedPct, fi
 // 공격만 입력된 경우 — defensive 정보 없이 Atk 만 검색
 function rcStage3OffenseOnly(my, oppP, oppMove, observedPct, field, atkStat) {
   const candidates = [];
-  const myHp = calcStats(my).hp;
+  const myHp = rcCurrentHpValue(my);
   for (const natureId of RC_ATK_NATURES) {
     for (let atkEv = 0; atkEv <= 32; atkEv++) {
-      for (const item of revCalcState.itemCandidates) {
+      for (const item of rcRelevantOffenseItems(oppMove)) {
         const oppState = rcBuildDefState(oppP, {
           evs: { [atkStat]: atkEv },
           nature: natureId, item,
         });
         const result = calculateDamage(oppState, my, oppMove, field);
         if (!result || !result.damages) continue;
-        const matches = rcMatchingRolls(result.damages, observedPct, myHp);
+        const matches = rcMatchingRemainingHp(result.damages, observedPct, myHp);
         if (matches > 0) {
           candidates.push({
             nature: natureId,
@@ -2916,7 +3419,6 @@ function rcStage3OffenseOnly(my, oppP, oppMove, observedPct, field, atkStat) {
             atkScore: matches / 16, totalScore: matches / 16,
             oppAtk: calcStats(oppState)[atkStat],
           });
-          if (item === '') break;
         }
       }
     }
@@ -2935,9 +3437,12 @@ function rcAnalyze() {
   const oppMoveData = revCalcState.oppMove ? MoveById[revCalcState.oppMove] : null;
   const observedTheir = parseInt(revCalcState.observedTheirPct, 10);
   const observedMy = parseInt(revCalcState.observedMyPct, 10);
+  const myCurrentHp = rcCurrentHpValue(my);
+  const myStatsForDebug = calcStats(my);
 
-  const hasDef = myMoveData && myMoveData.cat !== 'Status' && observedTheir >= 0 && observedTheir <= 99;
-  const hasAtk = oppMoveData && oppMoveData.cat !== 'Status' && observedMy >= 0 && observedMy <= 99;
+  const hasDef = myMoveData && myMoveData.cat !== 'Status' && observedTheir >= 0 && observedTheir <= 100;
+  const hasAtk = oppMoveData && oppMoveData.cat !== 'Status' && observedMy >= 0 && observedMy <= myCurrentHp;
+  const field = rcAnalysisField();
 
   if (!hasDef && !hasAtk) {
     return { error: '내 기술 또는 상대 기술 중 하나는 입력해야 합니다 (변화기 제외).' };
@@ -2949,35 +3454,104 @@ function rcAnalyze() {
 
   let candidates = [];
   let mode = 'unknown';
+  const debug = {
+    myPokemon: my.pokemonIdx,
+    oppPokemon: oppP.id,
+    myNature: my.nature,
+    myEvs: { ...(my.evs || {}) },
+    myStats: { ...myStatsForDebug },
+    myMove: myMoveData?.id || '',
+    oppMove: oppMoveData?.id || '',
+    observedTheir,
+    observedMy,
+    myCurrentHp,
+    field: rcActiveFieldSummary(field),
+    turnOrder: revCalcState.turnOrder,
+    itemCount: revCalcState.itemCandidates.length,
+    hasNoItem: revCalcState.itemCandidates.includes(''),
+    hasDef: !!hasDef,
+    hasAtk: !!hasAtk,
+    stage1: 0,
+    stage1Trimmed: 0,
+    refined: 0,
+    speedRemoved: 0,
+    budgetRemoved: 0,
+    scarfSkipped: 0,
+  };
 
   if (hasDef && hasAtk) {
     // Full 모드
     mode = 'full';
     const defStat = myMove.cat === 'Physical' ? 'def' : 'spd';
     const atkStat = oppMove.cat === 'Physical' ? 'atk' : 'spa';
-    const stage1 = rcStage1Defense(my, oppP, myMove, observedTheir, revCalcState.field, defStat);
-    candidates = rcStage3OffenseRefine(stage1, my, oppP, oppMove, observedMy, revCalcState.field, atkStat);
+    const stage1Raw = rcStage1Defense(my, oppP, myMove, observedTheir, field, defStat);
+    debug.stage1 = stage1Raw.length;
+    const stage1 = stage1Raw
+      .sort((a, b) => (b.defScore - a.defScore) || ((b.hpEv >= b.defEv) - (a.hpEv >= a.defEv)) || (a.hpEv + a.defEv - b.hpEv - b.defEv))
+      .slice(0, 1200);
+    debug.stage1Trimmed = stage1.length;
+    candidates = rcStage3OffenseRefine(stage1, my, oppP, oppMove, observedMy, field, atkStat);
+    debug.refined = candidates.length;
   } else if (hasDef) {
     mode = 'def-only';
     const defStat = myMove.cat === 'Physical' ? 'def' : 'spd';
-    const stage1 = rcStage1Defense(my, oppP, myMove, observedTheir, revCalcState.field, defStat);
-    candidates = stage1.map(c => ({ ...c, totalScore: c.defScore }));
+    const stage1 = rcStage1Defense(my, oppP, myMove, observedTheir, field, defStat);
+    debug.stage1 = stage1.length;
+    debug.stage1Trimmed = stage1.length;
+    const speedItems = revCalcState.turnOrder === 'unknown' ? [''] : ['', 'choicescarf'].filter(item => revCalcState.itemCandidates.includes(item));
+    candidates = stage1.flatMap(c => speedItems.map(item => ({ ...c, item, totalScore: c.defScore })));
+    debug.refined = candidates.length;
   } else {
     mode = 'atk-only';
     const atkStat = oppMove.cat === 'Physical' ? 'atk' : 'spa';
-    candidates = rcStage3OffenseOnly(my, oppP, oppMove, observedMy, revCalcState.field, atkStat);
+    candidates = rcStage3OffenseOnly(my, oppP, oppMove, observedMy, field, atkStat);
+    debug.refined = candidates.length;
   }
 
-  // 정렬 + Top 5
+  const rawTotal = candidates.length;
+  const speedActive = revCalcState.turnOrder !== 'unknown';
+  const shaped = [];
+  for (const c of candidates) {
+    if (!speedActive && c.item === 'choicescarf') {
+      debug.scarfSkipped++;
+      continue;
+    }
+    const speedInfo = rcSpeedCandidateInfo(oppP, c.nature || 'hardy', c.item || '', field);
+    if (!speedInfo.valid) {
+      debug.speedRemoved++;
+      continue;
+    }
+    const withSpeed = { ...c, speedInfo, speEv: speedInfo.speEv };
+    withSpeed.totalEv = rcCandidatePointSum(withSpeed);
+    if (withSpeed.totalEv > 66) {
+      debug.budgetRemoved++;
+      continue;
+    }
+    shaped.push(withSpeed);
+  }
+  debug.afterFilter = shaped.length;
+  candidates = shaped;
+
+  // 정렬 + Top 8
   candidates.sort((a, b) => {
     if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
     // tie-break: EV 합 작은 우선 (단순한 spread 우선)
-    const aSum = (a.hpEv || 0) + (a.defEv || 0) + (a.atkEv || 0);
-    const bSum = (b.hpEv || 0) + (b.defEv || 0) + (b.atkEv || 0);
-    return aSum - bSum;
+    return (a.totalEv || rcCandidatePointSum(a)) - (b.totalEv || rcCandidatePointSum(b));
   });
 
-  return { results: candidates.slice(0, 5), total: candidates.length, mode };
+  return {
+    results: candidates.slice(0, 8),
+    total: candidates.length,
+    rawTotal,
+    filteredByRule: Math.max(0, rawTotal - candidates.length),
+    mode,
+    speedActive,
+    myCurrentHp,
+    mySpeed: rcMySpeedValue(),
+    scarfViable: candidates.some(c => c.item === 'choicescarf'),
+    nonScarfViable: candidates.some(c => c.item !== 'choicescarf'),
+    debug,
+  };
 }
 
 // === UI 렌더링 ===
@@ -3147,6 +3721,9 @@ function renderRevCalcInputs() {
 
   const myMoveBpValue = revCalcState.myMoveBp !== '' ? revCalcState.myMoveBp : (myMoveData?.bp || '');
   const oppMoveBpValue = revCalcState.oppMoveBp !== '' ? revCalcState.oppMoveBp : (oppMoveData?.bp || '');
+  const myStats = calcStats(my);
+  const myCurrentHp = rcCurrentHpValue(my);
+  const autoMySpeed = rcSpeedWithMods(myStats.spe, my.ranks?.spe || 0, my.item || '', my.status || 'none');
 
   // 도구 후보 체크박스 (type-boost 도구 + 그외 사용 가능 도구)
   const itemMaster = ITEMS.filter(i => !i.ms && !i.isBerry);
@@ -3175,7 +3752,7 @@ function renderRevCalcInputs() {
           </label>
           <label class="field" style="flex:1;">
             <span class="field-label">상대 남은 HP %</span>
-            <input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="99" placeholder="0~99">
+            <input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="100" placeholder="0~100">
           </label>
         </div>
       </div>
@@ -3195,10 +3772,34 @@ function renderRevCalcInputs() {
             <input type="number" data-rc-action="oppMoveBp" value="${oppMoveBpValue}" min="0" max="999" placeholder="자동">
           </label>
           <label class="field" style="flex:1;">
-            <span class="field-label">내 남은 HP %</span>
-            <input type="number" data-rc-action="observedMyPct" value="${revCalcState.observedMyPct}" min="0" max="99" placeholder="0~99">
+            <span class="field-label">내 남은 HP</span>
+            <input type="number" data-rc-action="observedMyPct" value="${revCalcState.observedMyPct}" min="0" max="${myCurrentHp}" placeholder="0~${myCurrentHp}">
           </label>
         </div>
+      </div>
+
+      <div class="rc-input-block rc-speed-block">
+        <div class="ft-section-title">선후공 / 속도 조건</div>
+        <div class="ft-controls-row">
+          <label class="field" style="flex:1;">
+            <span class="field-label">이번 턴 행동 순서</span>
+            <select data-rc-action="turnOrder">
+              <option value="unknown" ${revCalcState.turnOrder === 'unknown' ? 'selected' : ''}>사용 안 함</option>
+              <option value="opp-first" ${revCalcState.turnOrder === 'opp-first' ? 'selected' : ''}>상대가 먼저 행동</option>
+              <option value="my-first" ${revCalcState.turnOrder === 'my-first' ? 'selected' : ''}>내가 먼저 행동</option>
+              <option value="speed-tie" ${revCalcState.turnOrder === 'speed-tie' ? 'selected' : ''}>동속 확인</option>
+            </select>
+          </label>
+          <label class="field" style="flex:1;">
+            <span class="field-label">내 속도 실수치</span>
+            <input type="number" data-rc-action="mySpeedOverride" value="${revCalcState.mySpeedOverride}" min="1" max="999" placeholder="${autoMySpeed}">
+          </label>
+          <div class="rc-speed-readout">
+            <span>자동 기준</span>
+            <b>${autoMySpeed}</b>
+          </div>
+        </div>
+        <div class="rc-hint">상대 체력은 전투 UI의 남은 HP%를, 내 체력은 전투 UI에 보이는 남은 HP 실수치를 입력합니다. 속도 조건을 켜면 상대 S 투자와 구애스카프 후보가 같은 66포인트 예산 안에서 함께 검증됩니다.</div>
       </div>
 
       <div class="rc-input-block">
@@ -3238,68 +3839,120 @@ function renderRevCalcResults() {
   const container = document.getElementById('rc-results-body');
   if (!container) return;
   if (revCalcState.analyzing) {
-    container.innerHTML = '<div class="empty-state">⏳ 분석 중…</div>';
+    container.innerHTML = '<div class="empty-state">형태 분석 중...</div>';
     return;
   }
   const r = revCalcState.results;
   if (!r) {
-    container.innerHTML = '<div class="empty-state">위에 데이터를 입력하고 "분석 시작" 버튼을 눌러주세요.</div>';
+    container.innerHTML = '<div class="empty-state">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>';
     return;
   }
   if (r.error) {
-    container.innerHTML = `<div class="empty-state" style="color:var(--atk);">⚠️ ${escapeHTML(r.error)}</div>`;
+    container.innerHTML = `<div class="empty-state" style="color:var(--atk);">⚠ ${escapeHTML(r.error)}</div>`;
     return;
   }
-  const modeLabel = { 'full': '전체 (내구 + 공격)', 'def-only': '내구만', 'atk-only': '공격만' }[r.mode] || r.mode;
-  if (r.results.length === 0) {
+
+  const modeLabel = {
+    full: '3중 교차 검증',
+    'def-only': '내구 역산 + 속도',
+    'atk-only': '화력 역산 + 속도',
+  }[r.mode] || r.mode;
+
+  if (!r.results.length) {
+    const d = r.debug || {};
+    const debugBits = [
+      `내 ${escapeHTML(d.myPokemon || '-')}`,
+      `상대 ${escapeHTML(d.oppPokemon || '-')}`,
+      `내 성격 ${escapeHTML(d.myNature || '-')}`,
+      `내 EV H${d.myEvs?.hp ?? '-'} C${d.myEvs?.spa ?? '-'} S${d.myEvs?.spe ?? '-'}`,
+      `내 실수치 C${d.myStats?.spa ?? '-'} S${d.myStats?.spe ?? '-'}`,
+      `기술 ${escapeHTML(d.myMove || '-')} / ${escapeHTML(d.oppMove || '-')}`,
+      `필드 ${escapeHTML(d.field || 'none')}`,
+      `도구후보 ${d.itemCount ?? '-'}개${d.hasNoItem ? '+없음' : ''}`,
+      `내구후보 ${d.stage1 ?? '-'}`,
+      `정제대상 ${d.stage1Trimmed ?? '-'}`,
+      `화력후보 ${d.refined ?? '-'}`,
+      `속도제거 ${d.speedRemoved ?? '-'}`,
+      `예산제거 ${d.budgetRemoved ?? '-'}`,
+      `후보 생성 ${r.rawTotal || 0}개`,
+      `최종 생존 ${r.total || 0}개`,
+      `규칙 제거 ${r.filteredByRule || 0}개`,
+      `내 HP 기준 ${r.myCurrentHp || '-'}`,
+      `내 속도 기준 ${r.mySpeed || '-'}`,
+      `상대 남은 HP ${escapeHTML(revCalcState.observedTheirPct || '-')}%`,
+      `내 남은 HP ${escapeHTML(revCalcState.observedMyPct || '-')}`,
+    ];
     container.innerHTML = `
-      <div class="empty-state">매칭되는 spread 없음.</div>
-      <div class="rc-hint">입력값 확인 — 기술 위력, 필드 상태, 랭크, 도구 후보 등</div>
+      <div class="empty-state">66포인트 룰과 관측값을 동시에 만족하는 형태가 없습니다.</div>
+      <div class="rc-results-summary">${debugBits.join(' · ')}</div>
+      <div class="rc-hint">상대 쪽 입력은 남은 HP%, 내 쪽 입력은 남은 HP 실수치 기준입니다. 기술 위력/필드/랭크/도구 후보/선후공 조건도 함께 확인해 주세요.</div>
     `;
     return;
   }
-  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+
+  const scarfBrief = r.speedActive
+    ? (r.scarfViable && !r.nonScarfViable
+        ? '속도 조건까지 합치면 구애스카프 후보만 66포인트 안에 남습니다.'
+        : r.scarfViable
+          ? '구애스카프와 비스카프 후보가 함께 남아 있어 추가 관측이 필요합니다.'
+          : '현재 조건에서는 구애스카프 없이도 속도 조건을 만족할 수 있습니다.')
+    : '속도 조건은 사용하지 않았습니다.';
+  const first = r.results[0];
+  const topItem = first.item ? itName(ItemById[first.item] || { name: first.item }) : '도구 없음';
+  const briefing = `상위 후보는 ${topItem}, ${NATURE_BY_ID[first.nature]?.ko || first.nature} 성격, 총 ${first.totalEv}포인트 사용 형태입니다. ${scarfBrief}`;
   const STAT_LABEL = { hp: 'H', atk: 'A', def: 'B', spa: 'C', spd: 'D', spe: 'S' };
 
   const rows = r.results.map((c, i) => {
-    const stars = '⭐'.repeat(Math.max(1, Math.min(5, Math.round(c.totalScore * 5))));
     const evDesc = [];
     if (c.hpEv > 0) evDesc.push(`H${c.hpEv}`);
-    if (c.defEv > 0) evDesc.push(STAT_LABEL[c.defStat] + c.defEv);
-    if (c.atkEv > 0) evDesc.push(STAT_LABEL[c.atkStat] + c.atkEv);
+    if (c.defEv > 0) evDesc.push(`${STAT_LABEL[c.defStat]}${c.defEv}`);
+    if (c.atkEv > 0) evDesc.push(`${STAT_LABEL[c.atkStat]}${c.atkEv}`);
+    if ((c.speEv || 0) > 0 || r.speedActive) evDesc.push(`S${c.speEv || 0}`);
     const natureKo = NATURE_BY_ID[c.nature]?.ko || c.nature;
-    const itemTag = c.item ? `<span class="rc-result-item">${escapeHTML(itName(ItemById[c.item] || { name: c.item }))}</span>`
-                            : '<span class="rc-result-item rc-no-item">도구 없음</span>';
+    const itemTag = c.item
+      ? `<span class="rc-result-item ${c.item === 'choicescarf' ? 'rc-scarf-item' : ''}">${escapeHTML(itName(ItemById[c.item] || { name: c.item }))}</span>`
+      : '<span class="rc-result-item rc-no-item">도구 없음</span>';
+    const scorePct = Math.round((c.totalScore || 0) * 100);
+    const defHit = c.defScore ? `${Math.round(c.defScore * 16)}/16` : '-';
+    const atkHit = c.atkScore ? `${Math.round(c.atkScore * 16)}/16` : '-';
     const statsLine = [];
     if (c.oppHp) statsLine.push(`HP ${c.oppHp}`);
-    if (c.oppDef) statsLine.push(STAT_LABEL[c.defStat] + ' ' + c.oppDef);
-    if (c.oppAtk) statsLine.push(STAT_LABEL[c.atkStat] + ' ' + c.oppAtk);
+    if (c.oppDef) statsLine.push(`${STAT_LABEL[c.defStat]} ${c.oppDef}`);
+    if (c.oppAtk) statsLine.push(`${STAT_LABEL[c.atkStat]} ${c.oppAtk}`);
+    if (c.speedInfo?.active) statsLine.push(`속도 ${c.speedInfo.oppSpeed} (내 ${c.speedInfo.mySpeed})`);
+    const speedRange = c.speedInfo?.active
+      ? `S 가능범위 ${c.speedInfo.speMin}~${c.speedInfo.speMax}`
+      : '속도 미사용';
     return `
-      <div class="rc-result-row">
+      <div class="rc-result-row rc-form-result">
         <div class="rc-result-rank">#${i + 1}</div>
-        <div class="rc-result-stars">${stars}<small>${(c.totalScore * 100).toFixed(0)}%</small></div>
+        <div class="rc-result-stars"><b>${scorePct}%</b><small>난수 ${defHit} / ${atkHit}</small></div>
         <div class="rc-result-spread">
           <b>${evDesc.join(' / ') || '무투자'}</b>
           <span class="rc-result-nature">(${natureKo})</span>
           ${itemTag}
         </div>
-        <div class="rc-result-stats">${statsLine.join(' · ')}</div>
+        <div class="rc-result-stats">
+          <span>${statsLine.join(' · ') || '실수치 정보 없음'}</span>
+          <small>${speedRange} · 총 ${c.totalEv}/66</small>
+        </div>
         <div class="rc-result-action">
-          <button class="rc-apply-btn" data-rc-applyresult="${i}" title="이 spread를 계산기 방어측에 적용">📋 계산기 적용</button>
+          <button class="rc-apply-btn" data-rc-applyresult="${i}" title="이 후보를 계산기 방어측에 적용">계산기 적용</button>
         </div>
       </div>
     `;
   }).join('');
 
   container.innerHTML = `
+    <div class="rc-briefing">
+      <div class="rc-briefing-title">인텔리전스 브리핑</div>
+      <div>${escapeHTML(briefing)}</div>
+    </div>
     <div class="rc-results-summary">
-      모드: <b>${modeLabel}</b> · 후보 <b>${r.total}</b>개 중 상위 ${r.results.length}개 표시
+      모드: <b>${modeLabel}</b> · 생존 후보 <b>${r.total}</b>개 · 제거 후보 <b>${r.filteredByRule || 0}</b>개 · 내 속도 기준 <b>${r.mySpeed}</b>
     </div>
     <div class="rc-results-list">${rows}</div>
-    <div class="rc-hint">
-      ※ HP + (방어 또는 특방) 1종 풀투자 가정 · 합리적 nature 7~9개 검색 · 도구 후보는 위에서 선택한 것만<br>
-      ※ 잔류 데미지(독·풀씨·화상)나 다단히트는 단일 hit 데미지 기준이라 약간의 오차 가능
-    </div>
+    <div class="rc-hint">상대는 남은 HP%의 정수 내림값, 내 포켓몬은 남은 HP 실수치를 기준으로 16단계 난수 중 일치한 횟수를 표시합니다.</div>
   `;
 }
 
@@ -3311,6 +3964,51 @@ function renderRevCalcAll() {
 }
 
 // === 콤보박스 / 이벤트 ===
+
+function rcSyncInputsFromDom() {
+  const root = document.getElementById('page-revcalc');
+  if (!root) return;
+  const evInputs = Array.from(root.querySelectorAll('[data-rc-ev]'));
+  if (evInputs.length) {
+    const requested = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+    evInputs.forEach(el => {
+      const stat = el.dataset.rcEv;
+      if (stat in requested) requested[stat] = Math.max(0, Math.min(32, parseInt(el.value, 10) || 0));
+    });
+    let remaining = 66;
+    ['hp','atk','def','spa','spd','spe'].forEach(stat => {
+      const value = Math.min(requested[stat], remaining);
+      revCalcState.my.evs[stat] = value;
+      remaining -= value;
+    });
+  }
+  root.querySelectorAll('[data-rc-action]').forEach(el => {
+    const action = el.dataset.rcAction;
+    if (!action) return;
+    if (action === 'myMove') revCalcState.myMove = el.value;
+    else if (action === 'myNature') revCalcState.my.nature = el.value;
+    else if (action === 'myAbility') revCalcState.my.ability = el.value;
+    else if (action === 'oppStatus') revCalcState.opp.status = el.value;
+    else if (action === 'oppMove') revCalcState.oppMove = el.value;
+    else if (action === 'myMoveBp') revCalcState.myMoveBp = el.value;
+    else if (action === 'oppMoveBp') revCalcState.oppMoveBp = el.value;
+    else if (action === 'observedTheirPct') revCalcState.observedTheirPct = el.value;
+    else if (action === 'observedMyPct') revCalcState.observedMyPct = el.value;
+    else if (action === 'turnOrder') revCalcState.turnOrder = el.value;
+    else if (action === 'mySpeedOverride') revCalcState.mySpeedOverride = el.value;
+  });
+  const nextField = rcDefaultField();
+  root.querySelectorAll('[data-rc-field]').forEach(el => {
+    const key = el.dataset.rcField;
+    nextField[key] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  revCalcState.field = nextField;
+  const itemBoxes = root.querySelectorAll('[data-rc-item]');
+  if (itemBoxes.length) {
+    const selectedItems = Array.from(itemBoxes).filter(el => el.checked).map(el => el.dataset.rcItem).filter(Boolean);
+    revCalcState.itemCandidates = ['', ...selectedItems.filter((id, idx, arr) => arr.indexOf(id) === idx)];
+  }
+}
 
 function rcWireMyComboboxes() {
   document.getElementById('rc-my-body').querySelectorAll('.rc-cb-input').forEach(input => {
@@ -3393,9 +4091,10 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
     const otherSum = ['hp','atk','def','spa','spd','spe'].reduce((a, k) => k === stat ? a : a + (evs[k] || 0), 0);
     evs[stat] = Math.min(requested, Math.max(0, 66 - otherSum));
     renderRevCalcMy();
+    renderRevCalcInputs();
     return;
   }
-  if (t.dataset.rcAction === 'myNature') { revCalcState.my.nature = t.value; renderRevCalcMy(); return; }
+  if (t.dataset.rcAction === 'myNature') { revCalcState.my.nature = t.value; renderRevCalcMy(); renderRevCalcInputs(); return; }
   if (t.dataset.rcAction === 'myAbility') { revCalcState.my.ability = t.value; return; }
   if (t.dataset.rcAction === 'oppStatus') { revCalcState.opp.status = t.value; return; }
   if (t.dataset.rcAction === 'myMove') {
@@ -3414,6 +4113,8 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
   if (t.dataset.rcAction === 'oppMoveBp') { revCalcState.oppMoveBp = t.value; return; }
   if (t.dataset.rcAction === 'observedTheirPct') { revCalcState.observedTheirPct = t.value; return; }
   if (t.dataset.rcAction === 'observedMyPct') { revCalcState.observedMyPct = t.value; return; }
+  if (t.dataset.rcAction === 'turnOrder') { revCalcState.turnOrder = t.value; renderRevCalcInputs(); return; }
+  if (t.dataset.rcAction === 'mySpeedOverride') { revCalcState.mySpeedOverride = t.value; renderRevCalcInputs(); return; }
   if (t.dataset.rcField) {
     const k = t.dataset.rcField;
     const v = t.type === 'checkbox' ? t.checked : t.value;
@@ -3428,6 +4129,17 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
     return;
   }
 });
+
+document.getElementById('page-revcalc')?.addEventListener('input', e => {
+  const t = e.target;
+  if (!t.dataset?.rcAction) return;
+  if (t.dataset.rcAction === 'myMoveBp') revCalcState.myMoveBp = t.value;
+  if (t.dataset.rcAction === 'oppMoveBp') revCalcState.oppMoveBp = t.value;
+  if (t.dataset.rcAction === 'observedTheirPct') revCalcState.observedTheirPct = t.value;
+  if (t.dataset.rcAction === 'observedMyPct') revCalcState.observedMyPct = t.value;
+  if (t.dataset.rcAction === 'mySpeedOverride') revCalcState.mySpeedOverride = t.value;
+});
+
 document.getElementById('page-revcalc')?.addEventListener('click', e => {
   const t = e.target;
   if (t.dataset.rcEvset !== undefined) {
@@ -3437,6 +4149,7 @@ document.getElementById('page-revcalc')?.addEventListener('click', e => {
     const otherSum = ['hp','atk','def','spa','spd','spe'].reduce((a, k) => k === stat ? a : a + (evs[k] || 0), 0);
     evs[stat] = Math.min(requested, Math.max(0, 66 - otherSum));
     renderRevCalcMy();
+    renderRevCalcInputs();
     return;
   }
   if (t.dataset.rcRank) {
@@ -3444,6 +4157,7 @@ document.getElementById('page-revcalc')?.addEventListener('click', e => {
     const dir = parseInt(t.dataset.rcDir, 10);
     revCalcState.my.ranks[stat] = Math.max(-6, Math.min(6, (revCalcState.my.ranks[stat] || 0) + dir));
     renderRevCalcMy();
+    renderRevCalcInputs();
     return;
   }
   if (t.dataset.rcOpprank) {
@@ -3461,6 +4175,7 @@ document.getElementById('page-revcalc')?.addEventListener('click', e => {
 
 // 분석 시작
 document.getElementById('rcAnalyze')?.addEventListener('click', async () => {
+  rcSyncInputsFromDom();
   revCalcState.analyzing = true;
   renderRevCalcResults();
   // UI 업데이트 후 분석 (heavy → 다음 frame)
@@ -3487,6 +4202,7 @@ function rcApplyResultToCalc(idx) {
   if (c.hpEv) defState.evs.hp = c.hpEv;
   if (c.defEv) defState.evs[c.defStat] = c.defEv;
   if (c.atkEv) defState.evs[c.atkStat] = c.atkEv;
+  if (c.speEv) defState.evs.spe = c.speEv;
   defState.nature = c.nature;
   if (c.item) defState.item = c.item;
   defState.ranks = { ...revCalcState.opp.ranks };
@@ -3503,7 +4219,7 @@ function rcApplyResultToCalc(idx) {
   if (calcNav) calcNav.click();
 }
 
-// 계산기 → 역계산 sync (계산기 패널에 🔍 역계산 버튼 추가됨)
+// 계산기 → 형태 역계산 sync
 function loadSideToRevCalc(sideKey) {
   const src = state[sideKey];
   revCalcState.my = JSON.parse(JSON.stringify(src));
@@ -3511,7 +4227,8 @@ function loadSideToRevCalc(sideKey) {
   revCalcState.opp.pokemonIdx = state[otherKey].pokemonIdx;
   revCalcState.opp.ranks = { ...state[otherKey].ranks };
   revCalcState.opp.status = state[otherKey].status || 'none';
-  Object.assign(revCalcState.field, state.field);
+  revCalcState.mySpeedOverride = '';
+  revCalcState.field = rcDefaultField();
   const navBtn = document.querySelector('.nav-tab[data-page="revcalc"]');
   if (navBtn) navBtn.click();
   renderRevCalcAll();

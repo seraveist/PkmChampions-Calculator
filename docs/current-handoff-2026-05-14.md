@@ -90,6 +90,18 @@
 3. 방어 상성 모드와 공격 타점 모드를 토글 방식으로 분리한다.
 4. 상성표가 1차 완료되면 `docs/reverse-calculation-plan.md`의 최신 메모 기준으로 내구 역계산을 다시 정리한다.
 
+## 2026-05-14 Form Reverse Update
+
+Latest detailed handoff: `docs/form-reverse-handoff-2026-05-14.md`.
+
+Key status:
+
+- Type matchup table is now usable for first real testing.
+- Reverse calculator menu has been renamed to `형태 역계산`.
+- Form reverse calculator UI and logic were rebuilt toward the HP/offense/speed/scarf cross-validation plan.
+- A blocking UI bug remains: the Primarina vs Archaludon repro still reports `내구후보 0` in the live page even though a direct engine check can generate candidates.
+- Next session should prioritize isolating reverse-calc state from legacy `revCalcState` and adding a golden regression for that repro.
+
 ## Notes For Next Session
 
 - `pokemon-champions-calculator-v3.html`은 빌드 산출물이다. 소스 수정 후 반드시 `npm.cmd run build`로 갱신한다.
