@@ -163,7 +163,7 @@ npm run coverage:matrix
 
 - `src/js/02-engine.js`
 - `src/js/01-core.js`
-- `src/js/03-calc-ui.js`
+- `src/js/03-*.js`
 - `data/overrides/move-mechanics.json`
 - `data/overrides/ability-mechanics.json`
 - `data/overrides/item-mechanics.json`

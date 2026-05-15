@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import { readCalcUiSource, readViewSource } from './source-utils.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const HTML_PATH = path.join(ROOT, 'pokemon-champions-calculator-v3.html');
@@ -91,8 +92,8 @@ function loadFineTuneApi() {
   const source = [
     readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '02-engine.js'), 'utf8'),
-    readFileSync(path.join(ROOT, 'src', 'js', '03-calc-ui.js'), 'utf8'),
-    readFileSync(path.join(ROOT, 'src', 'js', '04-views.js'), 'utf8'),
+    readCalcUiSource(ROOT),
+    readViewSource(ROOT),
     `
       globalThis.__ftApi = {
         elements,

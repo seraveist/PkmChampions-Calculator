@@ -1,16 +1,16 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readViewSource } from './source-utils.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const htmlPath = path.join(ROOT, 'pokemon-champions-calculator-v3.html');
 const templatePath = path.join(ROOT, 'src', 'calc-template.html');
-const viewPath = path.join(ROOT, 'src', 'js', '04-views.js');
 const cssPath = path.join(ROOT, 'src', 'styles', '02-pages.css');
 
 const html = readFileSync(htmlPath, 'utf8');
 const template = readFileSync(templatePath, 'utf8');
-const viewSource = readFileSync(viewPath, 'utf8');
+const viewSource = readViewSource(ROOT);
 const css = readFileSync(cssPath, 'utf8');
 
 let failed = false;

@@ -180,7 +180,7 @@ Impact:
 영향:
 
 - `src/js/02-engine.js`에 보정 배율/이름 포맷 헬퍼를 추가했다.
-- `src/js/03-calc-ui.js`는 `mods`를 중복 제거하고 앞 6개만 렌더링한다.
+- `src/js/03-*.js`는 `mods`를 중복 제거하고 앞 6개만 렌더링한다.
 - 전체 라벨 목록은 `title` 속성으로 유지한다.
 
 ## D025. Booster Energy는 도구 보유와 발동 상태를 분리한다

@@ -19,10 +19,6 @@
       <div class="brand-sub">POKÉMON CHAMPIONS · Reg.A</div>
       <h1>포켓몬 챔피언스</h1>
     </div>
-    <div class="header-actions">
-      <button id="btnKoFetch" class="ko-fetch-btn">🇰🇷 한국어 보강</button>
-      <label class="champions-toggle"><input type="checkbox" id="championsMode" checked> 챔피언스 (Reg.A)</label>
-    </div>
   </div>
   <nav class="main-nav">
     <button class="nav-tab active" data-page="calc">⚔️ 대미지 계산기</button>
@@ -31,8 +27,15 @@
     <button class="nav-tab" data-page="finetune">🔧 세부조정</button>
     <button class="nav-tab" data-page="revcalc">🔎 형태 역계산</button>
   </nav>
-  <div class="header-status" id="data-status">데이터 로딩 중...</div>
 </header>
+
+<div class="site-shell">
+  <aside class="ad-rail ad-rail-left" aria-label="Left advertisement rail">
+    <div class="ad-slot ad-slot-rail">
+      <span>Advertisement</span>
+    </div>
+  </aside>
+  <div class="app-content">
 
 <!-- 메인 계산기 뷰 -->
 <main id="page-calc" class="page active">
@@ -274,36 +277,13 @@
   </section>
 </main>
 
-<!-- 모달 다이얼로그 -->
-<dialog class="ko-modal" id="koModal">
-  <div class="ko-modal-title">🇰🇷 한국어 이름 보강</div>
-  <div class="ko-modal-desc">
-    PokéAPI에서 누락된 번역을 가져와 브라우저에 영구 저장합니다. 다음 방문부터는 자동으로 적용됩니다.<br>
-    <span style="color: var(--text-faint); font-size: 11px;">⚠️ 약 1,100개 요청, 1~2분 소요</span>
   </div>
-  <div id="koProgressArea">
-    <div class="ko-progress-row">
-      <span class="label">기술</span>
-      <div class="ko-progress-bar"><div class="ko-progress-bar-fill" id="koBarMoves" style="width:0%"></div></div>
-      <span class="stat" id="koStatMoves">대기 중</span>
+  <aside class="ad-rail ad-rail-right" aria-label="Right advertisement rail">
+    <div class="ad-slot ad-slot-rail">
+      <span>Advertisement</span>
     </div>
-    <div class="ko-progress-row">
-      <span class="label">특성</span>
-      <div class="ko-progress-bar"><div class="ko-progress-bar-fill" id="koBarAbilities" style="width:0%"></div></div>
-      <span class="stat" id="koStatAbilities">대기 중</span>
-    </div>
-    <div class="ko-progress-row">
-      <span class="label">아이템</span>
-      <div class="ko-progress-bar"><div class="ko-progress-bar-fill" id="koBarItems" style="width:0%"></div></div>
-      <span class="stat" id="koStatItems">대기 중</span>
-    </div>
-  </div>
-  <div class="ko-modal-result" id="koResult" style="display:none;"></div>
-  <div class="ko-modal-actions">
-    <button class="ko-modal-btn" id="koCancel">닫기</button>
-    <button class="ko-modal-btn primary" id="koStart">시작</button>
-  </div>
-</dialog>
+  </aside>
+</div>
 
 <!-- 도감 상세 모달 -->
 <dialog class="dex-modal" id="dexDetailModal">

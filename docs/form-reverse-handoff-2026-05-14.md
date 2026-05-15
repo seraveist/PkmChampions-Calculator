@@ -111,7 +111,7 @@ Despite those attempts, the real UI still reports `내구후보 0`.
 ## Recommended Next Work
 
 1. Stop patching the legacy `revCalcState` flow and rebuild the form reverse calculator around an isolated state object, for example `formReverseState`.
-2. Extract pure candidate-generation helpers from `src/js/04-views.js` before additional UI polish.
+2. Extract pure candidate-generation helpers from `src/js/04-4x-revcalc-*.js` before additional UI polish.
 3. Add a golden regression script for the exact Primarina vs Archaludon scenario above.
 4. Add a UI sync regression check that sets the same values through the page controls, then asserts that stage 1 candidates are nonzero.
 5. Instrument the defensive stage zero-candidate path:
@@ -131,7 +131,7 @@ Despite those attempts, the real UI still reports `내구후보 0`.
 
 ## Files Most Relevant To Continue
 
-- `src/js/04-views.js`: current reverse calculator logic and matchup table rendering.
+- `src/js/04-4x-revcalc-*.js`: current reverse calculator logic and matchup table rendering.
 - `src/calc-template.html`: page layout and renamed menu.
 - `src/styles/02-pages.css`: matchup and reverse calculator UI styles.
 - `data/overrides/meta-threats.json`: current defense and coverage meta threat list.

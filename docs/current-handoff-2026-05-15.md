@@ -16,7 +16,7 @@
 
 ## Updated Files
 
-- `src/js/04-views.js`
+- `src/js/04-4x-revcalc-*.js`
   - 역계산 입력의 `observedMyPct`를 `observedMyHp`로 정리했다.
   - 내 포켓몬 HP 입력은 퍼센트가 아니라 실제 남은 HP 정수다.
   - 상대 남은 HP는 현재처럼 퍼센트 입력을 유지한다.

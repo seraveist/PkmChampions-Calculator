@@ -11,6 +11,11 @@
     --def: #33b7ff; --def-deep: #0d5a87;
     --warn: #ffb547; --ok: #4ade80;
     --tera: #c084fc;
+    --app-content-max: 1500px;
+    --ad-rail-width: 160px;
+    --app-shell-gap: 18px;
+    --app-shell-gutter: 24px;
+    --app-shell-max: calc(var(--app-content-max) + (var(--ad-rail-width) * 2) + (var(--app-shell-gap) * 2));
   }
   html, body { height: 100%; }
   body {
@@ -32,6 +37,13 @@
     padding: 16px 24px;
     background: linear-gradient(90deg, rgba(255, 71, 102, 0.08), transparent 40%, transparent 60%, rgba(51, 183, 255, 0.08));
   }
+  header > .header-top,
+  header > .main-nav {
+    width: 100%;
+    max-width: var(--app-shell-max);
+    margin-left: auto;
+    margin-right: auto;
+  }
   .header-top {
     display: flex;
     align-items: center;
@@ -50,41 +62,6 @@
     font-size: 10px; color: var(--text-faint);
     letter-spacing: 0.3em; margin-top: 2px;
   }
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .header-status {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--text-dim);
-    width: 100%;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
-    letter-spacing: 0.05em;
-  }
-  .header-status.loading { color: var(--warn); }
-  .header-status b { color: var(--text); font-weight: 600; }
-
-  /* 챔피언스 모드 토글 */
-  .champions-toggle {
-    margin: 0;
-    padding: 5px 10px;
-    background: rgba(192, 132, 252, 0.15);
-    border: 1px solid var(--tera);
-    border-radius: 3px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--tera);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-  }
-
   /* ─── 메인 네비게이션 ─── */
   .main-nav {
     display: flex;
@@ -116,10 +93,87 @@
   .page { display: none; }
   .page.active { display: block; }
 
-  main {
-    padding: 20px 24px;
-    max-width: 1800px;
+  .site-shell {
+    width: 100%;
+    max-width: calc(var(--app-shell-max) + (var(--app-shell-gutter) * 2));
     margin: 0 auto;
+    padding: 18px var(--app-shell-gutter) 28px;
+    display: grid;
+    grid-template-columns: var(--ad-rail-width) minmax(0, var(--app-content-max)) var(--ad-rail-width);
+    gap: var(--app-shell-gap);
+    align-items: start;
+  }
+  .app-content {
+    min-width: 0;
+  }
+  .ad-rail {
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+  }
+  .ad-slot {
+    width: var(--ad-rail-width);
+    border: 1px dashed rgba(136, 144, 171, 0.35);
+    border-radius: 4px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent),
+      rgba(15, 18, 32, 0.72);
+    color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .ad-slot-rail {
+    min-height: 600px;
+    position: sticky;
+    top: 18px;
+  }
+  .ad-slot span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    opacity: 0.72;
+  }
+
+  main {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  @media (max-width: 1759px) {
+    .site-shell {
+      max-width: calc(var(--app-content-max) + (var(--app-shell-gutter) * 2));
+      grid-template-columns: minmax(0, var(--app-content-max));
+    }
+    .ad-rail {
+      display: none;
+    }
+    header > .header-top,
+    header > .main-nav {
+      max-width: var(--app-content-max);
+    }
+  }
+  @media (max-width: 720px) {
+    header {
+      padding: 14px 12px;
+    }
+    .site-shell {
+      padding: 12px 12px 22px;
+    }
+    .main-nav {
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+    .nav-tab {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      white-space: nowrap;
+    }
   }
   /* 1행: 공격 + 교대버튼 + 수비 (3열, 가운데는 auto) */
   .battle-grid {

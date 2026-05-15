@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import { readCalcUiSource, readViewSource } from './source-utils.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const HTML_PATH = path.join(ROOT, 'pokemon-champions-calculator-v3.html');
@@ -80,8 +81,8 @@ function loadReverseApi() {
   const source = [
     readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '02-engine.js'), 'utf8'),
-    readFileSync(path.join(ROOT, 'src', 'js', '03-calc-ui.js'), 'utf8'),
-    readFileSync(path.join(ROOT, 'src', 'js', '04-views.js'), 'utf8'),
+    readCalcUiSource(ROOT),
+    readViewSource(ROOT),
     `
       globalThis.__reverseApi = {
         PokemonById, MoveById, revCalcState, makeSideState,
@@ -286,7 +287,7 @@ for (const className of [
   assertIncludes(reverseCss, className, `Reverse CSS defines ${className}`);
 }
 
-const reverseSource = readFileSync(path.join(ROOT, 'src', 'js', '04-views.js'), 'utf8');
+const reverseSource = readViewSource(ROOT);
 assertNotIncludes(reverseSource, 'observedMyPct', 'Reverse source no longer uses percent name for my raw HP input');
 assertNotIncludes(reverseSource, 'RC_DEF_NATURES', 'Reverse source removed stale defensive-only nature list');
 assertNotIncludes(reverseSource, 'RC_ATK_NATURES', 'Reverse source removed stale offensive-only nature list');

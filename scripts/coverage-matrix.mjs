@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readCalcUiSource } from './source-utils.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const HTML_PATH = path.join(ROOT, 'pokemon-champions-calculator-v3.html');
@@ -61,8 +62,7 @@ const itemIds = new Set(items.map(item => item.id));
 const codeFiles = [
   'src/js/01-core.js',
   'src/js/02-engine.js',
-  'src/js/03-calc-ui.js',
-].map(file => readFileSync(path.join(ROOT, file), 'utf8')).join('\n');
+].map(file => readFileSync(path.join(ROOT, file), 'utf8')).join('\n') + '\n' + readCalcUiSource(ROOT);
 
 function codeMentions(id) {
   const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

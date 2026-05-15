@@ -21,6 +21,11 @@
     --def: #33b7ff; --def-deep: #0d5a87;
     --warn: #ffb547; --ok: #4ade80;
     --tera: #c084fc;
+    --app-content-max: 1500px;
+    --ad-rail-width: 160px;
+    --app-shell-gap: 18px;
+    --app-shell-gutter: 24px;
+    --app-shell-max: calc(var(--app-content-max) + (var(--ad-rail-width) * 2) + (var(--app-shell-gap) * 2));
   }
   html, body { height: 100%; }
   body {
@@ -42,6 +47,13 @@
     padding: 16px 24px;
     background: linear-gradient(90deg, rgba(255, 71, 102, 0.08), transparent 40%, transparent 60%, rgba(51, 183, 255, 0.08));
   }
+  header > .header-top,
+  header > .main-nav {
+    width: 100%;
+    max-width: var(--app-shell-max);
+    margin-left: auto;
+    margin-right: auto;
+  }
   .header-top {
     display: flex;
     align-items: center;
@@ -60,41 +72,6 @@
     font-size: 10px; color: var(--text-faint);
     letter-spacing: 0.3em; margin-top: 2px;
   }
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .header-status {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--text-dim);
-    width: 100%;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
-    letter-spacing: 0.05em;
-  }
-  .header-status.loading { color: var(--warn); }
-  .header-status b { color: var(--text); font-weight: 600; }
-
-  /* 챔피언스 모드 토글 */
-  .champions-toggle {
-    margin: 0;
-    padding: 5px 10px;
-    background: rgba(192, 132, 252, 0.15);
-    border: 1px solid var(--tera);
-    border-radius: 3px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--tera);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-  }
-
   /* ─── 메인 네비게이션 ─── */
   .main-nav {
     display: flex;
@@ -126,10 +103,87 @@
   .page { display: none; }
   .page.active { display: block; }
 
-  main {
-    padding: 20px 24px;
-    max-width: 1800px;
+  .site-shell {
+    width: 100%;
+    max-width: calc(var(--app-shell-max) + (var(--app-shell-gutter) * 2));
     margin: 0 auto;
+    padding: 18px var(--app-shell-gutter) 28px;
+    display: grid;
+    grid-template-columns: var(--ad-rail-width) minmax(0, var(--app-content-max)) var(--ad-rail-width);
+    gap: var(--app-shell-gap);
+    align-items: start;
+  }
+  .app-content {
+    min-width: 0;
+  }
+  .ad-rail {
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+  }
+  .ad-slot {
+    width: var(--ad-rail-width);
+    border: 1px dashed rgba(136, 144, 171, 0.35);
+    border-radius: 4px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent),
+      rgba(15, 18, 32, 0.72);
+    color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .ad-slot-rail {
+    min-height: 600px;
+    position: sticky;
+    top: 18px;
+  }
+  .ad-slot span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    opacity: 0.72;
+  }
+
+  main {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  @media (max-width: 1759px) {
+    .site-shell {
+      max-width: calc(var(--app-content-max) + (var(--app-shell-gutter) * 2));
+      grid-template-columns: minmax(0, var(--app-content-max));
+    }
+    .ad-rail {
+      display: none;
+    }
+    header > .header-top,
+    header > .main-nav {
+      max-width: var(--app-content-max);
+    }
+  }
+  @media (max-width: 720px) {
+    header {
+      padding: 14px 12px;
+    }
+    .site-shell {
+      padding: 12px 12px 22px;
+    }
+    .main-nav {
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+    .nav-tab {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      white-space: nowrap;
+    }
   }
   /* 1행: 공격 + 교대버튼 + 수비 (3열, 가운데는 auto) */
   .battle-grid {
@@ -1745,113 +1799,6 @@
   .t-Fairy    { background: #e892b8; color: #1a1a1a; }
   .t-Stellar  { background: linear-gradient(135deg, #ffd700, #c084fc, #33b7ff); color: white; }
 
-  /* 한국어 보강 버튼 */
-  .ko-fetch-btn {
-    background: rgba(74, 222, 128, 0.1);
-    border: 1px solid var(--ok);
-    color: var(--ok);
-    padding: 6px 12px;
-    font-family: inherit;
-    font-size: 12px;
-    cursor: pointer;
-    border-radius: 3px;
-    font-weight: 600;
-    transition: all 0.15s;
-  }
-  .ko-fetch-btn:hover {
-    background: var(--ok);
-    color: var(--bg);
-  }
-  .ko-fetch-btn.completed {
-    background: rgba(74, 222, 128, 0.05);
-    border-color: rgba(74, 222, 128, 0.3);
-    color: var(--text-faint);
-    cursor: default;
-  }
-  .ko-fetch-btn:disabled { cursor: not-allowed; opacity: 0.6; }
-
-  /* 한국어 보강 진행 모달 */
-  .ko-modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(11, 13, 20, 0.85);
-    backdrop-filter: blur(6px);
-    z-index: 1000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-  }
-  .ko-modal-overlay.open { display: flex; }
-  .ko-modal {
-    background: var(--bg-panel);
-    border: 1px solid var(--ok);
-    border-radius: 6px;
-    padding: 24px 28px;
-    max-width: 520px;
-    width: 90%;
-    box-shadow: 0 10px 40px rgba(74, 222, 128, 0.2);
-  }
-  .ko-modal-title {
-    font-family: 'Black Han Sans', sans-serif;
-    font-size: 20px;
-    color: var(--ok);
-    margin-bottom: 8px;
-  }
-  .ko-modal-desc {
-    font-size: 13px;
-    color: var(--text-dim);
-    line-height: 1.6;
-    margin-bottom: 16px;
-  }
-  .ko-progress-row {
-    display: grid;
-    grid-template-columns: 80px 1fr 80px;
-    gap: 10px;
-    align-items: center;
-    margin: 8px 0;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-  }
-  .ko-progress-row .label { color: var(--text-dim); }
-  .ko-progress-row .stat { color: var(--text); text-align: right; }
-  .ko-progress-bar {
-    height: 6px;
-    background: var(--bg-input);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .ko-progress-bar-fill {
-    height: 100%;
-    background: var(--ok);
-    transition: width 0.2s;
-  }
-  .ko-modal-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 16px;
-    justify-content: flex-end;
-  }
-  .ko-modal-btn {
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    padding: 8px 16px;
-    font-family: inherit;
-    font-size: 12px;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-  .ko-modal-btn:hover {
-    border-color: var(--border-bright);
-    color: var(--text);
-  }
-  .ko-modal-btn.primary {
-    background: var(--ok);
-    color: var(--bg);
-    border-color: var(--ok);
-    font-weight: 700;
-  }
-  .ko-modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
   /* ════════════════════════════════════════════════════════════
      6.5  도감 상세 모달
      ════════════════════════════════════════════════════════════ */
@@ -2316,18 +2263,6 @@
     background: var(--bg-elev); border: 1px solid var(--border); border-radius: 0 0 4px 4px;
   }
 
-  .ko-modal-result {
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px 14px;
-    margin-top: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-  .ko-modal-result b { color: var(--ok); }
-
   .empty-state {
     text-align: center; padding: 30px 20px;
     color: var(--text-faint);
@@ -2644,11 +2579,6 @@
     header { padding: 12px 14px; }
     .header-brand h1 { font-size: 18px; }
     .brand-sub { font-size: 9px; letter-spacing: 0.2em; }
-    .header-actions { gap: 6px; }
-    .ko-fetch-btn { padding: 4px 8px; font-size: 10px; }
-    .champions-toggle { padding: 4px 8px; font-size: 10px; }
-    .header-status { font-size: 9px; margin-top: 6px; padding-top: 6px; }
-
     .panel-body { padding: 10px 12px; }
     .panel-header { padding: 10px 12px; font-size: 12px; }
     .speed-row {
@@ -2736,13 +2666,6 @@
     .header-brand h1 { font-size: 16px; }
     .brand-sub { font-size: 8px; letter-spacing: 0.15em; }
     .header-top { gap: 8px; }
-    .header-actions {
-      width: 100%;
-      justify-content: flex-end;
-    }
-    .ko-fetch-btn { font-size: 10px; padding: 4px 6px; }
-    .champions-toggle { font-size: 10px; padding: 4px 6px; }
-    .header-status { font-size: 9px; }
     .calc-row {
       flex-direction: column;
       gap: 8px;
@@ -3225,7 +3148,7 @@
   .ft-breakpoint-list { grid-template-columns: 1fr; }
 }
 
-/* Fine-tune V3 layout */
+/* Fine-tune layout */
 .ft-layout {
   grid-template-columns: minmax(700px, 780px) minmax(340px, 420px);
   grid-template-areas:
@@ -4269,6 +4192,675 @@
   }
 }
 
+
+/* Damage calculator redesign layer.
+ * This file is intentionally scoped to #page-calc where possible.
+ * It preserves the current calculation DOM and replaces the visual system.
+ */
+
+:root {
+  --bg: #f2f5f8;
+  --bg-elev: #ffffff;
+  --bg-panel: #ffffff;
+  --bg-input: #f7fafc;
+  --border: #d8e1ea;
+  --border-bright: #aebdcc;
+  --text: #17202a;
+  --text-dim: #5c6b7a;
+  --text-faint: #8b99a8;
+  --atk: #d64c56;
+  --atk-deep: #9f2834;
+  --def: #147fa6;
+  --def-deep: #0f5b78;
+  --warn: #b7791f;
+  --ok: #257a57;
+  --tera: #7f57bf;
+  --calc-surface: #ffffff;
+  --calc-surface-2: #f7fafc;
+  --calc-surface-3: #f2f6fa;
+  --calc-line: #d7e0e9;
+  --calc-line-soft: rgba(85, 105, 128, 0.18);
+  --calc-shadow: 0 16px 42px rgba(27, 39, 51, 0.10);
+}
+
+body {
+  background:
+    linear-gradient(180deg, #fbfdff 0%, #f3f7fb 48%, #eef3f7 100%);
+  color: var(--text);
+}
+
+header {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(85, 105, 128, 0.18);
+  box-shadow: 0 12px 28px rgba(27, 39, 51, 0.08);
+}
+
+.header-brand h1 {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.brand-sub {
+  letter-spacing: 0.08em;
+}
+
+.main-nav {
+  gap: 4px;
+  border-bottom: 0;
+}
+
+.nav-tab {
+  border: 1px solid transparent;
+  border-radius: 5px;
+  margin-bottom: 0;
+  padding: 9px 14px;
+  color: var(--text-dim);
+}
+
+.nav-tab:hover {
+  background: rgba(20, 37, 56, 0.045);
+  border-color: rgba(85, 105, 128, 0.16);
+}
+
+.nav-tab.active {
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(183, 121, 31, 0.15), rgba(183, 121, 31, 0.06));
+  border-color: rgba(183, 121, 31, 0.34);
+  box-shadow: inset 0 -2px 0 rgba(183, 121, 31, 0.42);
+}
+
+.ad-slot {
+  border-color: rgba(85, 105, 128, 0.24);
+  background: rgba(255, 255, 255, 0.64);
+}
+
+#page-calc {
+  --calc-gap: 14px;
+  --calc-radius: 6px;
+  color: var(--text);
+}
+
+#page-calc .battle-grid {
+  grid-template-columns: minmax(0, 1fr) 46px minmax(0, 1fr);
+  gap: var(--calc-gap);
+  margin-bottom: var(--calc-gap);
+}
+
+#page-calc .field-row,
+#page-calc .calc-row {
+  margin-bottom: var(--calc-gap);
+}
+
+#page-calc .panel,
+#page-calc .results {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.75), transparent 70%),
+    var(--calc-surface);
+  border: 1px solid var(--calc-line);
+  border-radius: var(--calc-radius);
+  box-shadow: var(--calc-shadow);
+}
+
+#page-calc .panel.atk {
+  border-color: rgba(240, 93, 94, 0.36);
+}
+
+#page-calc .panel.def {
+  border-color: rgba(58, 174, 216, 0.36);
+}
+
+#page-calc .panel-head,
+#page-calc .results-head {
+  min-height: 48px;
+  padding: 12px 14px;
+  background: var(--calc-surface-2);
+  border-bottom: 1px solid var(--calc-line);
+  border-radius: var(--calc-radius) var(--calc-radius) 0 0;
+}
+
+#page-calc .panel.atk .panel-head {
+  background:
+    linear-gradient(90deg, rgba(240, 93, 94, 0.16), transparent 48%),
+    var(--calc-surface-2);
+}
+
+#page-calc .panel.def .panel-head {
+  background:
+    linear-gradient(90deg, rgba(58, 174, 216, 0.16), transparent 48%),
+    var(--calc-surface-2);
+}
+
+#page-calc .panel-title,
+#page-calc .results-title {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+#page-calc .panel-tag {
+  border-radius: 4px;
+  padding: 3px 7px;
+  letter-spacing: 0.08em;
+}
+
+#page-calc .panel-body,
+#page-calc .results-body {
+  padding: 14px;
+}
+
+#page-calc .field {
+  margin-bottom: 12px;
+}
+
+#page-calc .field:last-child {
+  margin-bottom: 0;
+}
+
+#page-calc .field-label {
+  margin-bottom: 7px;
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: none;
+}
+
+#page-calc .field-label .hint {
+  color: var(--text-faint);
+  letter-spacing: 0;
+}
+
+#page-calc .section-divider {
+  height: 1px;
+  margin: 14px 0;
+  background: var(--calc-line-soft);
+}
+
+#page-calc .panel.atk .section-divider,
+#page-calc .panel.def .section-divider {
+  background: var(--calc-line-soft);
+}
+
+#page-calc input[type="text"],
+#page-calc input[type="number"],
+#page-calc select,
+#page-calc .cb-input {
+  height: 36px;
+  border-radius: 5px;
+  border-color: var(--calc-line);
+  background: var(--calc-surface-3);
+  color: var(--text);
+  font-size: 13px;
+}
+
+#page-calc input[type="text"]:focus,
+#page-calc input[type="number"]:focus,
+#page-calc select:focus,
+#page-calc .cb-input[aria-expanded="true"] {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 2px rgba(234, 184, 94, 0.16);
+}
+
+#page-calc .panel.atk input[type="text"]:focus,
+#page-calc .panel.atk input[type="number"]:focus,
+#page-calc .panel.atk .cb-input[aria-expanded="true"] {
+  border-color: rgba(240, 93, 94, 0.72);
+  box-shadow: 0 0 0 2px rgba(240, 93, 94, 0.16);
+}
+
+#page-calc .panel.def input[type="text"]:focus,
+#page-calc .panel.def input[type="number"]:focus,
+#page-calc .panel.def .cb-input[aria-expanded="true"] {
+  border-color: rgba(58, 174, 216, 0.72);
+  box-shadow: 0 0 0 2px rgba(58, 174, 216, 0.16);
+}
+
+#page-calc .combobox::after {
+  color: var(--text-faint);
+}
+
+#page-calc .combobox-options {
+  border-radius: 6px;
+  border-color: var(--border-bright);
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(27, 39, 51, 0.18);
+}
+
+#page-calc .combobox-option {
+  min-height: 36px;
+  border-bottom-color: rgba(147, 161, 178, 0.12);
+}
+
+#page-calc .combobox-option:hover,
+#page-calc .combobox-option.active {
+  background: #eef4f9;
+}
+
+#page-calc .combobox-option.selected {
+  background: rgba(234, 184, 94, 0.13);
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+
+#page-calc .types-display {
+  gap: 6px;
+  margin-top: 8px;
+}
+
+#page-calc .type-pill,
+#page-calc .cat-badge,
+#page-calc .stab-mark,
+#page-calc .eff-badge {
+  border-radius: 4px;
+}
+
+#page-calc .ft-jump-btn,
+#page-calc .type-reset-btn,
+#page-calc .manual-ability-toggle {
+  border-radius: 5px;
+  border-color: var(--calc-line);
+  background: var(--calc-surface-3);
+}
+
+#page-calc .calc-pair-grid {
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: start;
+}
+
+#page-calc .calc-control-cell {
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 8px;
+}
+
+#page-calc .calc-control-label {
+  color: var(--text-faint);
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+#page-calc .compound-control {
+  gap: 6px;
+}
+
+#page-calc .ability-toggle-cell,
+#page-calc .nature-spacer-cell {
+  grid-template-columns: minmax(0, 1fr) 72px;
+}
+
+#page-calc .hp-status-cell {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+#page-calc .manual-ability-spacer,
+#page-calc .manual-ability-toggle {
+  width: 72px;
+  height: 36px;
+}
+
+#page-calc .hp-inline-control {
+  height: 36px;
+  border-radius: 5px;
+  border-color: var(--calc-line);
+  background: var(--calc-surface-3);
+}
+
+#page-calc .calc-hp-note {
+  margin-top: 8px;
+  border-radius: 5px;
+  border-color: rgba(234, 184, 94, 0.24);
+  background: rgba(234, 184, 94, 0.07);
+}
+
+#page-calc .stat-grid {
+  grid-template-columns: 34px minmax(126px, 1fr) 88px 46px;
+  gap: 6px 8px;
+  align-items: center;
+}
+
+#page-calc .stat-name {
+  color: var(--text-dim);
+  font-weight: 800;
+}
+
+#page-calc .ev-input-group {
+  height: 36px;
+  border-radius: 5px;
+  border-color: var(--calc-line);
+  background: var(--calc-surface-3);
+}
+
+#page-calc .ev-input-group:focus-within {
+  outline: 0;
+  border-color: var(--warn);
+  box-shadow: 0 0 0 2px rgba(234, 184, 94, 0.14);
+}
+
+#page-calc .panel.atk .ev-input-group:focus-within {
+  border-color: rgba(240, 93, 94, 0.72);
+  box-shadow: 0 0 0 2px rgba(240, 93, 94, 0.14);
+}
+
+#page-calc .panel.def .ev-input-group:focus-within {
+  border-color: rgba(58, 174, 216, 0.72);
+  box-shadow: 0 0 0 2px rgba(58, 174, 216, 0.14);
+}
+
+#page-calc .ev-input-group .ev-quick {
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+#page-calc .stat-rank-btns {
+  height: 36px;
+  justify-content: center;
+}
+
+#page-calc .stat-rank-btns button {
+  width: 25px;
+  height: 25px;
+  border-radius: 5px;
+  background: #e6edf4;
+}
+
+#page-calc .stat-rank-val,
+#page-calc .stat-final {
+  line-height: 36px;
+}
+
+#page-calc .stat-final {
+  color: var(--text);
+}
+
+#page-calc .ev-total,
+#page-calc .ev-presets,
+#page-calc .condition-auto,
+#page-calc .condition-toggle,
+#page-calc .condition-number,
+#page-calc .durability-card {
+  border-radius: 5px;
+  border-color: var(--calc-line);
+  background: var(--calc-surface-3);
+}
+
+#page-calc .ev-presets {
+  padding: 10px;
+}
+
+#page-calc .ev-preset-btn {
+  min-height: 28px;
+  border-radius: 5px;
+  border-color: var(--calc-line);
+  background: #f8fbfd;
+}
+
+#page-calc .ev-preset-btn:hover {
+  background: #edf3f8;
+}
+
+#page-calc .moves-list {
+  gap: 8px;
+}
+
+#page-calc .move-slot {
+  grid-template-columns: 20px minmax(0, 1fr) 96px 84px;
+  gap: 8px;
+}
+
+#page-calc .move-slot-num {
+  color: var(--text-faint);
+  font-weight: 800;
+}
+
+#page-calc .move-bp-control {
+  height: 36px;
+  min-width: 96px;
+  border-radius: 5px;
+  border-color: var(--calc-line);
+  background: var(--calc-surface-3);
+}
+
+#page-calc .move-bp-input {
+  text-align: center;
+}
+
+#page-calc .move-stat-info {
+  min-width: 84px;
+  color: var(--text-dim);
+}
+
+#page-calc .condition-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+#page-calc .battle-conditions {
+  border-top-color: var(--calc-line-soft);
+}
+
+#page-calc .durability-grid {
+  gap: 8px;
+}
+
+#page-calc .durability-card.phys {
+  border-left: 3px solid #d88555;
+}
+
+#page-calc .durability-card.spec {
+  border-left: 3px solid #5cb6dc;
+}
+
+#page-calc .field-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#page-calc .field-checkbox-grid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 8px;
+  border-top-color: var(--calc-line-soft);
+}
+
+#page-calc .checkbox-label {
+  border-radius: 5px;
+  border: 1px solid var(--calc-line);
+  background: var(--calc-surface-3);
+}
+
+#page-calc .calc-row {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto auto;
+  gap: 10px;
+}
+
+#page-calc .btn-calculate,
+#page-calc .btn-secondary {
+  min-height: 46px;
+  border-radius: 6px;
+}
+
+#page-calc .btn-calculate {
+  background: linear-gradient(135deg, #df4f55, #eab85e);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  box-shadow: 0 14px 30px rgba(223, 79, 85, 0.22);
+}
+
+#page-calc .btn-secondary {
+  background: var(--calc-surface-3);
+  border-color: var(--calc-line);
+}
+
+#page-calc .btn-secondary.active {
+  background: rgba(72, 199, 142, 0.14);
+  border-color: rgba(72, 199, 142, 0.42);
+  color: var(--ok);
+}
+
+#page-calc .results {
+  overflow: visible;
+}
+
+#page-calc .results-meta {
+  color: var(--text-faint);
+}
+
+#page-calc .speed-row {
+  border-radius: 6px;
+  border-color: var(--calc-line);
+  background: var(--calc-surface-2);
+}
+
+#page-calc .speed-side,
+#page-calc .speed-verdict,
+#page-calc .speed-vs {
+  border-radius: 5px;
+  border-color: var(--calc-line);
+  background: var(--calc-surface-3);
+}
+
+#page-calc .move-results {
+  gap: 10px;
+}
+
+#page-calc .move-card {
+  border-radius: 6px;
+  border-color: var(--calc-line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), transparent),
+    var(--calc-surface-2);
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 12px;
+}
+
+#page-calc .move-card.none.compact {
+  border-color: rgba(147, 161, 178, 0.14);
+  background: rgba(13, 17, 25, 0.42);
+}
+
+#page-calc .move-name {
+  font-size: 15px;
+}
+
+#page-calc .move-meta {
+  max-width: none;
+}
+
+#page-calc .dmg-pct {
+  color: var(--text);
+  font-size: 17px;
+}
+
+#page-calc .dmg-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #e4ebf2;
+}
+
+#page-calc .dmg-bar-fill {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #df4f55, #eab85e);
+}
+
+#page-calc .mods-trace b,
+#page-calc .side-effect {
+  border-radius: 4px;
+}
+
+#page-calc .hko-badge {
+  min-width: 150px;
+  border-radius: 6px;
+  border-color: var(--calc-line);
+  background: var(--calc-surface-3);
+}
+
+#page-calc .hko-main {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+#page-calc .hko-main.ohko {
+  color: var(--atk);
+}
+
+@media (max-width: 1280px) {
+  #page-calc .battle-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #page-calc .swap-sides {
+    min-height: 42px;
+  }
+
+  #page-calc .field-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  #page-calc .panel-body,
+  #page-calc .results-body {
+    padding: 12px;
+  }
+
+  #page-calc .calc-pair-grid,
+  #page-calc .calc-row {
+    grid-template-columns: 1fr;
+  }
+
+  #page-calc .calc-control-cell {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  #page-calc .stat-grid {
+    grid-template-columns: 32px minmax(110px, 1fr) 82px 42px;
+  }
+
+  #page-calc .move-slot {
+    grid-template-columns: 20px minmax(0, 1fr);
+  }
+
+  #page-calc .move-bp-control,
+  #page-calc .move-stat-info {
+    grid-column: 2;
+  }
+
+  #page-calc .move-card {
+    grid-template-columns: 1fr;
+  }
+
+  #page-calc .hko-badge {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  #page-calc .panel-head,
+  #page-calc .results-head {
+    padding: 10px 12px;
+  }
+
+  #page-calc .stat-grid {
+    grid-template-columns: 28px minmax(0, 1fr) 76px 38px;
+    gap: 5px;
+  }
+
+  #page-calc .stat-rank-btns button {
+    width: 22px;
+  }
+
+  #page-calc .field-checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #page-calc .speed-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -4279,10 +4871,6 @@
       <div class="brand-sub">POKÉMON CHAMPIONS · Reg.A</div>
       <h1>포켓몬 챔피언스</h1>
     </div>
-    <div class="header-actions">
-      <button id="btnKoFetch" class="ko-fetch-btn">🇰🇷 한국어 보강</button>
-      <label class="champions-toggle"><input type="checkbox" id="championsMode" checked> 챔피언스 (Reg.A)</label>
-    </div>
   </div>
   <nav class="main-nav">
     <button class="nav-tab active" data-page="calc">⚔️ 대미지 계산기</button>
@@ -4291,8 +4879,15 @@
     <button class="nav-tab" data-page="finetune">🔧 세부조정</button>
     <button class="nav-tab" data-page="revcalc">🔎 형태 역계산</button>
   </nav>
-  <div class="header-status" id="data-status">데이터 로딩 중...</div>
 </header>
+
+<div class="site-shell">
+  <aside class="ad-rail ad-rail-left" aria-label="Left advertisement rail">
+    <div class="ad-slot ad-slot-rail">
+      <span>Advertisement</span>
+    </div>
+  </aside>
+  <div class="app-content">
 
 <!-- 메인 계산기 뷰 -->
 <main id="page-calc" class="page active">
@@ -4534,36 +5129,13 @@
   </section>
 </main>
 
-<!-- 모달 다이얼로그 -->
-<dialog class="ko-modal" id="koModal">
-  <div class="ko-modal-title">🇰🇷 한국어 이름 보강</div>
-  <div class="ko-modal-desc">
-    PokéAPI에서 누락된 번역을 가져와 브라우저에 영구 저장합니다. 다음 방문부터는 자동으로 적용됩니다.<br>
-    <span style="color: var(--text-faint); font-size: 11px;">⚠️ 약 1,100개 요청, 1~2분 소요</span>
   </div>
-  <div id="koProgressArea">
-    <div class="ko-progress-row">
-      <span class="label">기술</span>
-      <div class="ko-progress-bar"><div class="ko-progress-bar-fill" id="koBarMoves" style="width:0%"></div></div>
-      <span class="stat" id="koStatMoves">대기 중</span>
+  <aside class="ad-rail ad-rail-right" aria-label="Right advertisement rail">
+    <div class="ad-slot ad-slot-rail">
+      <span>Advertisement</span>
     </div>
-    <div class="ko-progress-row">
-      <span class="label">특성</span>
-      <div class="ko-progress-bar"><div class="ko-progress-bar-fill" id="koBarAbilities" style="width:0%"></div></div>
-      <span class="stat" id="koStatAbilities">대기 중</span>
-    </div>
-    <div class="ko-progress-row">
-      <span class="label">아이템</span>
-      <div class="ko-progress-bar"><div class="ko-progress-bar-fill" id="koBarItems" style="width:0%"></div></div>
-      <span class="stat" id="koStatItems">대기 중</span>
-    </div>
-  </div>
-  <div class="ko-modal-result" id="koResult" style="display:none;"></div>
-  <div class="ko-modal-actions">
-    <button class="ko-modal-btn" id="koCancel">닫기</button>
-    <button class="ko-modal-btn primary" id="koStart">시작</button>
-  </div>
-</dialog>
+  </aside>
+</div>
 
 <!-- 도감 상세 모달 -->
 <dialog class="dex-modal" id="dexDetailModal">
@@ -4606,12 +5178,6 @@ const MoveById      = Object.fromEntries(MOVES.map(m => [m.id, m]));
 const AbilityById   = Object.fromEntries(ABILITIES.map(a => [a.id, a]));
 const ItemById      = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 
-const statusEl = document.getElementById('data-status');
-if (statusEl) {
-  statusEl.innerHTML = `<b style="color: var(--ok)">로딩 완료</b> · 포켓몬 ${POKEMON.length}종`;
-  statusEl.classList.remove('loading');
-}
-
 // XSS 및 특수문자 방지 헬퍼
 function escapeHTML(str) {
   if (!str) return '';
@@ -4627,11 +5193,6 @@ function debounce(func, delay = 200) {
     timeoutId = setTimeout(() => func.apply(this, args), delay);
   };
 }
-
-// 모달 제어 (<dialog> 요소 활용)
-const koModal = document.getElementById('koModal');
-document.getElementById('btnKoFetch')?.addEventListener('click', () => koModal?.showModal());
-document.getElementById('koCancel')?.addEventListener('click', () => koModal?.close());
 
 // Game Freak rounds DOWN on .5
 function pokeRound(n) {
@@ -4669,11 +5230,6 @@ function chainMods(mods, lo = 410, hi = 131172) {
 
 function OF16(n) { return n > 65535 ? n % 65536 : n; }
 function OF32(n) { return n > 4294967295 ? n % 4294967296 : n; }
-
-// 16-bit signed multiply (음수 방지)
-function applyMod(value, mod) {
-  return pokeRound(OF32(value * mod) / 4096);
-}
 
 /* ════════════════════════════════════════════════════════════
    타입 상성표 (Gen 9 기준)
@@ -4816,10 +5372,6 @@ function applyBoost(stat, boost) {
 /* ════════════════════════════════════════════════════════════
    실효 포켓몬 / 특성 / 타입 (메가진화 및 테라스탈 반영)
    ════════════════════════════════════════════════════════════ */
-function effectivePokemon(side) {
-  return PokemonById[side.pokemonIdx];
-}
-
 function isTeraEnabled() {
   return !RULES.teraDisabled;
 }
@@ -6389,13 +6941,7 @@ function firstMover(movePri, atkSpe, defSpe, field) {
 }
 
 
-/* ════════════════════════════════════════════════════════════
- * 03-calc-ui.js — 계산기 페이지 UI: state, ENTRY_EFFECTS, renderSide, runCalc, 필드 이벤트, swap, autoCalc
- * (build.mjs 가 src/js/*.js 를 알파벳순 concat 후 calc-template.html 에 주입)
- * ════════════════════════════════════════════════════════════ */
-/* ════════════════════════════════════════════════════════════
-   State
-   ════════════════════════════════════════════════════════════ */
+/* Damage calculator state, options, and shared helpers. */
 function makeSideState(defaultIdx) {
   const p = PokemonById[defaultIdx];
   return {
@@ -6540,9 +7086,6 @@ function calcStatusDisplayLabel(statusId) {
 }
 function calcFieldOptionLabel(type, id) {
   return CALC_FIELD_OPTION_BY_TYPE[type]?.[id]?.label || id || '';
-}
-function calcFieldOptionSub(type, id) {
-  return CALC_FIELD_OPTION_BY_TYPE[type]?.[id]?.sub || '';
 }
 function setComboboxValue(inputId, value, type) {
   const input = document.getElementById(inputId);
@@ -6758,14 +7301,6 @@ function applyManualDamageBlockHpAdjustment(side) {
 function setSideHpPct(side, value) {
   side.hpPct = normalizeHpPct(value);
   deriveHpFlags(side);
-}
-
-function renderHpConditionPills(side) {
-  const hpPct = normalizeHpPct(side.hpPct);
-  const pills = [];
-  if (hpPct >= 1) pills.push('<span class="hp-state-pill full">풀피</span>');
-  if (hpPct <= (1 / 3)) pills.push('<span class="hp-state-pill pinch">핀치</span>');
-  return pills.length ? pills.join('') : '<span class="hp-state-pill neutral">일반</span>';
 }
 
 function selectedAttackMoves() {
@@ -7084,15 +7619,15 @@ function applyMoveBpInput(el, renderAfter = false) {
   triggerCalc();
 }
 
-// 챔피언스 모드 (사용 불가 도구 필터링)
-let championsMode = true;
-
 // 자동 진입 효과 ON/OFF
 let autoEntryEffects = true;
 
 /* ════════════════════════════════════════════════════════════
    특성별 진입 효과 정의는 data/overrides/entry-effects.json 에서 빌드된다.
    ════════════════════════════════════════════════════════════ */
+
+
+/* Damage calculator move estimation and combobox helpers. */
 const ENTRY_EFFECTS = RULES.entryEffects || {};
 const INTIMIDATE_BLOCKERS = RULES.entryEffectBlockers?.intimidate || [];
 
@@ -7481,6 +8016,9 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
   });
 }
 
+
+
+/* Damage calculator side panel rendering and side-level events. */
 function renderSide(sideKey) {
   const side = state[sideKey];
   const container = document.getElementById(`${sideKey}-body`);
@@ -7891,6 +8429,9 @@ function applyEvPreset(sideKey, preset) {
    - 자동으로 켜진 필드는 사용자가 수동 변경하면 다음 포켓몬 변경 전까지 덮어쓰지 않음
    ════════════════════════════════════════════════════════════ */
 
+
+
+/* Damage calculator derived state and automatic entry effects. */
 let lastAutoEntry = emptyEntryMeta();
 
 const manualAutoFieldOverrides = {
@@ -8080,12 +8621,6 @@ function syncFieldControls(fieldState = null) {
   if (typeof updateRuinCheckboxes === 'function') updateRuinCheckboxes(f);
 }
 
-function applyEntryEffects() {
-  const calcState = makeCalcState();
-  lastAutoEntry = calcState.entryMeta;
-  return lastAutoEntry.logs;
-}
-
 function formatRankValue(value) {
   return value > 0 ? `+${value}` : `${value}`;
 }
@@ -8122,6 +8657,9 @@ function renderEntryRankSummary(calcState) {
 /* ════════════════════════════════════════════════════════════
    결과 렌더링
    ════════════════════════════════════════════════════════════ */
+
+
+/* Damage calculator execution and result rendering. */
 function runCalc() {
   const calcState = makeCalcState();
   lastAutoEntry = calcState.entryMeta;
@@ -8435,6 +8973,9 @@ function updateFieldSummary(fieldState = null, entryMeta = null) {
 }
 
 // 접이식 패널
+
+
+/* Damage calculator field controls and page-level events. */
 document.getElementById('field-head').addEventListener('click', () => {
   document.getElementById('field-panel').classList.toggle('collapsed');
 });
@@ -8529,15 +9070,8 @@ function updateRuinCheckboxes(fieldState = null) {
   document.getElementById('ruinBeads').checked = f.ruinBeads;
   document.getElementById('ruinVessel').checked = f.ruinVessel;
 }
-document.getElementById('championsMode').addEventListener('change', e => {
-  championsMode = e.target.checked;
-  renderSide('atk');
-  renderSide('def');
-  triggerCalc();
-});
-
 // 공격측 ↔ 방어측 교대 (사이드 객체 전체를 통째로 교환)
-// 사이드 패널 점프 버튼 위임 — 04-views.js 의 loadSideToFineTune / loadSideToRevCalc 호출
+// 사이드 패널 점프 버튼 위임 — fine-tune/reverse view modules의 sync 함수 호출
 document.addEventListener('click', e => {
   const ftBtn = e.target.closest('.ft-jump-btn[data-ft-from-side]');
   if (ftBtn && typeof loadSideToFineTune === 'function') {
@@ -8565,10 +9099,9 @@ document.getElementById('btnSwapSides')?.addEventListener('click', () => {
    ════════════════════════════════════════════════════════════ */
 
 
-/* ════════════════════════════════════════════════════════════
- * 04-views.js — 도감(렌더/필터/상세 모달·풀페이지/네비게이션) + 상성표 + 탭 전환
- * (build.mjs 가 src/js/*.js 를 알파벳순 concat 후 calc-template.html 에 주입)
- * ════════════════════════════════════════════════════════════ */
+/* Dex navigation, lists, details, and calculator handoff.
+ * Loaded before 05-init.js by build.mjs alphabetical concatenation.
+ */
 // 도감 탭 및 검색 제어
 let currentDex = 'pokemon';
 let dexTypeFilter = [];          // 빈 배열 = 전체. 포켓몬 탭은 최대 2개, 기술 탭은 최대 1개.
@@ -8968,528 +9501,6 @@ function renderItemsDex(query) {
   tbody.innerHTML = rows.join('');
 }
 
-/* ════════════════════════════════════════════════════════════
-   상성표 (matchup) — 6슬롯 포켓몬 × 18 공격 타입
-   ════════════════════════════════════════════════════════════ */
-const matchupSlots = [null, null, null, null, null, null];
-const matchupCoverageMoves = Array.from({ length: 6 }, () => [null, null, null, null]);
-let matchupMode = 'defense';
-
-const EFF_SYMBOL = {
-  4: '◎',
-  2: '○',
-  1: '',
-  0.5: '△',
-  0.25: '△△',
-  0: '✕',
-};
-const EFF_CLASS = {
-  4: 'eff-4',
-  2: 'eff-2',
-  1: '',           // 1× 는 클래스 부여 안 함 (색깔 변경 없음)
-  0.5: 'eff-05',
-  0.25: 'eff-025',
-  0: 'eff-0',
-};
-// 매치업 테이블 고정 열 너비 (px). table-layout: fixed 와 함께 사용.
-const MATCHUP_COL = { type: 124, slot: 112, score: 84, coverageSummary: 84 };
-const DEFENSE_CONSISTENCY_SCORE = { 0: -1.8, 0.25: -1.3, 0.5: -0.8, 1: 0.15, 2: 1, 4: 2.5 };
-const THREAT_RANK = { safe: 0, normal: 1, check: 2, caution: 3, danger: 4, max: 5 };
-
-function matchupMetaIds(kind) {
-  return Array.isArray(META_THREATS?.[kind]) ? META_THREATS[kind].filter(Boolean) : [];
-}
-
-function matchupMetaPokemon(kind) {
-  return matchupMetaIds(kind).map(id => PokemonById[id]).filter(Boolean);
-}
-
-function defensiveThreatsByStab(type) {
-  return matchupMetaPokemon('defensiveThreats').filter(p => p.types?.includes(type));
-}
-
-function defenseScoreLabel(score) {
-  if (score <= 0.7) return { label: '안전', cls: 'safe' };
-  if (score <= 1.6) return { label: '보통', cls: 'normal' };
-  if (score <= 2.6) return { label: '주의', cls: 'caution' };
-  return { label: '위험', cls: 'danger' };
-}
-
-function defenseTypeProfile(type, pokes) {
-  const effects = pokes.map(p => typeEff(type, p.types));
-  const rawScore = effects.reduce((sum, eff) => sum + (DEFENSE_CONSISTENCY_SCORE[eff] ?? 0.15), 0);
-  const score = Math.max(0, rawScore);
-  const weakCount = effects.filter(eff => eff > 1).length;
-  const quadCount = effects.filter(eff => eff >= 4).length;
-  const neutralCount = effects.filter(eff => eff === 1).length;
-  const resistCount = effects.filter(eff => eff === 0.5).length;
-  const quarterCount = effects.filter(eff => eff === 0.25).length;
-  const immuneCount = effects.filter(eff => eff === 0).length;
-  return {
-    type,
-    score,
-    rawScore,
-    weakCount,
-    quadCount,
-    neutralCount,
-    resistCount,
-    quarterCount,
-    immuneCount,
-    grade: defenseScoreLabel(score),
-  };
-}
-
-function defenseTypeScore(type, pokes) {
-  return defenseTypeProfile(type, pokes).score;
-}
-
-function formatDefenseScore(score) {
-  return score.toFixed(2).replace(/0$/, '').replace(/\.0$/, '.0');
-}
-
-function selectedCoverageMoves() {
-  const moves = [];
-  matchupCoverageMoves.forEach((slotMoves, slot) => {
-    slotMoves.forEach(moveId => {
-      const move = moveId ? MoveById[moveId] : null;
-      if (move) moves.push({ slot, move });
-    });
-  });
-  return moves;
-}
-
-function coverageSlotHasType(slot, type) {
-  return (matchupCoverageMoves[slot] || []).some(moveId => MoveById[moveId]?.type === type);
-}
-
-function coverageCountByType(type, slot = null) {
-  if (slot !== null) return coverageSlotHasType(slot, type) ? 1 : 0;
-  return matchupCoverageMoves.reduce((sum, _, i) => sum + (coverageSlotHasType(i, type) ? 1 : 0), 0);
-}
-
-function coverageSlotCountForTypes(types) {
-  const targets = new Set(types);
-  return matchupCoverageMoves.reduce((sum, slotMoves) => {
-    const hit = slotMoves.some(moveId => targets.has(MoveById[moveId]?.type));
-    return sum + (hit ? 1 : 0);
-  }, 0);
-}
-
-function coverageThreatGrade(has4x, quadCovered, alt2Count) {
-  if (has4x && quadCovered) return { label: '안전', cls: 'safe' };
-  if (alt2Count >= 3) return { label: '안전', cls: 'safe' };
-  if (alt2Count === 2) return { label: '견제', cls: 'check' };
-  if (alt2Count === 1) return { label: '주의', cls: 'caution' };
-  return { label: '위험', cls: 'danger' };
-}
-
-function renderMatchupModeTabs() {
-  const tabs = document.getElementById('matchupModeTabs');
-  if (!tabs) return;
-  tabs.querySelectorAll('.matchup-mode-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.matchupMode === matchupMode);
-    btn.onclick = () => {
-      matchupMode = btn.dataset.matchupMode || 'defense';
-      renderMatchupModeTabs();
-      renderMatchupCoverageInputs();
-      renderMatchupTable();
-    };
-  });
-}
-
-function renderMatchupSlots() {
-  const container = document.getElementById('matchupSlots');
-  if (!container) return;
-  container.innerHTML = matchupSlots.map((id, i) => {
-    const p = id ? PokemonById[id] : null;
-    return `
-      <div class="matchup-slot ${p ? 'filled' : ''}" data-slot="${i}">
-        <div class="matchup-slot-num">${i + 1}</div>
-        <div class="combobox">
-          <input type="text" class="cb-input matchup-cb-input" data-slot="${i}"
-                 value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="포켓몬 검색...">
-          <div class="combobox-options"></div>
-        </div>
-        <div class="matchup-slot-types">
-          ${p ? p.types.map(t => `<span class="type-pill t-${t}" style="font-size:9px;padding:1px 5px;">${TYPE_KO[t]}</span>`).join('') : ''}
-        </div>
-        ${p ? `<button class="matchup-slot-clear" data-slot="${i}" title="비우기">✕</button>` : ''}
-      </div>
-    `;
-  }).join('');
-  wireMatchupSlots();
-}
-
-function wireMatchupSlots() {
-  const container = document.getElementById('matchupSlots');
-  if (!container) return;
-  container.querySelectorAll('.matchup-cb-input').forEach(input => {
-    const slot = parseInt(input.dataset.slot, 10);
-    const cbParent = input.closest('.combobox');
-    const optsEl = cbParent.querySelector('.combobox-options');
-
-    const showOptions = (query) => {
-      const s = (query || '').toLowerCase();
-      const matches = sortPokemonForCalcSelect(POKEMON).filter(p =>
-        (p.koName || '').toLowerCase().includes(s) || p.name.toLowerCase().includes(s)
-      );
-      optsEl.innerHTML = matches.map(p =>
-        `<div class="combobox-option matchup-option" data-id="${p.id}">
-          <b>${escapeHTML(pkName(p))}</b>
-          <small class="matchup-option-types">${p.types.map(t => `<span class="type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}</small>
-        </div>`
-      ).join('');
-      optsEl.classList.add('open');
-      requestAnimationFrame(() => {
-        const rect = optsEl.getBoundingClientRect();
-        const sw = window.innerWidth;
-        if (rect.right > sw - 8) { optsEl.style.left = 'auto'; optsEl.style.right = '0'; }
-        else { optsEl.style.left = ''; optsEl.style.right = ''; }
-      });
-    };
-
-    input.addEventListener('focus', e => showOptions(e.target.value));
-    input.addEventListener('input', e => showOptions(e.target.value));
-    input.addEventListener('blur', () => setTimeout(() => optsEl.classList.remove('open'), 200));
-
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt) return;
-      e.preventDefault();
-      matchupSlots[slot] = opt.dataset.id;
-      renderMatchupSlots();
-      renderMatchupCoverageInputs();
-      renderMatchupTable();
-    });
-  });
-  container.querySelectorAll('.matchup-slot-clear').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const slot = parseInt(btn.dataset.slot, 10);
-      matchupSlots[slot] = null;
-      matchupCoverageMoves[slot] = [null, null, null, null];
-      renderMatchupSlots();
-      renderMatchupCoverageInputs();
-      renderMatchupTable();
-    });
-  });
-}
-
-function coverageMovePool(slot) {
-  const p = matchupSlots[slot] ? PokemonById[matchupSlots[slot]] : null;
-  const pool = p?.ls?.length ? p.ls.map(id => MoveById[id]).filter(Boolean) : MOVES;
-  return pool.filter(m => m.cat !== 'Status' && m.type && BATTLE_TYPES.includes(m.type));
-}
-
-function renderMatchupCoverageInputs() {
-  const container = document.getElementById('matchupCoverageInputs');
-  if (!container) return;
-  if (matchupMode !== 'coverage') {
-    container.innerHTML = '';
-    return;
-  }
-  container.innerHTML = matchupSlots.map((id, slot) => {
-    const p = id ? PokemonById[id] : null;
-    const title = p ? pkName(p) : `슬롯 ${slot + 1}`;
-    const rows = matchupCoverageMoves[slot].map((moveId, moveIndex) => {
-      const m = moveId ? MoveById[moveId] : null;
-      return `
-        <div class="matchup-move-field">
-          <span class="matchup-move-num">${moveIndex + 1}</span>
-          <div class="combobox matchup-move-combobox">
-            <input type="text" class="cb-input matchup-move-input" data-slot="${slot}" data-move-index="${moveIndex}"
-                   value="${m ? escapeHTML(mvName(m)) : ''}" placeholder="기술 검색">
-            <div class="combobox-options"></div>
-          </div>
-          ${m ? `<span class="type-pill t-${m.type}" style="font-size:9px;padding:1px 5px;">${TYPE_KO[m.type] || m.type}</span>` : ''}
-        </div>
-      `;
-    }).join('');
-    return `
-      <div class="matchup-coverage-card ${p ? 'filled' : ''}">
-        <div class="matchup-coverage-head">
-          <span>${escapeHTML(title)}</span>
-          ${p ? p.types.map(t => `<span class="type-pill t-${t}" style="font-size:9px;padding:1px 5px;">${TYPE_KO[t] || t}</span>`).join('') : ''}
-        </div>
-        <div class="matchup-move-grid">${rows}</div>
-      </div>
-    `;
-  }).join('');
-  wireMatchupCoverageInputs();
-}
-
-function wireMatchupCoverageInputs() {
-  const container = document.getElementById('matchupCoverageInputs');
-  if (!container) return;
-  container.querySelectorAll('.matchup-move-input').forEach(input => {
-    const slot = parseInt(input.dataset.slot, 10);
-    const moveIndex = parseInt(input.dataset.moveIndex, 10);
-    const cbParent = input.closest('.combobox');
-    const optsEl = cbParent.querySelector('.combobox-options');
-    const showOptions = (query) => {
-      const s = (query || '').toLowerCase();
-      const matches = coverageMovePool(slot).filter(m =>
-        (m.koName || '').toLowerCase().includes(s) ||
-        m.name.toLowerCase().includes(s) ||
-        (TYPE_KO[m.type] || '').toLowerCase().includes(s) ||
-        m.type.toLowerCase().includes(s)
-      ).slice(0, 80);
-      optsEl.innerHTML = matches.map(m =>
-        `<div class="combobox-option" data-id="${m.id}">
-          <b>${escapeHTML(mvName(m))}</b>
-          <small>${m.type} · ${moveCategoryLabel(m.cat)} · ${m.bp || '-'}</small>
-        </div>`
-      ).join('');
-      optsEl.classList.add('open');
-    };
-    input.addEventListener('focus', e => showOptions(e.target.value));
-    input.addEventListener('input', e => {
-      if (!e.target.value.trim()) {
-        matchupCoverageMoves[slot][moveIndex] = null;
-        renderMatchupTable();
-      }
-      showOptions(e.target.value);
-    });
-    input.addEventListener('blur', () => setTimeout(() => optsEl.classList.remove('open'), 200));
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt) return;
-      e.preventDefault();
-      matchupCoverageMoves[slot][moveIndex] = opt.dataset.id;
-      renderMatchupCoverageInputs();
-      renderMatchupTable();
-    });
-  });
-}
-
-function renderMatchupSideGroup(label, cls, rows, renderRow) {
-  if (!rows.length) return '';
-  return `
-    <div class="matchup-side-section ${cls}">
-      <div class="matchup-side-section-title ${cls}">${label}</div>
-      ${rows.map(renderRow).join('')}
-    </div>
-  `;
-}
-
-function renderMatchupMeta(kind, context = {}) {
-  const box = document.getElementById('matchupMeta');
-  if (!box) return;
-  if (kind === 'defensiveThreats') {
-    const pokes = context.pokes || [];
-    if (pokes.length < 3) {
-      box.innerHTML = '<div class="matchup-side-title">주의 포켓몬</div><div class="matchup-side-empty">3마리 이상 선택하면 메타 위협의 타입별 위험도를 표시합니다.</div>';
-      return;
-    }
-    const rows = matchupMetaPokemon('defensiveThreats').map(p => {
-      const profiles = (p.types || []).map(type => defenseTypeProfile(type, pokes));
-      const visibleProfiles = profiles.filter(profile => profile.grade.cls === 'danger' || profile.grade.cls === 'caution' || profile.grade.cls === 'max');
-      const maxScore = Math.max(...visibleProfiles.map(s => s.score), 0);
-      const maxRank = Math.max(...visibleProfiles.map(s => THREAT_RANK[s.grade.cls] || 0), 0);
-      const maxGrade = visibleProfiles.find(s => (THREAT_RANK[s.grade.cls] || 0) === maxRank)?.grade || { label: '안전', cls: 'safe' };
-      return { p, profiles: visibleProfiles, maxScore, maxRank, maxGrade };
-    }).filter(row => row.profiles.length)
-      .sort((a, b) => b.maxRank - a.maxRank || b.maxScore - a.maxScore || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
-    const dangerRows = rows.filter(row => row.maxGrade.cls === 'danger' || row.maxGrade.cls === 'max');
-    const cautionRows = rows.filter(row => row.maxGrade.cls === 'caution');
-    const renderDefenseRow = row => `
-      <div class="matchup-side-card ${row.maxGrade.cls}">
-        <div class="matchup-side-name">${escapeHTML(pkName(row.p))}</div>
-        <div class="matchup-side-badges">
-          ${row.profiles.map(s => `<span class="matchup-score-badge ${s.grade.cls}" title="${s.grade.label} · 약점 ${s.weakCount} · 반감 ${s.resistCount} · 1/4 ${s.quarterCount} · 무효 ${s.immuneCount}"><span class="type-pill t-${s.type}">${TYPE_KO[s.type] || s.type}</span>${formatDefenseScore(s.score)}</span>`).join('')}
-        </div>
-      </div>
-    `;
-    const sections = [
-      renderMatchupSideGroup('위험', 'danger', dangerRows, renderDefenseRow),
-      renderMatchupSideGroup('주의', 'caution', cautionRows, renderDefenseRow),
-    ].join('');
-    box.innerHTML = `
-      <div class="matchup-side-title">주의 포켓몬</div>
-      <div class="matchup-side-list">
-        ${sections || '<div class="matchup-side-empty">현재 선택 기준으로 위험/주의 메타 포켓몬이 없습니다.</div>'}
-      </div>
-    `;
-    return;
-  }
-  const coverageMoves = selectedCoverageMoves();
-  if (coverageMoves.length === 0) {
-    box.innerHTML = '<div class="matchup-side-title">메타 타점</div><div class="matchup-side-empty">타점 체크에서 기술을 입력하면 메타 포켓몬의 4배/2배 약점 커버를 표시합니다.</div>';
-    return;
-  }
-  const rows = matchupMetaPokemon('coverageChecks').map(p => {
-    const weaknesses = BATTLE_TYPES.map(type => {
-      const eff = typeEff(type, p.types);
-      if (eff <= 1) return null;
-      const count = coverageCountByType(type);
-      return { type, eff, count };
-    }).filter(Boolean);
-    const quadWeaknesses = weaknesses.filter(w => w.eff >= 4);
-    const doubleWeaknesses = weaknesses.filter(w => w.eff === 2);
-    const missing4 = quadWeaknesses.filter(w => w.count === 0);
-    const has4x = quadWeaknesses.length > 0;
-    const quadCovered = quadWeaknesses.some(w => w.count > 0);
-    const alt2Count = coverageSlotCountForTypes(doubleWeaknesses.map(w => w.type));
-    const grade = coverageThreatGrade(has4x, quadCovered, alt2Count);
-    return { p, weaknesses, quadWeaknesses, doubleWeaknesses, missing4, has4x, quadCovered, alt2Count, grade };
-  }).filter(row => row.grade.cls !== 'safe');
-  const dangerRows = rows
-    .filter(row => row.grade.cls === 'danger')
-    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
-  const cautionRows = rows
-    .filter(row => row.grade.cls === 'caution')
-    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
-  const checkRows = rows
-    .filter(row => row.grade.cls === 'check')
-    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
-  const renderCoverageRow = row => {
-    const shownWeaknesses = row.missing4.length ? [...row.missing4, ...row.doubleWeaknesses] : row.doubleWeaknesses;
-    const weakBadges = shownWeaknesses.map(w =>
-      `<span class="matchup-weak-badge ${w.count ? 'covered' : 'missing'} x${w.eff}"><span class="type-pill t-${w.type}">${TYPE_KO[w.type] || w.type}</span>${w.count}</span>`
-    ).join('');
-    return `
-    <div class="matchup-side-card ${row.grade.cls} matchup-coverage-threat-card">
-      <div class="matchup-side-name">${escapeHTML(pkName(row.p))}</div>
-      <div class="matchup-coverage-threat-body">
-        <div class="matchup-side-badges matchup-weakness-list">${weakBadges}</div>
-        <span class="matchup-cover-count ${row.grade.cls}"><span>${row.has4x ? '2배대체' : '2배타점'}</span><b>${row.alt2Count}</b></span>
-      </div>
-    </div>
-  `;
-  };
-  const sections = [
-    renderMatchupSideGroup('위험', 'danger', dangerRows, renderCoverageRow),
-    renderMatchupSideGroup('주의', 'caution', cautionRows, renderCoverageRow),
-    renderMatchupSideGroup('견제', 'check', checkRows, renderCoverageRow),
-  ].join('');
-  box.innerHTML = `
-    <div class="matchup-side-title">메타 타점</div>
-    <div class="matchup-side-list">
-      ${sections || '<div class="matchup-side-empty">현재 기술 기준으로 미커버 위험/주의/견제 메타 포켓몬이 없습니다.</div>'}
-    </div>
-  `;
-}
-
-function renderDefenseScoreCell(profile) {
-  const scoreText = formatDefenseScore(profile.score);
-  return `
-    <td class="summary score ${profile.grade.cls}" title="${profile.grade.label} · 약점 ${profile.weakCount} · 반감 ${profile.resistCount} · 1/4 ${profile.quarterCount} · 무효 ${profile.immuneCount}">
-      <div class="matchup-score-main">${scoreText}</div>
-    </td>
-  `;
-}
-
-function renderMatchupTable() {
-  if (matchupMode === 'coverage') return renderCoverageMatchupTable();
-  return renderDefenseMatchupTable();
-}
-
-function renderDefenseMatchupTable() {
-  const tbl = document.getElementById('matchupTable');
-  const head = document.getElementById('matchupHead');
-  const body = document.getElementById('matchupBody');
-  if (!tbl || !head || !body) return;
-
-  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
-  const valid = pokes.filter(Boolean);
-  renderMatchupMeta('defensiveThreats', { pokes: valid });
-
-  // colgroup 으로 고정 열 너비 강제 (table-layout: fixed 와 함께)
-  // 슬롯 채워지든 비어 있든 동일한 폭을 유지한다.
-  const oldCG = tbl.querySelector('colgroup');
-  if (oldCG) oldCG.remove();
-  const cg = document.createElement('colgroup');
-  cg.innerHTML =
-    `<col style="width:${MATCHUP_COL.type}px">` +
-    pokes.map(() => `<col style="width:${MATCHUP_COL.slot}px">`).join('') +
-    `<col style="width:${MATCHUP_COL.score}px">`;
-  tbl.insertBefore(cg, tbl.firstChild);
-
-  // 헤더: 공격 타입 컬럼 + 6 슬롯 + 무효/약점 요약
-  head.innerHTML = `
-    <tr>
-      <th style="text-align:left;">공격 타입</th>
-      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span style="color:var(--text-faint)">슬롯 ${i+1}</span>`}</th>`).join('')}
-      <th class="summary">일관성</th>
-    </tr>
-  `;
-
-  if (valid.length < 3) {
-    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하면 방어 상성 진단을 표시합니다.</td></tr>`;
-    return;
-  }
-
-  // 본문: 18 행 × 6 셀 + 요약
-  body.innerHTML = BATTLE_TYPES.map(t => {
-    const cells = pokes.map(p => {
-      if (!p) return `<td class="empty">—</td>`;
-      const eff = typeEff(t, p.types);
-      const sym = EFF_SYMBOL[eff] !== undefined ? EFF_SYMBOL[eff] : eff + '×';
-      const cls = EFF_CLASS[eff] || '';
-      return `<td class="${cls}">${sym}</td>`;
-    }).join('');
-
-    const profile = defenseTypeProfile(t, valid);
-
-    return `
-      <tr>
-        <td><span class="type-pill t-${t}" style="font-size:11px;padding:2px 8px;">${TYPE_KO[t]}</span></td>
-        ${cells}
-        ${renderDefenseScoreCell(profile)}
-      </tr>
-    `;
-  }).join('');
-}
-/* ════════════════════════════════════════════════════════════
-   도감 상세 모달 — Cross-reference 인덱스 + 렌더러
-   ════════════════════════════════════════════════════════════ */
-// 특성 → 보유 포켓몬 인덱스 (한 번만 빌드)
-function renderCoverageMatchupTable() {
-  const tbl = document.getElementById('matchupTable');
-  const head = document.getElementById('matchupHead');
-  const body = document.getElementById('matchupBody');
-  if (!tbl || !head || !body) return;
-  renderMatchupMeta('coverageChecks');
-
-  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
-  const valid = pokes.filter(Boolean);
-  const oldCG = tbl.querySelector('colgroup');
-  if (oldCG) oldCG.remove();
-  const cg = document.createElement('colgroup');
-  cg.innerHTML =
-    `<col style="width:${MATCHUP_COL.type}px">` +
-    pokes.map(() => `<col style="width:${MATCHUP_COL.slot}px">`).join('') +
-    `<col style="width:${MATCHUP_COL.coverageSummary}px">`;
-  tbl.insertBefore(cg, tbl.firstChild);
-
-  head.innerHTML = `
-    <tr>
-      <th style="text-align:left;">공격 타입</th>
-      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span style="color:var(--text-faint)">슬롯 ${i+1}</span>`}</th>`).join('')}
-      <th class="summary">커버</th>
-    </tr>
-  `;
-
-  if (valid.length < 3) {
-    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하고 타점 체크에서 기술을 입력하면 진단을 표시합니다.</td></tr>`;
-    return;
-  }
-
-  body.innerHTML = BATTLE_TYPES.map(t => {
-    const cells = pokes.map((p, slot) => {
-      if (!p) return '<td class="empty">-</td>';
-      const count = coverageCountByType(t, slot);
-      return `<td class="${count ? 'coverage-hit' : 'coverage-miss'}">${count || ''}</td>`;
-    }).join('');
-    const total = coverageCountByType(t);
-    return `
-      <tr>
-        <td><span class="type-pill t-${t}" style="font-size:11px;padding:2px 8px;">${TYPE_KO[t]}</span></td>
-        ${cells}
-        <td class="summary ${total ? 'coverage-hit' : 'coverage-miss'}">${total || ''}</td>
-      </tr>
-    `;
-  }).join('');
-}
 
 const PokemonByAbility = (() => {
   const idx = {};
@@ -9969,7 +9980,7 @@ function renderItemDetail(it) {
   return [body, actions];
 }
 
-// 도감에서 계산기 사이드로 포켓몬 적용. 실제 상태 변경 규칙은 03-calc-ui.js의 공통 헬퍼에 위임한다.
+// 도감에서 계산기 사이드로 포켓몬 적용. 실제 상태 변경 규칙은 calc state helper에 위임한다.
 function applyPokemonToSide(pokemonId, sideKey) {
   return !!applyPokemonToCalcSide(sideKey, pokemonId).applied;
 }
@@ -10101,14 +10112,527 @@ document.getElementById('dexFullPageDetail')?.addEventListener('click', e => {
 
 
 
-/* ════════════════════════════════════════════════════════════
-   세부조정 (Fine-tune) 탭
-   ────────────────────────────────────────────────────────────
-   목적: 노력치/성격/도구/특성 세팅 + HP 브레이크포인트 힌트 +
-        매직넘버(+1pt → +2 점프) 표시 + 스피드 추월 EV 산출.
-   계산기 탭과 양방향 sync (atk/def 어느 한쪽으로 적용 가능).
-   ════════════════════════════════════════════════════════════ */
 
+/* Team matchup and coverage table.
+ * Loaded before 05-init.js by build.mjs alphabetical concatenation.
+ */
+const matchupSlots = [null, null, null, null, null, null];
+const matchupCoverageMoves = Array.from({ length: 6 }, () => [null, null, null, null]);
+let matchupMode = 'defense';
+
+const EFF_SYMBOL = {
+  4: '◎',
+  2: '○',
+  1: '',
+  0.5: '△',
+  0.25: '△△',
+  0: '✕',
+};
+const EFF_CLASS = {
+  4: 'eff-4',
+  2: 'eff-2',
+  1: '',           // 1× 는 클래스 부여 안 함 (색깔 변경 없음)
+  0.5: 'eff-05',
+  0.25: 'eff-025',
+  0: 'eff-0',
+};
+// 매치업 테이블 고정 열 너비 (px). table-layout: fixed 와 함께 사용.
+const MATCHUP_COL = { type: 124, slot: 112, score: 84, coverageSummary: 84 };
+const DEFENSE_CONSISTENCY_SCORE = { 0: -1.8, 0.25: -1.3, 0.5: -0.8, 1: 0.15, 2: 1, 4: 2.5 };
+const THREAT_RANK = { safe: 0, normal: 1, check: 2, caution: 3, danger: 4, max: 5 };
+
+function matchupMetaIds(kind) {
+  return Array.isArray(META_THREATS?.[kind]) ? META_THREATS[kind].filter(Boolean) : [];
+}
+
+function matchupMetaPokemon(kind) {
+  return matchupMetaIds(kind).map(id => PokemonById[id]).filter(Boolean);
+}
+
+function defenseScoreLabel(score) {
+  if (score <= 0.7) return { label: '안전', cls: 'safe' };
+  if (score <= 1.6) return { label: '보통', cls: 'normal' };
+  if (score <= 2.6) return { label: '주의', cls: 'caution' };
+  return { label: '위험', cls: 'danger' };
+}
+
+function defenseTypeProfile(type, pokes) {
+  const effects = pokes.map(p => typeEff(type, p.types));
+  const rawScore = effects.reduce((sum, eff) => sum + (DEFENSE_CONSISTENCY_SCORE[eff] ?? 0.15), 0);
+  const score = Math.max(0, rawScore);
+  const weakCount = effects.filter(eff => eff > 1).length;
+  const quadCount = effects.filter(eff => eff >= 4).length;
+  const neutralCount = effects.filter(eff => eff === 1).length;
+  const resistCount = effects.filter(eff => eff === 0.5).length;
+  const quarterCount = effects.filter(eff => eff === 0.25).length;
+  const immuneCount = effects.filter(eff => eff === 0).length;
+  return {
+    type,
+    score,
+    rawScore,
+    weakCount,
+    quadCount,
+    neutralCount,
+    resistCount,
+    quarterCount,
+    immuneCount,
+    grade: defenseScoreLabel(score),
+  };
+}
+
+function formatDefenseScore(score) {
+  return score.toFixed(2).replace(/0$/, '').replace(/\.0$/, '.0');
+}
+
+function selectedCoverageMoves() {
+  const moves = [];
+  matchupCoverageMoves.forEach((slotMoves, slot) => {
+    slotMoves.forEach(moveId => {
+      const move = moveId ? MoveById[moveId] : null;
+      if (move) moves.push({ slot, move });
+    });
+  });
+  return moves;
+}
+
+function coverageSlotHasType(slot, type) {
+  return (matchupCoverageMoves[slot] || []).some(moveId => MoveById[moveId]?.type === type);
+}
+
+function coverageCountByType(type, slot = null) {
+  if (slot !== null) return coverageSlotHasType(slot, type) ? 1 : 0;
+  return matchupCoverageMoves.reduce((sum, _, i) => sum + (coverageSlotHasType(i, type) ? 1 : 0), 0);
+}
+
+function coverageSlotCountForTypes(types) {
+  const targets = new Set(types);
+  return matchupCoverageMoves.reduce((sum, slotMoves) => {
+    const hit = slotMoves.some(moveId => targets.has(MoveById[moveId]?.type));
+    return sum + (hit ? 1 : 0);
+  }, 0);
+}
+
+function coverageThreatGrade(has4x, quadCovered, alt2Count) {
+  if (has4x && quadCovered) return { label: '안전', cls: 'safe' };
+  if (alt2Count >= 3) return { label: '안전', cls: 'safe' };
+  if (alt2Count === 2) return { label: '견제', cls: 'check' };
+  if (alt2Count === 1) return { label: '주의', cls: 'caution' };
+  return { label: '위험', cls: 'danger' };
+}
+
+function renderMatchupModeTabs() {
+  const tabs = document.getElementById('matchupModeTabs');
+  if (!tabs) return;
+  tabs.querySelectorAll('.matchup-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.matchupMode === matchupMode);
+    btn.onclick = () => {
+      matchupMode = btn.dataset.matchupMode || 'defense';
+      renderMatchupModeTabs();
+      renderMatchupCoverageInputs();
+      renderMatchupTable();
+    };
+  });
+}
+
+function renderMatchupSlots() {
+  const container = document.getElementById('matchupSlots');
+  if (!container) return;
+  container.innerHTML = matchupSlots.map((id, i) => {
+    const p = id ? PokemonById[id] : null;
+    return `
+      <div class="matchup-slot ${p ? 'filled' : ''}" data-slot="${i}">
+        <div class="matchup-slot-num">${i + 1}</div>
+        <div class="combobox">
+          <input type="text" class="cb-input matchup-cb-input" data-slot="${i}"
+                 value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="포켓몬 검색...">
+          <div class="combobox-options"></div>
+        </div>
+        <div class="matchup-slot-types">
+          ${p ? p.types.map(t => `<span class="type-pill t-${t}" style="font-size:9px;padding:1px 5px;">${TYPE_KO[t]}</span>`).join('') : ''}
+        </div>
+        ${p ? `<button class="matchup-slot-clear" data-slot="${i}" title="비우기">✕</button>` : ''}
+      </div>
+    `;
+  }).join('');
+  wireMatchupSlots();
+}
+
+function wireMatchupSlots() {
+  const container = document.getElementById('matchupSlots');
+  if (!container) return;
+  container.querySelectorAll('.matchup-cb-input').forEach(input => {
+    const slot = parseInt(input.dataset.slot, 10);
+    const cbParent = input.closest('.combobox');
+    const optsEl = cbParent.querySelector('.combobox-options');
+
+    const showOptions = (query) => {
+      const s = (query || '').toLowerCase();
+      const matches = sortPokemonForCalcSelect(POKEMON).filter(p =>
+        (p.koName || '').toLowerCase().includes(s) || p.name.toLowerCase().includes(s)
+      );
+      optsEl.innerHTML = matches.map(p =>
+        `<div class="combobox-option matchup-option" data-id="${p.id}">
+          <b>${escapeHTML(pkName(p))}</b>
+          <small class="matchup-option-types">${p.types.map(t => `<span class="type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}</small>
+        </div>`
+      ).join('');
+      optsEl.classList.add('open');
+      requestAnimationFrame(() => {
+        const rect = optsEl.getBoundingClientRect();
+        const sw = window.innerWidth;
+        if (rect.right > sw - 8) { optsEl.style.left = 'auto'; optsEl.style.right = '0'; }
+        else { optsEl.style.left = ''; optsEl.style.right = ''; }
+      });
+    };
+
+    input.addEventListener('focus', e => showOptions(e.target.value));
+    input.addEventListener('input', e => showOptions(e.target.value));
+    input.addEventListener('blur', () => setTimeout(() => optsEl.classList.remove('open'), 200));
+
+    optsEl.addEventListener('mousedown', e => {
+      const opt = e.target.closest('.combobox-option');
+      if (!opt) return;
+      e.preventDefault();
+      matchupSlots[slot] = opt.dataset.id;
+      renderMatchupSlots();
+      renderMatchupCoverageInputs();
+      renderMatchupTable();
+    });
+  });
+  container.querySelectorAll('.matchup-slot-clear').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const slot = parseInt(btn.dataset.slot, 10);
+      matchupSlots[slot] = null;
+      matchupCoverageMoves[slot] = [null, null, null, null];
+      renderMatchupSlots();
+      renderMatchupCoverageInputs();
+      renderMatchupTable();
+    });
+  });
+}
+
+function coverageMovePool(slot) {
+  const p = matchupSlots[slot] ? PokemonById[matchupSlots[slot]] : null;
+  const pool = p?.ls?.length ? p.ls.map(id => MoveById[id]).filter(Boolean) : MOVES;
+  return pool.filter(m => m.cat !== 'Status' && m.type && BATTLE_TYPES.includes(m.type));
+}
+
+function renderMatchupCoverageInputs() {
+  const container = document.getElementById('matchupCoverageInputs');
+  if (!container) return;
+  if (matchupMode !== 'coverage') {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = matchupSlots.map((id, slot) => {
+    const p = id ? PokemonById[id] : null;
+    const title = p ? pkName(p) : `슬롯 ${slot + 1}`;
+    const rows = matchupCoverageMoves[slot].map((moveId, moveIndex) => {
+      const m = moveId ? MoveById[moveId] : null;
+      return `
+        <div class="matchup-move-field">
+          <span class="matchup-move-num">${moveIndex + 1}</span>
+          <div class="combobox matchup-move-combobox">
+            <input type="text" class="cb-input matchup-move-input" data-slot="${slot}" data-move-index="${moveIndex}"
+                   value="${m ? escapeHTML(mvName(m)) : ''}" placeholder="기술 검색">
+            <div class="combobox-options"></div>
+          </div>
+          ${m ? `<span class="type-pill t-${m.type}" style="font-size:9px;padding:1px 5px;">${TYPE_KO[m.type] || m.type}</span>` : ''}
+        </div>
+      `;
+    }).join('');
+    return `
+      <div class="matchup-coverage-card ${p ? 'filled' : ''}">
+        <div class="matchup-coverage-head">
+          <span>${escapeHTML(title)}</span>
+          ${p ? p.types.map(t => `<span class="type-pill t-${t}" style="font-size:9px;padding:1px 5px;">${TYPE_KO[t] || t}</span>`).join('') : ''}
+        </div>
+        <div class="matchup-move-grid">${rows}</div>
+      </div>
+    `;
+  }).join('');
+  wireMatchupCoverageInputs();
+}
+
+function wireMatchupCoverageInputs() {
+  const container = document.getElementById('matchupCoverageInputs');
+  if (!container) return;
+  container.querySelectorAll('.matchup-move-input').forEach(input => {
+    const slot = parseInt(input.dataset.slot, 10);
+    const moveIndex = parseInt(input.dataset.moveIndex, 10);
+    const cbParent = input.closest('.combobox');
+    const optsEl = cbParent.querySelector('.combobox-options');
+    const showOptions = (query) => {
+      const s = (query || '').toLowerCase();
+      const matches = coverageMovePool(slot).filter(m =>
+        (m.koName || '').toLowerCase().includes(s) ||
+        m.name.toLowerCase().includes(s) ||
+        (TYPE_KO[m.type] || '').toLowerCase().includes(s) ||
+        m.type.toLowerCase().includes(s)
+      ).slice(0, 80);
+      optsEl.innerHTML = matches.map(m =>
+        `<div class="combobox-option" data-id="${m.id}">
+          <b>${escapeHTML(mvName(m))}</b>
+          <small>${m.type} · ${moveCategoryLabel(m.cat)} · ${m.bp || '-'}</small>
+        </div>`
+      ).join('');
+      optsEl.classList.add('open');
+    };
+    input.addEventListener('focus', e => showOptions(e.target.value));
+    input.addEventListener('input', e => {
+      if (!e.target.value.trim()) {
+        matchupCoverageMoves[slot][moveIndex] = null;
+        renderMatchupTable();
+      }
+      showOptions(e.target.value);
+    });
+    input.addEventListener('blur', () => setTimeout(() => optsEl.classList.remove('open'), 200));
+    optsEl.addEventListener('mousedown', e => {
+      const opt = e.target.closest('.combobox-option');
+      if (!opt) return;
+      e.preventDefault();
+      matchupCoverageMoves[slot][moveIndex] = opt.dataset.id;
+      renderMatchupCoverageInputs();
+      renderMatchupTable();
+    });
+  });
+}
+
+function renderMatchupSideGroup(label, cls, rows, renderRow) {
+  if (!rows.length) return '';
+  return `
+    <div class="matchup-side-section ${cls}">
+      <div class="matchup-side-section-title ${cls}">${label}</div>
+      ${rows.map(renderRow).join('')}
+    </div>
+  `;
+}
+
+function renderMatchupMeta(kind, context = {}) {
+  const box = document.getElementById('matchupMeta');
+  if (!box) return;
+  if (kind === 'defensiveThreats') {
+    const pokes = context.pokes || [];
+    if (pokes.length < 3) {
+      box.innerHTML = '<div class="matchup-side-title">주의 포켓몬</div><div class="matchup-side-empty">3마리 이상 선택하면 메타 위협의 타입별 위험도를 표시합니다.</div>';
+      return;
+    }
+    const rows = matchupMetaPokemon('defensiveThreats').map(p => {
+      const profiles = (p.types || []).map(type => defenseTypeProfile(type, pokes));
+      const visibleProfiles = profiles.filter(profile => profile.grade.cls === 'danger' || profile.grade.cls === 'caution' || profile.grade.cls === 'max');
+      const maxScore = Math.max(...visibleProfiles.map(s => s.score), 0);
+      const maxRank = Math.max(...visibleProfiles.map(s => THREAT_RANK[s.grade.cls] || 0), 0);
+      const maxGrade = visibleProfiles.find(s => (THREAT_RANK[s.grade.cls] || 0) === maxRank)?.grade || { label: '안전', cls: 'safe' };
+      return { p, profiles: visibleProfiles, maxScore, maxRank, maxGrade };
+    }).filter(row => row.profiles.length)
+      .sort((a, b) => b.maxRank - a.maxRank || b.maxScore - a.maxScore || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
+    const dangerRows = rows.filter(row => row.maxGrade.cls === 'danger' || row.maxGrade.cls === 'max');
+    const cautionRows = rows.filter(row => row.maxGrade.cls === 'caution');
+    const renderDefenseRow = row => `
+      <div class="matchup-side-card ${row.maxGrade.cls}">
+        <div class="matchup-side-name">${escapeHTML(pkName(row.p))}</div>
+        <div class="matchup-side-badges">
+          ${row.profiles.map(s => `<span class="matchup-score-badge ${s.grade.cls}" title="${s.grade.label} · 약점 ${s.weakCount} · 반감 ${s.resistCount} · 1/4 ${s.quarterCount} · 무효 ${s.immuneCount}"><span class="type-pill t-${s.type}">${TYPE_KO[s.type] || s.type}</span>${formatDefenseScore(s.score)}</span>`).join('')}
+        </div>
+      </div>
+    `;
+    const sections = [
+      renderMatchupSideGroup('위험', 'danger', dangerRows, renderDefenseRow),
+      renderMatchupSideGroup('주의', 'caution', cautionRows, renderDefenseRow),
+    ].join('');
+    box.innerHTML = `
+      <div class="matchup-side-title">주의 포켓몬</div>
+      <div class="matchup-side-list">
+        ${sections || '<div class="matchup-side-empty">현재 선택 기준으로 위험/주의 메타 포켓몬이 없습니다.</div>'}
+      </div>
+    `;
+    return;
+  }
+  const coverageMoves = selectedCoverageMoves();
+  if (coverageMoves.length === 0) {
+    box.innerHTML = '<div class="matchup-side-title">메타 타점</div><div class="matchup-side-empty">타점 체크에서 기술을 입력하면 메타 포켓몬의 4배/2배 약점 커버를 표시합니다.</div>';
+    return;
+  }
+  const rows = matchupMetaPokemon('coverageChecks').map(p => {
+    const weaknesses = BATTLE_TYPES.map(type => {
+      const eff = typeEff(type, p.types);
+      if (eff <= 1) return null;
+      const count = coverageCountByType(type);
+      return { type, eff, count };
+    }).filter(Boolean);
+    const quadWeaknesses = weaknesses.filter(w => w.eff >= 4);
+    const doubleWeaknesses = weaknesses.filter(w => w.eff === 2);
+    const missing4 = quadWeaknesses.filter(w => w.count === 0);
+    const has4x = quadWeaknesses.length > 0;
+    const quadCovered = quadWeaknesses.some(w => w.count > 0);
+    const alt2Count = coverageSlotCountForTypes(doubleWeaknesses.map(w => w.type));
+    const grade = coverageThreatGrade(has4x, quadCovered, alt2Count);
+    return { p, weaknesses, quadWeaknesses, doubleWeaknesses, missing4, has4x, quadCovered, alt2Count, grade };
+  }).filter(row => row.grade.cls !== 'safe');
+  const dangerRows = rows
+    .filter(row => row.grade.cls === 'danger')
+    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
+  const cautionRows = rows
+    .filter(row => row.grade.cls === 'caution')
+    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
+  const checkRows = rows
+    .filter(row => row.grade.cls === 'check')
+    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
+  const renderCoverageRow = row => {
+    const shownWeaknesses = row.missing4.length ? [...row.missing4, ...row.doubleWeaknesses] : row.doubleWeaknesses;
+    const weakBadges = shownWeaknesses.map(w =>
+      `<span class="matchup-weak-badge ${w.count ? 'covered' : 'missing'} x${w.eff}"><span class="type-pill t-${w.type}">${TYPE_KO[w.type] || w.type}</span>${w.count}</span>`
+    ).join('');
+    return `
+    <div class="matchup-side-card ${row.grade.cls} matchup-coverage-threat-card">
+      <div class="matchup-side-name">${escapeHTML(pkName(row.p))}</div>
+      <div class="matchup-coverage-threat-body">
+        <div class="matchup-side-badges matchup-weakness-list">${weakBadges}</div>
+        <span class="matchup-cover-count ${row.grade.cls}"><span>${row.has4x ? '2배대체' : '2배타점'}</span><b>${row.alt2Count}</b></span>
+      </div>
+    </div>
+  `;
+  };
+  const sections = [
+    renderMatchupSideGroup('위험', 'danger', dangerRows, renderCoverageRow),
+    renderMatchupSideGroup('주의', 'caution', cautionRows, renderCoverageRow),
+    renderMatchupSideGroup('견제', 'check', checkRows, renderCoverageRow),
+  ].join('');
+  box.innerHTML = `
+    <div class="matchup-side-title">메타 타점</div>
+    <div class="matchup-side-list">
+      ${sections || '<div class="matchup-side-empty">현재 기술 기준으로 미커버 위험/주의/견제 메타 포켓몬이 없습니다.</div>'}
+    </div>
+  `;
+}
+
+function renderDefenseScoreCell(profile) {
+  const scoreText = formatDefenseScore(profile.score);
+  return `
+    <td class="summary score ${profile.grade.cls}" title="${profile.grade.label} · 약점 ${profile.weakCount} · 반감 ${profile.resistCount} · 1/4 ${profile.quarterCount} · 무효 ${profile.immuneCount}">
+      <div class="matchup-score-main">${scoreText}</div>
+    </td>
+  `;
+}
+
+function renderMatchupTable() {
+  if (matchupMode === 'coverage') return renderCoverageMatchupTable();
+  return renderDefenseMatchupTable();
+}
+
+function renderDefenseMatchupTable() {
+  const tbl = document.getElementById('matchupTable');
+  const head = document.getElementById('matchupHead');
+  const body = document.getElementById('matchupBody');
+  if (!tbl || !head || !body) return;
+
+  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
+  const valid = pokes.filter(Boolean);
+  renderMatchupMeta('defensiveThreats', { pokes: valid });
+
+  // colgroup 으로 고정 열 너비 강제 (table-layout: fixed 와 함께)
+  // 슬롯 채워지든 비어 있든 동일한 폭을 유지한다.
+  const oldCG = tbl.querySelector('colgroup');
+  if (oldCG) oldCG.remove();
+  const cg = document.createElement('colgroup');
+  cg.innerHTML =
+    `<col style="width:${MATCHUP_COL.type}px">` +
+    pokes.map(() => `<col style="width:${MATCHUP_COL.slot}px">`).join('') +
+    `<col style="width:${MATCHUP_COL.score}px">`;
+  tbl.insertBefore(cg, tbl.firstChild);
+
+  // 헤더: 공격 타입 컬럼 + 6 슬롯 + 무효/약점 요약
+  head.innerHTML = `
+    <tr>
+      <th style="text-align:left;">공격 타입</th>
+      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span style="color:var(--text-faint)">슬롯 ${i+1}</span>`}</th>`).join('')}
+      <th class="summary">일관성</th>
+    </tr>
+  `;
+
+  if (valid.length < 3) {
+    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하면 방어 상성 진단을 표시합니다.</td></tr>`;
+    return;
+  }
+
+  // 본문: 18 행 × 6 셀 + 요약
+  body.innerHTML = BATTLE_TYPES.map(t => {
+    const cells = pokes.map(p => {
+      if (!p) return `<td class="empty">—</td>`;
+      const eff = typeEff(t, p.types);
+      const sym = EFF_SYMBOL[eff] !== undefined ? EFF_SYMBOL[eff] : eff + '×';
+      const cls = EFF_CLASS[eff] || '';
+      return `<td class="${cls}">${sym}</td>`;
+    }).join('');
+
+    const profile = defenseTypeProfile(t, valid);
+
+    return `
+      <tr>
+        <td><span class="type-pill t-${t}" style="font-size:11px;padding:2px 8px;">${TYPE_KO[t]}</span></td>
+        ${cells}
+        ${renderDefenseScoreCell(profile)}
+      </tr>
+    `;
+  }).join('');
+}
+/* ════════════════════════════════════════════════════════════
+   도감 상세 모달 — Cross-reference 인덱스 + 렌더러
+   ════════════════════════════════════════════════════════════ */
+// 특성 → 보유 포켓몬 인덱스 (한 번만 빌드)
+function renderCoverageMatchupTable() {
+  const tbl = document.getElementById('matchupTable');
+  const head = document.getElementById('matchupHead');
+  const body = document.getElementById('matchupBody');
+  if (!tbl || !head || !body) return;
+  renderMatchupMeta('coverageChecks');
+
+  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
+  const valid = pokes.filter(Boolean);
+  const oldCG = tbl.querySelector('colgroup');
+  if (oldCG) oldCG.remove();
+  const cg = document.createElement('colgroup');
+  cg.innerHTML =
+    `<col style="width:${MATCHUP_COL.type}px">` +
+    pokes.map(() => `<col style="width:${MATCHUP_COL.slot}px">`).join('') +
+    `<col style="width:${MATCHUP_COL.coverageSummary}px">`;
+  tbl.insertBefore(cg, tbl.firstChild);
+
+  head.innerHTML = `
+    <tr>
+      <th style="text-align:left;">공격 타입</th>
+      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span style="color:var(--text-faint)">슬롯 ${i+1}</span>`}</th>`).join('')}
+      <th class="summary">커버</th>
+    </tr>
+  `;
+
+  if (valid.length < 3) {
+    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하고 타점 체크에서 기술을 입력하면 진단을 표시합니다.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = BATTLE_TYPES.map(t => {
+    const cells = pokes.map((p, slot) => {
+      if (!p) return '<td class="empty">-</td>';
+      const count = coverageCountByType(t, slot);
+      return `<td class="${count ? 'coverage-hit' : 'coverage-miss'}">${count || ''}</td>`;
+    }).join('');
+    const total = coverageCountByType(t);
+    return `
+      <tr>
+        <td><span class="type-pill t-${t}" style="font-size:11px;padding:2px 8px;">${TYPE_KO[t]}</span></td>
+        ${cells}
+        <td class="summary ${total ? 'coverage-hit' : 'coverage-miss'}">${total || ''}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+
+
+/* Fine-tune EV planner.
+ * Loaded before 05-init.js by build.mjs alphabetical concatenation.
+ */
 // 내 측은 makeSideState 와 같은 형태(전체 세팅 보유), 상대는 최소 정보만.
 const fineTuneState = {
   my: makeSideState('incineroar'),
@@ -10125,416 +10649,7 @@ const fineTuneState = {
 // 스피드 부스트 특성 매핑 (체크박스 켤 때만 ×2)
 const FT_SPEED_X2_ABILITIES = new Set(['swiftswim', 'chlorophyll', 'sandrush', 'slushrush', 'surgesurfer']);
 
-// HP 브레이크포인트 힌트
-function ftHpHints(side) {
-  const hp = calcStats(side).hp;
-  if (!hp) return [];
-  const tags = [];
-  if (hp % 16 === 1)  tags.push({ rule: '16n+1',  desc: '도트 대미지 +1턴 버팀',     color: 'var(--ok)' });
-  if (hp % 16 === 15) tags.push({ rule: '16n-1',  desc: '도트 대미지 최소',          color: 'var(--text-dim)' });
-  if (hp % 10 === 9)  tags.push({ rule: '10n-1',  desc: '생명의구슬 반동 최소',      color: 'var(--text-dim)' });
-  if (hp % 8 === 1)   tags.push({ rule: '8n+1',   desc: '씨뿌리기 +1턴 버팀',        color: 'var(--ok)' });
-  if (hp % 8 === 7)   tags.push({ rule: '8n-1',   desc: '씨뿌리기 최소',             color: 'var(--text-dim)' });
-  // 대타출동: 1/4 max HP 소모. 4n+1, 4n+2, 4n+3 모두 한 번 더 가능 (4n 보다)
-  const hpMod4 = hp % 4;
-  if (hpMod4 === 1) tags.push({ rule: '4n+1', desc: '대타출동 +1회 가능', color: 'var(--ok)' });
-  if (hpMod4 === 2) tags.push({ rule: '4n+2', desc: '대타출동 +1회 가능', color: 'var(--ok)' });
-  if (hpMod4 === 3) tags.push({ rule: '4n+3', desc: '대타출동 +1회 가능', color: 'var(--ok)' });
-  // 스텔스록: 자기 포켓몬의 바위 약점 배율 기준
-  const types = effectiveTypes(side);
-  const rockEff = typeEff('Rock', types);
-  if (rockEff === 2 && hp % 4 === 1) tags.push({ rule: '4n+1',  desc: '스텔스록(×2) +1턴 버팀',  color: 'var(--ok)' });
-  if (rockEff === 4 && hp % 2 === 1) tags.push({ rule: '2n+1',  desc: '스텔스록(×4) +1턴 버팀',  color: 'var(--ok)' });
-  return tags;
-}
-
-// 매직넘버 정보 (상승 성격 ×1.1 의 stat 만 의미 있음)
-// 챔피언스 공식: raw_before = base + 20 + pt, final = floor(raw × 1.1)
-// 매직 진입 pt: (base + 20 + pt) % 10 == 0
-function ftMagicNumbers(side, stat) {
-  if (stat === 'hp') return null;
-  const nature = (typeof NATURE_BY_ID !== 'undefined') ? NATURE_BY_ID[side.nature] : null;
-  if (!nature || nature.up !== stat) return null;     // 상승 stat 만
-  const p = PokemonById[side.pokemonIdx];
-  if (!p) return null;
-  const base = p.bs[stat];
-  // pt at which (base + 20 + pt) % 10 == 0 → pt % 10 == (-base - 20) % 10
-  let firstMagic = (10 - (base + 20) % 10) % 10;
-  if (firstMagic === 0) firstMagic = 10;  // pt=0 은 transition 아님
-  const magicEvs = [];
-  for (let m = firstMagic; m <= 32; m += 10) magicEvs.push(m);
-
-  const cur = side.evs[stat] || 0;
-  const next = magicEvs.find(m => m > cur) ?? null;
-  const prev = [...magicEvs].reverse().find(m => m <= cur) ?? null;
-  return { magicEvs, cur, next, prev };
-}
-
-// 한 측의 스피드 실수치 계산 (도구·특성 기반 자동 보정 포함)
-function ftMySpeed(my) {
-  const p = PokemonById[my.pokemonIdx];
-  if (!p) return 0;
-  const stats = calcStats(my);
-  let s = applyBoost(stats.spe, my.ranks?.spe || 0);
-  // 도구
-  if (my.item === 'choicescarf') s = Math.floor(s * 1.5);
-  if (my.item === 'ironball')    s = Math.floor(s * 0.5);
-  // 특성 (체크박스로 발동 시에만)
-  if (fineTuneState.weatherAbilityActive && FT_SPEED_X2_ABILITIES.has(my.ability)) s = Math.floor(s * 2);
-  return s;
-}
-
-// 상대 한 케이스 스피드 (최속/준속/무보정)
-function ftOppSpeedCase(opp, ev, natureMul) {
-  const p = PokemonById[opp.pokemonIdx];
-  if (!p) return 0;
-  let raw = Math.floor((p.bs.spe + 20 + ev) * natureMul);
-  raw = applyBoost(raw, opp.speRank || 0);
-  if (opp.scarf) raw = Math.floor(raw * 1.5);
-  return raw;
-}
-
-// 추월에 필요한 최소 EV 산출 (32 EV 로도 못 따라잡으면 null)
-function ftFindMinSpeedEv(my, targetSpeed) {
-  // my 의 spe EV 만 0..32 변동시키며 계산. 다른 stat 영향 없음.
-  for (let ev = 0; ev <= 32; ev++) {
-    const tmp = { ...my, evs: { ...my.evs, spe: ev } };
-    if (ftMySpeed(tmp) >= targetSpeed) return ev;
-  }
-  return null;
-}
-
-// 스피드 비교 표 결과 빌드
-function ftBuildSpeedTable() {
-  const my = fineTuneState.my;
-  const opp = fineTuneState.opp;
-  const margin = Math.max(0, parseInt(fineTuneState.margin, 10) || 1);
-
-  const cases = [
-    { label: '최속',  ev: 32, natureMul: 1.1 },
-    { label: '준속',  ev: 32, natureMul: 1.0 },
-    { label: '무보정', ev: 0,  natureMul: 1.0 },
-  ];
-
-  return cases.map(c => {
-    const oppSpe = ftOppSpeedCase(opp, c.ev, c.natureMul);
-    const target = oppSpe + margin;
-    const need = ftFindMinSpeedEv(my, target);
-    return { ...c, oppSpe, target, need };
-  });
-}
-
-// === UI 렌더링 ===
-
-function renderFineTuneMy() {
-  const container = document.getElementById('ft-my-body');
-  if (!container) return;
-  const my = fineTuneState.my;
-  const p = PokemonById[my.pokemonIdx];
-  if (!p) {
-    container.innerHTML = '<div class="empty-state">포켓몬 선택 필요</div>';
-    return;
-  }
-  const stats = calcStats(my);
-  const totalEV = (typeof STATS !== 'undefined' ? STATS : ['hp','atk','def','spa','spd','spe']).reduce((a,s) => a + (my.evs[s]||0), 0);
-  const overEV = totalEV > 66;
-
-  // 특성 옵션
-  const abOptions = Object.values(p.ab || {}).map(abN => {
-    const id = toId(abN);
-    const data = AbilityById[id];
-    return data ? `<option value="${id}" ${my.ability === id ? 'selected' : ''}>${escapeHTML(abName(data))}</option>`
-                : `<option value="${id}" ${my.ability === id ? 'selected' : ''}>${escapeHTML(abN)}</option>`;
-  }).join('');
-
-  // HP 힌트
-  const hpHints = ftHpHints(my);
-  const hpHintsHtml = hpHints.length > 0
-    ? hpHints.map(t => `<span class="ft-tag" style="color:${t.color}; border-color:${t.color}; opacity:0.85;">${t.rule} · ${t.desc}</span>`).join(' ')
-    : '<span style="color:var(--text-faint);font-size:11px;">매칭되는 브레이크포인트 없음</span>';
-
-  // 스탯 그리드 — 각 stat 마다 매직넘버 정보 함께 표시
-  const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
-  const RANK_STATS = ['atk','def','spa','spd','spe'];
-  const statRows = ['hp', ...RANK_STATS].map(s => {
-    const ev = my.evs[s] || 0;
-    const final = stats[s];
-    const nature = NATURE_BY_ID?.[my.nature];
-    const isUp = nature?.up === s;
-    const isDown = nature?.down === s;
-    const natureMark = isUp ? '<span style="color:#ff6b85;">▲</span>' : isDown ? '<span style="color:#7e9eff;">▼</span>' : '';
-    const rank = my.ranks?.[s] || 0;
-    const rankCtrl = s === 'hp' ? '<div class="ft-rank-empty"></div>' : `
-      <div class="ft-rank">
-        <button class="ft-rank-btn" data-ft-rank="${s}" data-ft-dir="-1">−</button>
-        <span class="ft-rank-val ${rank > 0 ? 'pos' : rank < 0 ? 'neg' : ''}">${rank > 0 ? '+' + rank : rank}</span>
-        <button class="ft-rank-btn" data-ft-rank="${s}" data-ft-dir="1">+</button>
-      </div>
-    `;
-    // 매직넘버 — 현재 EV 대비 상대값으로 표시 (-Npt / +Npt)
-    const magic = ftMagicNumbers(my, s);
-    const magicHtml = magic ? `
-      <div class="ft-magic">
-        ${magic.prev !== null ? `<span class="ft-magic-prev" title="이전 매직 위치: ${magic.prev}pt">-${ev - magic.prev}pt</span>` : '<span class="ft-magic-prev empty"></span>'}
-        ${magic.next !== null ? `<span class="ft-magic-next" title="다음 매직 위치: ${magic.next}pt">+${magic.next - ev}pt</span>` : '<span class="ft-magic-next empty"></span>'}
-      </div>
-    ` : '<div class="ft-magic empty"></div>';
-    return `
-      <div class="ft-stat-row">
-        <div class="ft-stat-name">${STAT_KO[s]} ${natureMark}</div>
-        <div class="ft-stat-base">${p.bs[s]}</div>
-        <div class="ft-stat-ev">
-          <button class="ft-ev-quick" data-ft-evset="${s}" data-ft-evval="0" title="0">0</button>
-          <input type="number" class="ft-ev-input" data-ft-ev="${s}" value="${ev}" min="0" max="32">
-          <button class="ft-ev-quick" data-ft-evset="${s}" data-ft-evval="32" title="32">32</button>
-        </div>
-        <div class="ft-stat-final">${final}</div>
-        ${rankCtrl}
-        ${magicHtml}
-      </div>
-    `;
-  }).join('');
-
-  container.innerHTML = `
-    <div class="ft-poke-row">
-      <div class="ft-pickname">
-        <span class="ft-section-title">포켓몬</span>
-        <div class="combobox" style="flex:1;">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="my" value="${escapeHTML(pkName(p))}" placeholder="검색...">
-          <div class="combobox-options"></div>
-        </div>
-        <div class="types-display" style="margin-left:8px;">
-          ${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join('')}
-          ${p.mega ? '<span class="badge-mega" style="color:var(--tera);">[메가]</span>' : ''}
-        </div>
-      </div>
-    </div>
-
-    <div class="ft-controls-row">
-      <label class="field"><span class="field-label">성격</span>
-        <select data-ft-action="nature">
-          ${(typeof NATURES !== 'undefined' ? NATURES : []).map(n => `<option value="${n.id}" ${my.nature === n.id ? 'selected' : ''}>${n.ko}${n.up ? ` (${({atk:'공',def:'방',spa:'특공',spd:'특방',spe:'속'})[n.up]}↑/${({atk:'공',def:'방',spa:'특공',spd:'특방',spe:'속'})[n.down]}↓)` : ''}</option>`).join('')}
-        </select>
-      </label>
-      <label class="field"><span class="field-label">특성</span>
-        <select data-ft-action="ability">${abOptions}</select>
-      </label>
-      <label class="field"><span class="field-label">도구</span>
-        <div class="combobox">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="item" value="${my.item ? escapeHTML(itName(ItemById[my.item] || { name: my.item })) : '없음'}" placeholder="도구 검색...">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
-      <label class="checkbox-label" title="SwiftSwim·Chlorophyll·SandRush·SlushRush·SurgeSurfer 의 발동 여부 (날씨/필드 자동 감지 X, 수동)">
-        <input type="checkbox" id="ftWeatherAbility" ${fineTuneState.weatherAbilityActive ? 'checked' : ''}>
-        ⚡ 속도 특성 발동
-      </label>
-    </div>
-
-    <div class="ft-stats-grid">
-      <div class="ft-stats-head">
-        <div>스탯</div>
-        <div>종족값</div>
-        <div>노력치 (0-32)</div>
-        <div>실수치</div>
-        <div>랭크</div>
-        <div>매직넘버</div>
-      </div>
-      ${statRows}
-    </div>
-
-    <div class="ft-ev-total ${overEV ? 'over' : ''}">
-      노력치 합계: <b>${totalEV}</b> / 66 ${overEV ? '<span style="color:var(--atk);"> 초과!</span>' : ''}
-    </div>
-
-    <div class="ft-section-title">HP 브레이크포인트</div>
-    <div class="ft-tag-row">${hpHintsHtml}</div>
-  `;
-
-  // 콤보박스 와이어링
-  ftWireMyComboboxes();
-}
-
-function renderFineTuneOpp() {
-  const container = document.getElementById('ft-opp-body');
-  if (!container) return;
-  const opp = fineTuneState.opp;
-  const p = PokemonById[opp.pokemonIdx];
-
-  container.innerHTML = `
-    <div class="ft-poke-row">
-      <div class="ft-pickname">
-        <span class="ft-section-title">포켓몬</span>
-        <div class="combobox" style="flex:1;">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="opp" value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="검색...">
-          <div class="combobox-options"></div>
-        </div>
-        ${p ? `<div class="types-display" style="margin-left:8px;">
-          ${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join('')}
-        </div>` : ''}
-      </div>
-    </div>
-    <div class="ft-controls-row">
-      <label class="checkbox-label">
-        <input type="checkbox" id="ftOppScarf" ${opp.scarf ? 'checked' : ''}>
-        💠 구애스카프
-      </label>
-      <label class="field"><span class="field-label">상대 속도 랭크</span>
-        <div class="ft-rank">
-          <button class="ft-rank-btn" data-ft-opprank="-1">−</button>
-          <span class="ft-rank-val ${opp.speRank > 0 ? 'pos' : opp.speRank < 0 ? 'neg' : ''}">${opp.speRank > 0 ? '+' + opp.speRank : opp.speRank}</span>
-          <button class="ft-rank-btn" data-ft-opprank="1">+</button>
-        </div>
-      </label>
-    </div>
-    <div class="ft-section-title">참고: 상대 스피드 실수치</div>
-    <div class="ft-tag-row">
-      ${(() => {
-        if (!p) return '';
-        const cases = [
-          { label: '최속(N+/E32)', ev: 32, n: 1.1 },
-          { label: '준속(N0/E32)', ev: 32, n: 1.0 },
-          { label: '무보정(N0/E0)', ev: 0,  n: 1.0 },
-        ];
-        return cases.map(c => `<span class="ft-tag">${c.label}: <b>${ftOppSpeedCase(opp, c.ev, c.n)}</b></span>`).join(' ');
-      })()}
-    </div>
-  `;
-  ftWireOppComboboxes();
-}
-
-function renderFineTuneSpeed() {
-  const container = document.getElementById('ft-speed-body');
-  if (!container) return;
-  const my = fineTuneState.my;
-  const opp = fineTuneState.opp;
-  const myP = PokemonById[my.pokemonIdx];
-  const oppP = PokemonById[opp.pokemonIdx];
-  if (!myP || !oppP) {
-    container.innerHTML = '<div class="empty-state">양측 포켓몬 선택 필요</div>';
-    return;
-  }
-  const rows = ftBuildSpeedTable();
-  const margin = Math.max(0, parseInt(fineTuneState.margin, 10) || 1);
-
-  // 내 측 추가 정보
-  const myCurrentSpe = ftMySpeed(my);
-  const myInfo = `
-    <div class="ft-myspe-info">
-      <span>내 현재 스피드 실수치: <b>${myCurrentSpe}</b></span>
-      ${my.item === 'choicescarf' ? '<span class="ft-tag" style="color:var(--warn);">스카프 적용</span>' : ''}
-      ${fineTuneState.weatherAbilityActive && FT_SPEED_X2_ABILITIES.has(my.ability) ? '<span class="ft-tag" style="color:var(--ok);">속도 특성 발동</span>' : ''}
-      ${(my.ranks?.spe || 0) !== 0 ? `<span class="ft-tag">랭크 ${my.ranks.spe > 0 ? '+' : ''}${my.ranks.spe}</span>` : ''}
-    </div>
-  `;
-
-  const cells = rows.map(r => {
-    const cls = r.need === null ? 'ft-cell-impossible' : 'ft-cell-possible';
-    const valHtml = r.need === null ? '<b>불가</b>' : `<b>${r.need}</b> EV`;
-    return `<td class="${cls}" title="필요 스피드 ${r.target} 이상 (상대 ${r.oppSpe} + ${margin})">${valHtml}</td>`;
-  }).join('');
-
-  container.innerHTML = `
-    ${myInfo}
-    <div class="ft-speed-table-wrap">
-      <table class="ft-speed-table">
-        <thead>
-          <tr>
-            <th>구분</th>
-            <th>최속<small>N+/E32</small></th>
-            <th>준속<small>N0/E32</small></th>
-            <th>무보정<small>N0/E0</small></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><th>상대 실수치</th>${rows.map(r => `<td>${r.oppSpe}</td>`).join('')}</tr>
-          <tr><th>+${margin} 추월 필요 EV</th>${cells}</tr>
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function renderFineTuneAll() {
-  renderFineTuneMy();
-  renderFineTuneOpp();
-  renderFineTuneSpeed();
-}
-
-// === 콤보박스 / 이벤트 ===
-
-function ftWireMyComboboxes() {
-  const container = document.getElementById('ft-my-body');
-  container.querySelectorAll('.ft-cb-input').forEach(input => {
-    const target = input.dataset.ftPick; // 'my' (포켓몬) | 'item'
-    const cb = input.closest('.combobox');
-    const optsEl = cb.querySelector('.combobox-options');
-    const showOptions = (q) => {
-      const s = (q || '').toLowerCase();
-      const data = target === 'my' ? sortPokemonForCalcSelect(POKEMON) : ITEMS;
-      const allMatches = data.filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s));
-      const matches = target === 'my' ? allMatches : allMatches.slice(0, 30);
-      const items = matches.map(m => {
-        const label = target === 'my' ? pkName(m) : itName(m);
-        const sub = target === 'my' ? `${m.types.join('/')} · BST ${m.bst}` : (m.desc || '').slice(0, 30);
-        return `<div class="combobox-option" data-id="${m.id}"><b>${escapeHTML(label)}</b> <small>${escapeHTML(sub)}</small></div>`;
-      });
-      if (target === 'item') items.unshift('<div class="combobox-option" data-id=""><b>없음</b></div>');
-      optsEl.innerHTML = items.join('');
-      optsEl.classList.add('open');
-    };
-    input.addEventListener('focus', e => showOptions(e.target.value));
-    input.addEventListener('input', e => showOptions(e.target.value));
-    input.addEventListener('blur', () => setTimeout(() => optsEl.classList.remove('open'), 200));
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt) return;
-      e.preventDefault();
-      const id = opt.dataset.id;
-      if (target === 'my') {
-        // 포켓몬 변경 시 ability/item/moves 초기화 (계산기와 동일 로직)
-        const p = PokemonById[id];
-        fineTuneState.my.pokemonIdx = id;
-        if (p) {
-          fineTuneState.my.ability = toId(p.ab['0'] || p.ab['H'] || '');
-          fineTuneState.my.teraType = p.types[0];
-        }
-      } else {
-        fineTuneState.my.item = id || '';
-      }
-      renderFineTuneAll();
-    });
-  });
-}
-
-function ftWireOppComboboxes() {
-  const container = document.getElementById('ft-opp-body');
-  container.querySelectorAll('.ft-cb-input').forEach(input => {
-    const cb = input.closest('.combobox');
-    const optsEl = cb.querySelector('.combobox-options');
-    const showOptions = (q) => {
-      const s = (q || '').toLowerCase();
-      const matches = sortPokemonForCalcSelect(POKEMON).filter(d => (d.koName||'').toLowerCase().includes(s) || d.name.toLowerCase().includes(s));
-      optsEl.innerHTML = matches.map(m =>
-        `<div class="combobox-option" data-id="${m.id}"><b>${escapeHTML(pkName(m))}</b> <small>${m.types.join('/')} · BST ${m.bst}</small></div>`
-      ).join('');
-      optsEl.classList.add('open');
-    };
-    input.addEventListener('focus', e => showOptions(e.target.value));
-    input.addEventListener('input', e => showOptions(e.target.value));
-    input.addEventListener('blur', () => setTimeout(() => optsEl.classList.remove('open'), 200));
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt) return;
-      e.preventDefault();
-      fineTuneState.opp.pokemonIdx = opt.dataset.id;
-      renderFineTuneAll();
-    });
-  });
-}
-
-// 위임된 입력 핸들러 (페이지 전체)
-// Fine-tune logic v2: keep this tab aligned with the calculator engine.
+// Fine-tune helpers: keep this tab aligned with the calculator engine.
 function ftStatKeys() {
   return typeof STATS !== 'undefined' ? STATS : ['hp','atk','def','spa','spd','spe'];
 }
@@ -10598,7 +10713,7 @@ function ftSpeedSideFor(side) {
   return out;
 }
 
-function ftMySpeedV2(my) {
+function ftMySpeed(my) {
   if (!PokemonById[my?.pokemonIdx]) return 0;
   return effectiveSpeed(ftSpeedSideFor(my), ftSpeedFieldFor(my));
 }
@@ -10624,14 +10739,14 @@ function ftOpponentSideForCase(opp, ev, natureSpec) {
   return side;
 }
 
-function ftOppSpeedCaseV2(opp, ev, natureSpec, options = {}) {
+function ftOppSpeedCase(opp, ev, natureSpec, options = {}) {
   const manual = ftOpponentManualSpeed(opp);
   if (!options.ignoreManual && manual !== null) return manual;
   if (!PokemonById[opp?.pokemonIdx]) return 0;
   return effectiveSpeed(ftOpponentSideForCase(opp, ev, natureSpec), ftDefaultField());
 }
 
-function ftFindMinSpeedEvV2(my, targetSpeed) {
+function ftFindMinSpeedEv(my, targetSpeed) {
   const otherSum = ftStatKeys().reduce((a, key) => key === 'spe' ? a : a + (my.evs?.[key] || 0), 0);
   const maxSpeEv = Math.min(32, Math.max(0, 66 - otherSum));
   for (let ev = 0; ev <= maxSpeEv; ev++) {
@@ -10651,7 +10766,7 @@ function ftSpeedCases() {
   return manual === null ? cases : [{ label: '직접', sub: '입력값', manual: true }, ...cases];
 }
 
-function ftBuildSpeedTableV2() {
+function ftBuildSpeedTable() {
   const my = fineTuneState.my;
   const opp = fineTuneState.opp;
   const margin = Math.max(0, parseInt(fineTuneState.margin, 10) || 1);
@@ -10775,8 +10890,8 @@ function ftWireComboboxes(rootId) {
   });
 }
 
-function ftWireMyComboboxesV2() { ftWireComboboxes('ft-my-body'); }
-function ftWireOppComboboxesV2() { ftWireComboboxes('ft-opp-body'); }
+function ftWireMyComboboxes() { ftWireComboboxes('ft-my-body'); }
+function ftWireOppComboboxes() { ftWireComboboxes('ft-opp-body'); }
 
 function ftHpAtEv(side, ev) {
   const tmp = { ...side, evs: { ...side.evs, hp: ev } };
@@ -10852,65 +10967,7 @@ function ftHpBreakpoints(side) {
   return ftHpBreakpointRules(side).map(rule => ftHpBreakpointDeltas(side, rule));
 }
 
-function ftRenderHpBreakpoints(side) {
-  const rows = ftHpBreakpoints(side);
-  return rows.map(info => {
-    const badges = [];
-    if (info.current) badges.push(`<span class="ft-breakpoint-delta current">충족</span>`);
-    if (!info.current && info.next) badges.push(`<span class="ft-breakpoint-delta next">+${info.next.ev - (side.evs.hp || 0)}pt</span>`);
-    if (!info.current && info.prev) badges.push(`<span class="ft-breakpoint-delta prev">-${(side.evs.hp || 0) - info.prev.ev}pt</span>`);
-    if (!badges.length) badges.push(`<span class="ft-breakpoint-delta none">불가</span>`);
-    const targetBits = [
-      info.current ? `HP ${info.current.hp}` : null,
-      !info.current && info.next ? `+ HP ${info.next.hp}` : null,
-      !info.current && info.prev ? `- HP ${info.prev.hp}` : null,
-    ].filter(Boolean).join(' · ');
-    return `
-      <div class="ft-breakpoint-item ${info.current ? 'active' : ''} ${info.rule.relevant ? '' : 'muted'}">
-        <div class="ft-breakpoint-main">
-          <b>${escapeHTML(info.rule.rule)}</b>
-          <span>${escapeHTML(info.rule.desc)}</span>
-        </div>
-        <div class="ft-breakpoint-target">${targetBits || `현재 HP ${info.currentHp}`}</div>
-        <div class="ft-breakpoint-deltas">${badges.join('')}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-function ftBreakpointDeltaText(side, info) {
-  const curEv = side.evs?.hp || 0;
-  if (info.current) return '충족';
-  const parts = [];
-  if (info.next) parts.push(`+${info.next.ev - curEv}pt`);
-  if (info.prev) parts.push(`-${curEv - info.prev.ev}pt`);
-  return parts.join(' / ') || '불가';
-}
-
-function ftBreakpointTargetText(info) {
-  const targets = [
-    info.current ? `HP ${info.current.hp}` : null,
-    !info.current && info.next ? `+ HP ${info.next.hp}` : null,
-    !info.current && info.prev ? `- HP ${info.prev.hp}` : null,
-  ].filter(Boolean);
-  return targets.join(' · ') || `현재 HP ${info.currentHp}`;
-}
-
-function ftRenderHpPointChips(side) {
-  const rows = ftHpBreakpoints(side).filter(info => info.rule.relevant || info.current);
-  return rows.map(info => {
-    const cls = info.current ? 'active' : info.next ? 'next' : info.prev ? 'prev' : 'none';
-    const title = `${info.rule.desc} · ${ftBreakpointTargetText(info)}`;
-    return `
-      <span class="ft-point-chip ${cls}" title="${escapeHTML(title)}">
-        <b>${escapeHTML(info.rule.rule)}</b>
-        <em>${escapeHTML(ftBreakpointDeltaText(side, info))}</em>
-      </span>
-    `;
-  }).join('');
-}
-
-function ftMagicNumbersV2(side, stat) {
+function ftMagicNumbers(side, stat) {
   if (stat === 'hp') return null;
   const nature = NATURE_BY_ID?.[side.nature];
   if (!nature || nature.up !== stat) return null;
@@ -10931,229 +10988,7 @@ function ftMagicNumbersV2(side, stat) {
   };
 }
 
-function renderFineTuneMyV2() {
-  const container = document.getElementById('ft-my-body');
-  if (!container) return;
-  const my = fineTuneState.my;
-  const p = PokemonById[my.pokemonIdx];
-  if (!p) {
-    container.innerHTML = '<div class="empty-state">포켓몬 선택 필요</div>';
-    return;
-  }
-  const stats = calcStats(my);
-  const totalEV = ftStatKeys().reduce((a, s) => a + (my.evs[s] || 0), 0);
-  const overEV = totalEV > 66;
-  const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
-  const RANK_STATS = ['atk','def','spa','spd','spe'];
-  const typeBadges = normalizeSideTypes(my).map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join('');
-  const speedActivation = ftAbilitySpeedActivation(my.ability);
-  const statRows = ['hp', ...RANK_STATS].map(s => {
-    const ev = my.evs[s] || 0;
-    const nature = NATURE_BY_ID?.[my.nature];
-    const natureMark = nature?.up === s ? '<span class="ft-nature-up">▲</span>' : nature?.down === s ? '<span class="ft-nature-down">▼</span>' : '';
-    const rank = my.ranks?.[s] || 0;
-    const rankCtrl = s === 'hp' ? '<div class="ft-rank-empty"></div>' : `
-      <div class="ft-rank">
-        <button class="ft-rank-btn" data-ft-rank="${s}" data-ft-dir="-1">−</button>
-        <span class="ft-rank-val ${rank > 0 ? 'pos' : rank < 0 ? 'neg' : ''}">${rank > 0 ? '+' + rank : rank}</span>
-        <button class="ft-rank-btn" data-ft-rank="${s}" data-ft-dir="1">+</button>
-      </div>
-    `;
-    const magic = ftMagicNumbers(my, s);
-    const pointHtml = s === 'hp' ? `
-      <div class="ft-magic ft-hp-points">${ftRenderHpPointChips(my)}</div>
-    ` : magic ? `
-      <div class="ft-magic">
-        ${magic.current !== null ? `<span class="ft-magic-current" title="현재 매직 넘버">현재</span>` : ''}
-        ${magic.prev !== null ? `<span class="ft-magic-prev" title="이전 매직 포인트: ${magic.prev}pt">-${ev - magic.prev}pt</span>` : '<span class="ft-magic-prev empty"></span>'}
-        ${magic.next !== null ? `<span class="ft-magic-next" title="다음 매직 포인트: ${magic.next}pt">+${magic.next - ev}pt</span>` : '<span class="ft-magic-next empty"></span>'}
-      </div>
-    ` : '<div class="ft-magic empty"></div>';
-    return `
-      <div class="ft-stat-row">
-        <div class="ft-stat-name">${STAT_KO[s]} ${natureMark}</div>
-        <div class="ft-stat-base">${p.bs[s]}</div>
-        <div class="ft-stat-ev">
-          <button class="ft-ev-quick" data-ft-evset="${s}" data-ft-evval="0" title="0">0</button>
-          <div class="ft-ev-stepper">
-            <input type="text" inputmode="numeric" pattern="[0-9]*" class="ft-ev-input" data-ft-ev="${s}" value="${ev}" aria-label="${STAT_KO[s]} 노력치">
-            <div class="ft-ev-spin">
-              <button type="button" class="ft-ev-spin-btn" data-ft-evstep="${s}" data-ft-dir="1" title="+1">+</button>
-              <button type="button" class="ft-ev-spin-btn" data-ft-evstep="${s}" data-ft-dir="-1" title="-1">−</button>
-            </div>
-          </div>
-          <button class="ft-ev-quick" data-ft-evset="${s}" data-ft-evval="32" title="32">32</button>
-        </div>
-        <div class="ft-stat-final">${stats[s]}</div>
-        ${rankCtrl}
-        ${pointHtml}
-      </div>
-    `;
-  }).join('');
-
-  container.innerHTML = `
-    <div class="ft-poke-row">
-      <div class="ft-pickname">
-        <span class="ft-section-title">포켓몬</span>
-        <div class="combobox" style="flex:1;">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="my" value="${escapeHTML(pkName(p))}" placeholder="검색...">
-          <div class="combobox-options"></div>
-        </div>
-        <div class="types-display" style="margin-left:8px;">
-          ${typeBadges}
-          ${p.mega ? '<span class="badge-mega" style="color:var(--tera);">[메가]</span>' : ''}
-        </div>
-      </div>
-    </div>
-
-    <div class="ft-controls-row ft-controls-grid">
-      <label class="field ft-cb-field"><span class="field-label">성격</span>
-        <div class="combobox">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="nature" value="${escapeHTML(ftComboLabel('nature', my.nature))}" placeholder="성격 검색...">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
-      <label class="field ft-cb-field"><span class="field-label">특성</span>
-        <div class="combobox">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="ability" value="${escapeHTML(ftComboLabel('ability', my.ability))}" placeholder="특성 검색...">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
-      ${speedActivation ? `<label class="checkbox-label ft-speed-toggle" title="${escapeHTML(speedActivation.label)}"><input type="checkbox" id="ftWeatherAbility" ${fineTuneState.weatherAbilityActive ? 'checked' : ''}>${escapeHTML(speedActivation.label)}</label>` : '<div></div>'}
-      <label class="field ft-cb-field"><span class="field-label">도구</span>
-        <div class="combobox">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="item" value="${escapeHTML(ftComboLabel('item', my.item))}" placeholder="도구 검색...">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
-    </div>
-
-    <div class="ft-stats-grid">
-      <div class="ft-stats-head">
-        <div>스탯</div>
-        <div>종족값</div>
-        <div>노력치(0-32)</div>
-        <div>실수치</div>
-        <div>랭크</div>
-        <div>조정 포인트</div>
-      </div>
-      ${statRows}
-    </div>
-
-    <div class="ft-ev-total ${overEV ? 'over' : ''}">
-      노력치 합계: <b>${totalEV}</b> / 66 ${overEV ? '<span style="color:var(--atk);">초과!</span>' : ''}
-    </div>
-
-  `;
-  ftWireMyComboboxes();
-}
-
-function renderFineTuneOppV2() {
-  const container = document.getElementById('ft-opp-body');
-  if (!container) return;
-  const opp = fineTuneState.opp;
-  const p = PokemonById[opp.pokemonIdx];
-  const refCases = [
-    { label: '최속(N+/E32)', ev: 32, nature: 'jolly' },
-    { label: '준속(N0/E32)', ev: 32, nature: 'hardy' },
-    { label: '무보정(N0/E0)', ev: 0, nature: 'hardy' },
-  ];
-  const manual = ftOpponentManualSpeed(opp);
-
-  container.innerHTML = `
-    <div class="ft-poke-row">
-      <div class="ft-pickname">
-        <span class="ft-section-title">포켓몬</span>
-        <div class="combobox" style="flex:1;">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="opp" value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="검색...">
-          <div class="combobox-options"></div>
-        </div>
-        ${p ? `<div class="types-display" style="margin-left:8px;">${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join('')}</div>` : ''}
-      </div>
-    </div>
-    <div class="ft-controls-row">
-      <label class="checkbox-label">
-        <input type="checkbox" id="ftOppScarf" ${opp.scarf ? 'checked' : ''}>
-        구애스카프
-      </label>
-      <div class="field ft-rank-field"><span class="field-label">상대 속도 랭크</span>
-        <div class="ft-rank">
-          <button class="ft-rank-btn" data-ft-opprank="-1">−</button>
-          <span class="ft-rank-val ${opp.speRank > 0 ? 'pos' : opp.speRank < 0 ? 'neg' : ''}">${opp.speRank > 0 ? '+' + opp.speRank : opp.speRank}</span>
-          <button class="ft-rank-btn" data-ft-opprank="1">+</button>
-        </div>
-      </div>
-      <label class="field ft-direct-speed-field"><span class="field-label">직접 속도</span>
-        <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftOppManualSpeed" value="${escapeHTML(opp.manualSpeed || '')}" placeholder="자동">
-      </label>
-    </div>
-    <div class="ft-section-title">참고: 상대 속도 실수치</div>
-    <div class="ft-tag-row">
-      ${manual !== null ? `<span class="ft-tag">직접 입력: <b>${manual}</b></span>` : ''}
-      ${p ? refCases.map(c => `<span class="ft-tag">${c.label}: <b>${ftOppSpeedCase(opp, c.ev, c.nature, { ignoreManual: true })}</b></span>`).join(' ') : ''}
-    </div>
-  `;
-  ftWireOppComboboxes();
-}
-
-function renderFineTuneSpeedV2() {
-  const container = document.getElementById('ft-speed-body');
-  if (!container) return;
-  const my = fineTuneState.my;
-  const opp = fineTuneState.opp;
-  const myP = PokemonById[my.pokemonIdx];
-  const oppP = PokemonById[opp.pokemonIdx];
-  if (!myP || !oppP) {
-    container.innerHTML = '<div class="empty-state">양쪽 포켓몬 선택 필요</div>';
-    return;
-  }
-  const rows = ftBuildSpeedTable();
-  const margin = Math.max(0, parseInt(fineTuneState.margin, 10) || 1);
-  const speedActivation = ftAbilitySpeedActivation(my.ability);
-  const activeSpeedNote = speedActivation && fineTuneState.weatherAbilityActive
-    ? `<span class="ft-tag" style="color:var(--ok);">${escapeHTML(speedActivation.label)}</span>`
-    : '';
-  const myCurrentSpe = ftMySpeed(my);
-
-  container.innerHTML = `
-    <div class="ft-myspe-info">
-      <span>내 현재 속도 실수치 <b>${myCurrentSpe}</b></span>
-      ${my.item === 'choicescarf' ? '<span class="ft-tag" style="color:var(--warn);">스카프 적용</span>' : ''}
-      ${activeSpeedNote}
-      ${(my.ranks?.spe || 0) !== 0 ? `<span class="ft-tag">랭크 ${my.ranks.spe > 0 ? '+' : ''}${my.ranks.spe}</span>` : ''}
-    </div>
-    <div class="ft-speed-table-wrap">
-      <table class="ft-speed-table">
-        <colgroup>
-          <col class="ft-speed-row-label-col">
-          ${rows.map(() => '<col class="ft-speed-value-col">').join('')}
-        </colgroup>
-        <thead>
-          <tr>
-            <th>구분</th>
-            ${rows.map(r => `<th>${escapeHTML(r.label)}<small>${escapeHTML(r.sub || '')}</small></th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-          <tr><th>상대 실수치</th>${rows.map(r => `<td>${r.oppSpe}</td>`).join('')}</tr>
-          <tr><th>+${margin} 추월 필요 EV</th>${rows.map(r => {
-            const cls = r.need === null ? 'ft-cell-impossible' : 'ft-cell-possible';
-            const valHtml = r.need === null ? '<b>불가</b>' : `<b>${r.need}</b> EV`;
-            return `<td class="${cls}" title="필요 속도 ${r.target} 이상 (상대 ${r.oppSpe} + ${margin})">${valHtml}</td>`;
-          }).join('')}</tr>
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function renderFineTuneAllV2() {
-  renderFineTuneMy();
-  renderFineTuneOpp();
-  renderFineTuneSpeed();
-}
-
-function ftEvSummaryV3(side) {
+function ftEvSummary(side) {
   const total = ftStatKeys().reduce((sum, stat) => sum + (side.evs?.[stat] || 0), 0);
   return {
     total,
@@ -11162,21 +10997,21 @@ function ftEvSummaryV3(side) {
   };
 }
 
-function ftRenderTypePillsV3(types) {
+function ftRenderTypePills(types) {
   return (types || [])
     .filter(Boolean)
     .map(type => `<span class="type-pill t-${type}">${TYPE_KO[type] || type}</span>`)
     .join('');
 }
 
-function ftNatureMarkV3(stat, natureId) {
+function ftNatureMark(stat, natureId) {
   const nature = NATURE_BY_ID?.[natureId];
   if (nature?.up === stat) return '<span class="ft-nature-up">+</span>';
   if (nature?.down === stat) return '<span class="ft-nature-down">-</span>';
   return '';
 }
 
-function ftRenderMagicCellV3(side, stat, ev) {
+function ftRenderMagicCell(side, stat, ev) {
   const magic = ftMagicNumbers(side, stat);
   if (!magic) return '<div class="ft-magic empty"></div>';
   return `
@@ -11188,7 +11023,7 @@ function ftRenderMagicCellV3(side, stat, ev) {
   `;
 }
 
-function ftBulkMetricsV3(side) {
+function ftBulkMetrics(side) {
   const stats = calcStats(side);
   return {
     stats,
@@ -11197,7 +11032,7 @@ function ftBulkMetricsV3(side) {
   };
 }
 
-function ftBaseStatsMiniV3(p) {
+function ftBaseStatsMini(p) {
   if (!p?.bs) return '';
   const labels = { hp: 'HP', atk: '공', def: '방', spa: '특공', spd: '특방', spe: '속' };
   return `
@@ -11209,7 +11044,7 @@ function ftBaseStatsMiniV3(p) {
   `;
 }
 
-function renderFineTuneSummaryV3() {
+function renderFineTuneSummary() {
   const container = document.getElementById('ft-summary-body');
   if (!container) return;
   const my = fineTuneState.my;
@@ -11218,7 +11053,7 @@ function renderFineTuneSummaryV3() {
     container.innerHTML = '';
     return;
   }
-  const ev = ftEvSummaryV3(my);
+  const ev = ftEvSummary(my);
   const pct = Math.min(100, Math.round(ev.total / 66 * 100));
   const chips = ftStatKeys()
     .filter(stat => (my.evs?.[stat] || 0) > 0)
@@ -11237,7 +11072,7 @@ function renderFineTuneSummaryV3() {
   `;
 }
 
-function ftBreakpointDistanceV3(side, info) {
+function ftBreakpointDistance(side, info) {
   const curEv = side.evs?.hp || 0;
   if (info.current) return 0;
   const candidates = [];
@@ -11246,16 +11081,7 @@ function ftBreakpointDistanceV3(side, info) {
   return candidates.length ? Math.min(...candidates) : 999;
 }
 
-function ftBreakpointTargetTextV3(side, info) {
-  const curEv = side.evs?.hp || 0;
-  if (info.current) return `HP ${info.current.hp}`;
-  const parts = [];
-  if (info.next) parts.push(`+${info.next.ev - curEv}pt / HP ${info.next.hp}`);
-  if (info.prev) parts.push(`-${curEv - info.prev.ev}pt / HP ${info.prev.hp}`);
-  return parts.join(' · ') || `현재 HP ${info.currentHp}`;
-}
-
-function ftBreakpointBadgesV3(side, info) {
+function ftBreakpointBadges(side, info) {
   const curEv = side.evs?.hp || 0;
   const badges = [];
   if (info.current) badges.push('<span class="ft-breakpoint-delta current">충족</span>');
@@ -11265,18 +11091,18 @@ function ftBreakpointBadgesV3(side, info) {
   return badges.join('');
 }
 
-function ftBreakpointGroupKeyV3(info) {
+function ftBreakpointGroupKey(info) {
   return info.rule.rule;
 }
 
-function ftUniqueJoinV3(values, separator = ' · ') {
+function ftUniqueJoin(values, separator = ' · ') {
   return [...new Set(values.filter(Boolean))].join(separator);
 }
 
-function ftGroupHpBreakpointsV3(side, rows) {
+function ftGroupHpBreakpoints(side, rows) {
   const groups = new Map();
   rows.forEach(info => {
-    const key = ftBreakpointGroupKeyV3(info);
+    const key = ftBreakpointGroupKey(info);
     if (!groups.has(key)) {
       groups.set(key, {
         key,
@@ -11291,13 +11117,13 @@ function ftGroupHpBreakpointsV3(side, rows) {
     group.entries.push(info);
     group.current ||= !!info.current;
     group.relevant ||= !!info.rule.relevant;
-    group.distance = Math.min(group.distance, ftBreakpointDistanceV3(side, info));
+    group.distance = Math.min(group.distance, ftBreakpointDistance(side, info));
     if (info.current || !group.sample.current) group.sample = info;
   });
   return [...groups.values()];
 }
 
-function renderFineTuneHpV3() {
+function renderFineTuneHp() {
   const container = document.getElementById('ft-hp-body');
   if (!container) return;
   const my = fineTuneState.my;
@@ -11307,7 +11133,7 @@ function renderFineTuneHpV3() {
   }
   const rows = ftHpBreakpoints(my)
     .filter(info => info.rule.relevant || info.current || info.next || info.prev);
-  const groups = ftGroupHpBreakpointsV3(my, rows);
+  const groups = ftGroupHpBreakpoints(my, rows);
 
   container.innerHTML = `
     <section class="ft-analysis-section ft-hp-section">
@@ -11319,10 +11145,10 @@ function renderFineTuneHpV3() {
         ${groups.map(group => `
           <div class="ft-breakpoint-item ${group.current ? 'active' : ''} ${group.relevant ? '' : 'muted'}">
             <div class="ft-breakpoint-main">
-              <b>${escapeHTML(ftUniqueJoinV3(group.entries.map(info => info.rule.rule)))}</b>
-              <span>${escapeHTML(ftUniqueJoinV3(group.entries.map(info => info.rule.desc), ' / '))}</span>
+              <b>${escapeHTML(ftUniqueJoin(group.entries.map(info => info.rule.rule)))}</b>
+              <span>${escapeHTML(ftUniqueJoin(group.entries.map(info => info.rule.desc), ' / '))}</span>
             </div>
-            <div class="ft-breakpoint-deltas">${ftBreakpointBadgesV3(my, group.sample)}</div>
+            <div class="ft-breakpoint-deltas">${ftBreakpointBadges(my, group.sample)}</div>
           </div>
         `).join('')}
       </div>
@@ -11330,7 +11156,7 @@ function renderFineTuneHpV3() {
   `;
 }
 
-function renderFineTuneMyV3() {
+function renderFineTuneMy() {
   const container = document.getElementById('ft-my-body');
   if (!container) return;
   const my = fineTuneState.my;
@@ -11341,9 +11167,9 @@ function renderFineTuneMyV3() {
   }
 
   const stats = calcStats(my);
-  const bulk = ftBulkMetricsV3(my);
+  const bulk = ftBulkMetrics(my);
   const rankStats = ['atk','def','spa','spd','spe'];
-  const typeBadges = ftRenderTypePillsV3(normalizeSideTypes(my));
+  const typeBadges = ftRenderTypePills(normalizeSideTypes(my));
   const speedActivation = ftAbilitySpeedActivation(my.ability);
   const statRows = ['hp', ...rankStats].map(stat => {
     const ev = my.evs[stat] || 0;
@@ -11357,7 +11183,7 @@ function renderFineTuneMyV3() {
     `;
     return `
       <div class="ft-stat-row">
-        <div class="ft-stat-name">${STAT_LABEL?.[stat] || stat} ${ftNatureMarkV3(stat, my.nature)}</div>
+        <div class="ft-stat-name">${STAT_LABEL?.[stat] || stat} ${ftNatureMark(stat, my.nature)}</div>
         <div class="ft-stat-base">${p.bs[stat]}</div>
         <div class="ft-stat-ev">
           <button class="ft-ev-quick" data-ft-evset="${stat}" data-ft-evval="0" title="0">0</button>
@@ -11370,7 +11196,7 @@ function renderFineTuneMyV3() {
           </div>
           <button class="ft-ev-quick" data-ft-evset="${stat}" data-ft-evval="32" title="32">32</button>
         </div>
-        ${ftRenderMagicCellV3(my, stat, ev)}
+        ${ftRenderMagicCell(my, stat, ev)}
         <div class="ft-stat-final">${stats[stat]}</div>
         ${rankCtrl}
       </div>
@@ -11445,7 +11271,7 @@ function renderFineTuneMyV3() {
   ftWireMyComboboxes();
 }
 
-function renderFineTuneOppV3() {
+function renderFineTuneOpp() {
   const container = document.getElementById('ft-opp-body');
   if (!container) return;
   const opp = fineTuneState.opp;
@@ -11469,7 +11295,7 @@ function renderFineTuneOppV3() {
           <div class="combobox-options"></div>
         </div>
       </label>
-      ${p ? `<div class="ft-type-strip">${ftRenderTypePillsV3(p.types)}</div>${ftBaseStatsMiniV3(p)}` : ''}
+      ${p ? `<div class="ft-type-strip">${ftRenderTypePills(p.types)}</div>${ftBaseStatsMini(p)}` : ''}
       <div class="ft-opp-control-grid">
         <label class="checkbox-label ft-opp-scarf">
           <input type="checkbox" id="ftOppScarf" ${opp.scarf ? 'checked' : ''}>
@@ -11495,7 +11321,7 @@ function renderFineTuneOppV3() {
   ftWireOppComboboxes();
 }
 
-function renderFineTuneSpeedV3() {
+function renderFineTuneSpeed() {
   const container = document.getElementById('ft-speed-body');
   if (!container) return;
   const my = fineTuneState.my;
@@ -11546,25 +11372,14 @@ function renderFineTuneSpeedV3() {
   `;
 }
 
-function renderFineTuneAllV3() {
-  renderFineTuneMyV3();
-  renderFineTuneSummaryV3();
-  renderFineTuneHpV3();
-  renderFineTuneOppV3();
-  renderFineTuneSpeedV3();
+function renderFineTuneAll() {
+  renderFineTuneMy();
+  renderFineTuneSummary();
+  renderFineTuneHp();
+  renderFineTuneOpp();
+  renderFineTuneSpeed();
 }
 
-ftMySpeed = ftMySpeedV2;
-ftOppSpeedCase = ftOppSpeedCaseV2;
-ftFindMinSpeedEv = ftFindMinSpeedEvV2;
-ftBuildSpeedTable = ftBuildSpeedTableV2;
-ftWireMyComboboxes = ftWireMyComboboxesV2;
-ftWireOppComboboxes = ftWireOppComboboxesV2;
-ftMagicNumbers = ftMagicNumbersV2;
-renderFineTuneMy = renderFineTuneMyV3;
-renderFineTuneOpp = renderFineTuneOppV3;
-renderFineTuneSpeed = renderFineTuneSpeedV3;
-renderFineTuneAll = renderFineTuneAllV3;
 
 document.getElementById('page-finetune')?.addEventListener('change', e => {
   const t = e.target;
@@ -11673,19 +11488,9 @@ function loadSideToFineTune(sideKey) {
 window.loadSideToFineTune = loadSideToFineTune; // 다른 모듈에서 호출 가능
 
 
-/* ════════════════════════════════════════════════════════════
-   형태 역계산 (Reverse Form) 탭
-   ────────────────────────────────────────────────────────────
-   알고리즘:
-     Stage 1 (def): 내가 친 기술 + 관측 → 상대 HP+Def(or SpD) 추정
-     Stage 2     : 잔존 EV 계산 (66 - 내구합)
-     Stage 3 (atk): 상대 친 기술 + 관측 → 상대 Atk(or SpA), 잔존 내에서
-     Stage 4     : 선후공 조건과 스카프 여부를 결합해 66포인트 룰 검증
-   부분 입력:
-     - 내 기술만 입력 → Stage 1 결과만
-     - 상대 기술만 입력 → Stage 3 결과만 (HP/Def 검색 안 함)
-   ════════════════════════════════════════════════════════════ */
 
+
+/* Reverse calculator state, field, move picker, item, ability, and speed helpers. */
 function rcDefaultField() {
   return {
     weather: 'none', terrain: 'none', isCritical: false,
@@ -11769,10 +11574,6 @@ function rcSortMovesByName(moves) {
     if (byKo) return byKo;
     return a.id.localeCompare(b.id);
   });
-}
-
-function rcMoveSearchText(m) {
-  return `${mvName(m)} ${m.name || ''} ${m.id || ''}`.toLowerCase();
 }
 
 function rcMoveSearchTokens(m) {
@@ -12148,6 +11949,9 @@ function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField()) {
   };
 }
 
+
+
+/* Reverse calculator scoring, grouping, completion, and follow-up helpers. */
 function rcNatureCandidatesForMove(move) {
   if (!move || move.cat === 'Status') return RC_NATURE_IDS;
   if (move.cat === 'Physical') return ['adamant', 'jolly', 'impish', 'bold', 'careful', 'calm'];
@@ -12436,13 +12240,6 @@ function rcRolePresetScore(c) {
 
 function rcPracticalProfileScore(c) {
   return rcNatureFitScore(c) + rcRolePresetScore(c);
-}
-
-function rcNaturePracticalInfo(c) {
-  const score = rcPracticalProfileScore(c);
-  if (score >= 16) return { score, label: '실전성 높음', cls: 'high' };
-  if (score >= 4) return { score, label: '가능성 있음', cls: 'mid' };
-  return { score, label: '예외 후보', cls: 'low' };
 }
 
 function rcCompareCandidates(a, b) {
@@ -13023,6 +12820,9 @@ function rcGroupCandidates(candidates) {
   });
 }
 
+
+
+/* Reverse calculator candidate generation and analysis orchestration. */
 function rcRelevantOffenseItems(move) {
   const known = rcKnownOpponentItem();
   if (known !== null) return [known];
@@ -13297,42 +13097,6 @@ function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedPct, fi
   return refined;
 }
 
-// 공격만 입력된 경우 — defensive 정보 없이 Atk 만 검색
-function rcStage3OffenseOnly(my, oppP, oppMove, observedPct, field, atkStat, abilityCandidates = null) {
-  const candidates = [];
-  const myHp = rcCurrentHpValue(my);
-  abilityCandidates = abilityCandidates || rcOpponentAbilityCandidates(oppP, [{ role: 'atk', move: oppMove, field }]);
-  for (const natureId of RC_NATURE_IDS) {
-    for (const abilityCandidate of abilityCandidates) {
-      for (let atkEv = 0; atkEv <= 32; atkEv++) {
-        for (const item of rcRelevantOffenseItems(oppMove)) {
-          const oppState = rcBuildOpponentState(oppP, {
-            evs: { [atkStat]: atkEv },
-            nature: natureId,
-            item,
-            ability: abilityCandidate.id,
-          });
-          const result = calculateDamage(oppState, my, oppMove, field);
-          if (!result || !result.damages) continue;
-          const matches = rcMatchingRemainingHp(result.damages, observedPct, myHp);
-          if (matches > 0) {
-            candidates.push({
-              nature: natureId,
-              ability: abilityCandidate.id,
-              abilityImpact: !!abilityCandidate.impact,
-              hpEv: 0, defEv: 0, defStat: null,
-              atkEv, atkStat, item: item || '',
-              atkScore: matches / 16, totalScore: matches / 16,
-              oppAtk: calcStats(oppState)[atkStat],
-            });
-          }
-        }
-      }
-    }
-  }
-  return candidates;
-}
-
 // 분석 메인
 function rcAnalyze() {
   const my = revCalcState.my;
@@ -13467,6 +13231,9 @@ function rcAnalyze() {
 
 // === UI 렌더링 ===
 
+
+
+/* Reverse calculator rendering. */
 function renderRevCalcMy() {
   const container = document.getElementById('rc-my-body');
   if (!container) return;
@@ -13932,6 +13699,9 @@ function renderRevCalcAll() {
 
 // === 콤보박스 / 이벤트 ===
 
+
+
+/* Reverse calculator DOM synchronization and events. */
 function rcSyncInputsFromDom() {
   const root = document.getElementById('page-revcalc');
   if (!root) return;
@@ -14382,6 +14152,7 @@ function loadSideToRevCalc(sideKey) {
   renderRevCalcAll();
 }
 window.loadSideToRevCalc = loadSideToRevCalc;
+
 
 
 /* ════════════════════════════════════════════════════════════

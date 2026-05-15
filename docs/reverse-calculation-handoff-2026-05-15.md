@@ -34,7 +34,7 @@
 
 ## Candidate Generation
 
-주요 함수 위치: `src/js/04-views.js`
+주요 함수 위치: `src/js/04-4x-revcalc-*.js`
 
 - `rcBuildDefenseMatches()`
   - 내 공격 관측값으로 상대의 `H + B` 또는 `H + D` 후보를 만든다.

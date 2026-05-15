@@ -4,7 +4,7 @@ This document evaluates the proposed reverse-engineering prompt for the existing
 
 ## Current Status
 
-The project already has a reverse calculation page and partial implementation in `src/js/04-views.js`.
+The project already has a reverse calculation page and implementation in `src/js/04-4x-revcalc-*.js`.
 
 Existing pieces:
 
@@ -166,7 +166,7 @@ Template mapping should be descriptive, not treated as proof unless only one leg
 
 ### Phase 1. Refactor Existing Reverse Calc Core
 
-- Move reverse calculation helpers out of `src/js/04-views.js` into a clearer module section or new `src/js/06-revcalc.js`.
+- Keep reverse calculation helpers isolated in `src/js/04-4x-revcalc-*.js`; future cleanup should separate pure candidate generation from rendering inside that module.
 - Keep UI rendering separate from candidate generation.
 - Replace ad hoc result shape with a stable candidate model.
 - Add `observedMode`: `remainingHpPct` or `damagePct`.

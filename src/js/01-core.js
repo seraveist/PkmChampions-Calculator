@@ -17,12 +17,6 @@ const MoveById      = Object.fromEntries(MOVES.map(m => [m.id, m]));
 const AbilityById   = Object.fromEntries(ABILITIES.map(a => [a.id, a]));
 const ItemById      = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 
-const statusEl = document.getElementById('data-status');
-if (statusEl) {
-  statusEl.innerHTML = `<b style="color: var(--ok)">로딩 완료</b> · 포켓몬 ${POKEMON.length}종`;
-  statusEl.classList.remove('loading');
-}
-
 // XSS 및 특수문자 방지 헬퍼
 function escapeHTML(str) {
   if (!str) return '';
@@ -38,11 +32,6 @@ function debounce(func, delay = 200) {
     timeoutId = setTimeout(() => func.apply(this, args), delay);
   };
 }
-
-// 모달 제어 (<dialog> 요소 활용)
-const koModal = document.getElementById('koModal');
-document.getElementById('btnKoFetch')?.addEventListener('click', () => koModal?.showModal());
-document.getElementById('koCancel')?.addEventListener('click', () => koModal?.close());
 
 // Game Freak rounds DOWN on .5
 function pokeRound(n) {
@@ -80,11 +69,6 @@ function chainMods(mods, lo = 410, hi = 131172) {
 
 function OF16(n) { return n > 65535 ? n % 65536 : n; }
 function OF32(n) { return n > 4294967295 ? n % 4294967296 : n; }
-
-// 16-bit signed multiply (음수 방지)
-function applyMod(value, mod) {
-  return pokeRound(OF32(value * mod) / 4096);
-}
 
 /* ════════════════════════════════════════════════════════════
    타입 상성표 (Gen 9 기준)
@@ -227,10 +211,6 @@ function applyBoost(stat, boost) {
 /* ════════════════════════════════════════════════════════════
    실효 포켓몬 / 특성 / 타입 (메가진화 및 테라스탈 반영)
    ════════════════════════════════════════════════════════════ */
-function effectivePokemon(side) {
-  return PokemonById[side.pokemonIdx];
-}
-
 function isTeraEnabled() {
   return !RULES.teraDisabled;
 }

@@ -127,7 +127,7 @@
 
 관련 파일:
 
-- `src/js/03-calc-ui.js`
+- `src/js/03-*.js`
 - `scripts/entry-effects-state.mjs`
 
 ### 5. 기술 위력 수동 입력
@@ -140,7 +140,7 @@
 
 관련 파일:
 
-- `src/js/03-calc-ui.js`
+- `src/js/03-*.js`
 - `src/js/02-engine.js`
 - `src/styles/01-base.css`
 - `scripts/damage-golden.mjs`
@@ -203,7 +203,7 @@
 
 관련 파일:
 
-- `src/js/03-calc-ui.js`
+- `src/js/03-*.js`
 - `src/js/02-engine.js`
 - `src/styles/01-base.css`
 - `scripts/damage-golden.mjs`
@@ -220,7 +220,7 @@
 
 관련 파일:
 
-- `src/js/03-calc-ui.js`
+- `src/js/03-*.js`
 - `src/js/02-engine.js`
 - `src/styles/01-base.css`
 - `scripts/damage-golden.mjs`
@@ -276,7 +276,7 @@
 관련 파일:
 
 - `src/js/02-engine.js`
-- `src/js/03-calc-ui.js`
+- `src/js/03-*.js`
 - `src/styles/02-pages.css`
 
 ### 15. Booster Energy 상태 분리
@@ -292,7 +292,7 @@
 관련 파일:
 
 - `src/js/02-engine.js`
-- `src/js/03-calc-ui.js`
+- `src/js/03-*.js`
 - `src/styles/01-base.css`
 - `scripts/damage-golden.mjs`
 - `scripts/entry-effects-state.mjs`
