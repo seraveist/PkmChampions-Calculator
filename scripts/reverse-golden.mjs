@@ -86,7 +86,8 @@ function loadReverseApi() {
       globalThis.__reverseApi = {
         PokemonById, MoveById, revCalcState, makeSideState,
         rcAnalysisField, rcAnalyze, rcStage1Defense, rcStage3OffenseRefine,
-        rcApplyMyPokemonSelection, renderRevCalcAll, calcStats, rcCandidateEvParts, rcRoleCompletionInfo,
+        rcApplyMyPokemonSelection, renderRevCalcAll, renderRevCalcResults, calcStats, rcCandidateEvParts, rcRoleCompletionInfo,
+        rcMovePoolForPicker, rcFilterMovePool, rcBestMoveForTypedName,
         __elements
       };
     `,
@@ -203,6 +204,47 @@ function configureArchaludonPrimarina(api, observedMyHp, options = {}) {
   api.revCalcState.results = null;
 }
 
+function configureMegaKangaskhanAzumarill(api) {
+  api.revCalcState.my = api.makeSideState('kangaskhanmega');
+  const my = api.revCalcState.my;
+  my.nature = 'adamant';
+  my.evs = { hp: 32, atk: 32, def: 0, spa: 0, spd: 0, spe: 2 };
+  my.ability = 'parentalbond';
+  my.item = '';
+  my.moves = ['thunderpunch', 'icepunch', 'earthquake', 'doubleedge'];
+  api.revCalcState.myMoveSet = ['thunderpunch', 'icepunch', 'earthquake', 'doubleedge'];
+  api.revCalcState.myMove = 'icepunch';
+  api.revCalcState.myMoveBp = '';
+  api.revCalcState.observedTheirPct = '83';
+  api.revCalcState.opp = {
+    pokemonIdx: 'azumarill',
+    ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    status: 'none',
+  };
+  api.revCalcState.oppMove = 'playrough';
+  api.revCalcState.predictedOppMove = 'playrough';
+  api.revCalcState.oppMoveBp = '';
+  api.revCalcState.observedMyHp = '109';
+  api.revCalcState.turnOrder = 'unknown';
+  api.revCalcState.mySpeedOverride = '';
+  api.revCalcState.field = {
+    weather: 'none', terrain: 'none', isCritical: false,
+    defReflect: false, defLightScreen: false, gameType: 'Singles',
+    isTrickRoom: false, isGravity: false,
+    ruinSword: false, ruinTablet: false, ruinBeads: false, ruinVessel: false,
+    defStealthRock: false, defSpikesLayers: 0,
+    atkHelpingHand: false, defProtect: false,
+  };
+  api.revCalcState.observedFields = {
+    dealt: { defReflect: false, defLightScreen: false, isCritical: false },
+    received: { defReflect: false, defLightScreen: false, isCritical: false },
+  };
+  api.revCalcState.oppItemKnown = 'unknown';
+  api.revCalcState.itemCandidates = ['', 'choicescarf'];
+  api.revCalcState.nextOppRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  api.revCalcState.results = null;
+}
+
 const api = loadReverseApi();
 
 function assertIncludes(text, needle, label) {
@@ -251,12 +293,28 @@ assertNotIncludes(reverseSource, 'RC_ATK_NATURES', 'Reverse source removed stale
 assertIncludes(reverseSource, 'myMoveSet', 'Reverse source stores four move slots for follow-up damage');
 assertIncludes(reverseSource, 'rcAnalyzeMyFollowupMove', 'Reverse source calculates my follow-up move damage');
 assertIncludes(reverseSource, 'rcAnalyzeOpponentFollowupMove', 'Reverse source calculates selected opponent follow-up damage');
+assertIncludes(reverseSource, 'statusMove', 'Reverse source represents predicted status moves as no-damage cases');
+assertIncludes(reverseSource, 'data-rc-move-picker', 'Reverse source renders move inputs as searchable comboboxes');
+assertIncludes(reverseSource, 'rcFilterMovePool', 'Reverse move combobox filters options from the typed query');
+assertIncludes(reverseSource, 'rcBestMoveForTypedName', 'Reverse move combobox resolves typed move names before falling back to the first option');
+assertIncludes(reverseSource, 'selectingMoveOption', 'Reverse move combobox preserves option clicks against delayed blur cleanup');
+assertIncludes(reverseSource, 'rcObservedMyMoveIds', 'Reverse source limits observed own move selection to the entered four-move set');
+assertIncludes(reverseSource, 'openResultIndexes', 'Reverse source tracks individually expanded result cards');
+assertIncludes(reverseSource, 'data-rc-toggle-result', 'Reverse result cards toggle open state on click');
+assertIncludes(reverseSource, 'rc-result-expanded-body', 'Reverse expanded cards use a three-column detail body');
+assertIncludes(reverseSource, '상대 다음 예상 기술', 'Reverse expanded cards label the opponent prediction column');
+assertIncludes(reverseSource, 'nextMyRanks', 'Reverse source stores next-action own rank controls');
+assertIncludes(reverseSource, 'nextOppRanks', 'Reverse source stores next-action opponent rank controls');
+assertIncludes(reverseSource, 'abilityIds', 'Reverse source groups all possible damage-relevant abilities for display');
+assertIncludes(reverseSource, 'abilityImpact', 'Reverse source tracks damage-relevant opponent ability candidates');
 assertIncludes(reverseSource, '공격축 미확인', 'Reverse source marks unobserved offensive axis');
 assertIncludes(reverseSource, '내구 미확인', 'Reverse source marks unobserved defensive axis');
 assertIncludes(reverseSource, '속도 미확인', 'Reverse source marks priority-distorted speed observations');
 
 const initialHtml = reverseRenderedHtml();
 assertIncludes(initialHtml, 'data-rc-action="observedMyHp"', 'Reverse rendered HTML uses raw HP action name');
+assertIncludes(initialHtml, 'data-rc-move-picker="moveslot"', 'Reverse move slots render as searchable move comboboxes');
+assertNotIncludes(initialHtml, '기술 1', 'Reverse move slots omit numbered move labels');
 for (const stale of ['undefined', 'NaN']) {
   assertNotIncludes(initialHtml, stale, `Reverse initial render does not leak ${stale}`);
 }
@@ -303,13 +361,25 @@ assertOk(rankedResult.results.length <= 5, 'Reverse results are limited to five 
 const rankedHtml = reverseRenderedHtml();
 assertIncludes(rankedHtml, '관측 투자 범위', 'Reverse briefing explains observed investment ranges');
 assertIncludes(rankedHtml, '완성 66', 'Reverse rows show full 66 point completion assumption');
-assertIncludes(rankedHtml, '내 다음 기술 대미지', 'Reverse rows show my follow-up damage section');
-assertIncludes(rankedHtml, 'rc-followup-chip', 'Reverse rows render follow-up damage chips');
-assertIncludes(rankedHtml, 'rc-followup-damage', 'Reverse rows color follow-up damage predictions');
+assertNotIncludes(rankedHtml, '내 다음 기술 대미지', 'Reverse rows start collapsed without follow-up damage section');
+assertNotIncludes(rankedHtml, 'data-rc-move-picker="predictedOppMove"', 'Reverse rows start collapsed without predicted move selector');
+assertIncludes(rankedHtml, 'rc-next-rank-panel', 'Reverse rows expose next-action opponent rank controls');
+assertIncludes(rankedHtml, '내 랭크', 'Reverse next-action panel exposes own ranks');
+assertIncludes(rankedHtml, 'rc-result-nature-badge', 'Reverse rows render nature as a badge');
+api.revCalcState.openResultIndexes = [0, 1];
+const expandedHtml = reverseRenderedHtml();
+assertIncludes(expandedHtml, '내 다음 기술 대미지', 'Reverse expanded rows show follow-up damage section');
+assertIncludes(expandedHtml, 'rc-followup-chip', 'Reverse expanded rows render follow-up damage chips');
+assertIncludes(expandedHtml, 'rc-followup-damage', 'Reverse expanded rows color follow-up damage predictions');
+assertIncludes(expandedHtml, 'data-rc-move-picker="predictedOppMove"', 'Reverse expanded row renders predicted move as a compact combobox');
+assertIncludes(expandedHtml, '상대 예상 정보', 'Reverse expanded row labels the opponent form information column');
+assertIncludes(expandedHtml, '상대 다음 예상 기술', 'Reverse expanded row labels the opponent next-move column');
+assertIncludes(expandedHtml, 'rc-form-result open', 'Reverse can keep multiple result cards open');
 assertNotIncludes(rankedHtml, 'class="rc-results-summary"', 'Reverse rendered results omit the old mode summary panel');
 assertNotIncludes(rankedHtml, 'rc-result-stars', 'Reverse rendered results omit internal match score column');
-assertIncludes(rankedHtml, '상대 예상 기술', 'Reverse selected row renders opponent prediction selector');
+assertIncludes(expandedHtml, '상대 다음 예상 기술', 'Reverse expanded row renders opponent prediction selector');
 assertNotIncludes(rankedHtml, '추가 관측', 'Reverse briefing omits the old extra-observation wording');
+assertNotIncludes(rankedHtml, '남은 포인트는 미관측 스탯으로 66까지 배분됩니다', 'Reverse briefing omits the old leftover-budget sentence');
 
 const stage1ForExpected = api.rcStage1Defense(
   api.revCalcState.my,
@@ -331,6 +401,29 @@ const refinedForExpected = api.rcStage3OffenseRefine(
 assertOk(
   refinedForExpected.some(c => c.nature === 'modest' && c.hpEv === 2 && c.defEv === 0 && c.atkEv === 32 && c.item === ''),
   'Expected Modest H2 C32 no-item Archaludon remains in the legal candidate set',
+);
+
+configureMegaKangaskhanAzumarill(api);
+const coldMoveMatches = api.rcFilterMovePool(api.rcMovePoolForPicker('moveslot'), '냉');
+assertOk(
+  coldMoveMatches.length > 0 && coldMoveMatches.every(m => (m.koName || m.name || '').startsWith('냉')),
+  'Reverse move combobox prioritizes prefix matches for Korean typing',
+  JSON.stringify(coldMoveMatches.slice(0, 5).map(m => m.koName || m.name || m.id)),
+);
+assertOk(
+  api.rcBestMoveForTypedName('냉동펀치', api.rcMovePoolForPicker('moveslot')) === 'icepunch',
+  'Reverse move combobox resolves exact typed Korean move names instead of stale first option',
+);
+const hugePowerResult = api.rcAnalyze();
+assertOk(
+  hugePowerResult.results.length > 0,
+  'Mega Kangaskhan Ice Punch + Azumarill Play Rough scenario produces candidates',
+  JSON.stringify(hugePowerResult.debug),
+);
+assertOk(
+  hugePowerResult.results.some(c => (c.abilityIds || [c.ability]).includes('hugepower') && c.abilityImpact),
+  'Reverse keeps Huge Power as a damage-relevant Azumarill ability candidate',
+  JSON.stringify(hugePowerResult.results.slice(0, 5)),
 );
 
 configurePrimarinaArchaludon(api, 80);

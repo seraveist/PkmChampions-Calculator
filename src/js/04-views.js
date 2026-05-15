@@ -3146,6 +3146,9 @@ const revCalcState = {
   oppItemKnown: 'unknown',
   predictedOppMove: '',
   selectedResultIndex: 0,
+  openResultIndexes: [],
+  nextMyRanks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+  nextOppRanks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
   observedMyHp: '',
   turnOrder: 'unknown',
   mySpeedOverride: '',
@@ -3187,6 +3190,74 @@ const RC_NATURE_IDS = [...new Set((Array.isArray(NATURES) && NATURES.length)
   ? NATURES.map(n => n.id).filter(Boolean)
   : Object.keys(NATURE_BY_ID || {}))];
 const RC_MOVESET_SIZE = 4;
+const RC_MOVE_COLLATOR = typeof Intl !== 'undefined'
+  ? new Intl.Collator('ko-KR', { sensitivity: 'base', numeric: true })
+  : null;
+
+function rcSortMovesByName(moves) {
+  return [...moves].sort((a, b) => {
+    const byKo = RC_MOVE_COLLATOR
+      ? RC_MOVE_COLLATOR.compare(mvName(a), mvName(b))
+      : mvName(a).localeCompare(mvName(b));
+    if (byKo) return byKo;
+    return a.id.localeCompare(b.id);
+  });
+}
+
+function rcMoveSearchText(m) {
+  return `${mvName(m)} ${m.name || ''} ${m.id || ''}`.toLowerCase();
+}
+
+function rcMoveSearchTokens(m) {
+  return [mvName(m), m.name || '', m.id || '']
+    .map(v => String(v || '').trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function rcMoveMatchesQuery(m, query, mode = 'contains') {
+  const raw = String(query || '').trim().toLowerCase();
+  if (!raw) return true;
+  const idQuery = toId(raw);
+  return rcMoveSearchTokens(m).some(token => {
+    const idToken = toId(token);
+    if (mode === 'prefix') {
+      return token.startsWith(raw) || (!!idQuery && idToken.startsWith(idQuery));
+    }
+    return token.includes(raw) || (!!idQuery && idToken.includes(idQuery));
+  });
+}
+
+function rcFilterMovePool(pool, query) {
+  const raw = String(query || '').trim();
+  if (!raw) return pool.slice(0, 40);
+  const prefixMatches = pool.filter(m => rcMoveMatchesQuery(m, raw, 'prefix'));
+  const matches = prefixMatches.length ? prefixMatches : pool.filter(m => rcMoveMatchesQuery(m, raw, 'contains'));
+  return matches.slice(0, 40);
+}
+
+function rcFindMoveByTypedName(raw, pool) {
+  const text = String(raw || '').trim();
+  if (!text) return '';
+  const id = toId(text);
+  const lowerText = text.toLowerCase();
+  const exact = pool.find(m => {
+    const tokens = rcMoveSearchTokens(m);
+    return tokens.includes(lowerText) || (!!id && (m.id === id || toId(m.name) === id || toId(mvName(m)) === id));
+  });
+  if (exact) return exact.id;
+  return undefined;
+}
+
+function rcBestMoveForTypedName(raw, pool) {
+  const exact = rcFindMoveByTypedName(raw, pool);
+  if (exact !== undefined) return exact;
+  const matches = rcFilterMovePool(pool, raw);
+  return matches[0]?.id;
+}
+
+function rcMoveLabel(moveId) {
+  return moveId && MoveById[moveId] ? mvName(MoveById[moveId]) : '';
+}
 
 function rcMoveSet() {
   if (!Array.isArray(revCalcState.myMoveSet)) revCalcState.myMoveSet = ['', '', '', ''];
@@ -3209,6 +3280,77 @@ function rcVisibleMoveSet() {
     moves.unshift(revCalcState.myMove);
   }
   return moves.slice(0, RC_MOVESET_SIZE);
+}
+
+function rcLearnableMovesForPokemon(p, includeStatus = false) {
+  const pool = p?.ls?.length > 0
+    ? MOVES.filter(m => p.ls.includes(m.id))
+    : MOVES;
+  return rcSortMovesByName(pool.filter(m => includeStatus || m.cat !== 'Status'));
+}
+
+function rcMoveOptionLabel(m) {
+  return mvName(m);
+}
+
+function rcObservedMyMoveIds() {
+  const ids = rcMoveSet().filter(id => MoveById[id]);
+  return ids.filter((id, idx, arr) => arr.indexOf(id) === idx);
+}
+
+function rcNormalizeObservedMyMove() {
+  const ids = rcObservedMyMoveIds();
+  if (revCalcState.myMove && !ids.includes(revCalcState.myMove)) {
+    revCalcState.myMove = ids.find(id => MoveById[id]?.cat !== 'Status') || ids[0] || '';
+  }
+}
+
+function rcMovePoolForPicker(target) {
+  const myP = PokemonById[revCalcState.my.pokemonIdx];
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  if (target === 'moveslot') return rcLearnableMovesForPokemon(myP, true);
+  if (target === 'oppMove' || target === 'predictedOppMove') return rcLearnableMovesForPokemon(oppP, true);
+  if (target === 'myMove') return rcObservedMyMoveIds().map(id => MoveById[id]).filter(Boolean);
+  return MOVES;
+}
+
+function rcRenderMoveCombobox(target, value, options = {}) {
+  const slotAttr = Number.isInteger(options.slot) ? ` data-rc-move-slot="${options.slot}"` : '';
+  const compactClass = options.compact ? ' compact' : '';
+  const placeholder = options.placeholder || '기술 선택';
+  return `
+    <div class="combobox rc-move-combobox${compactClass}">
+      <input type="text" class="cb-input rc-move-input" data-rc-move-picker="${target}"${slotAttr} value="${escapeHTML(rcMoveLabel(value))}" placeholder="${escapeHTML(placeholder)}" autocomplete="off">
+      <div class="combobox-options"></div>
+    </div>
+  `;
+}
+
+function rcSetMovePickerValue(target, id, slot = null) {
+  const moveId = id && MoveById[id] ? id : '';
+  if (target === 'moveslot') {
+    const idx = parseInt(slot, 10);
+    if (Number.isInteger(idx) && idx >= 0 && idx < RC_MOVESET_SIZE) {
+      rcMoveSet()[idx] = moveId;
+      if (!revCalcState.myMove && moveId && MoveById[moveId]?.cat !== 'Status') revCalcState.myMove = moveId;
+      rcNormalizeObservedMyMove();
+    }
+    return;
+  }
+  if (target === 'myMove') {
+    revCalcState.myMove = moveId;
+    revCalcState.myMoveBp = '';
+    return;
+  }
+  if (target === 'oppMove') {
+    revCalcState.oppMove = moveId;
+    revCalcState.oppMoveBp = '';
+    if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = moveId;
+    return;
+  }
+  if (target === 'predictedOppMove') {
+    revCalcState.predictedOppMove = moveId;
+  }
 }
 
 function rcTypeBoostItemIdsForTypes(types = []) {
@@ -3254,6 +3396,57 @@ function rcObservedField(kind) {
   };
 }
 
+function rcDefaultOpponentAbility(oppP) {
+  return toId(oppP?.ab && (oppP.ab['0'] || oppP.ab['H']) || '');
+}
+
+function rcPokemonAbilityIds(oppP) {
+  const ids = Object.values(oppP?.ab || {}).map(abN => toId(abN)).filter(Boolean);
+  return ids.filter((id, idx, arr) => arr.indexOf(id) === idx);
+}
+
+function rcDamageSignature(result) {
+  if (!result) return 'none';
+  return JSON.stringify({
+    damages: result.damages || [],
+    effectiveness: result.effectiveness,
+    moveType: result.moveType,
+    bp: result.bp,
+  });
+}
+
+function rcAbilityAffectsObservedDamage(oppP, abilityId, role, move, field) {
+  if (!abilityId || !move || move.cat === 'Status') return false;
+  const evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  const withAbility = rcBuildOpponentState(oppP, { evs, nature: 'hardy', item: '', ability: abilityId });
+  const withoutAbility = rcBuildOpponentState(oppP, { evs, nature: 'hardy', item: '', ability: '' });
+  const resultWith = role === 'atk'
+    ? calculateDamage(withAbility, revCalcState.my, move, field)
+    : calculateDamage(revCalcState.my, withAbility, move, field);
+  const resultWithout = role === 'atk'
+    ? calculateDamage(withoutAbility, revCalcState.my, move, field)
+    : calculateDamage(revCalcState.my, withoutAbility, move, field);
+  return rcDamageSignature(resultWith) !== rcDamageSignature(resultWithout);
+}
+
+function rcOpponentAbilityCandidates(oppP, observations = []) {
+  const obsList = Array.isArray(observations)
+    ? observations.filter(obs => obs?.role && obs?.move)
+    : [];
+  const defaultId = rcDefaultOpponentAbility(oppP);
+  const byId = new Map([[defaultId || '', { id: defaultId || '', impact: false }]]);
+  for (const id of rcPokemonAbilityIds(oppP)) {
+    if (!id) continue;
+    const impact = obsList.some(obs => rcAbilityAffectsObservedDamage(oppP, id, obs.role, obs.move, obs.field));
+    if (id === defaultId) {
+      byId.get(defaultId || '').impact = impact;
+    } else if (impact) {
+      byId.set(id, { id, impact: true });
+    }
+  }
+  return [...byId.values()];
+}
+
 function rcMatchingRemainingPct(rolls, observedPct, defenderHp) {
   let matches = 0;
   for (const d of rolls) {
@@ -3286,6 +3479,30 @@ function rcStageModifiedStat(value, stage) {
   const rank = Math.max(-6, Math.min(6, parseInt(stage, 10) || 0));
   if (rank >= 0) return Math.floor(value * (2 + rank) / 2);
   return Math.floor(value * 2 / (2 - rank));
+}
+
+function rcNextOpponentRanks() {
+  if (!revCalcState.nextOppRanks) revCalcState.nextOppRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  for (const stat of ['atk','def','spa','spd','spe']) {
+    revCalcState.nextOppRanks[stat] = Math.max(-6, Math.min(6, parseInt(revCalcState.nextOppRanks[stat], 10) || 0));
+  }
+  return revCalcState.nextOppRanks;
+}
+
+function rcNextMyRanks() {
+  if (!revCalcState.nextMyRanks) revCalcState.nextMyRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  for (const stat of ['atk','def','spa','spd','spe']) {
+    revCalcState.nextMyRanks[stat] = Math.max(-6, Math.min(6, parseInt(revCalcState.nextMyRanks[stat], 10) || 0));
+  }
+  return revCalcState.nextMyRanks;
+}
+
+function rcBuildMyNextState() {
+  return {
+    ...revCalcState.my,
+    evs: { ...(revCalcState.my.evs || {}) },
+    ranks: { ...rcNextMyRanks() },
+  };
 }
 
 function rcSpeedWithMods(baseSpeed, rank, item, status) {
@@ -3853,6 +4070,8 @@ function rcAnalyzeMyFollowupMove(c, moveId, speedActive) {
   if (!oppP) return null;
   const field = rcAnalysisField();
   const observedField = rcObservedField('dealt');
+  const nextRanks = rcNextOpponentRanks();
+  const myNext = rcBuildMyNextState();
   const moveData = { ...move };
   const defStat = rcMoveDefenseStat(move);
   const hpRange = rcCandidateEvRange(c, 'hp', speedActive);
@@ -3864,10 +4083,10 @@ function rcAnalyzeMyFollowupMove(c, moveId, speedActive) {
     rcForEachEvInRange(defRange, defEv => {
       const evs = { hp: hpEv };
       if (defStat) evs[defStat] = defEv;
-      const oppState = rcBuildOpponentState(oppP, { evs, nature: c.nature, item: c.item || '' });
+      const oppState = rcBuildOpponentState(oppP, { evs, nature: c.nature, item: c.item || '', ability: c.ability || '', ranks: nextRanks });
       const hp = calcStats(oppState).hp;
       const currentHpValues = rcObservedOpponentRemainingValues(oppState, observedField);
-      const result = calculateDamage(revCalcState.my, oppState, moveData, field);
+      const result = calculateDamage(myNext, oppState, moveData, field);
       rcUpdateDamageBounds(bounds, result?.damages || [], hp, currentHpValues);
     });
   });
@@ -3878,10 +4097,17 @@ function rcAnalyzeMyFollowupMove(c, moveId, speedActive) {
 
 function rcAnalyzeOpponentFollowupMove(c, moveId, speedActive) {
   const move = MoveById[moveId];
-  if (!move || move.cat === 'Status') return null;
+  if (!move) return null;
+  if (move.cat === 'Status') {
+    const badges = ['공격축 미확인'];
+    if (rcSpeedUnconfirmed()) badges.push('속도 미확인');
+    return { move, statusMove: true, badges };
+  }
   const oppP = PokemonById[revCalcState.opp.pokemonIdx];
   if (!oppP) return null;
   const field = rcAnalysisField();
+  const nextRanks = rcNextOpponentRanks();
+  const myNext = rcBuildMyNextState();
   const atkStat = rcMoveOffenseStat(move);
   const atkRange = atkStat ? rcCandidateEvRange(c, atkStat, speedActive) : { min: 0, max: 32, known: false };
   const hpRange = rcCandidateEvRange(c, 'hp', speedActive);
@@ -3896,8 +4122,8 @@ function rcAnalyzeOpponentFollowupMove(c, moveId, speedActive) {
     rcForEachEvInRange(atkRange, atkEv => {
       const evs = { hp: hpEv };
       if (atkStat) evs[atkStat] = atkEv;
-      const oppState = rcBuildOpponentState(oppP, { evs, nature: c.nature, item: c.item || '' });
-      const result = calculateDamage(oppState, revCalcState.my, move, field);
+      const oppState = rcBuildOpponentState(oppP, { evs, nature: c.nature, item: c.item || '', ability: c.ability || '', ranks: nextRanks });
+      const result = calculateDamage(oppState, myNext, move, field);
       rcUpdateDamageBounds(bounds, result?.damages || [], myMaxHp, [currentMyHp]);
     });
   });
@@ -3923,6 +4149,16 @@ function rcRenderInfoBadges(badges) {
 
 function rcRenderFollowupMoveChip(analysis) {
   if (!analysis) return '';
+  if (analysis.statusMove) {
+    return `
+      <div class="rc-followup-chip status">
+        <b>${escapeHTML(mvName(analysis.move))}</b>
+        <span class="rc-followup-damage status">변화기</span>
+        <em>직접 피해 없음</em>
+        ${rcRenderInfoBadges(analysis.badges)}
+      </div>
+    `;
+  }
   const koClass = analysis.summary.koClass || 'ko-none';
   return `
     <div class="rc-followup-chip">
@@ -3930,6 +4166,44 @@ function rcRenderFollowupMoveChip(analysis) {
       <span class="rc-followup-damage ${koClass}">${rcFormatDamage(analysis.summary)}</span>
       <em class="${koClass}">${escapeHTML(analysis.summary.koState)}</em>
       ${rcRenderInfoBadges(analysis.badges)}
+    </div>
+  `;
+}
+
+function rcRenderNextRankCells(ranks, action) {
+  const labels = { atk: 'A', def: 'B', spa: 'C', spd: 'D', spe: 'S' };
+  return ['atk','def','spa','spd','spe'].map(stat => {
+    const value = ranks[stat] || 0;
+    return `
+      <div class="rc-next-rank-cell">
+        <span>${labels[stat]}</span>
+        <button type="button" data-rc-${action}="${stat}" data-rc-dir="-1">-</button>
+        <b class="${value > 0 ? 'pos' : value < 0 ? 'neg' : ''}">${value > 0 ? '+' + value : value}</b>
+        <button type="button" data-rc-${action}="${stat}" data-rc-dir="1">+</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function rcRenderNextRankPanel() {
+  const myRanks = rcNextMyRanks();
+  const oppRanks = rcNextOpponentRanks();
+  return `
+    <div class="rc-next-rank-panel">
+      <div class="rc-next-rank-title">
+        <b>다음 행동 랭크</b>
+        <span>내 다음 기술과 상대 예상 기술의 랭크 변화를 함께 반영합니다.</span>
+      </div>
+      <div class="rc-next-rank-groups">
+        <div class="rc-next-rank-group">
+          <span class="rc-next-rank-group-label">내 랭크</span>
+          <div class="rc-next-rank-grid">${rcRenderNextRankCells(myRanks, 'nextmyrank')}</div>
+        </div>
+        <div class="rc-next-rank-group">
+          <span class="rc-next-rank-group-label">상대 랭크</span>
+          <div class="rc-next-rank-grid">${rcRenderNextRankCells(oppRanks, 'nextrank')}</div>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -4063,6 +4337,25 @@ function rcCandidateGroupKey(c) {
   ].join('|');
 }
 
+function rcCandidateAbilityIds(c) {
+  const ids = Array.isArray(c.abilityIds)
+    ? c.abilityIds
+    : (c.abilityImpact && c.ability ? [c.ability] : []);
+  return ids.filter((id, idx, arr) => id && arr.indexOf(id) === idx)
+    .sort((a, b) => {
+      const aName = abName(AbilityById[a] || { name: a });
+      const bName = abName(AbilityById[b] || { name: b });
+      return RC_MOVE_COLLATOR ? RC_MOVE_COLLATOR.compare(aName, bName) : aName.localeCompare(bName);
+    });
+}
+
+function rcAddCandidateAbilityToGroup(group, c) {
+  if (!c.abilityImpact || !c.ability) return;
+  if (!Array.isArray(group.abilityIds)) group.abilityIds = [];
+  if (!group.abilityIds.includes(c.ability)) group.abilityIds.push(c.ability);
+  group.abilityImpact = true;
+}
+
 function rcGroupCandidates(candidates) {
   const groups = [];
   const byKey = new Map();
@@ -4093,12 +4386,15 @@ function rcGroupCandidates(candidates) {
         atkHitMax: Math.round((c.atkScore || 0) * 16),
         completionMinTotal: c.completion?.minTotal ?? c.totalEv ?? 0,
         completionMaxTotal: c.completion?.maxTotal ?? c.maxTotalEv ?? c.totalEv ?? 0,
+        abilityIds: [],
       };
       byKey.set(key, group);
       groups.push(group);
     } else if (rcIsBetterGroupRepresentative(c, group)) {
       Object.assign(group, {
         nature: c.nature,
+        ability: c.ability,
+        abilityImpact: c.abilityImpact,
         item: c.item,
         defStat: c.defStat,
         atkStat: c.atkStat,
@@ -4119,6 +4415,7 @@ function rcGroupCandidates(candidates) {
         maxTotalEv: c.maxTotalEv,
       });
     }
+    rcAddCandidateAbilityToGroup(group, c);
     group.groupCount++;
     group.hpEvMin = Math.min(group.hpEvMin, c.hpEv || 0);
     group.hpEvMax = Math.max(group.hpEvMax, c.hpEv || 0);
@@ -4144,6 +4441,9 @@ function rcGroupCandidates(candidates) {
     group.completionMaxTotal = Math.max(group.completionMaxTotal, c.completion?.maxTotal ?? c.maxTotalEv ?? c.totalEv ?? 0);
   }
   groups.forEach(group => {
+    group.abilityIds = rcCandidateAbilityIds(group);
+    group.ability = group.abilityIds[0] || group.ability || '';
+    group.abilityImpact = group.abilityIds.length > 0;
     group.totalScore = group.bestTotalScore;
     group.practicalScore = group.bestPracticalScore;
   });
@@ -4169,13 +4469,14 @@ function rcRelevantOffenseItems(move) {
 
 // 베이스 defender state 빌드 (역계산 검색 중간 단계용)
 function rcBuildOpponentState(oppP, oppOverrides = {}) {
+  const hasAbilityOverride = Object.prototype.hasOwnProperty.call(oppOverrides, 'ability');
   return {
     pokemonIdx: oppP.id,
     evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(oppOverrides.evs || {}) },
     nature: oppOverrides.nature || 'hardy',
-    ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(revCalcState.opp.ranks || {}) },
+    ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(oppOverrides.ranks || revCalcState.opp.ranks || {}) },
     status: revCalcState.opp.status || 'none',
-    ability: oppOverrides.ability || revCalcState.opp.ability || toId(oppP.ab && (oppP.ab['0'] || oppP.ab['H'])) || '',
+    ability: hasAbilityOverride ? (oppOverrides.ability || '') : (toId(oppP.ab && (oppP.ab['0'] || oppP.ab['H'])) || ''),
     item: oppOverrides.item || '',
     types: [...(oppP.types || [])],
     tera: false,
@@ -4191,7 +4492,7 @@ function rcBuildOpponentState(oppP, oppOverrides = {}) {
   };
 }
 
-function rcBuildDefenseMatches(my, oppP, myMove, observedPct, field, defStat, natureIds) {
+function rcBuildDefenseMatches(my, oppP, myMove, observedPct, field, defStat, natureIds, abilityCandidates = null) {
   if (!myMove) {
     return new Map(natureIds.map(nature => [nature, [{
       nature,
@@ -4206,30 +4507,36 @@ function rcBuildDefenseMatches(my, oppP, myMove, observedPct, field, defStat, na
   }
 
   const byNature = new Map(natureIds.map(nature => [nature, []]));
+  abilityCandidates = abilityCandidates || rcOpponentAbilityCandidates(oppP, [{ role: 'def', move: myMove, field }]);
   for (const natureId of natureIds) {
-    for (let hpEv = 0; hpEv <= 32; hpEv++) {
-      for (let defEv = 0; defEv <= 32; defEv++) {
-        if (hpEv + defEv > 66) continue;
-        if (defEv > 0 && hpEv < 32) continue;
-        const oppState = rcBuildOpponentState(oppP, {
-          evs: { hp: hpEv, [defStat]: defEv },
-          nature: natureId,
-        });
-        const result = calculateDamage(my, oppState, myMove, field);
-        if (!result || !result.damages) continue;
-        const oppHp = calcStats(oppState).hp;
-        const matches = rcMatchingRemainingPct(result.damages, observedPct, oppHp);
-        if (matches > 0) {
-          byNature.get(natureId).push({
+    for (const abilityCandidate of abilityCandidates) {
+      for (let hpEv = 0; hpEv <= 32; hpEv++) {
+        for (let defEv = 0; defEv <= 32; defEv++) {
+          if (hpEv + defEv > 66) continue;
+          if (defEv > 0 && hpEv < 32) continue;
+          const oppState = rcBuildOpponentState(oppP, {
+            evs: { hp: hpEv, [defStat]: defEv },
             nature: natureId,
-            hpEv,
-            defEv,
-            defStat,
-            defScore: matches / 16,
-            oppHp,
-            oppDef: calcStats(oppState)[defStat],
-            damages: result.damages,
+            ability: abilityCandidate.id,
           });
+          const result = calculateDamage(my, oppState, myMove, field);
+          if (!result || !result.damages) continue;
+          const oppHp = calcStats(oppState).hp;
+          const matches = rcMatchingRemainingPct(result.damages, observedPct, oppHp);
+          if (matches > 0) {
+            byNature.get(natureId).push({
+              nature: natureId,
+              ability: abilityCandidate.id,
+              abilityImpact: !!abilityCandidate.impact,
+              hpEv,
+              defEv,
+              defStat,
+              defScore: matches / 16,
+              oppHp,
+              oppDef: calcStats(oppState)[defStat],
+              damages: result.damages,
+            });
+          }
         }
       }
     }
@@ -4237,7 +4544,7 @@ function rcBuildDefenseMatches(my, oppP, myMove, observedPct, field, defStat, na
   return byNature;
 }
 
-function rcBuildOffenseMatches(my, oppP, oppMove, observedHp, field, atkStat, natureIds) {
+function rcBuildOffenseMatches(my, oppP, oppMove, observedHp, field, atkStat, natureIds, abilityCandidates = null) {
   if (!oppMove) {
     return new Map(natureIds.map(nature => [nature, [{
       nature,
@@ -4252,27 +4559,33 @@ function rcBuildOffenseMatches(my, oppP, oppMove, observedHp, field, atkStat, na
 
   const myHp = rcCurrentHpValue(my);
   const byNature = new Map(natureIds.map(nature => [nature, []]));
+  abilityCandidates = abilityCandidates || rcOpponentAbilityCandidates(oppP, [{ role: 'atk', move: oppMove, field }]);
   for (const natureId of natureIds) {
-    for (let atkEv = 0; atkEv <= 32; atkEv++) {
-      for (const item of rcRelevantOffenseItems(oppMove)) {
-        const oppState = rcBuildOpponentState(oppP, {
-          evs: { [atkStat]: atkEv },
-          nature: natureId,
-          item,
-        });
-        const result = calculateDamage(oppState, my, oppMove, field);
-        if (!result || !result.damages) continue;
-        const matches = rcMatchingRemainingHp(result.damages, observedHp, myHp);
-        if (matches > 0) {
-          byNature.get(natureId).push({
+    for (const abilityCandidate of abilityCandidates) {
+      for (let atkEv = 0; atkEv <= 32; atkEv++) {
+        for (const item of rcRelevantOffenseItems(oppMove)) {
+          const oppState = rcBuildOpponentState(oppP, {
+            evs: { [atkStat]: atkEv },
             nature: natureId,
-            atkEv,
-            atkStat,
-            item: item || '',
-            atkScore: matches / 16,
-            oppAtk: calcStats(oppState)[atkStat],
-            myDamages: result.damages,
+            item,
+            ability: abilityCandidate.id,
           });
+          const result = calculateDamage(oppState, my, oppMove, field);
+          if (!result || !result.damages) continue;
+          const matches = rcMatchingRemainingHp(result.damages, observedHp, myHp);
+          if (matches > 0) {
+            byNature.get(natureId).push({
+              nature: natureId,
+              ability: abilityCandidate.id,
+              abilityImpact: !!abilityCandidate.impact,
+              atkEv,
+              atkStat,
+              item: item || '',
+              atkScore: matches / 16,
+              oppAtk: calcStats(oppState)[atkStat],
+              myDamages: result.damages,
+            });
+          }
         }
       }
     }
@@ -4290,11 +4603,19 @@ function rcCombineReverseCandidates(defByNature, atkByNature, oppP, oppMove, fie
           debug.statConflictRemoved++;
           continue;
         }
+        if (defMatch.ability && atkMatch.ability && defMatch.ability !== atkMatch.ability) {
+          debug.abilityConflictRemoved++;
+          continue;
+        }
 
+        const ability = atkMatch.ability || defMatch.ability || '';
+        const abilityImpact = !!(atkMatch.abilityImpact || defMatch.abilityImpact);
         const baseCandidate = {
           ...defMatch,
           ...atkMatch,
           nature,
+          ability,
+          abilityImpact,
           totalScore: (defMatch.defScore || 1) * (atkMatch.atkScore || 1),
         };
 
@@ -4410,27 +4731,34 @@ function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedPct, fi
 }
 
 // 공격만 입력된 경우 — defensive 정보 없이 Atk 만 검색
-function rcStage3OffenseOnly(my, oppP, oppMove, observedPct, field, atkStat) {
+function rcStage3OffenseOnly(my, oppP, oppMove, observedPct, field, atkStat, abilityCandidates = null) {
   const candidates = [];
   const myHp = rcCurrentHpValue(my);
+  abilityCandidates = abilityCandidates || rcOpponentAbilityCandidates(oppP, [{ role: 'atk', move: oppMove, field }]);
   for (const natureId of RC_NATURE_IDS) {
-    for (let atkEv = 0; atkEv <= 32; atkEv++) {
-      for (const item of rcRelevantOffenseItems(oppMove)) {
-        const oppState = rcBuildOpponentState(oppP, {
-          evs: { [atkStat]: atkEv },
-          nature: natureId, item,
-        });
-        const result = calculateDamage(oppState, my, oppMove, field);
-        if (!result || !result.damages) continue;
-        const matches = rcMatchingRemainingHp(result.damages, observedPct, myHp);
-        if (matches > 0) {
-          candidates.push({
+    for (const abilityCandidate of abilityCandidates) {
+      for (let atkEv = 0; atkEv <= 32; atkEv++) {
+        for (const item of rcRelevantOffenseItems(oppMove)) {
+          const oppState = rcBuildOpponentState(oppP, {
+            evs: { [atkStat]: atkEv },
             nature: natureId,
-            hpEv: 0, defEv: 0, defStat: null,
-            atkEv, atkStat, item: item || '',
-            atkScore: matches / 16, totalScore: matches / 16,
-            oppAtk: calcStats(oppState)[atkStat],
+            item,
+            ability: abilityCandidate.id,
           });
+          const result = calculateDamage(oppState, my, oppMove, field);
+          if (!result || !result.damages) continue;
+          const matches = rcMatchingRemainingHp(result.damages, observedPct, myHp);
+          if (matches > 0) {
+            candidates.push({
+              nature: natureId,
+              ability: abilityCandidate.id,
+              abilityImpact: !!abilityCandidate.impact,
+              hpEv: 0, defEv: 0, defStat: null,
+              atkEv, atkStat, item: item || '',
+              atkScore: matches / 16, totalScore: matches / 16,
+              oppAtk: calcStats(oppState)[atkStat],
+            });
+          }
         }
       }
     }
@@ -4465,6 +4793,11 @@ function rcAnalyze() {
   // 위력 override 적용
   const myMove = hasDef ? { ...myMoveData, bp: parseInt(revCalcState.myMoveBp, 10) || myMoveData.bp } : null;
   const oppMove = hasAtk ? { ...oppMoveData, bp: parseInt(revCalcState.oppMoveBp, 10) || oppMoveData.bp } : null;
+  const abilityObservations = [
+    hasDef ? { role: 'def', move: myMove, field: dealtField } : null,
+    hasAtk ? { role: 'atk', move: oppMove, field: receivedField } : null,
+  ].filter(Boolean);
+  const abilityCandidates = rcOpponentAbilityCandidates(oppP, abilityObservations);
 
   let candidates = [];
   let mode = 'unknown';
@@ -4494,6 +4827,7 @@ function rcAnalyze() {
     budgetRemoved: 0,
     scarfSkipped: 0,
     statConflictRemoved: 0,
+    abilityConflictRemoved: 0,
     presetRemoved: 0,
   };
 
@@ -4505,8 +4839,8 @@ function rcAnalyze() {
     mode = 'full';
     const defStat = rcMoveDefenseStat(myMove) || (myMove.cat === 'Physical' ? 'def' : 'spd');
     const atkStat = rcMoveOffenseStat(oppMove) || (oppMove.cat === 'Physical' ? 'atk' : 'spa');
-    const defByNature = rcBuildDefenseMatches(my, oppP, myMove, observedTheir, dealtField, defStat, natureIds);
-    const atkByNature = rcBuildOffenseMatches(my, oppP, oppMove, observedMy, receivedField, atkStat, natureIds);
+    const defByNature = rcBuildDefenseMatches(my, oppP, myMove, observedTheir, dealtField, defStat, natureIds, abilityCandidates);
+    const atkByNature = rcBuildOffenseMatches(my, oppP, oppMove, observedMy, receivedField, atkStat, natureIds, abilityCandidates);
     debug.stage1 = [...defByNature.values()].reduce((sum, list) => sum + list.length, 0);
     debug.stage1Trimmed = debug.stage1;
     debug.offenseMatches = [...atkByNature.values()].reduce((sum, list) => sum + list.length, 0);
@@ -4515,8 +4849,8 @@ function rcAnalyze() {
   } else if (hasDef) {
     mode = 'def-only';
     const defStat = rcMoveDefenseStat(myMove) || (myMove.cat === 'Physical' ? 'def' : 'spd');
-    const defByNature = rcBuildDefenseMatches(my, oppP, myMove, observedTheir, dealtField, defStat, natureIds);
-    const atkByNature = rcBuildOffenseMatches(my, oppP, null, null, field, null, natureIds);
+    const defByNature = rcBuildDefenseMatches(my, oppP, myMove, observedTheir, dealtField, defStat, natureIds, abilityCandidates);
+    const atkByNature = rcBuildOffenseMatches(my, oppP, null, null, field, null, natureIds, abilityCandidates);
     debug.stage1 = [...defByNature.values()].reduce((sum, list) => sum + list.length, 0);
     debug.stage1Trimmed = debug.stage1;
     candidates = rcCombineReverseCandidates(defByNature, atkByNature, oppP, null, field, speedActive, debug);
@@ -4524,8 +4858,8 @@ function rcAnalyze() {
   } else {
     mode = 'atk-only';
     const atkStat = rcMoveOffenseStat(oppMove) || (oppMove.cat === 'Physical' ? 'atk' : 'spa');
-    const defByNature = rcBuildDefenseMatches(my, oppP, null, null, field, null, natureIds);
-    const atkByNature = rcBuildOffenseMatches(my, oppP, oppMove, observedMy, receivedField, atkStat, natureIds);
+    const defByNature = rcBuildDefenseMatches(my, oppP, null, null, field, null, natureIds, abilityCandidates);
+    const atkByNature = rcBuildOffenseMatches(my, oppP, oppMove, observedMy, receivedField, atkStat, natureIds, abilityCandidates);
     debug.stage1 = [...defByNature.values()].reduce((sum, list) => sum + list.length, 0);
     debug.stage1Trimmed = debug.stage1;
     debug.offenseMatches = [...atkByNature.values()].reduce((sum, list) => sum + list.length, 0);
@@ -4538,6 +4872,7 @@ function rcAnalyze() {
     + debug.budgetRemoved
     + debug.scarfSkipped
     + debug.statConflictRemoved
+    + debug.abilityConflictRemoved
     + debug.presetRemoved;
   debug.afterFilter = candidates.length;
   const hasNonScarfAlternative = candidates.some(c => c.item !== 'choicescarf');
@@ -4574,18 +4909,10 @@ function renderRevCalcMy() {
   const stats = calcStats(my);
   const totalEV = ['hp','atk','def','spa','spd','spe'].reduce((a,s) => a + (my.evs[s]||0), 0);
   const overEV = totalEV > 66;
-  const myLearnable = p?.ls?.length > 0
-    ? MOVES.filter(m => p.ls.includes(m.id) && m.cat !== 'Status')
-    : MOVES.filter(m => m.cat !== 'Status');
-  const myMoveOptions = selected => `
-    <option value="">선택…</option>
-    ${myLearnable.map(m => `<option value="${m.id}" ${selected === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))}</option>`).join('')}
-  `;
   const moveSetRows = rcMoveSet().map((moveId, idx) => `
-    <label class="field rc-move-slot-field">
-      <span class="field-label">기술 ${idx + 1}</span>
-      <select data-rc-moveslot="${idx}">${myMoveOptions(moveId)}</select>
-    </label>
+    <div class="rc-move-slot-field">
+      ${rcRenderMoveCombobox('moveslot', moveId, { slot: idx, placeholder: '기술 선택' })}
+    </div>
   `).join('');
 
   const abOptions = Object.values(p.ab || {}).map(abN => {
@@ -4668,6 +4995,7 @@ function renderRevCalcMy() {
     </div>
   `;
   rcWireMyComboboxes();
+  rcWireMoveComboboxes(container);
 }
 
 function renderRevCalcOpp() {
@@ -4736,13 +5064,9 @@ function renderRevCalcInputs() {
   const myP = PokemonById[my.pokemonIdx];
   const oppP = PokemonById[revCalcState.opp.pokemonIdx];
 
-  // 내 포켓몬의 learnset 으로 기술 필터 (가능한 경우)
-  const myLearnable = myP?.ls?.length > 0
-    ? MOVES.filter(m => myP.ls.includes(m.id) && m.cat !== 'Status')
-    : MOVES.filter(m => m.cat !== 'Status');
-  const oppLearnable = oppP?.ls?.length > 0
-    ? MOVES.filter(m => oppP.ls.includes(m.id) && m.cat !== 'Status')
-    : MOVES.filter(m => m.cat !== 'Status');
+  // 내 관측 기술은 입력한 기술폭 4개 안에서 선택하고, 상대 기술은 변화기 관측까지 허용한다.
+  rcNormalizeObservedMyMove();
+  const observedMyMoves = rcObservedMyMoveIds();
 
   const myMoveData = revCalcState.myMove ? MoveById[revCalcState.myMove] : null;
   const oppMoveData = revCalcState.oppMove ? MoveById[revCalcState.oppMove] : null;
@@ -4752,17 +5076,16 @@ function renderRevCalcInputs() {
   const autoMySpeed = rcSpeedWithMods(myStats.spe, my.ranks?.spe || 0, my.item || '', my.status || 'none');
   const myMoveOptions = selected => `
     <option value="">선택…</option>
-    ${myLearnable.map(m => `<option value="${m.id}" ${selected === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))}</option>`).join('')}
+    ${observedMyMoves.map(id => {
+      const m = MoveById[id];
+      return `<option value="${m.id}" ${selected === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))}</option>`;
+    }).join('')}
   `;
 
   // 도구 후보 체크박스 (type-boost 도구 + 그외 사용 가능 도구)
   const itemMaster = ITEMS.filter(i => !i.ms && !i.isBerry);
   const knownOppItem = rcKnownOpponentItem();
   const itemCandidates = knownOppItem === null ? rcActiveItemCandidates() : [];
-  const oppAbilityOptions = oppP ? Object.values(oppP.ab || {}).map(abN => {
-    const id = toId(abN);
-    return `<option value="${id}" ${revCalcState.opp.ability === id ? 'selected' : ''}>${escapeHTML(abName(AbilityById[id] || { name: abN }))}</option>`;
-  }).join('') : '';
   const oppItemOptions = `
     <option value="unknown" ${revCalcState.oppItemKnown === 'unknown' ? 'selected' : ''}>미관측</option>
     <option value="" ${revCalcState.oppItemKnown === '' ? 'selected' : ''}>없음 확인</option>
@@ -4802,22 +5125,12 @@ function renderRevCalcInputs() {
         <div class="ft-section-title">상대 기술 (내가 받음)</div>
         <div class="ft-controls-row">
           <label class="field" style="flex:1;">
-            <span class="field-label">관측 특성</span>
-            <select data-rc-action="oppAbility">
-              <option value="" ${!revCalcState.opp.ability ? 'selected' : ''}>미관측</option>
-              ${oppAbilityOptions}
-            </select>
-          </label>
-          <label class="field" style="flex:1;">
             <span class="field-label">상대 도구</span>
             <select data-rc-action="oppItemKnown">${oppItemOptions}</select>
           </label>
           <label class="field" style="flex:2;">
             <span class="field-label">기술</span>
-            <select data-rc-action="oppMove">
-              <option value="">선택…</option>
-              ${oppLearnable.map(m => `<option value="${m.id}" ${revCalcState.oppMove === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))}</option>`).join('')}
-            </select>
+            ${rcRenderMoveCombobox('oppMove', revCalcState.oppMove, { placeholder: '상대 기술 선택' })}
           </label>
           <label class="field" style="flex:1;">
             <span class="field-label">내 남은 HP</span>
@@ -4883,6 +5196,7 @@ function renderRevCalcInputs() {
       </div>
     </div>
   `;
+  rcWireMoveComboboxes(container);
 }
 
 function renderRevCalcResults() {
@@ -4946,19 +5260,14 @@ function renderRevCalcResults() {
   const first = r.results[0];
   const topItem = first.item ? itName(ItemById[first.item] || { name: first.item }) : '도구 없음';
   const investmentBrief = rcBriefInvestmentParts(first, r.speedActive);
-  const briefing = `상위 후보는 ${topItem}, ${NATURE_BY_ID[first.nature]?.ko || first.nature} 성격입니다. 관측 투자 범위는 ${investmentBrief}이며, 남은 포인트는 미관측 스탯으로 66까지 배분됩니다. ${scarfBrief}`;
+  const briefing = `상위 후보는 ${topItem}, ${NATURE_BY_ID[first.nature]?.ko || first.nature} 성격입니다. 관측 투자 범위는 ${investmentBrief}입니다. ${scarfBrief}`;
 
   const followupMoveIds = rcVisibleMoveSet();
   const oppP = PokemonById[revCalcState.opp.pokemonIdx];
-  const oppLearnable = oppP?.ls?.length > 0
-    ? MOVES.filter(m => oppP.ls.includes(m.id) && m.cat !== 'Status')
-    : MOVES.filter(m => m.cat !== 'Status');
-  const selectedIndex = Math.max(0, Math.min(r.results.length - 1, revCalcState.selectedResultIndex || 0));
+  const openIndexes = new Set((Array.isArray(revCalcState.openResultIndexes) ? revCalcState.openResultIndexes : [])
+    .map(v => parseInt(v, 10))
+    .filter(v => Number.isInteger(v) && v >= 0 && v < r.results.length));
   const predictedMoveId = revCalcState.predictedOppMove || revCalcState.oppMove || '';
-  const oppMoveOptions = `
-    <option value="">선택…</option>
-    ${oppLearnable.map(m => `<option value="${m.id}" ${predictedMoveId === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))}</option>`).join('')}
-  `;
 
   const rows = r.results.map((c, i) => {
     const evDesc = rcCandidateEvParts(c, r.speedActive);
@@ -4966,6 +5275,10 @@ function renderRevCalcResults() {
     const itemTag = c.item
       ? `<span class="rc-result-item ${c.item === 'choicescarf' ? 'rc-scarf-item' : ''}">${escapeHTML(itName(ItemById[c.item] || { name: c.item }))}</span>`
       : '<span class="rc-result-item rc-no-item">도구 없음</span>';
+    const natureTag = `<span class="rc-result-nature-badge">${escapeHTML(natureKo)}</span>`;
+    const abilityTag = rcCandidateAbilityIds(c)
+      .map(id => `<span class="rc-result-ability">${escapeHTML(abName(AbilityById[id] || { name: id }))}</span>`)
+      .join('');
     const speedRange = c.speedInfo?.active
       ? `S 가능범위 ${c.speEvMin ?? c.speedInfo.speMin}~${c.speEvMax ?? c.speedInfo.speMax}`
       : '속도 미사용';
@@ -4980,15 +5293,16 @@ function renderRevCalcResults() {
       .map(moveId => rcRenderFollowupMoveChip(rcAnalyzeMyFollowupMove(c, moveId, r.speedActive)))
       .filter(Boolean)
       .join('');
-    const selected = i === selectedIndex;
-    const predictedAnalysis = selected && predictedMoveId
+    const expanded = openIndexes.has(i);
+    const predictedAnalysis = expanded && predictedMoveId
       ? rcAnalyzeOpponentFollowupMove(c, predictedMoveId, r.speedActive)
       : null;
-    const predictedPanel = selected ? `
+    const predictedPanel = expanded ? `
       <div class="rc-prediction-panel">
+        <div class="rc-result-panel-label">상대 다음 예상 기술</div>
         <label class="field">
-          <span class="field-label">상대 예상 기술</span>
-          <select data-rc-action="predictedOppMove">${oppMoveOptions}</select>
+          <span class="field-label">기술</span>
+          ${rcRenderMoveCombobox('predictedOppMove', predictedMoveId, { compact: true, placeholder: '예상 기술' })}
         </label>
         <div class="rc-prediction-result">
           ${predictedMoveId
@@ -4997,27 +5311,35 @@ function renderRevCalcResults() {
         </div>
       </div>
     ` : '';
+    const followupPanel = expanded ? `
+      <div class="rc-followup-panel">
+        <div class="rc-followup-head"><span>내 다음 기술 대미지</span><small>현재 상대 HP 기준</small></div>
+        <div class="rc-followup-grid">
+          ${followupChips || '<span class="rc-mini-note">내 기술폭 4개를 입력하면 후보별 다음 대미지를 표시합니다.</span>'}
+        </div>
+      </div>
+    ` : '';
+    const infoPanel = `
+      <div class="rc-result-profile rc-result-info-panel">
+        ${expanded ? '<div class="rc-result-panel-label">상대 예상 정보</div>' : ''}
+        <div class="rc-result-title">
+          <b>${evDesc.join(' / ') || '무투자'}</b>
+          ${natureTag}
+          ${itemTag}
+          ${abilityTag}
+        </div>
+        <div class="rc-result-lines">
+          <span>${escapeHTML(roleInfo.label)} · ${escapeHTML(roleInfo.parts.join(' / ') || '-')}</span>
+          <span>${escapeHTML(speedPlan)} · ${escapeHTML(speedRange)} · 관측 ${escapeHTML(totalRange)} / 완성 66</span>
+        </div>
+      </div>
+    `;
     return `
-      <div class="rc-result-row rc-form-result ${selected ? 'selected' : ''}" data-rc-selectresult="${i}">
+      <div class="rc-result-row rc-form-result ${expanded ? 'open' : 'collapsed'}" data-rc-toggle-result="${i}">
         <div class="rc-result-rank">#${i + 1}</div>
-        <div class="rc-result-profile">
-          <div class="rc-result-title">
-            <b>${evDesc.join(' / ') || '무투자'}</b>
-            <span class="rc-result-nature">(${natureKo})</span>
-            ${itemTag}
-          </div>
-          <div class="rc-result-lines">
-            <span>${escapeHTML(roleInfo.label)} · ${escapeHTML(roleInfo.parts.join(' / ') || '-')}</span>
-            <span>${escapeHTML(speedPlan)} · ${escapeHTML(speedRange)} · 관측 ${escapeHTML(totalRange)} / 완성 66</span>
-          </div>
-        </div>
-        <div class="rc-followup-panel">
-          <div class="rc-followup-head"><span>내 다음 기술 대미지</span><small>현재 상대 HP 기준</small></div>
-          <div class="rc-followup-grid">
-            ${followupChips || '<span class="rc-mini-note">내 기술폭 4개를 입력하면 후보별 다음 대미지를 표시합니다.</span>'}
-          </div>
-        </div>
-        ${predictedPanel}
+        ${expanded
+          ? `<div class="rc-result-expanded-body">${infoPanel}${predictedPanel}${followupPanel}</div>`
+          : infoPanel}
       </div>
     `;
   }).join('');
@@ -5027,9 +5349,11 @@ function renderRevCalcResults() {
       <div class="rc-briefing-title">인텔리전스 브리핑</div>
       <div>${escapeHTML(briefing)}</div>
     </div>
+    ${rcRenderNextRankPanel()}
     <div class="rc-results-list">${rows}</div>
     <div class="rc-hint">상대는 남은 HP%의 정수 내림값, 내 포켓몬은 남은 HP 실수치를 기준으로 16단계 난수 중 일치한 횟수를 표시합니다.</div>
   `;
+  rcWireMoveComboboxes(container);
 }
 
 function renderRevCalcAll() {
@@ -5044,6 +5368,12 @@ function renderRevCalcAll() {
 function rcSyncInputsFromDom() {
   const root = document.getElementById('page-revcalc');
   if (!root) return;
+  root.querySelectorAll('[data-rc-move-picker]').forEach(el => {
+    const target = el.dataset.rcMovePicker;
+    const pool = rcMovePoolForPicker(target);
+    const id = rcFindMoveByTypedName(el.value, pool);
+    if (id !== undefined) rcSetMovePickerValue(target, id, el.dataset.rcMoveSlot);
+  });
   root.querySelectorAll('[data-rc-moveslot]').forEach(el => {
     const idx = parseInt(el.dataset.rcMoveslot, 10);
     if (Number.isInteger(idx) && idx >= 0 && idx < RC_MOVESET_SIZE) rcMoveSet()[idx] = el.value;
@@ -5065,10 +5395,14 @@ function rcSyncInputsFromDom() {
   root.querySelectorAll('[data-rc-action]').forEach(el => {
     const action = el.dataset.rcAction;
     if (!action) return;
-    if (action === 'myMove') revCalcState.myMove = el.value;
+    if (action === 'myMove') {
+      const observedIds = rcObservedMyMoveIds();
+      revCalcState.myMove = el.value && observedIds.includes(el.value)
+        ? el.value
+        : (revCalcState.myMove && observedIds.includes(revCalcState.myMove) ? revCalcState.myMove : '');
+    }
     else if (action === 'myNature') revCalcState.my.nature = el.value;
     else if (action === 'myAbility') revCalcState.my.ability = el.value;
-    else if (action === 'oppAbility') revCalcState.opp.ability = el.value;
     else if (action === 'oppStatus') revCalcState.opp.status = el.value;
     else if (action === 'oppMove') revCalcState.oppMove = el.value;
     else if (action === 'oppItemKnown') revCalcState.oppItemKnown = el.value;
@@ -5151,6 +5485,7 @@ function rcApplyMyPokemonSelection(id) {
   revCalcState.myMove = '';
   revCalcState.myMoveSet = ['', '', '', ''];
   revCalcState.myMoveBp = '';
+  revCalcState.nextMyRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
 }
 
 function rcWireOppComboboxes() {
@@ -5175,10 +5510,83 @@ function rcWireOppComboboxes() {
       revCalcState.opp.pokemonIdx = opt.dataset.id;
       revCalcState.oppMove = '';
       revCalcState.oppMoveBp = '';
-      revCalcState.opp.ability = '';
+      revCalcState.nextOppRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
       revCalcState.predictedOppMove = '';
       rcResetItemCandidatesForOpponent();
       renderRevCalcAll();
+    });
+  });
+}
+
+function rcWireMoveComboboxes(scope) {
+  const root = scope || document.getElementById('page-revcalc');
+  if (!root) return;
+  root.querySelectorAll('[data-rc-move-picker]').forEach(input => {
+    const target = input.dataset.rcMovePicker;
+    const slot = input.dataset.rcMoveSlot;
+    const cb = input.closest('.combobox');
+    const optsEl = cb?.querySelector('.combobox-options');
+    if (!optsEl) return;
+    let selectingMoveOption = false;
+
+    const showOpts = q => {
+      const pool = rcMovePoolForPicker(target);
+      const matches = rcFilterMovePool(pool, q);
+      optsEl.innerHTML = matches.length
+        ? matches.map(m => `<div class="combobox-option" data-id="${m.id}"><b>${escapeHTML(rcMoveOptionLabel(m))}</b></div>`).join('')
+        : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
+      optsEl.classList.add('open');
+    };
+
+    const applyMove = id => {
+      rcSetMovePickerValue(target, id, slot);
+      if (target === 'moveslot') {
+        renderRevCalcMy();
+        renderRevCalcInputs();
+        renderRevCalcResults();
+      } else if (target === 'oppMove') {
+        renderRevCalcInputs();
+        renderRevCalcResults();
+      } else if (target === 'predictedOppMove') {
+        renderRevCalcResults();
+      }
+    };
+
+    input.addEventListener('focus', e => showOpts(e.target.value));
+    input.addEventListener('input', e => showOpts(e.target.value));
+    input.addEventListener('compositionend', e => showOpts(e.target.value));
+    input.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const pool = rcMovePoolForPicker(target);
+      const id = rcBestMoveForTypedName(input.value, pool);
+      if (!id) return;
+      e.preventDefault();
+      applyMove(id);
+    });
+    input.addEventListener('blur', () => {
+      setTimeout(() => optsEl.classList.remove('open'), 180);
+      setTimeout(() => {
+        if (selectingMoveOption) {
+          selectingMoveOption = false;
+          return;
+        }
+        const pool = rcMovePoolForPicker(target);
+        const id = rcFindMoveByTypedName(input.value, pool);
+        if (id !== undefined) {
+          rcSetMovePickerValue(target, id, slot);
+        } else {
+          input.value = target === 'moveslot'
+            ? rcMoveLabel(rcMoveSet()[parseInt(slot, 10)] || '')
+            : rcMoveLabel(revCalcState[target] || '');
+        }
+      }, 180);
+    });
+    optsEl.addEventListener('mousedown', e => {
+      const opt = e.target.closest('.combobox-option:not(.empty)');
+      if (!opt) return;
+      selectingMoveOption = true;
+      e.preventDefault();
+      applyMove(opt.dataset.id || '');
     });
   });
 }
@@ -5198,7 +5606,6 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
   }
   if (t.dataset.rcAction === 'myNature') { revCalcState.my.nature = t.value; renderRevCalcMy(); renderRevCalcInputs(); return; }
   if (t.dataset.rcAction === 'myAbility') { revCalcState.my.ability = t.value; return; }
-  if (t.dataset.rcAction === 'oppAbility') { revCalcState.opp.ability = t.value; return; }
   if (t.dataset.rcAction === 'oppItemKnown') {
     revCalcState.oppItemKnown = t.value;
     rcResetItemCandidatesForOpponent();
@@ -5276,9 +5683,13 @@ document.getElementById('page-revcalc')?.addEventListener('input', e => {
 
 document.getElementById('page-revcalc')?.addEventListener('click', e => {
   const t = e.target;
-  const selectedRow = t.closest?.('[data-rc-selectresult]');
-  if (selectedRow && !t.closest('button, select, input, label')) {
-    revCalcState.selectedResultIndex = parseInt(selectedRow.dataset.rcSelectresult, 10) || 0;
+  const toggledRow = t.closest?.('[data-rc-toggle-result]');
+  if (toggledRow && !t.closest('button, select, input, label, .combobox-options')) {
+    const idx = parseInt(toggledRow.dataset.rcToggleResult, 10);
+    const opened = new Set(Array.isArray(revCalcState.openResultIndexes) ? revCalcState.openResultIndexes : []);
+    if (opened.has(idx)) opened.delete(idx);
+    else opened.add(idx);
+    revCalcState.openResultIndexes = [...opened].sort((a, b) => a - b);
     if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
     renderRevCalcResults();
     return;
@@ -5297,6 +5708,7 @@ document.getElementById('page-revcalc')?.addEventListener('click', e => {
     const stat = t.dataset.rcRank;
     const dir = parseInt(t.dataset.rcDir, 10);
     revCalcState.my.ranks[stat] = Math.max(-6, Math.min(6, (revCalcState.my.ranks[stat] || 0) + dir));
+    revCalcState.nextMyRanks[stat] = revCalcState.my.ranks[stat];
     renderRevCalcMy();
     renderRevCalcInputs();
     return;
@@ -5305,7 +5717,24 @@ document.getElementById('page-revcalc')?.addEventListener('click', e => {
     const stat = t.dataset.rcOpprank;
     const dir = parseInt(t.dataset.rcDir, 10);
     revCalcState.opp.ranks[stat] = Math.max(-6, Math.min(6, (revCalcState.opp.ranks[stat] || 0) + dir));
+    revCalcState.nextOppRanks[stat] = revCalcState.opp.ranks[stat];
     renderRevCalcOpp();
+    return;
+  }
+  if (t.dataset.rcNextrank) {
+    const stat = t.dataset.rcNextrank;
+    const dir = parseInt(t.dataset.rcDir, 10);
+    const ranks = rcNextOpponentRanks();
+    ranks[stat] = Math.max(-6, Math.min(6, (ranks[stat] || 0) + dir));
+    renderRevCalcResults();
+    return;
+  }
+  if (t.dataset.rcNextmyrank) {
+    const stat = t.dataset.rcNextmyrank;
+    const dir = parseInt(t.dataset.rcDir, 10);
+    const ranks = rcNextMyRanks();
+    ranks[stat] = Math.max(-6, Math.min(6, (ranks[stat] || 0) + dir));
+    renderRevCalcResults();
     return;
   }
   if (t.dataset.rcApplyresult !== undefined) {
@@ -5324,6 +5753,7 @@ document.getElementById('rcAnalyze')?.addEventListener('click', async () => {
   try {
     revCalcState.results = rcAnalyze();
     revCalcState.selectedResultIndex = 0;
+    revCalcState.openResultIndexes = [];
     if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
   } catch (e) {
     revCalcState.results = { error: '분석 실패: ' + e.message };
@@ -5366,6 +5796,7 @@ function rcApplyResultToCalc(idx) {
 function loadSideToRevCalc(sideKey) {
   const src = state[sideKey];
   revCalcState.my = JSON.parse(JSON.stringify(src));
+  revCalcState.nextMyRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(src.ranks || {}) };
   revCalcState.myMoveSet = [...(src.moves || [])].slice(0, RC_MOVESET_SIZE);
   while (revCalcState.myMoveSet.length < RC_MOVESET_SIZE) revCalcState.myMoveSet.push('');
   revCalcState.myMove = revCalcState.myMoveSet.find(id => MoveById[id]?.cat !== 'Status') || '';
@@ -5373,8 +5804,8 @@ function loadSideToRevCalc(sideKey) {
   const otherKey = sideKey === 'atk' ? 'def' : 'atk';
   revCalcState.opp.pokemonIdx = state[otherKey].pokemonIdx;
   revCalcState.opp.ranks = { ...state[otherKey].ranks };
+  revCalcState.nextOppRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(state[otherKey].ranks || {}) };
   revCalcState.opp.status = state[otherKey].status || 'none';
-  revCalcState.opp.ability = state[otherKey].ability || '';
   revCalcState.oppItemKnown = 'unknown';
   rcResetItemCandidatesForOpponent();
   revCalcState.mySpeedOverride = '';
