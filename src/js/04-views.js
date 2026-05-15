@@ -3142,7 +3142,7 @@ const revCalcState = {
   observedTheirPct: '',
   oppMove: '',
   oppMoveBp: '',
-  observedMyPct: '',
+  observedMyHp: '',
   turnOrder: 'unknown',
   mySpeedOverride: '',
   field: rcDefaultField(),
@@ -3178,10 +3178,9 @@ function rcActiveFieldSummary(field) {
   return parts.join(',') || 'none';
 }
 
-// 방어 nature 7개 (Hardy = 무보정)
-const RC_DEF_NATURES = ['bold', 'impish', 'calm', 'careful', 'relaxed', 'sassy', 'hardy'];
-// 공격 nature 7개 (Atk 또는 SpA 보정 + 무보정)
-const RC_ATK_NATURES = ['adamant', 'naive', 'lonely', 'brave', 'modest', 'rash', 'mild', 'quiet', 'hardy'];
+const RC_NATURE_IDS = [...new Set((Array.isArray(NATURES) && NATURES.length)
+  ? NATURES.map(n => n.id).filter(Boolean)
+  : Object.keys(NATURE_BY_ID || {}))];
 
 function rcMatchingRemainingPct(rolls, observedPct, defenderHp) {
   let matches = 0;
@@ -3237,7 +3236,7 @@ function rcMySpeedValue() {
 }
 
 function rcOpponentSpeedValue(oppP, nature, item, speEv) {
-  const oppState = rcBuildDefState(oppP, {
+  const oppState = rcBuildOpponentState(oppP, {
     evs: { spe: speEv },
     nature,
     item,
@@ -3293,8 +3292,609 @@ function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField()) {
   };
 }
 
+function rcNatureCandidatesForMove(move) {
+  if (!move || move.cat === 'Status') return RC_NATURE_IDS;
+  if (move.cat === 'Physical') return ['adamant', 'jolly', 'impish', 'bold', 'careful', 'calm'];
+  if (move.cat === 'Special') return ['modest', 'timid', 'impish', 'bold', 'careful', 'calm'];
+  return RC_NATURE_IDS;
+}
+
+function rcMagicEvsForStat(oppP, stat) {
+  if (!oppP?.bs?.[stat] || stat === 'hp') return [];
+  const out = [];
+  let first = (10 - ((oppP.bs[stat] + 20) % 10)) % 10;
+  if (first === 0) first = 10;
+  for (let ev = first; ev <= 32; ev += 10) out.push(ev);
+  return out;
+}
+
+function rcSecondMagicEv(oppP, stat) {
+  const magic = rcMagicEvsForStat(oppP, stat);
+  return magic[1] ?? magic[0] ?? 0;
+}
+
+function rcCandidateObservedEvs(c, speedActive, useSpeedMax = false) {
+  const evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  if (c.defStat) {
+    evs.hp = Math.max(evs.hp, c.hpEv || 0);
+    evs[c.defStat] = Math.max(evs[c.defStat], c.defEv || 0);
+  }
+  if (c.atkStat) evs[c.atkStat] = Math.max(evs[c.atkStat], c.atkEv || 0);
+  if (speedActive) evs.spe = Math.max(evs.spe, useSpeedMax ? (c.speEvMax ?? c.speEv ?? 0) : (c.speEvMin ?? c.speEv ?? 0));
+  return evs;
+}
+
 function rcCandidatePointSum(c) {
-  return (c.hpEv || 0) + (c.defEv || 0) + (c.atkEv || 0) + (c.speEv || 0);
+  const evs = rcCandidateObservedEvs(c, true);
+  return ['hp','atk','def','spa','spd','spe'].reduce((sum, stat) => sum + (evs[stat] || 0), 0);
+}
+
+function rcCandidateKnownPointSum(c) {
+  const evs = rcCandidateObservedEvs(c, false);
+  return ['hp','atk','def','spa','spd','spe'].reduce((sum, stat) => sum + (evs[stat] || 0), 0);
+}
+
+function rcItemAssumptionScore(c) {
+  if (!c.item) return 2;
+  if (c.item === 'choicescarf') return 0;
+  return 1;
+}
+
+function rcOppAttackProfile(c) {
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  const atkBase = oppP?.bs?.atk || 0;
+  const spaBase = oppP?.bs?.spa || 0;
+  const diff = Math.abs(atkBase - spaBase);
+  const mixed = diff <= 20;
+  const favored = mixed ? null : (atkBase > spaBase ? 'atk' : 'spa');
+  const used = c.atkStat || null;
+  const opposite = used === 'spa' ? 'atk' : used === 'atk' ? 'spa' : null;
+  return { atkBase, spaBase, diff, mixed, favored, used, opposite };
+}
+
+function rcNatureFitScore(c) {
+  const nature = NATURE_BY_ID[c.nature];
+  if (!nature) return 0;
+  const profile = rcOppAttackProfile(c);
+  let score = 0;
+  if (profile.used) {
+    if (nature.up === profile.used) score += profile.favored === profile.used || profile.mixed ? 5 : 3;
+    if (nature.down === profile.used) score -= 12;
+
+    if (nature.down === profile.opposite) score += profile.mixed ? 0 : 4;
+    if (!profile.mixed && profile.favored && profile.used !== profile.favored) score -= 2;
+    if (!profile.mixed && profile.favored && nature.up === profile.favored && profile.used !== profile.favored) score -= 2;
+  }
+  if (c.defStat) {
+    if (nature.down === c.defStat) score -= 4;
+  }
+  if (nature.down === 'def' || nature.down === 'spd') score -= profile.mixed ? 3 : 6;
+  if (nature.down === 'spe' && revCalcState.turnOrder !== 'my-first') score -= 2;
+  return score;
+}
+
+function rcEvRangeForStat(c, stat, speedActive = !!c.speedInfo?.active) {
+  if (stat === 'hp') return [c.hpEvMin ?? c.hpEv ?? 0, c.hpEvMax ?? c.hpEv ?? 0];
+  if (stat === 'spe') {
+    const min = speedActive ? (c.speEvMin ?? c.speEv ?? 0) : 0;
+    const max = speedActive ? (c.speEvMax ?? min) : 32;
+    return [min, max];
+  }
+  if (c.defStat === stat) return [c.defEvMin ?? c.defEv ?? 0, c.defEvMax ?? c.defEv ?? 0];
+  if (c.atkStat === stat) return [c.atkEvMin ?? c.atkEv ?? 0, c.atkEvMax ?? c.atkEv ?? 0];
+  return [0, 32];
+}
+
+function rcCandidateRangeSum(c, stats, speedActive = !!c.speedInfo?.active) {
+  let min = 0;
+  let max = 0;
+  for (const stat of stats) {
+    const range = rcEvRangeForStat(c, stat, speedActive);
+    min += range[0];
+    max += range[1];
+  }
+  return [min, max];
+}
+
+function rcRolePriority(c, speedActive = !!c.speedInfo?.active) {
+  const usedAtk = c.atkStat || 'spa';
+  const defStats = usedAtk === 'atk' ? ['def', 'spd'] : ['spd', 'def'];
+  const fastByObservation = speedActive && (c.speEvMin ?? c.speEv ?? 0) >= rcSecondMagicEv(PokemonById[revCalcState.opp.pokemonIdx], 'spe');
+  const isScarf = c.item === 'choicescarf';
+
+  if (c.nature === 'bold' || c.nature === 'impish') {
+    return {
+      label: '물리막이형',
+      priority: ['hp', 'def', usedAtk, 'spd', 'spe'].filter((v, i, arr) => arr.indexOf(v) === i),
+    };
+  }
+  if (c.nature === 'calm' || c.nature === 'careful') {
+    return {
+      label: '특수막이형',
+      priority: ['hp', 'spd', usedAtk, 'def', 'spe'].filter((v, i, arr) => arr.indexOf(v) === i),
+    };
+  }
+  if (c.nature === 'timid' || c.nature === 'jolly') {
+    return {
+      label: isScarf ? '스카프 어태커형' : '고속 어태커형',
+      priority: [usedAtk, 'spe', 'hp', ...defStats].filter((v, i, arr) => arr.indexOf(v) === i),
+    };
+  }
+  if (c.nature === 'modest' || c.nature === 'adamant') {
+    return {
+      label: isScarf ? '스카프 어태커형' : (fastByObservation ? '고속 어태커형' : '딜탱형'),
+      priority: fastByObservation
+        ? [usedAtk, 'spe', 'hp', ...defStats].filter((v, i, arr) => arr.indexOf(v) === i)
+        : [usedAtk, 'hp', ...defStats, 'spe'].filter((v, i, arr) => arr.indexOf(v) === i),
+    };
+  }
+  return {
+    label: '혼합형',
+    priority: [usedAtk, 'hp', 'spe', ...defStats].filter((v, i, arr) => arr.indexOf(v) === i),
+  };
+}
+
+function rcRoleCompletionInfo(c, speedActive = !!c.speedInfo?.active) {
+  const stats = ['hp','atk','def','spa','spd','spe'];
+  const role = rcRolePriority(c, speedActive);
+  const evs = {};
+  const maxes = {};
+  for (const stat of stats) {
+    const [min, max] = rcEvRangeForStat(c, stat, speedActive);
+    evs[stat] = min;
+    maxes[stat] = max;
+  }
+
+  let remaining = Math.max(0, 66 - stats.reduce((sum, stat) => sum + (evs[stat] || 0), 0));
+  const fillOrder = [...role.priority, ...stats].filter((stat, idx, arr) => stats.includes(stat) && arr.indexOf(stat) === idx);
+  for (const stat of fillOrder) {
+    if (remaining <= 0) break;
+    const room = Math.max(0, Math.min(32, maxes[stat] ?? 32) - (evs[stat] || 0));
+    const add = Math.min(room, remaining);
+    evs[stat] += add;
+    remaining -= add;
+  }
+
+  const labels = { hp: 'H', atk: 'A', def: 'B', spa: 'C', spd: 'D', spe: 'S' };
+  const parts = stats
+    .filter(stat => evs[stat] > 0)
+    .map(stat => `${labels[stat]}${evs[stat]}`);
+  return { label: role.label, priority: role.priority, evs, parts, remaining };
+}
+
+function rcRolePresetScore(c) {
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  const nature = NATURE_BY_ID[c.nature];
+  if (!oppP || !nature) return 0;
+
+  const speedActive = !!c.speedInfo?.active;
+  const usedAtk = c.atkStat;
+  const offenseMagicList = usedAtk ? rcMagicEvsForStat(oppP, usedAtk) : [];
+  const speedMagicList = rcMagicEvsForStat(oppP, 'spe');
+  const firstOffenseMagic = offenseMagicList[0] ?? 0;
+  const secondOffenseMagic = offenseMagicList[1] ?? firstOffenseMagic;
+  const firstSpeedMagic = speedMagicList[0] ?? 0;
+  const secondSpeedMagic = speedMagicList[1] ?? firstSpeedMagic;
+  const [atkMin, atkMax] = usedAtk ? rcEvRangeForStat(c, usedAtk, speedActive) : [0, 0];
+  const [speMin, speMax] = rcEvRangeForStat(c, 'spe', speedActive);
+  const [physBulkMin, physBulkMax] = rcCandidateRangeSum(c, ['hp', 'def'], speedActive);
+  const [specBulkMin, specBulkMax] = rcCandidateRangeSum(c, ['hp', 'spd'], speedActive);
+
+  let score = 0;
+  const isScarf = c.item === 'choicescarf';
+  const isSpeedNature = c.nature === 'timid' || c.nature === 'jolly';
+  const isDefNature = ['bold', 'impish', 'calm', 'careful'].includes(c.nature);
+  const isOffNature = c.nature === 'modest' || c.nature === 'adamant';
+  const matchingOffNature = usedAtk && nature.up === usedAtk;
+  const matchingSpeedNature = isSpeedNature && nature.up === 'spe';
+  const wantedBulkMin = (c.nature === 'bold' || c.nature === 'impish') ? physBulkMin : specBulkMin;
+  const wantedBulkMax = (c.nature === 'bold' || c.nature === 'impish') ? physBulkMax : specBulkMax;
+  const observedBulkMin = c.defStat ? (c.hpEvMin ?? c.hpEv ?? 0) + (c.defEvMin ?? c.defEv ?? 0) : 0;
+  const observedBulkMax = c.defStat ? (c.hpEvMax ?? c.hpEv ?? 0) + (c.defEvMax ?? c.defEv ?? 0) : 0;
+  const completion = rcRoleCompletionInfo(c, speedActive);
+  const completedAtk = usedAtk ? completion.evs[usedAtk] || 0 : 0;
+  const completedSpeed = completion.evs.spe || 0;
+  const completedPhysBulk = (completion.evs.hp || 0) + (completion.evs.def || 0);
+  const completedSpecBulk = (completion.evs.hp || 0) + (completion.evs.spd || 0);
+  const completedWantedBulk = (c.nature === 'bold' || c.nature === 'impish') ? completedPhysBulk : completedSpecBulk;
+
+  if (usedAtk) {
+    if (atkMin >= secondOffenseMagic) score += 8;
+    else if (atkMax >= secondOffenseMagic) score += 4;
+    else if (atkMax >= firstOffenseMagic) score += 2;
+    if (matchingOffNature) score += 5;
+    if (isOffNature && !matchingOffNature) score -= 5;
+  }
+
+  if (matchingSpeedNature) {
+    if (isScarf) {
+      if (revCalcState.turnOrder === 'my-first') score -= 8;
+      if (speMax < firstSpeedMagic) score -= 8;
+      else if (speMin >= firstSpeedMagic) score += 2;
+    } else if (speMin >= secondSpeedMagic) {
+      score += 9;
+    } else if (speMax >= secondSpeedMagic) {
+      score += 4;
+    } else {
+      score -= 7;
+    }
+  }
+
+  if (isDefNature) {
+    if (isScarf) score -= 18;
+    if (speMin === 0) score += 5;
+    else if (speMin <= firstSpeedMagic) score += 2;
+    if (speMin >= secondSpeedMagic) score -= 8;
+    else if (speMin >= firstSpeedMagic) score -= 3;
+
+    if (wantedBulkMin >= 40) score += 12;
+    else if (wantedBulkMax >= 40) score += 7;
+    else score -= 6;
+
+    if (observedBulkMin >= 40) score += 4;
+    else if (observedBulkMax >= 40) score += 2;
+
+    if (usedAtk) {
+      if (atkMax >= secondOffenseMagic) score += 2;
+      else if (atkMax < firstOffenseMagic) score -= 2;
+    }
+
+    if (completedWantedBulk >= 52) score += 8;
+    else if (completedWantedBulk >= 40) score += 5;
+    if (completedSpeed === 0) score += 3;
+    else if (completedSpeed >= secondSpeedMagic) score -= 6;
+  }
+
+  if (isOffNature && usedAtk) {
+    const bulkyAttacker = Math.max(physBulkMax, specBulkMax) >= 32 && speMin < secondSpeedMagic;
+    const fastAttacker = speMin >= secondSpeedMagic;
+    if (atkMin >= secondOffenseMagic) score += 5;
+    else if (atkMax >= secondOffenseMagic) score += 3;
+    if (bulkyAttacker) score += 5;
+    if (fastAttacker) score += 4;
+    if (!bulkyAttacker && !fastAttacker) score -= 2;
+
+    if (completedAtk >= secondOffenseMagic) score += 5;
+    if (completion.label === '딜탱형' && (completedPhysBulk >= 40 || completedSpecBulk >= 40)) score += 4;
+    if (completion.label === '고속 어태커형' && completedSpeed >= secondSpeedMagic) score += 4;
+  }
+
+  if (isScarf && usedAtk) {
+    if (atkMax < secondOffenseMagic) score -= 8;
+    else score += 1;
+    if (revCalcState.turnOrder === 'opp-first') score += 8;
+    if (revCalcState.turnOrder === 'my-first') score -= 5;
+  }
+
+  if (!isScarf) score += 2;
+
+  const itemData = ItemById[c.item];
+  if (itemData?.typeBoostType && revCalcState.oppMove && MoveById[revCalcState.oppMove]?.type === itemData.typeBoostType) {
+    score += 3;
+  }
+
+  return score;
+}
+
+function rcPracticalProfileScore(c) {
+  return rcNatureFitScore(c) + rcRolePresetScore(c);
+}
+
+function rcNaturePracticalInfo(c) {
+  const score = rcPracticalProfileScore(c);
+  if (score >= 16) return { score, label: '실전성 높음', cls: 'high' };
+  if (score >= 4) return { score, label: '가능성 있음', cls: 'mid' };
+  return { score, label: '예외 후보', cls: 'low' };
+}
+
+function rcCompareCandidates(a, b) {
+  if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+  const practicalDiff = rcPracticalProfileScore(b) - rcPracticalProfileScore(a);
+  if (practicalDiff) return practicalDiff;
+  const itemDiff = rcItemAssumptionScore(b) - rcItemAssumptionScore(a);
+  if (itemDiff) return itemDiff;
+  if ((b.atkEv || 0) !== (a.atkEv || 0)) return (b.atkEv || 0) - (a.atkEv || 0);
+  if ((b.hpEv || 0) !== (a.hpEv || 0)) return (b.hpEv || 0) - (a.hpEv || 0);
+  return (a.totalEv || rcCandidatePointSum(a)) - (b.totalEv || rcCandidatePointSum(b));
+}
+
+function rcRangeLabel(min, max) {
+  return min === max ? `${min}` : `${min}~${max}`;
+}
+
+function rcCandidateEvParts(c, speedActive) {
+  const parts = [];
+  const ranges = {
+    hp: [c.hpEvMin ?? c.hpEv ?? 0, c.hpEvMax ?? c.hpEv ?? 0],
+    atk: [0, 0],
+    def: [0, 0],
+    spa: [0, 0],
+    spd: [0, 0],
+    spe: [0, 0],
+  };
+  if (c.defStat && ranges[c.defStat]) {
+    ranges[c.defStat] = [
+      c.defEvMin ?? c.defEv ?? 0,
+      c.defEvMax ?? c.defEv ?? 0,
+    ];
+  }
+  if (c.atkStat && ranges[c.atkStat]) {
+    const atkRange = [
+      c.atkEvMin ?? c.atkEv ?? 0,
+      c.atkEvMax ?? c.atkEv ?? 0,
+    ];
+    ranges[c.atkStat] = [
+      Math.max(ranges[c.atkStat][0], atkRange[0]),
+      Math.max(ranges[c.atkStat][1], atkRange[1]),
+    ];
+  }
+  if (speedActive) {
+    const speMin = c.speEvMin ?? c.speEv ?? 0;
+    const speMax = c.speEvMax ?? speMin;
+    ranges.spe = [speMin, speMax];
+  } else if (c.speEv > 0) {
+    ranges.spe = [c.speEv, c.speEv];
+  }
+  const labels = { hp: 'H', atk: 'A', def: 'B', spa: 'C', spd: 'D', spe: 'S' };
+  for (const stat of ['hp', 'atk', 'def', 'spa', 'spd', 'spe']) {
+    const [min, max] = ranges[stat];
+    if (min > 0 || max > 0 || (stat === 'spe' && speedActive)) {
+      parts.push(`${labels[stat]}${rcRangeLabel(min, max)}`);
+    }
+  }
+  return parts;
+}
+
+function rcPointRangeLabel(min, max) {
+  return min === max ? `${min}포인트` : `${min}~${max}포인트`;
+}
+
+function rcSpeedPlanLabel(c, speedActive) {
+  if (!speedActive) return '속도 미사용';
+  return c.item === 'choicescarf' ? '스카프 속도형' : '비스카프 고속형';
+}
+
+function rcBriefInvestmentParts(c, speedActive) {
+  const roleLabel = { atk: 'A', def: 'B', spa: 'C', spd: 'D', spe: 'S' };
+  const hpMin = c.hpEvMin ?? c.hpEv ?? 0;
+  const hpMax = c.hpEvMax ?? c.hpEv ?? 0;
+  const defMinEv = c.defEvMin ?? c.defEv ?? 0;
+  const defMaxEv = c.defEvMax ?? c.defEv ?? 0;
+  const defRole = c.defStat ? `H+${roleLabel[c.defStat] || c.defStat}` : 'H';
+  const defMin = hpMin + defMinEv;
+  const defMax = hpMax + defMaxEv;
+  const atkRole = c.atkStat ? roleLabel[c.atkStat] || c.atkStat : 'A/C';
+  const atkMin = c.atkEvMin ?? c.atkEv ?? 0;
+  const atkMax = c.atkEvMax ?? c.atkEv ?? 0;
+  const speMin = speedActive ? (c.speEvMin ?? c.speEv ?? 0) : (c.speEv || 0);
+  const speMax = speedActive ? (c.speEvMax ?? speMin) : speMin;
+  return [
+    `${defRole} ${rcPointRangeLabel(defMin, defMax)}`,
+    `${atkRole} ${rcPointRangeLabel(atkMin, atkMax)}`,
+    `S ${rcPointRangeLabel(speMin, speMax)}`,
+  ].join(', ');
+}
+
+function rcObservedEvStats(c, speedActive) {
+  const observed = new Set();
+  if (c.defStat) {
+    observed.add('hp');
+    observed.add(c.defStat);
+  }
+  if (c.atkStat) observed.add(c.atkStat);
+  if (speedActive) observed.add('spe');
+  return observed;
+}
+
+function rcCandidateCompletionInfo(c, speedActive) {
+  const stats = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
+  const evs = rcCandidateObservedEvs(c, speedActive, false);
+  const observed = rcObservedEvStats(c, speedActive);
+  const speMin = speedActive ? (c.speEvMin ?? c.speEv ?? 0) : 0;
+  const speMax = speedActive ? (c.speEvMax ?? speMin) : 32;
+  evs.spe = Math.max(evs.spe, speMin);
+
+  const minTotal = stats.reduce((sum, stat) => sum + (evs[stat] || 0), 0);
+  let capacityTotal = 0;
+  for (const stat of stats) {
+    if (stat === 'spe') capacityTotal += Math.max(evs.spe || 0, speMax);
+    else capacityTotal += observed.has(stat) ? (evs[stat] || 0) : 32;
+  }
+  const canComplete = minTotal <= 66 && capacityTotal >= 66;
+  return {
+    canComplete,
+    minTotal,
+    maxTotal: Math.min(66, capacityTotal),
+    capacityTotal,
+    remainingMin: Math.max(0, 66 - capacityTotal),
+    remainingMax: Math.max(0, 66 - minTotal),
+    speMin,
+    speMax,
+  };
+}
+
+function rcMaxAllocatableEvForStat(c, stat, speedActive) {
+  if (c.defStat === stat) return c.defEv || 0;
+  if (c.atkStat === stat) return c.atkEv || 0;
+  const evs = rcCandidateObservedEvs(c, speedActive, false);
+  const used = ['hp','atk','def','spa','spd','spe'].reduce((sum, key) => sum + (evs[key] || 0), 0);
+  return Math.max(0, Math.min(32, 66 - used));
+}
+
+function rcMaxPossibleBulk(c, bulkStat, speedActive) {
+  const evs = rcCandidateObservedEvs(c, speedActive, false);
+  const hpFixed = !!c.defStat;
+  const bulkFixed = c.defStat === bulkStat || c.atkStat === bulkStat;
+  const usedOther = ['hp','atk','def','spa','spd','spe']
+    .filter(stat => stat !== 'hp' && stat !== bulkStat)
+    .reduce((sum, stat) => sum + (evs[stat] || 0), 0);
+  const hpMax = hpFixed ? (c.hpEv || 0) : 32;
+  const bulkMax = bulkFixed ? (evs[bulkStat] || 0) : 32;
+  return Math.max(0, Math.min(hpMax + bulkMax, 66 - usedOther));
+}
+
+function rcApplyNatureInvestmentPreset(candidate, oppP, oppMove, speedActive) {
+  const nature = candidate.nature || 'hardy';
+  const next = { ...candidate };
+
+  if (nature === 'modest') {
+    const required = rcSecondMagicEv(oppP, 'spa');
+    if (candidate.atkStat !== 'spa' || (candidate.atkEv || 0) < required) return null;
+  } else if (nature === 'adamant') {
+    const required = rcSecondMagicEv(oppP, 'atk');
+    if (candidate.atkStat !== 'atk' || (candidate.atkEv || 0) < required) return null;
+  }
+
+  if ((nature === 'timid' || nature === 'jolly') && candidate.item !== 'choicescarf') {
+    const required = rcSecondMagicEv(oppP, 'spe');
+    if ((candidate.speEvMax ?? candidate.speEv ?? 0) < required) return null;
+    next.speEvMin = Math.max(candidate.speEvMin ?? candidate.speEv ?? 0, required);
+    next.speEv = next.speEvMin;
+  }
+
+  if (nature === 'bold' || nature === 'impish') {
+    if (rcMaxPossibleBulk(next, 'def', speedActive) < 40) return null;
+  } else if (nature === 'calm' || nature === 'careful') {
+    if (rcMaxPossibleBulk(next, 'spd', speedActive) < 40) return null;
+  }
+
+  const knownEv = rcCandidateKnownPointSum(next);
+  const speMin = speedActive ? (next.speEvMin ?? next.speEv ?? 0) : 0;
+  const speMaxRaw = speedActive ? (next.speEvMax ?? speMin) : 32;
+  const speMax = Math.min(speMaxRaw, Math.max(0, 66 - knownEv));
+  if (speMin > speMax) return null;
+  next.knownEv = knownEv;
+  next.speEv = speMin;
+  next.speEvMin = speMin;
+  next.speEvMax = speMax;
+  next.totalEv = knownEv + speMin;
+  next.maxTotalEv = knownEv + speMax;
+
+  const completion = rcCandidateCompletionInfo(next, speedActive);
+  if (!completion.canComplete) return null;
+  next.completion = completion;
+  return next;
+}
+
+function rcIsBetterGroupRepresentative(candidate, group) {
+  if ((candidate.totalScore || 0) !== (group.totalScore || 0)) return (candidate.totalScore || 0) > (group.totalScore || 0);
+  const practicalDiff = rcPracticalProfileScore(candidate) - rcPracticalProfileScore(group);
+  if (practicalDiff) return practicalDiff > 0;
+  if ((candidate.hpEv || 0) !== (group.hpEv || 0)) return (candidate.hpEv || 0) > (group.hpEv || 0);
+  if ((candidate.defEv || 0) !== (group.defEv || 0)) return (candidate.defEv || 0) < (group.defEv || 0);
+  if ((candidate.atkEv || 0) !== (group.atkEv || 0)) return (candidate.atkEv || 0) > (group.atkEv || 0);
+  return (candidate.speEvMin ?? candidate.speEv ?? 0) < (group.speEvMin ?? group.speEv ?? 0);
+}
+
+function rcBulkPriorityGroup(c) {
+  if (!c.defStat) return 'none';
+  return (c.defEv || 0) > 0 ? `${c.defStat}:hp32` : `${c.defStat}:hp-only`;
+}
+
+function rcCandidateGroupKey(c) {
+  return [
+    c.nature || '',
+    c.item || '',
+    c.defStat || '',
+    c.atkStat || '',
+    rcBulkPriorityGroup(c),
+    Math.round((c.defScore || 0) * 16),
+    Math.round((c.atkScore || 0) * 16),
+    rcSpeedPlanLabel(c, !!c.speedInfo?.active),
+  ].join('|');
+}
+
+function rcGroupCandidates(candidates) {
+  const groups = [];
+  const byKey = new Map();
+  for (const c of candidates) {
+    const key = rcCandidateGroupKey(c);
+    let group = byKey.get(key);
+    if (!group) {
+      group = {
+        ...c,
+        groupCount: 0,
+        hpEvMin: c.hpEv || 0,
+        hpEvMax: c.hpEv || 0,
+        defEvMin: c.defEv || 0,
+        defEvMax: c.defEv || 0,
+        atkEvMin: c.atkEv || 0,
+        atkEvMax: c.atkEv || 0,
+        speEvMin: c.speEvMin ?? c.speEv ?? 0,
+        speEvMax: c.speEvMax ?? c.speEv ?? 0,
+        oppHpMin: c.oppHp || 0,
+        oppHpMax: c.oppHp || 0,
+        totalEvMin: c.totalEv || 0,
+        totalEvMax: c.maxTotalEv ?? c.totalEv ?? 0,
+        bestTotalScore: c.totalScore || 0,
+        bestPracticalScore: rcPracticalProfileScore(c),
+        defHitMin: Math.round((c.defScore || 0) * 16),
+        defHitMax: Math.round((c.defScore || 0) * 16),
+        atkHitMin: Math.round((c.atkScore || 0) * 16),
+        atkHitMax: Math.round((c.atkScore || 0) * 16),
+        completionMinTotal: c.completion?.minTotal ?? c.totalEv ?? 0,
+        completionMaxTotal: c.completion?.maxTotal ?? c.maxTotalEv ?? c.totalEv ?? 0,
+      };
+      byKey.set(key, group);
+      groups.push(group);
+    } else if (rcIsBetterGroupRepresentative(c, group)) {
+      Object.assign(group, {
+        nature: c.nature,
+        item: c.item,
+        defStat: c.defStat,
+        atkStat: c.atkStat,
+        hpEv: c.hpEv,
+        defEv: c.defEv,
+        atkEv: c.atkEv,
+        speEv: c.speEv,
+        oppHp: c.oppHp,
+        oppDef: c.oppDef,
+        oppAtk: c.oppAtk,
+        totalScore: c.totalScore,
+        defScore: c.defScore,
+        atkScore: c.atkScore,
+        speedInfo: c.speedInfo,
+        completion: c.completion,
+        knownEv: c.knownEv,
+        totalEv: c.totalEv,
+        maxTotalEv: c.maxTotalEv,
+      });
+    }
+    group.groupCount++;
+    group.hpEvMin = Math.min(group.hpEvMin, c.hpEv || 0);
+    group.hpEvMax = Math.max(group.hpEvMax, c.hpEv || 0);
+    group.defEvMin = Math.min(group.defEvMin, c.defEv || 0);
+    group.defEvMax = Math.max(group.defEvMax, c.defEv || 0);
+    group.atkEvMin = Math.min(group.atkEvMin, c.atkEv || 0);
+    group.atkEvMax = Math.max(group.atkEvMax, c.atkEv || 0);
+    group.speEvMin = Math.min(group.speEvMin, c.speEvMin ?? c.speEv ?? 0);
+    group.speEvMax = Math.max(group.speEvMax, c.speEvMax ?? c.speEv ?? 0);
+    if (c.oppHp) {
+      group.oppHpMin = Math.min(group.oppHpMin || c.oppHp, c.oppHp);
+      group.oppHpMax = Math.max(group.oppHpMax || c.oppHp, c.oppHp);
+    }
+    group.totalEvMin = Math.min(group.totalEvMin, c.totalEv || 0);
+    group.totalEvMax = Math.max(group.totalEvMax, c.maxTotalEv ?? c.totalEv ?? 0);
+    group.bestTotalScore = Math.max(group.bestTotalScore, c.totalScore || 0);
+    group.bestPracticalScore = Math.max(group.bestPracticalScore, rcPracticalProfileScore(c));
+    group.defHitMin = Math.min(group.defHitMin, Math.round((c.defScore || 0) * 16));
+    group.defHitMax = Math.max(group.defHitMax, Math.round((c.defScore || 0) * 16));
+    group.atkHitMin = Math.min(group.atkHitMin, Math.round((c.atkScore || 0) * 16));
+    group.atkHitMax = Math.max(group.atkHitMax, Math.round((c.atkScore || 0) * 16));
+    group.completionMinTotal = Math.min(group.completionMinTotal, c.completion?.minTotal ?? c.totalEv ?? 0);
+    group.completionMaxTotal = Math.max(group.completionMaxTotal, c.completion?.maxTotal ?? c.maxTotalEv ?? c.totalEv ?? 0);
+  }
+  groups.forEach(group => {
+    group.totalScore = group.bestTotalScore;
+    group.practicalScore = group.bestPracticalScore;
+  });
+  return groups.sort((a, b) => {
+    if ((b.bestTotalScore || 0) !== (a.bestTotalScore || 0)) return (b.bestTotalScore || 0) - (a.bestTotalScore || 0);
+    if ((b.bestPracticalScore || 0) !== (a.bestPracticalScore || 0)) return (b.bestPracticalScore || 0) - (a.bestPracticalScore || 0);
+    const itemDiff = rcItemAssumptionScore(b) - rcItemAssumptionScore(a);
+    if (itemDiff) return itemDiff;
+    return (b.groupCount || 0) - (a.groupCount || 0);
+  });
 }
 
 function rcRelevantOffenseItems(move) {
@@ -3307,7 +3907,7 @@ function rcRelevantOffenseItems(move) {
 }
 
 // 베이스 defender state 빌드 (역계산 검색 중간 단계용)
-function rcBuildDefState(oppP, oppOverrides) {
+function rcBuildOpponentState(oppP, oppOverrides = {}) {
   return {
     pokemonIdx: oppP.id,
     evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(oppOverrides.evs || {}) },
@@ -3316,28 +3916,179 @@ function rcBuildDefState(oppP, oppOverrides) {
     status: revCalcState.opp.status || 'none',
     ability: oppOverrides.ability || toId(oppP.ab && (oppP.ab['0'] || oppP.ab['H'])) || '',
     item: oppOverrides.item || '',
+    types: [...(oppP.types || [])],
     tera: false,
     teraType: oppP.types[0],
-    pinch: false, fullHP: true,
+    hpPct: 1,
+    pinch: false,
+    fullHP: true,
+    boosterEnergyState: 'auto',
+    damageBlockActive: false,
+    fallenAllies: 0,
     moves: [],
+    moveBpOverrides: [null, null, null, null],
   };
+}
+
+function rcBuildDefenseMatches(my, oppP, myMove, observedPct, field, defStat, natureIds) {
+  if (!myMove) {
+    return new Map(natureIds.map(nature => [nature, [{
+      nature,
+      hpEv: 0,
+      defEv: 0,
+      defStat: null,
+      defScore: 1,
+      oppHp: 0,
+      oppDef: 0,
+      damages: [],
+    }]]));
+  }
+
+  const byNature = new Map(natureIds.map(nature => [nature, []]));
+  for (const natureId of natureIds) {
+    for (let hpEv = 0; hpEv <= 32; hpEv++) {
+      for (let defEv = 0; defEv <= 32; defEv++) {
+        if (hpEv + defEv > 66) continue;
+        if (defEv > 0 && hpEv < 32) continue;
+        const oppState = rcBuildOpponentState(oppP, {
+          evs: { hp: hpEv, [defStat]: defEv },
+          nature: natureId,
+        });
+        const result = calculateDamage(my, oppState, myMove, field);
+        if (!result || !result.damages) continue;
+        const oppHp = calcStats(oppState).hp;
+        const matches = rcMatchingRemainingPct(result.damages, observedPct, oppHp);
+        if (matches > 0) {
+          byNature.get(natureId).push({
+            nature: natureId,
+            hpEv,
+            defEv,
+            defStat,
+            defScore: matches / 16,
+            oppHp,
+            oppDef: calcStats(oppState)[defStat],
+            damages: result.damages,
+          });
+        }
+      }
+    }
+  }
+  return byNature;
+}
+
+function rcBuildOffenseMatches(my, oppP, oppMove, observedHp, field, atkStat, natureIds) {
+  if (!oppMove) {
+    return new Map(natureIds.map(nature => [nature, [{
+      nature,
+      atkEv: 0,
+      atkStat: null,
+      item: '',
+      atkScore: 1,
+      oppAtk: 0,
+      myDamages: [],
+    }]]));
+  }
+
+  const myHp = rcCurrentHpValue(my);
+  const byNature = new Map(natureIds.map(nature => [nature, []]));
+  for (const natureId of natureIds) {
+    for (let atkEv = 0; atkEv <= 32; atkEv++) {
+      for (const item of rcRelevantOffenseItems(oppMove)) {
+        const oppState = rcBuildOpponentState(oppP, {
+          evs: { [atkStat]: atkEv },
+          nature: natureId,
+          item,
+        });
+        const result = calculateDamage(oppState, my, oppMove, field);
+        if (!result || !result.damages) continue;
+        const matches = rcMatchingRemainingHp(result.damages, observedHp, myHp);
+        if (matches > 0) {
+          byNature.get(natureId).push({
+            nature: natureId,
+            atkEv,
+            atkStat,
+            item: item || '',
+            atkScore: matches / 16,
+            oppAtk: calcStats(oppState)[atkStat],
+            myDamages: result.damages,
+          });
+        }
+      }
+    }
+  }
+  return byNature;
+}
+
+function rcCombineReverseCandidates(defByNature, atkByNature, oppP, oppMove, field, speedActive, debug) {
+  const shaped = [];
+  for (const [nature, defMatches] of defByNature.entries()) {
+    const atkMatches = atkByNature.get(nature) || [];
+    for (const defMatch of defMatches) {
+      for (const atkMatch of atkMatches) {
+        if (defMatch.defStat && atkMatch.atkStat && defMatch.defStat === atkMatch.atkStat && defMatch.defEv !== atkMatch.atkEv) {
+          debug.statConflictRemoved++;
+          continue;
+        }
+
+        const baseCandidate = {
+          ...defMatch,
+          ...atkMatch,
+          nature,
+          totalScore: (defMatch.defScore || 1) * (atkMatch.atkScore || 1),
+        };
+
+        if (!speedActive && baseCandidate.item === 'choicescarf') {
+          debug.scarfSkipped++;
+          continue;
+        }
+
+        const speedInfo = rcSpeedCandidateInfo(oppP, nature, baseCandidate.item || '', field);
+        if (!speedInfo.valid) {
+          debug.speedRemoved++;
+          continue;
+        }
+
+        const knownEv = rcCandidateKnownPointSum(baseCandidate);
+        const speMin = speedInfo.active ? (speedInfo.speMin ?? 33) : 0;
+        const speMaxRaw = speedInfo.active ? (speedInfo.speMax ?? speMin) : 32;
+        const speMax = Math.min(speMaxRaw, Math.max(0, 66 - knownEv));
+        if (speMin > speMax) {
+          debug.budgetRemoved++;
+          continue;
+        }
+
+        const withSpeed = {
+          ...baseCandidate,
+          speedInfo,
+          knownEv,
+          speEv: speMin,
+          speEvMin: speMin,
+          speEvMax: speMax,
+          totalEv: knownEv + speMin,
+          maxTotalEv: knownEv + speMax,
+        };
+
+        const practical = oppMove ? rcApplyNatureInvestmentPreset(withSpeed, oppP, oppMove, speedActive) : withSpeed;
+        if (!practical) {
+          debug.presetRemoved++;
+          continue;
+        }
+
+        shaped.push(practical);
+      }
+    }
+  }
+  return shaped;
 }
 
 // Stage 1: 내구 검색
 function rcStage1Defense(my, oppP, myMove, observedPct, field, defStat) {
   const candidates = [];
-  for (const natureId of RC_DEF_NATURES) {
-    const nature = NATURE_BY_ID[natureId];
-    // 방어 nature 검증: nature.up 이 검색 대상 stat 또는 무보정만
-    if (nature.up && nature.up !== defStat) {
-      // 다른 방어 stat 보정도 허용 (Bold→Def, Calm→SpD, ...)
-      // 단 검색 대상 stat 의 보정이 아니라도 nature 자체는 가능 (분리해서 본 후보)
-      // 예: 검색이 def 인데 nature 가 calm(spd+) 이면 def 에는 보정 없음 = neutral 처리
-    }
+  for (const natureId of RC_NATURE_IDS) {
     for (let hpEv = 0; hpEv <= 32; hpEv++) {
       for (let defEv = 0; defEv <= 32; defEv++) {
         if (hpEv + defEv > 64) continue;
-        const oppState = rcBuildDefState(oppP, {
+        const oppState = rcBuildOpponentState(oppP, {
           evs: { hp: hpEv, [defStat]: defEv },
           nature: natureId,
         });
@@ -3371,7 +4122,7 @@ function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedPct, fi
 
     for (let atkEv = 0; atkEv <= Math.min(32, remainingEv); atkEv++) {
       for (const item of rcRelevantOffenseItems(oppMove)) {
-        const oppState = rcBuildDefState(oppP, {
+        const oppState = rcBuildOpponentState(oppP, {
           evs: { hp: c.hpEv, [c.defStat]: c.defEv, [atkStat]: atkEv },
           nature: c.nature,
           item,
@@ -3401,10 +4152,10 @@ function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedPct, fi
 function rcStage3OffenseOnly(my, oppP, oppMove, observedPct, field, atkStat) {
   const candidates = [];
   const myHp = rcCurrentHpValue(my);
-  for (const natureId of RC_ATK_NATURES) {
+  for (const natureId of RC_NATURE_IDS) {
     for (let atkEv = 0; atkEv <= 32; atkEv++) {
       for (const item of rcRelevantOffenseItems(oppMove)) {
-        const oppState = rcBuildDefState(oppP, {
+        const oppState = rcBuildOpponentState(oppP, {
           evs: { [atkStat]: atkEv },
           nature: natureId, item,
         });
@@ -3436,7 +4187,7 @@ function rcAnalyze() {
   const myMoveData = revCalcState.myMove ? MoveById[revCalcState.myMove] : null;
   const oppMoveData = revCalcState.oppMove ? MoveById[revCalcState.oppMove] : null;
   const observedTheir = parseInt(revCalcState.observedTheirPct, 10);
-  const observedMy = parseInt(revCalcState.observedMyPct, 10);
+  const observedMy = parseInt(revCalcState.observedMyHp, 10);
   const myCurrentHp = rcCurrentHpValue(my);
   const myStatsForDebug = calcStats(my);
 
@@ -3477,71 +4228,62 @@ function rcAnalyze() {
     speedRemoved: 0,
     budgetRemoved: 0,
     scarfSkipped: 0,
+    statConflictRemoved: 0,
+    presetRemoved: 0,
   };
 
+  const speedActive = revCalcState.turnOrder !== 'unknown';
+  const natureIds = hasAtk ? rcNatureCandidatesForMove(oppMove) : RC_NATURE_IDS;
+  debug.natureCandidates = natureIds.join(',');
+
   if (hasDef && hasAtk) {
-    // Full 모드
     mode = 'full';
     const defStat = myMove.cat === 'Physical' ? 'def' : 'spd';
     const atkStat = oppMove.cat === 'Physical' ? 'atk' : 'spa';
-    const stage1Raw = rcStage1Defense(my, oppP, myMove, observedTheir, field, defStat);
-    debug.stage1 = stage1Raw.length;
-    const stage1 = stage1Raw
-      .sort((a, b) => (b.defScore - a.defScore) || ((b.hpEv >= b.defEv) - (a.hpEv >= a.defEv)) || (a.hpEv + a.defEv - b.hpEv - b.defEv))
-      .slice(0, 1200);
-    debug.stage1Trimmed = stage1.length;
-    candidates = rcStage3OffenseRefine(stage1, my, oppP, oppMove, observedMy, field, atkStat);
+    const defByNature = rcBuildDefenseMatches(my, oppP, myMove, observedTheir, field, defStat, natureIds);
+    const atkByNature = rcBuildOffenseMatches(my, oppP, oppMove, observedMy, field, atkStat, natureIds);
+    debug.stage1 = [...defByNature.values()].reduce((sum, list) => sum + list.length, 0);
+    debug.stage1Trimmed = debug.stage1;
+    debug.offenseMatches = [...atkByNature.values()].reduce((sum, list) => sum + list.length, 0);
+    candidates = rcCombineReverseCandidates(defByNature, atkByNature, oppP, oppMove, field, speedActive, debug);
     debug.refined = candidates.length;
   } else if (hasDef) {
     mode = 'def-only';
     const defStat = myMove.cat === 'Physical' ? 'def' : 'spd';
-    const stage1 = rcStage1Defense(my, oppP, myMove, observedTheir, field, defStat);
-    debug.stage1 = stage1.length;
-    debug.stage1Trimmed = stage1.length;
-    const speedItems = revCalcState.turnOrder === 'unknown' ? [''] : ['', 'choicescarf'].filter(item => revCalcState.itemCandidates.includes(item));
-    candidates = stage1.flatMap(c => speedItems.map(item => ({ ...c, item, totalScore: c.defScore })));
+    const defByNature = rcBuildDefenseMatches(my, oppP, myMove, observedTheir, field, defStat, natureIds);
+    const atkByNature = rcBuildOffenseMatches(my, oppP, null, null, field, null, natureIds);
+    debug.stage1 = [...defByNature.values()].reduce((sum, list) => sum + list.length, 0);
+    debug.stage1Trimmed = debug.stage1;
+    candidates = rcCombineReverseCandidates(defByNature, atkByNature, oppP, null, field, speedActive, debug);
     debug.refined = candidates.length;
   } else {
     mode = 'atk-only';
     const atkStat = oppMove.cat === 'Physical' ? 'atk' : 'spa';
-    candidates = rcStage3OffenseOnly(my, oppP, oppMove, observedMy, field, atkStat);
+    const defByNature = rcBuildDefenseMatches(my, oppP, null, null, field, null, natureIds);
+    const atkByNature = rcBuildOffenseMatches(my, oppP, oppMove, observedMy, field, atkStat, natureIds);
+    debug.stage1 = [...defByNature.values()].reduce((sum, list) => sum + list.length, 0);
+    debug.stage1Trimmed = debug.stage1;
+    debug.offenseMatches = [...atkByNature.values()].reduce((sum, list) => sum + list.length, 0);
+    candidates = rcCombineReverseCandidates(defByNature, atkByNature, oppP, oppMove, field, speedActive, debug);
     debug.refined = candidates.length;
   }
 
-  const rawTotal = candidates.length;
-  const speedActive = revCalcState.turnOrder !== 'unknown';
-  const shaped = [];
-  for (const c of candidates) {
-    if (!speedActive && c.item === 'choicescarf') {
-      debug.scarfSkipped++;
-      continue;
-    }
-    const speedInfo = rcSpeedCandidateInfo(oppP, c.nature || 'hardy', c.item || '', field);
-    if (!speedInfo.valid) {
-      debug.speedRemoved++;
-      continue;
-    }
-    const withSpeed = { ...c, speedInfo, speEv: speedInfo.speEv };
-    withSpeed.totalEv = rcCandidatePointSum(withSpeed);
-    if (withSpeed.totalEv > 66) {
-      debug.budgetRemoved++;
-      continue;
-    }
-    shaped.push(withSpeed);
-  }
-  debug.afterFilter = shaped.length;
-  candidates = shaped;
+  const rawTotal = candidates.length
+    + debug.speedRemoved
+    + debug.budgetRemoved
+    + debug.scarfSkipped
+    + debug.statConflictRemoved
+    + debug.presetRemoved;
+  debug.afterFilter = candidates.length;
 
   // 정렬 + Top 8
-  candidates.sort((a, b) => {
-    if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
-    // tie-break: EV 합 작은 우선 (단순한 spread 우선)
-    return (a.totalEv || rcCandidatePointSum(a)) - (b.totalEv || rcCandidatePointSum(b));
-  });
+  candidates.sort(rcCompareCandidates);
+  const groupedResults = rcGroupCandidates(candidates);
 
   return {
-    results: candidates.slice(0, 8),
+    results: groupedResults.slice(0, 8),
     total: candidates.length,
+    groupTotal: groupedResults.length,
     rawTotal,
     filteredByRule: Math.max(0, rawTotal - candidates.length),
     mode,
@@ -3773,7 +4515,7 @@ function renderRevCalcInputs() {
           </label>
           <label class="field" style="flex:1;">
             <span class="field-label">내 남은 HP</span>
-            <input type="number" data-rc-action="observedMyPct" value="${revCalcState.observedMyPct}" min="0" max="${myCurrentHp}" placeholder="0~${myCurrentHp}">
+            <input type="number" data-rc-action="observedMyHp" value="${revCalcState.observedMyHp}" min="0" max="${myCurrentHp}" placeholder="0~${myCurrentHp}">
           </label>
         </div>
       </div>
@@ -3880,7 +4622,7 @@ function renderRevCalcResults() {
       `내 HP 기준 ${r.myCurrentHp || '-'}`,
       `내 속도 기준 ${r.mySpeed || '-'}`,
       `상대 남은 HP ${escapeHTML(revCalcState.observedTheirPct || '-')}%`,
-      `내 남은 HP ${escapeHTML(revCalcState.observedMyPct || '-')}`,
+      `내 남은 HP ${escapeHTML(revCalcState.observedMyHp || '-')}`,
     ];
     container.innerHTML = `
       <div class="empty-state">66포인트 룰과 관측값을 동시에 만족하는 형태가 없습니다.</div>
@@ -3892,49 +4634,55 @@ function renderRevCalcResults() {
 
   const scarfBrief = r.speedActive
     ? (r.scarfViable && !r.nonScarfViable
-        ? '속도 조건까지 합치면 구애스카프 후보만 66포인트 안에 남습니다.'
+        ? '속도 조건은 구애스카프 후보만 남습니다.'
         : r.scarfViable
-          ? '구애스카프와 비스카프 후보가 함께 남아 있어 추가 관측이 필요합니다.'
-          : '현재 조건에서는 구애스카프 없이도 속도 조건을 만족할 수 있습니다.')
+          ? '구애스카프와 비스카프 후보가 함께 남습니다.'
+          : '구애스카프 없이도 속도 조건을 만족합니다.')
     : '속도 조건은 사용하지 않았습니다.';
   const first = r.results[0];
   const topItem = first.item ? itName(ItemById[first.item] || { name: first.item }) : '도구 없음';
-  const briefing = `상위 후보는 ${topItem}, ${NATURE_BY_ID[first.nature]?.ko || first.nature} 성격, 총 ${first.totalEv}포인트 사용 형태입니다. ${scarfBrief}`;
-  const STAT_LABEL = { hp: 'H', atk: 'A', def: 'B', spa: 'C', spd: 'D', spe: 'S' };
+  const investmentBrief = rcBriefInvestmentParts(first, r.speedActive);
+  const briefing = `상위 후보는 ${topItem}, ${NATURE_BY_ID[first.nature]?.ko || first.nature} 성격입니다. 관측 투자 범위는 ${investmentBrief}이며, 남은 포인트는 미관측 스탯으로 66까지 배분됩니다. ${scarfBrief}`;
 
   const rows = r.results.map((c, i) => {
-    const evDesc = [];
-    if (c.hpEv > 0) evDesc.push(`H${c.hpEv}`);
-    if (c.defEv > 0) evDesc.push(`${STAT_LABEL[c.defStat]}${c.defEv}`);
-    if (c.atkEv > 0) evDesc.push(`${STAT_LABEL[c.atkStat]}${c.atkEv}`);
-    if ((c.speEv || 0) > 0 || r.speedActive) evDesc.push(`S${c.speEv || 0}`);
+    const evDesc = rcCandidateEvParts(c, r.speedActive);
     const natureKo = NATURE_BY_ID[c.nature]?.ko || c.nature;
     const itemTag = c.item
       ? `<span class="rc-result-item ${c.item === 'choicescarf' ? 'rc-scarf-item' : ''}">${escapeHTML(itName(ItemById[c.item] || { name: c.item }))}</span>`
       : '<span class="rc-result-item rc-no-item">도구 없음</span>';
-    const scorePct = Math.round((c.totalScore || 0) * 100);
-    const defHit = c.defScore ? `${Math.round(c.defScore * 16)}/16` : '-';
-    const atkHit = c.atkScore ? `${Math.round(c.atkScore * 16)}/16` : '-';
-    const statsLine = [];
-    if (c.oppHp) statsLine.push(`HP ${c.oppHp}`);
-    if (c.oppDef) statsLine.push(`${STAT_LABEL[c.defStat]} ${c.oppDef}`);
-    if (c.oppAtk) statsLine.push(`${STAT_LABEL[c.atkStat]} ${c.oppAtk}`);
-    if (c.speedInfo?.active) statsLine.push(`속도 ${c.speedInfo.oppSpeed} (내 ${c.speedInfo.mySpeed})`);
+    const scorePct = Math.max(1, Math.round((c.bestTotalScore || c.totalScore || 0) * 100));
+    const defHit = c.defHitMin !== undefined
+      ? (c.defHitMin === c.defHitMax ? `${c.defHitMin}/16` : `${c.defHitMin}~${c.defHitMax}/16`)
+      : (c.defScore ? `${Math.round(c.defScore * 16)}/16` : '-');
+    const atkHit = c.atkHitMin !== undefined
+      ? (c.atkHitMin === c.atkHitMax ? `${c.atkHitMin}/16` : `${c.atkHitMin}~${c.atkHitMax}/16`)
+      : (c.atkScore ? `${Math.round(c.atkScore * 16)}/16` : '-');
     const speedRange = c.speedInfo?.active
-      ? `S 가능범위 ${c.speedInfo.speMin}~${c.speedInfo.speMax}`
+      ? `S 가능범위 ${c.speEvMin ?? c.speedInfo.speMin}~${c.speEvMax ?? c.speedInfo.speMax}`
       : '속도 미사용';
+    const totalMin = c.totalEvMin ?? c.totalEv;
+    const totalMax = c.totalEvMax ?? c.maxTotalEv ?? c.totalEv;
+    const totalRange = totalMax !== undefined && totalMax !== totalMin
+      ? `${totalMin}~${totalMax}`
+      : `${totalMin}`;
+    const groupNote = c.groupCount > 1 ? `<small class="rc-result-group">${c.groupCount}개 후보 묶음</small>` : '';
+    const practical = rcNaturePracticalInfo(c);
+    const speedPlan = rcSpeedPlanLabel(c, r.speedActive);
+    const roleInfo = rcRoleCompletionInfo(c, r.speedActive);
     return `
       <div class="rc-result-row rc-form-result">
         <div class="rc-result-rank">#${i + 1}</div>
-        <div class="rc-result-stars"><b>${scorePct}%</b><small>난수 ${defHit} / ${atkHit}</small></div>
+        <div class="rc-result-stars"><b>${scorePct}%</b><small>일치 ${defHit} / ${atkHit}</small></div>
         <div class="rc-result-spread">
           <b>${evDesc.join(' / ') || '무투자'}</b>
           <span class="rc-result-nature">(${natureKo})</span>
           ${itemTag}
+          <span class="rc-practical-badge ${practical.cls}">${practical.label}</span>
+          ${groupNote}
         </div>
         <div class="rc-result-stats">
-          <span>${statsLine.join(' · ') || '실수치 정보 없음'}</span>
-          <small>${speedRange} · 총 ${c.totalEv}/66</small>
+          <span class="rc-role-completion">${escapeHTML(roleInfo.label)} · ${escapeHTML(roleInfo.parts.join(' / ') || '-')}</span>
+          <small>${speedPlan} · ${speedRange} · 관측 ${totalRange} / 완성 66</small>
         </div>
         <div class="rc-result-action">
           <button class="rc-apply-btn" data-rc-applyresult="${i}" title="이 후보를 계산기 방어측에 적용">계산기 적용</button>
@@ -3949,7 +4697,7 @@ function renderRevCalcResults() {
       <div>${escapeHTML(briefing)}</div>
     </div>
     <div class="rc-results-summary">
-      모드: <b>${modeLabel}</b> · 생존 후보 <b>${r.total}</b>개 · 제거 후보 <b>${r.filteredByRule || 0}</b>개 · 내 속도 기준 <b>${r.mySpeed}</b>
+      모드: <b>${modeLabel}</b> · 생존 후보 <b>${r.total}</b>개 · 압축 그룹 <b>${r.groupTotal || r.results.length}</b>개 · 제거 후보 <b>${r.filteredByRule || 0}</b>개 · 내 속도 기준 <b>${r.mySpeed}</b>
     </div>
     <div class="rc-results-list">${rows}</div>
     <div class="rc-hint">상대는 남은 HP%의 정수 내림값, 내 포켓몬은 남은 HP 실수치를 기준으로 16단계 난수 중 일치한 횟수를 표시합니다.</div>
@@ -3993,7 +4741,7 @@ function rcSyncInputsFromDom() {
     else if (action === 'myMoveBp') revCalcState.myMoveBp = el.value;
     else if (action === 'oppMoveBp') revCalcState.oppMoveBp = el.value;
     else if (action === 'observedTheirPct') revCalcState.observedTheirPct = el.value;
-    else if (action === 'observedMyPct') revCalcState.observedMyPct = el.value;
+    else if (action === 'observedMyHp') revCalcState.observedMyHp = el.value;
     else if (action === 'turnOrder') revCalcState.turnOrder = el.value;
     else if (action === 'mySpeedOverride') revCalcState.mySpeedOverride = el.value;
   });
@@ -4038,20 +4786,25 @@ function rcWireMyComboboxes() {
       e.preventDefault();
       const id = opt.dataset.id;
       if (target === 'my') {
-        const p = PokemonById[id];
-        revCalcState.my.pokemonIdx = id;
-        if (p) {
-          revCalcState.my.ability = toId(p.ab['0'] || p.ab['H'] || '');
-          revCalcState.my.teraType = p.types[0];
-        }
-        revCalcState.myMove = '';
-        revCalcState.myMoveBp = '';
+        rcApplyMyPokemonSelection(id);
       } else {
         revCalcState.my.item = id || '';
       }
       renderRevCalcAll();
     });
   });
+}
+
+function rcApplyMyPokemonSelection(id) {
+  const p = PokemonById[id];
+  revCalcState.my.pokemonIdx = id;
+  if (p) {
+    revCalcState.my.ability = toId(p.ab['0'] || p.ab['H'] || '');
+    revCalcState.my.types = [...p.types];
+    revCalcState.my.teraType = p.types[0];
+  }
+  revCalcState.myMove = '';
+  revCalcState.myMoveBp = '';
 }
 
 function rcWireOppComboboxes() {
@@ -4112,7 +4865,7 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
   if (t.dataset.rcAction === 'myMoveBp') { revCalcState.myMoveBp = t.value; return; }
   if (t.dataset.rcAction === 'oppMoveBp') { revCalcState.oppMoveBp = t.value; return; }
   if (t.dataset.rcAction === 'observedTheirPct') { revCalcState.observedTheirPct = t.value; return; }
-  if (t.dataset.rcAction === 'observedMyPct') { revCalcState.observedMyPct = t.value; return; }
+  if (t.dataset.rcAction === 'observedMyHp') { revCalcState.observedMyHp = t.value; return; }
   if (t.dataset.rcAction === 'turnOrder') { revCalcState.turnOrder = t.value; renderRevCalcInputs(); return; }
   if (t.dataset.rcAction === 'mySpeedOverride') { revCalcState.mySpeedOverride = t.value; renderRevCalcInputs(); return; }
   if (t.dataset.rcField) {
@@ -4136,7 +4889,7 @@ document.getElementById('page-revcalc')?.addEventListener('input', e => {
   if (t.dataset.rcAction === 'myMoveBp') revCalcState.myMoveBp = t.value;
   if (t.dataset.rcAction === 'oppMoveBp') revCalcState.oppMoveBp = t.value;
   if (t.dataset.rcAction === 'observedTheirPct') revCalcState.observedTheirPct = t.value;
-  if (t.dataset.rcAction === 'observedMyPct') revCalcState.observedMyPct = t.value;
+  if (t.dataset.rcAction === 'observedMyHp') revCalcState.observedMyHp = t.value;
   if (t.dataset.rcAction === 'mySpeedOverride') revCalcState.mySpeedOverride = t.value;
 });
 

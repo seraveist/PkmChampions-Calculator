@@ -236,6 +236,33 @@ Recommended next step:
 4. Add deterministic candidate grouping and template labeling.
 5. Add golden tests before expanding UI polish.
 
+## 2026-05-15 Implementation Update
+
+The reverse calculator has moved from the old layered prototype toward a more explicit cross-validation model.
+
+Implemented:
+
+- `observedMyPct` was renamed to `observedMyHp`.
+- My HP observation is now treated as a raw remaining HP value.
+- Opponent HP observation remains a remaining HP percent.
+- Nature candidates are selected from the opponent's used move category.
+- Defensive candidates and offensive candidates are generated separately, then joined.
+- The old defensive/offensive fixed nature lists were removed.
+- Candidate grouping now compresses near-identical random-roll results.
+- Result rows now separate observed possible ranges from role-based 66-point completion estimates.
+- `scripts/reverse-golden.mjs` was added and wired into `npm.cmd test`.
+
+Current product rule:
+
+- The observed range is the logically surviving range.
+- The completed spread is an inferred representative spread, not a confirmed result.
+- UI wording should continue to preserve that distinction.
+
+Most recent manual simulations are documented in:
+
+- `docs/current-handoff-2026-05-15.md`
+- `docs/reverse-calculation-handoff-2026-05-15.md`
+
 ## 2026-05-14 Planning Update
 
 The reverse calculator should be handled after the team synergy table pass.

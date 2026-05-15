@@ -9,10 +9,11 @@
     "data:validate": "node scripts/validate-data.mjs",
     "dex:smoke": "node scripts/dex-ui-smoke.mjs",
     "damage:golden": "node scripts/damage-golden.mjs",
+    "reverse:golden": "node scripts/reverse-golden.mjs",
     "coverage:matrix": "node scripts/coverage-matrix.mjs",
     "state:entry": "node scripts/entry-effects-state.mjs",
     "state:finetune": "node scripts/fine-tune-state.mjs",
-    "test": "npm run check && npm run build && npm run data:validate && npm run dex:smoke && npm run damage:golden && npm run state:entry && npm run state:finetune",
+    "test": "npm run check && npm run build && npm run data:validate && npm run dex:smoke && npm run damage:golden && npm run reverse:golden && npm run state:entry && npm run state:finetune",
     "sync-data": "node scripts/sync-ps-data.mjs",
     "sync-data:dry": "node scripts/sync-ps-data.mjs --dry-run",
     "fetch-ko": "node scripts/fetch-ko.mjs"
