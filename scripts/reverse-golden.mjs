@@ -126,9 +126,11 @@ function configurePrimarinaArchaludon(api, observedMyHp, options = {}) {
     status: 'none',
   };
   api.revCalcState.myMove = 'moonblast';
+  api.revCalcState.myMoveSet = ['moonblast', '', '', ''];
   api.revCalcState.myMoveBp = '';
   api.revCalcState.observedTheirPct = '35';
   api.revCalcState.oppMove = 'thunderbolt';
+  api.revCalcState.predictedOppMove = 'thunderbolt';
   api.revCalcState.oppMoveBp = '';
   api.revCalcState.observedMyHp = String(observedMyHp);
   api.revCalcState.turnOrder = options.turnOrder || 'unknown';
@@ -170,9 +172,11 @@ function configureArchaludonPrimarina(api, observedMyHp, options = {}) {
     status: 'none',
   };
   api.revCalcState.myMove = 'thunderbolt';
+  api.revCalcState.myMoveSet = ['thunderbolt', '', '', ''];
   api.revCalcState.myMoveBp = '';
   api.revCalcState.observedTheirPct = '43';
   api.revCalcState.oppMove = 'moonblast';
+  api.revCalcState.predictedOppMove = 'moonblast';
   api.revCalcState.oppMoveBp = '';
   api.revCalcState.observedMyHp = String(observedMyHp);
   api.revCalcState.turnOrder = options.turnOrder || 'my-first';
@@ -232,6 +236,10 @@ for (const className of [
   '.rc-result-row',
   '.rc-result-action',
   '.rc-briefing',
+  '.rc-followup-grid',
+  '.rc-followup-chip',
+  '.rc-info-badge',
+  '.rc-prediction-panel',
 ]) {
   assertIncludes(reverseCss, className, `Reverse CSS defines ${className}`);
 }
@@ -240,6 +248,12 @@ const reverseSource = readFileSync(path.join(ROOT, 'src', 'js', '04-views.js'), 
 assertNotIncludes(reverseSource, 'observedMyPct', 'Reverse source no longer uses percent name for my raw HP input');
 assertNotIncludes(reverseSource, 'RC_DEF_NATURES', 'Reverse source removed stale defensive-only nature list');
 assertNotIncludes(reverseSource, 'RC_ATK_NATURES', 'Reverse source removed stale offensive-only nature list');
+assertIncludes(reverseSource, 'myMoveSet', 'Reverse source stores four move slots for follow-up damage');
+assertIncludes(reverseSource, 'rcAnalyzeMyFollowupMove', 'Reverse source calculates my follow-up move damage');
+assertIncludes(reverseSource, 'rcAnalyzeOpponentFollowupMove', 'Reverse source calculates selected opponent follow-up damage');
+assertIncludes(reverseSource, '공격축 미확인', 'Reverse source marks unobserved offensive axis');
+assertIncludes(reverseSource, '내구 미확인', 'Reverse source marks unobserved defensive axis');
+assertIncludes(reverseSource, '속도 미확인', 'Reverse source marks priority-distorted speed observations');
 
 const initialHtml = reverseRenderedHtml();
 assertIncludes(initialHtml, 'data-rc-action="observedMyHp"', 'Reverse rendered HTML uses raw HP action name');
@@ -280,14 +294,21 @@ const rankedResult = api.rcAnalyze();
 api.revCalcState.results = rankedResult;
 const top = rankedResult.results[0];
 assertOk(top.nature === 'modest', 'Ranking prefers relevant non-speed-dropping offensive nature', JSON.stringify(top));
-assertOk(top.atkEv === 32, 'Ranking prefers higher matching offensive investment in tie cases', JSON.stringify(top));
+assertOk((top.atkEvMax ?? top.atkEv) === 32, 'Ranking keeps the highest matching offensive investment in grouped ranges', JSON.stringify(top));
 assertOk((top.speEvMin ?? top.speEv) === 0 && (top.speEvMax ?? top.speEv) > 0, 'Speed observation is rendered as a possible range, not exact S0', JSON.stringify(top));
 assertOk(top.groupCount > 1, 'Reverse results compress near-identical random-roll candidates into one group', JSON.stringify(top));
 assertOk(top.completionMinTotal <= 66 && top.completionMaxTotal >= 66, 'Top reverse group can be completed to the full 66 point budget', JSON.stringify(top));
+assertOk(rankedResult.results.length <= 5, 'Reverse results are limited to five visible candidate groups', JSON.stringify(rankedResult.results.length));
 
 const rankedHtml = reverseRenderedHtml();
 assertIncludes(rankedHtml, '관측 투자 범위', 'Reverse briefing explains observed investment ranges');
 assertIncludes(rankedHtml, '완성 66', 'Reverse rows show full 66 point completion assumption');
+assertIncludes(rankedHtml, '내 다음 기술 대미지', 'Reverse rows show my follow-up damage section');
+assertIncludes(rankedHtml, 'rc-followup-chip', 'Reverse rows render follow-up damage chips');
+assertIncludes(rankedHtml, 'rc-followup-damage', 'Reverse rows color follow-up damage predictions');
+assertNotIncludes(rankedHtml, 'class="rc-results-summary"', 'Reverse rendered results omit the old mode summary panel');
+assertNotIncludes(rankedHtml, 'rc-result-stars', 'Reverse rendered results omit internal match score column');
+assertIncludes(rankedHtml, '상대 예상 기술', 'Reverse selected row renders opponent prediction selector');
 assertNotIncludes(rankedHtml, '추가 관측', 'Reverse briefing omits the old extra-observation wording');
 
 const stage1ForExpected = api.rcStage1Defense(

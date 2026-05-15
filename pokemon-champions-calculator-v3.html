@@ -3701,6 +3701,21 @@
 }
 .rc-base small { color: var(--text-faint); font-size: 9px; }
 .rc-base b { color: var(--text); font-weight: 600; }
+.rc-my-build-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
+  gap: 12px;
+  align-items: start;
+}
+.rc-my-moves-panel {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-input);
+}
+@media (max-width: 1100px) {
+  .rc-my-build-row { grid-template-columns: 1fr; }
+}
 
 .rc-opp-ranks {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
@@ -3722,6 +3737,36 @@
   border: 1px solid var(--border); border-radius: 3px;
 }
 .rc-input-block .ft-section-title { margin-top: 0; }
+.rc-move-set-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.rc-move-set-grid.compact {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+.rc-move-slot-field {
+  min-width: 0;
+}
+.rc-side-condition-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+.rc-mini-note {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--text-faint);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  line-height: 1.45;
+}
+@media (max-width: 900px) { .rc-move-set-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .rc-move-set-grid { grid-template-columns: 1fr; } }
 
 .rc-item-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -3736,6 +3781,11 @@
   min-width: 0;
 }
 .rc-item-chk:hover { background: var(--bg-elev); }
+.rc-item-chk.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.rc-item-chk.disabled:hover { background: transparent; }
 .rc-item-chk input { cursor: pointer; accent-color: var(--warn); flex: 0 0 auto; }
 
 .rc-analyze-btn {
@@ -3765,6 +3815,10 @@
 }
 .rc-result-row > * { min-width: 0; }
 .rc-result-row:hover { border-color: var(--warn); background: var(--bg-elev); }
+.rc-result-row.selected {
+  border-color: rgba(255, 201, 114, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 201, 114, 0.16) inset;
+}
 .rc-result-rank {
   font-family: 'Black Han Sans', sans-serif; font-size: 18px;
   color: var(--warn); text-align: center;
@@ -3776,6 +3830,36 @@
   overflow-wrap: anywhere;
 }
 .rc-result-spread b { color: var(--ok); font-weight: 600; }
+.rc-result-profile {
+  display: grid;
+  gap: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 0;
+}
+.rc-result-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+.rc-result-title b {
+  color: var(--ok);
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.rc-result-lines {
+  display: grid;
+  gap: 2px;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.rc-result-lines span {
+  display: block;
+  overflow-wrap: anywhere;
+}
 .rc-result-nature { color: var(--text-dim); font-size: 11px; margin-left: 6px; }
 .rc-result-group { display: block; color: var(--text-faint); font-size: 10px; margin-top: 3px; }
 .rc-practical-badge {
@@ -3809,6 +3893,8 @@
 }
 .rc-result-action {
   display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
   justify-content: flex-end;
 }
 .rc-apply-btn {
@@ -3817,6 +3903,110 @@
   cursor: pointer; border-radius: 2px; font-family: inherit;
 }
 .rc-apply-btn:hover { color: var(--warn); border-color: var(--warn); }
+
+.rc-info-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.rc-info-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border: 1px solid rgba(255, 201, 114, 0.36);
+  border-radius: 2px;
+  color: var(--warn);
+  background: rgba(255, 201, 114, 0.08);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+
+.rc-followup-panel {
+  display: grid;
+  gap: 6px;
+}
+.rc-followup-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.rc-followup-head span {
+  color: var(--text);
+  font-weight: 700;
+}
+.rc-followup-head small {
+  color: var(--text-faint);
+}
+.rc-followup-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+.rc-followup-chip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 6px;
+  align-items: center;
+  min-width: 0;
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-input);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+.rc-followup-chip b {
+  color: var(--text);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rc-followup-chip .rc-followup-damage {
+  color: var(--ok);
+  text-align: right;
+  white-space: nowrap;
+}
+.rc-followup-chip em {
+  grid-column: 1;
+  color: var(--text-faint);
+  font-style: normal;
+  font-size: 10px;
+}
+.rc-followup-chip .ko-none { color: #ff6b6b; }
+.rc-followup-chip .ko-roll { color: var(--warn); }
+.rc-followup-chip .ko-certain { color: var(--ok); }
+.rc-followup-chip .rc-info-badges {
+  grid-column: 2;
+  justify-content: flex-end;
+  margin-left: 0;
+}
+.rc-prediction-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.55fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: end;
+  padding: 8px;
+  border: 1px solid rgba(51, 183, 255, 0.24);
+  border-radius: 3px;
+  background: rgba(51, 183, 255, 0.05);
+}
+.rc-prediction-result {
+  min-width: 0;
+}
+@media (max-width: 720px) {
+  .rc-prediction-panel {
+    grid-template-columns: 1fr;
+  }
+}
 
 .rc-hint {
   margin-top: 12px; padding: 8px 12px;
@@ -3872,7 +4062,9 @@
 }
 
 .rc-form-result {
-  grid-template-columns: 40px 92px minmax(180px, 2fr) minmax(220px, 1.4fr) auto;
+  grid-template-columns: 40px minmax(0, 1.35fr) minmax(210px, 0.72fr);
+  align-items: start;
+  cursor: pointer;
 }
 
 .rc-result-stars b {
@@ -3903,8 +4095,10 @@
   }
   .rc-form-result .rc-result-stars,
   .rc-form-result .rc-result-spread,
+  .rc-form-result .rc-result-profile,
   .rc-form-result .rc-result-stats,
-  .rc-form-result .rc-result-action {
+  .rc-form-result .rc-followup-panel,
+  .rc-form-result .rc-prediction-panel {
     grid-column: 2;
   }
 }
@@ -11345,19 +11539,24 @@ const revCalcState = {
     status: 'none',
   },
   myMove: '',
+  myMoveSet: ['', '', '', ''],
   myMoveBp: '',         // 빈 문자열 = move data의 default 사용
   observedTheirPct: '',
   oppMove: '',
   oppMoveBp: '',
+  oppItemKnown: 'unknown',
+  predictedOppMove: '',
+  selectedResultIndex: 0,
   observedMyHp: '',
   turnOrder: 'unknown',
   mySpeedOverride: '',
   field: rcDefaultField(),
+  observedFields: {
+    dealt: { defReflect: false, defLightScreen: false, isCritical: false },
+    received: { defReflect: false, defLightScreen: false, isCritical: false },
+  },
   // 도구 후보 — 기본은 빈 도구, 구애스카프, type-boost 도구. 사용자가 추가/제거 가능.
-  itemCandidates: ['', 'choicescarf', 'silkscarf', 'charcoal', 'mysticwater', 'magnet', 'miracleseed',
-                   'nevermeltice', 'blackbelt', 'poisonbarb', 'softsand', 'sharpbeak',
-                   'twistedspoon', 'silverpowder', 'hardstone', 'spelltag', 'dragonfang',
-                   'blackglasses', 'metalcoat', 'fairyfeather'],
+  itemCandidates: [],
   results: null,
   analyzing: false,
 };
@@ -11388,6 +11587,73 @@ function rcActiveFieldSummary(field) {
 const RC_NATURE_IDS = [...new Set((Array.isArray(NATURES) && NATURES.length)
   ? NATURES.map(n => n.id).filter(Boolean)
   : Object.keys(NATURE_BY_ID || {}))];
+const RC_MOVESET_SIZE = 4;
+
+function rcMoveSet() {
+  if (!Array.isArray(revCalcState.myMoveSet)) revCalcState.myMoveSet = ['', '', '', ''];
+  while (revCalcState.myMoveSet.length < RC_MOVESET_SIZE) revCalcState.myMoveSet.push('');
+  if (revCalcState.myMoveSet.length > RC_MOVESET_SIZE) revCalcState.myMoveSet = revCalcState.myMoveSet.slice(0, RC_MOVESET_SIZE);
+  return revCalcState.myMoveSet;
+}
+
+function rcEnsureMoveInSet(moveId) {
+  if (!moveId) return;
+  const moves = rcMoveSet();
+  if (moves.includes(moveId)) return;
+  const empty = moves.findIndex(id => !id);
+  moves[empty >= 0 ? empty : 0] = moveId;
+}
+
+function rcVisibleMoveSet() {
+  const moves = rcMoveSet().filter(id => MoveById[id] && MoveById[id].cat !== 'Status');
+  if (revCalcState.myMove && MoveById[revCalcState.myMove]?.cat !== 'Status' && !moves.includes(revCalcState.myMove)) {
+    moves.unshift(revCalcState.myMove);
+  }
+  return moves.slice(0, RC_MOVESET_SIZE);
+}
+
+function rcTypeBoostItemIdsForTypes(types = []) {
+  const wanted = new Set(types || []);
+  return ITEMS
+    .filter(item => item.typeBoostType && wanted.has(item.typeBoostType))
+    .map(item => item.id);
+}
+
+function rcDefaultItemCandidatesForOpponent() {
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  return ['', 'choicescarf', ...rcTypeBoostItemIdsForTypes(oppP?.types || [])]
+    .filter((id, idx, arr) => arr.indexOf(id) === idx);
+}
+
+function rcResetItemCandidatesForOpponent() {
+  if (revCalcState.oppItemKnown !== 'unknown') {
+    revCalcState.itemCandidates = [];
+    return;
+  }
+  revCalcState.itemCandidates = rcDefaultItemCandidatesForOpponent();
+}
+
+function rcKnownOpponentItem() {
+  if (revCalcState.oppItemKnown === undefined || revCalcState.oppItemKnown === 'unknown') return null;
+  return revCalcState.oppItemKnown || '';
+}
+
+function rcActiveItemCandidates() {
+  const known = rcKnownOpponentItem();
+  if (known !== null) return [known];
+  const candidates = revCalcState.itemCandidates?.length ? revCalcState.itemCandidates : rcDefaultItemCandidatesForOpponent();
+  return candidates.includes('') ? candidates : ['', ...candidates];
+}
+
+function rcObservedField(kind) {
+  const sideField = revCalcState.observedFields?.[kind] || {};
+  return {
+    ...rcAnalysisField(),
+    defReflect: !!sideField.defReflect,
+    defLightScreen: !!sideField.defLightScreen,
+    isCritical: !!sideField.isCritical,
+  };
+}
 
 function rcMatchingRemainingPct(rolls, observedPct, defenderHp) {
   let matches = 0;
@@ -11542,7 +11808,9 @@ function rcCandidateKnownPointSum(c) {
 }
 
 function rcItemAssumptionScore(c) {
-  if (!c.item) return 2;
+  if (!c.item) return 3;
+  const itemData = ItemById[c.item];
+  if (itemData?.typeBoostType && rcKnownOpponentItem() !== c.item) return -1;
   if (c.item === 'choicescarf') return 0;
   return 1;
 }
@@ -11769,7 +12037,7 @@ function rcRolePresetScore(c) {
   if (isScarf && usedAtk) {
     if (atkMax < secondOffenseMagic) score -= 8;
     else score += 1;
-    if (revCalcState.turnOrder === 'opp-first') score += 8;
+    if (revCalcState.turnOrder === 'opp-first') score += c.hasNonScarfAlternative ? 2 : 8;
     if (revCalcState.turnOrder === 'my-first') score -= 5;
   }
 
@@ -11777,7 +12045,7 @@ function rcRolePresetScore(c) {
 
   const itemData = ItemById[c.item];
   if (itemData?.typeBoostType && revCalcState.oppMove && MoveById[revCalcState.oppMove]?.type === itemData.typeBoostType) {
-    score += 3;
+    score += rcKnownOpponentItem() === c.item ? 1 : -4;
   }
 
   return score;
@@ -11880,6 +12148,191 @@ function rcBriefInvestmentParts(c, speedActive) {
     `${atkRole} ${rcPointRangeLabel(atkMin, atkMax)}`,
     `S ${rcPointRangeLabel(speMin, speMax)}`,
   ].join(', ');
+}
+
+function rcMoveDefenseStat(move) {
+  if (!move || move.cat === 'Status') return null;
+  if (move.overrideDefensiveStat) return move.overrideDefensiveStat;
+  return move.cat === 'Physical' ? 'def' : 'spd';
+}
+
+function rcMoveOffenseStat(move) {
+  if (!move || move.cat === 'Status') return null;
+  if (move.overrideOffensivePokemon === 'target') return null;
+  if (move.overrideOffensiveStat) return move.overrideOffensiveStat;
+  return move.cat === 'Physical' ? 'atk' : 'spa';
+}
+
+function rcCandidateEvRange(c, stat, speedActive) {
+  if (stat === 'hp') {
+    if (c.defStat) return { min: c.hpEvMin ?? c.hpEv ?? 0, max: c.hpEvMax ?? c.hpEv ?? 0, known: true };
+    return { min: 0, max: 32, known: false };
+  }
+  if (stat === 'spe') {
+    if (speedActive) return { min: c.speEvMin ?? c.speEv ?? 0, max: c.speEvMax ?? c.speEv ?? 0, known: true };
+    return { min: 0, max: 32, known: false };
+  }
+  if (stat === c.defStat) return { min: c.defEvMin ?? c.defEv ?? 0, max: c.defEvMax ?? c.defEv ?? 0, known: true };
+  if (stat === c.atkStat) return { min: c.atkEvMin ?? c.atkEv ?? 0, max: c.atkEvMax ?? c.atkEv ?? 0, known: true };
+  return { min: 0, max: Math.max(0, Math.min(32, rcMaxAllocatableEvForStat(c, stat, speedActive))), known: false };
+}
+
+function rcForEachEvInRange(range, fn) {
+  const min = Math.max(0, Math.min(32, range.min ?? 0));
+  const max = Math.max(min, Math.min(32, range.max ?? min));
+  for (let ev = min; ev <= max; ev++) fn(ev);
+}
+
+function rcObservedOpponentRemainingValues(oppState, field) {
+  const observedPct = parseInt(revCalcState.observedTheirPct, 10);
+  const move = revCalcState.myMove ? MoveById[revCalcState.myMove] : null;
+  const hp = calcStats(oppState).hp;
+  if (!move || move.cat === 'Status' || !Number.isFinite(observedPct)) {
+    return [Math.max(1, Math.floor(hp * Math.max(1, Math.min(100, observedPct || 100)) / 100))];
+  }
+  const moveData = { ...move, bp: parseInt(revCalcState.myMoveBp, 10) || move.bp };
+  const result = calculateDamage(revCalcState.my, oppState, moveData, field);
+  const values = new Set();
+  for (const damage of result?.damages || []) {
+    const remaining = Math.max(0, hp - damage);
+    if (Math.floor(remaining / hp * 100) === observedPct) values.add(remaining);
+  }
+  if (values.size) return [...values];
+  return [Math.max(0, Math.floor(hp * Math.max(0, Math.min(100, observedPct)) / 100))];
+}
+
+function rcUpdateDamageBounds(bounds, damages, hp, currentHpValues) {
+  for (const damage of damages || []) {
+    bounds.rawMin = Math.min(bounds.rawMin, damage);
+    bounds.rawMax = Math.max(bounds.rawMax, damage);
+    bounds.pctMin = Math.min(bounds.pctMin, damage / hp * 100);
+    bounds.pctMax = Math.max(bounds.pctMax, damage / hp * 100);
+    for (const currentHp of currentHpValues) {
+      bounds.koChecks++;
+      if (damage >= currentHp) bounds.koHits++;
+    }
+  }
+}
+
+function rcFinalizeDamageBounds(bounds) {
+  if (!bounds.koChecks || bounds.rawMin === Infinity) return null;
+  const koClass = bounds.koHits === bounds.koChecks
+    ? 'ko-certain'
+    : bounds.koHits > 0
+      ? 'ko-roll'
+      : 'ko-none';
+  const koState = koClass === 'ko-certain'
+    ? 'KO 확정'
+    : koClass === 'ko-roll'
+      ? 'KO 난수'
+      : 'KO 불가';
+  return {
+    rawMin: bounds.rawMin,
+    rawMax: bounds.rawMax,
+    pctMin: bounds.pctMin,
+    pctMax: bounds.pctMax,
+    koState,
+    koClass,
+  };
+}
+
+function rcDamageBounds() {
+  return { rawMin: Infinity, rawMax: 0, pctMin: Infinity, pctMax: 0, koChecks: 0, koHits: 0 };
+}
+
+function rcSpeedUnconfirmed() {
+  if (revCalcState.turnOrder === 'unknown') return false;
+  const myMove = revCalcState.myMove ? MoveById[revCalcState.myMove] : null;
+  const oppMove = revCalcState.oppMove ? MoveById[revCalcState.oppMove] : null;
+  return !!((myMove && (myMove.pri || 0) !== 0) || (oppMove && (oppMove.pri || 0) !== 0));
+}
+
+function rcAnalyzeMyFollowupMove(c, moveId, speedActive) {
+  const move = MoveById[moveId];
+  if (!move || move.cat === 'Status') return null;
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  if (!oppP) return null;
+  const field = rcAnalysisField();
+  const observedField = rcObservedField('dealt');
+  const moveData = { ...move };
+  const defStat = rcMoveDefenseStat(move);
+  const hpRange = rcCandidateEvRange(c, 'hp', speedActive);
+  const defRange = defStat ? rcCandidateEvRange(c, defStat, speedActive) : { min: 0, max: 0, known: true };
+  const badges = [];
+  if (!hpRange.known || !defRange.known) badges.push('내구 미확인');
+  const bounds = rcDamageBounds();
+  rcForEachEvInRange(hpRange, hpEv => {
+    rcForEachEvInRange(defRange, defEv => {
+      const evs = { hp: hpEv };
+      if (defStat) evs[defStat] = defEv;
+      const oppState = rcBuildOpponentState(oppP, { evs, nature: c.nature, item: c.item || '' });
+      const hp = calcStats(oppState).hp;
+      const currentHpValues = rcObservedOpponentRemainingValues(oppState, observedField);
+      const result = calculateDamage(revCalcState.my, oppState, moveData, field);
+      rcUpdateDamageBounds(bounds, result?.damages || [], hp, currentHpValues);
+    });
+  });
+  const summary = rcFinalizeDamageBounds(bounds);
+  if (!summary) return null;
+  return { move, summary, badges };
+}
+
+function rcAnalyzeOpponentFollowupMove(c, moveId, speedActive) {
+  const move = MoveById[moveId];
+  if (!move || move.cat === 'Status') return null;
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  if (!oppP) return null;
+  const field = rcAnalysisField();
+  const atkStat = rcMoveOffenseStat(move);
+  const atkRange = atkStat ? rcCandidateEvRange(c, atkStat, speedActive) : { min: 0, max: 32, known: false };
+  const hpRange = rcCandidateEvRange(c, 'hp', speedActive);
+  const badges = [];
+  if (!atkRange.known) badges.push('공격축 미확인');
+  if (rcSpeedUnconfirmed()) badges.push('속도 미확인');
+  const myMaxHp = calcStats(revCalcState.my).hp;
+  const observedMyHp = parseInt(revCalcState.observedMyHp, 10);
+  const currentMyHp = Number.isFinite(observedMyHp) && observedMyHp >= 0 ? observedMyHp : myMaxHp;
+  const bounds = rcDamageBounds();
+  rcForEachEvInRange(hpRange, hpEv => {
+    rcForEachEvInRange(atkRange, atkEv => {
+      const evs = { hp: hpEv };
+      if (atkStat) evs[atkStat] = atkEv;
+      const oppState = rcBuildOpponentState(oppP, { evs, nature: c.nature, item: c.item || '' });
+      const result = calculateDamage(oppState, revCalcState.my, move, field);
+      rcUpdateDamageBounds(bounds, result?.damages || [], myMaxHp, [currentMyHp]);
+    });
+  });
+  const summary = rcFinalizeDamageBounds(bounds);
+  if (!summary) return null;
+  return { move, summary, badges };
+}
+
+function rcFormatPct(value) {
+  return `${value.toFixed(1)}%`;
+}
+
+function rcFormatDamage(summary) {
+  const pct = `${rcFormatPct(summary.pctMin)}~${rcFormatPct(summary.pctMax)}`;
+  return pct;
+}
+
+function rcRenderInfoBadges(badges) {
+  const unique = [...new Set((badges || []).filter(Boolean))];
+  if (!unique.length) return '';
+  return `<span class="rc-info-badges">${unique.map(b => `<span class="rc-info-badge">${escapeHTML(b)}</span>`).join('')}</span>`;
+}
+
+function rcRenderFollowupMoveChip(analysis) {
+  if (!analysis) return '';
+  const koClass = analysis.summary.koClass || 'ko-none';
+  return `
+    <div class="rc-followup-chip">
+      <b>${escapeHTML(mvName(analysis.move))}</b>
+      <span class="rc-followup-damage ${koClass}">${rcFormatDamage(analysis.summary)}</span>
+      <em class="${koClass}">${escapeHTML(analysis.summary.koState)}</em>
+      ${rcRenderInfoBadges(analysis.badges)}
+    </div>
+  `;
 }
 
 function rcObservedEvStats(c, speedActive) {
@@ -12105,7 +12558,9 @@ function rcGroupCandidates(candidates) {
 }
 
 function rcRelevantOffenseItems(move) {
-  return revCalcState.itemCandidates.filter(item => {
+  const known = rcKnownOpponentItem();
+  if (known !== null) return [known];
+  return rcActiveItemCandidates().filter(item => {
     if (!item || item === 'choicescarf') return true;
     const itemData = ItemById[item];
     if (!itemData?.typeBoostType) return true;
@@ -12121,7 +12576,7 @@ function rcBuildOpponentState(oppP, oppOverrides = {}) {
     nature: oppOverrides.nature || 'hardy',
     ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(revCalcState.opp.ranks || {}) },
     status: revCalcState.opp.status || 'none',
-    ability: oppOverrides.ability || toId(oppP.ab && (oppP.ab['0'] || oppP.ab['H'])) || '',
+    ability: oppOverrides.ability || revCalcState.opp.ability || toId(oppP.ab && (oppP.ab['0'] || oppP.ab['H'])) || '',
     item: oppOverrides.item || '',
     types: [...(oppP.types || [])],
     tera: false,
@@ -12244,7 +12699,7 @@ function rcCombineReverseCandidates(defByNature, atkByNature, oppP, oppMove, fie
           totalScore: (defMatch.defScore || 1) * (atkMatch.atkScore || 1),
         };
 
-        if (!speedActive && baseCandidate.item === 'choicescarf') {
+        if (!speedActive && baseCandidate.item === 'choicescarf' && rcKnownOpponentItem() !== 'choicescarf') {
           debug.scarfSkipped++;
           continue;
         }
@@ -12401,6 +12856,8 @@ function rcAnalyze() {
   const hasDef = myMoveData && myMoveData.cat !== 'Status' && observedTheir >= 0 && observedTheir <= 100;
   const hasAtk = oppMoveData && oppMoveData.cat !== 'Status' && observedMy >= 0 && observedMy <= myCurrentHp;
   const field = rcAnalysisField();
+  const dealtField = rcObservedField('dealt');
+  const receivedField = rcObservedField('received');
 
   if (!hasDef && !hasAtk) {
     return { error: '내 기술 또는 상대 기술 중 하나는 입력해야 합니다 (변화기 제외).' };
@@ -12424,9 +12881,11 @@ function rcAnalyze() {
     observedMy,
     myCurrentHp,
     field: rcActiveFieldSummary(field),
+    dealtField: rcActiveFieldSummary(dealtField),
+    receivedField: rcActiveFieldSummary(receivedField),
     turnOrder: revCalcState.turnOrder,
-    itemCount: revCalcState.itemCandidates.length,
-    hasNoItem: revCalcState.itemCandidates.includes(''),
+    itemCount: rcActiveItemCandidates().length,
+    hasNoItem: rcActiveItemCandidates().includes(''),
     hasDef: !!hasDef,
     hasAtk: !!hasAtk,
     stage1: 0,
@@ -12445,10 +12904,10 @@ function rcAnalyze() {
 
   if (hasDef && hasAtk) {
     mode = 'full';
-    const defStat = myMove.cat === 'Physical' ? 'def' : 'spd';
-    const atkStat = oppMove.cat === 'Physical' ? 'atk' : 'spa';
-    const defByNature = rcBuildDefenseMatches(my, oppP, myMove, observedTheir, field, defStat, natureIds);
-    const atkByNature = rcBuildOffenseMatches(my, oppP, oppMove, observedMy, field, atkStat, natureIds);
+    const defStat = rcMoveDefenseStat(myMove) || (myMove.cat === 'Physical' ? 'def' : 'spd');
+    const atkStat = rcMoveOffenseStat(oppMove) || (oppMove.cat === 'Physical' ? 'atk' : 'spa');
+    const defByNature = rcBuildDefenseMatches(my, oppP, myMove, observedTheir, dealtField, defStat, natureIds);
+    const atkByNature = rcBuildOffenseMatches(my, oppP, oppMove, observedMy, receivedField, atkStat, natureIds);
     debug.stage1 = [...defByNature.values()].reduce((sum, list) => sum + list.length, 0);
     debug.stage1Trimmed = debug.stage1;
     debug.offenseMatches = [...atkByNature.values()].reduce((sum, list) => sum + list.length, 0);
@@ -12456,8 +12915,8 @@ function rcAnalyze() {
     debug.refined = candidates.length;
   } else if (hasDef) {
     mode = 'def-only';
-    const defStat = myMove.cat === 'Physical' ? 'def' : 'spd';
-    const defByNature = rcBuildDefenseMatches(my, oppP, myMove, observedTheir, field, defStat, natureIds);
+    const defStat = rcMoveDefenseStat(myMove) || (myMove.cat === 'Physical' ? 'def' : 'spd');
+    const defByNature = rcBuildDefenseMatches(my, oppP, myMove, observedTheir, dealtField, defStat, natureIds);
     const atkByNature = rcBuildOffenseMatches(my, oppP, null, null, field, null, natureIds);
     debug.stage1 = [...defByNature.values()].reduce((sum, list) => sum + list.length, 0);
     debug.stage1Trimmed = debug.stage1;
@@ -12465,9 +12924,9 @@ function rcAnalyze() {
     debug.refined = candidates.length;
   } else {
     mode = 'atk-only';
-    const atkStat = oppMove.cat === 'Physical' ? 'atk' : 'spa';
+    const atkStat = rcMoveOffenseStat(oppMove) || (oppMove.cat === 'Physical' ? 'atk' : 'spa');
     const defByNature = rcBuildDefenseMatches(my, oppP, null, null, field, null, natureIds);
-    const atkByNature = rcBuildOffenseMatches(my, oppP, oppMove, observedMy, field, atkStat, natureIds);
+    const atkByNature = rcBuildOffenseMatches(my, oppP, oppMove, observedMy, receivedField, atkStat, natureIds);
     debug.stage1 = [...defByNature.values()].reduce((sum, list) => sum + list.length, 0);
     debug.stage1Trimmed = debug.stage1;
     debug.offenseMatches = [...atkByNature.values()].reduce((sum, list) => sum + list.length, 0);
@@ -12482,13 +12941,15 @@ function rcAnalyze() {
     + debug.statConflictRemoved
     + debug.presetRemoved;
   debug.afterFilter = candidates.length;
+  const hasNonScarfAlternative = candidates.some(c => c.item !== 'choicescarf');
+  candidates.forEach(c => { c.hasNonScarfAlternative = hasNonScarfAlternative; });
 
-  // 정렬 + Top 8
+  // 정렬 + Top 5
   candidates.sort(rcCompareCandidates);
   const groupedResults = rcGroupCandidates(candidates);
 
   return {
-    results: groupedResults.slice(0, 8),
+    results: groupedResults.slice(0, 5),
     total: candidates.length,
     groupTotal: groupedResults.length,
     rawTotal,
@@ -12514,6 +12975,19 @@ function renderRevCalcMy() {
   const stats = calcStats(my);
   const totalEV = ['hp','atk','def','spa','spd','spe'].reduce((a,s) => a + (my.evs[s]||0), 0);
   const overEV = totalEV > 66;
+  const myLearnable = p?.ls?.length > 0
+    ? MOVES.filter(m => p.ls.includes(m.id) && m.cat !== 'Status')
+    : MOVES.filter(m => m.cat !== 'Status');
+  const myMoveOptions = selected => `
+    <option value="">선택…</option>
+    ${myLearnable.map(m => `<option value="${m.id}" ${selected === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))}</option>`).join('')}
+  `;
+  const moveSetRows = rcMoveSet().map((moveId, idx) => `
+    <label class="field rc-move-slot-field">
+      <span class="field-label">기술 ${idx + 1}</span>
+      <select data-rc-moveslot="${idx}">${myMoveOptions(moveId)}</select>
+    </label>
+  `).join('');
 
   const abOptions = Object.values(p.ab || {}).map(abN => {
     const id = toId(abN);
@@ -12580,9 +13054,15 @@ function renderRevCalcMy() {
         </div>
       </label>
     </div>
-    <div class="ft-stats-grid" style="grid-template-columns: 64px 56px 168px 60px 96px;">
-      <div class="ft-stats-head"><div>스탯</div><div>종족값</div><div>노력치</div><div>실수치</div><div>랭크</div></div>
-      ${statRows}
+    <div class="rc-my-build-row">
+      <div class="ft-stats-grid" style="grid-template-columns: 64px 56px 168px 60px 96px;">
+        <div class="ft-stats-head"><div>스탯</div><div>종족값</div><div>노력치</div><div>실수치</div><div>랭크</div></div>
+        ${statRows}
+      </div>
+      <div class="rc-my-moves-panel">
+        <div class="ft-section-title">기술배치</div>
+        <div class="rc-move-set-grid compact">${moveSetRows}</div>
+      </div>
     </div>
     <div class="ft-ev-total ${overEV ? 'over' : ''}">
       노력치 합계: <b>${totalEV}</b> / 66 ${overEV ? '<span style="color:var(--atk);"> 초과!</span>' : ''}
@@ -12668,17 +13148,30 @@ function renderRevCalcInputs() {
   const myMoveData = revCalcState.myMove ? MoveById[revCalcState.myMove] : null;
   const oppMoveData = revCalcState.oppMove ? MoveById[revCalcState.oppMove] : null;
 
-  const myMoveBpValue = revCalcState.myMoveBp !== '' ? revCalcState.myMoveBp : (myMoveData?.bp || '');
-  const oppMoveBpValue = revCalcState.oppMoveBp !== '' ? revCalcState.oppMoveBp : (oppMoveData?.bp || '');
   const myStats = calcStats(my);
   const myCurrentHp = rcCurrentHpValue(my);
   const autoMySpeed = rcSpeedWithMods(myStats.spe, my.ranks?.spe || 0, my.item || '', my.status || 'none');
+  const myMoveOptions = selected => `
+    <option value="">선택…</option>
+    ${myLearnable.map(m => `<option value="${m.id}" ${selected === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))}</option>`).join('')}
+  `;
 
   // 도구 후보 체크박스 (type-boost 도구 + 그외 사용 가능 도구)
   const itemMaster = ITEMS.filter(i => !i.ms && !i.isBerry);
+  const knownOppItem = rcKnownOpponentItem();
+  const itemCandidates = knownOppItem === null ? rcActiveItemCandidates() : [];
+  const oppAbilityOptions = oppP ? Object.values(oppP.ab || {}).map(abN => {
+    const id = toId(abN);
+    return `<option value="${id}" ${revCalcState.opp.ability === id ? 'selected' : ''}>${escapeHTML(abName(AbilityById[id] || { name: abN }))}</option>`;
+  }).join('') : '';
+  const oppItemOptions = `
+    <option value="unknown" ${revCalcState.oppItemKnown === 'unknown' ? 'selected' : ''}>미관측</option>
+    <option value="" ${revCalcState.oppItemKnown === '' ? 'selected' : ''}>없음 확인</option>
+    ${itemMaster.map(i => `<option value="${i.id}" ${revCalcState.oppItemKnown === i.id ? 'selected' : ''}>${escapeHTML(itName(i))}</option>`).join('')}
+  `;
   const itemBoxes = itemMaster.map(i => `
-    <label class="rc-item-chk">
-      <input type="checkbox" data-rc-item="${i.id}" ${revCalcState.itemCandidates.includes(i.id) ? 'checked' : ''}>
+    <label class="rc-item-chk ${knownOppItem !== null ? 'disabled' : ''}">
+      <input type="checkbox" data-rc-item="${i.id}" ${knownOppItem === null && itemCandidates.includes(i.id) ? 'checked' : ''} ${knownOppItem !== null ? 'disabled' : ''}>
       ${escapeHTML(itName(i))}
     </label>
   `).join('');
@@ -12686,44 +13179,56 @@ function renderRevCalcInputs() {
   container.innerHTML = `
     <div class="rc-input-grid">
       <div class="rc-input-block">
-        <div class="ft-section-title">내 기술 (상대에게 줌)</div>
+        <div class="ft-section-title">관측 기술 (상대에게 줌)</div>
         <div class="ft-controls-row">
           <label class="field" style="flex:2;">
             <span class="field-label">기술</span>
             <select data-rc-action="myMove">
-              <option value="">선택…</option>
-              ${myLearnable.map(m => `<option value="${m.id}" ${revCalcState.myMove === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))} (${m.type}/${m.cat}/${m.bp || '-'})</option>`).join('')}
+              ${myMoveOptions(revCalcState.myMove)}
             </select>
-          </label>
-          <label class="field" style="flex:1;">
-            <span class="field-label">위력 (자동)</span>
-            <input type="number" data-rc-action="myMoveBp" value="${myMoveBpValue}" min="0" max="999" placeholder="자동">
           </label>
           <label class="field" style="flex:1;">
             <span class="field-label">상대 남은 HP %</span>
             <input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="100" placeholder="0~100">
           </label>
         </div>
+        <div class="rc-side-condition-row">
+          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defReflect" ${revCalcState.observedFields.dealt.defReflect ? 'checked' : ''}> 상대 리플렉터</label>
+          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.dealt.defLightScreen ? 'checked' : ''}> 상대 빛의장막</label>
+          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="isCritical" ${revCalcState.observedFields.dealt.isCritical ? 'checked' : ''}> 내 공격 급소</label>
+        </div>
       </div>
 
       <div class="rc-input-block">
         <div class="ft-section-title">상대 기술 (내가 받음)</div>
         <div class="ft-controls-row">
+          <label class="field" style="flex:1;">
+            <span class="field-label">관측 특성</span>
+            <select data-rc-action="oppAbility">
+              <option value="" ${!revCalcState.opp.ability ? 'selected' : ''}>미관측</option>
+              ${oppAbilityOptions}
+            </select>
+          </label>
+          <label class="field" style="flex:1;">
+            <span class="field-label">상대 도구</span>
+            <select data-rc-action="oppItemKnown">${oppItemOptions}</select>
+          </label>
           <label class="field" style="flex:2;">
             <span class="field-label">기술</span>
             <select data-rc-action="oppMove">
               <option value="">선택…</option>
-              ${oppLearnable.map(m => `<option value="${m.id}" ${revCalcState.oppMove === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))} (${m.type}/${m.cat}/${m.bp || '-'})</option>`).join('')}
+              ${oppLearnable.map(m => `<option value="${m.id}" ${revCalcState.oppMove === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))}</option>`).join('')}
             </select>
-          </label>
-          <label class="field" style="flex:1;">
-            <span class="field-label">위력 (자동)</span>
-            <input type="number" data-rc-action="oppMoveBp" value="${oppMoveBpValue}" min="0" max="999" placeholder="자동">
           </label>
           <label class="field" style="flex:1;">
             <span class="field-label">내 남은 HP</span>
             <input type="number" data-rc-action="observedMyHp" value="${revCalcState.observedMyHp}" min="0" max="${myCurrentHp}" placeholder="0~${myCurrentHp}">
           </label>
+        </div>
+        <div class="rc-side-condition-row">
+          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defReflect" ${revCalcState.observedFields.received.defReflect ? 'checked' : ''}> 내 리플렉터</label>
+          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.received.defLightScreen ? 'checked' : ''}> 내 빛의장막</label>
+          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="isCritical" ${revCalcState.observedFields.received.isCritical ? 'checked' : ''}> 상대 공격 급소</label>
         </div>
       </div>
 
@@ -12770,14 +13275,11 @@ function renderRevCalcInputs() {
               <option value="Misty" ${revCalcState.field.terrain === 'Misty' ? 'selected' : ''}>미스트</option>
             </select>
           </label>
-          <label class="checkbox-label"><input type="checkbox" data-rc-field="defReflect" ${revCalcState.field.defReflect ? 'checked' : ''}> 리플렉터</label>
-          <label class="checkbox-label"><input type="checkbox" data-rc-field="defLightScreen" ${revCalcState.field.defLightScreen ? 'checked' : ''}> 빛의장막</label>
-          <label class="checkbox-label"><input type="checkbox" data-rc-field="isCritical" ${revCalcState.field.isCritical ? 'checked' : ''}> 급소</label>
         </div>
       </div>
 
       <div class="rc-input-block">
-        <div class="ft-section-title">도구 후보 (분석 시 시도할 상대 보유 도구) — ${revCalcState.itemCandidates.length}개 선택됨</div>
+        <div class="ft-section-title">도구 후보 (상대 도구 미관측 시만 사용) — ${knownOppItem === null ? `${itemCandidates.length}개 선택됨` : '상대 도구 선택됨'}</div>
         <div class="rc-item-grid">${itemBoxes}</div>
       </div>
     </div>
@@ -12801,12 +13303,6 @@ function renderRevCalcResults() {
     return;
   }
 
-  const modeLabel = {
-    full: '3중 교차 검증',
-    'def-only': '내구 역산 + 속도',
-    'atk-only': '화력 역산 + 속도',
-  }[r.mode] || r.mode;
-
   if (!r.results.length) {
     const d = r.debug || {};
     const debugBits = [
@@ -12817,6 +13313,8 @@ function renderRevCalcResults() {
       `내 실수치 C${d.myStats?.spa ?? '-'} S${d.myStats?.spe ?? '-'}`,
       `기술 ${escapeHTML(d.myMove || '-')} / ${escapeHTML(d.oppMove || '-')}`,
       `필드 ${escapeHTML(d.field || 'none')}`,
+      `내 공격조건 ${escapeHTML(d.dealtField || 'none')}`,
+      `상대 공격조건 ${escapeHTML(d.receivedField || 'none')}`,
       `도구후보 ${d.itemCount ?? '-'}개${d.hasNoItem ? '+없음' : ''}`,
       `내구후보 ${d.stage1 ?? '-'}`,
       `정제대상 ${d.stage1Trimmed ?? '-'}`,
@@ -12851,19 +13349,24 @@ function renderRevCalcResults() {
   const investmentBrief = rcBriefInvestmentParts(first, r.speedActive);
   const briefing = `상위 후보는 ${topItem}, ${NATURE_BY_ID[first.nature]?.ko || first.nature} 성격입니다. 관측 투자 범위는 ${investmentBrief}이며, 남은 포인트는 미관측 스탯으로 66까지 배분됩니다. ${scarfBrief}`;
 
+  const followupMoveIds = rcVisibleMoveSet();
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  const oppLearnable = oppP?.ls?.length > 0
+    ? MOVES.filter(m => oppP.ls.includes(m.id) && m.cat !== 'Status')
+    : MOVES.filter(m => m.cat !== 'Status');
+  const selectedIndex = Math.max(0, Math.min(r.results.length - 1, revCalcState.selectedResultIndex || 0));
+  const predictedMoveId = revCalcState.predictedOppMove || revCalcState.oppMove || '';
+  const oppMoveOptions = `
+    <option value="">선택…</option>
+    ${oppLearnable.map(m => `<option value="${m.id}" ${predictedMoveId === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))}</option>`).join('')}
+  `;
+
   const rows = r.results.map((c, i) => {
     const evDesc = rcCandidateEvParts(c, r.speedActive);
     const natureKo = NATURE_BY_ID[c.nature]?.ko || c.nature;
     const itemTag = c.item
       ? `<span class="rc-result-item ${c.item === 'choicescarf' ? 'rc-scarf-item' : ''}">${escapeHTML(itName(ItemById[c.item] || { name: c.item }))}</span>`
       : '<span class="rc-result-item rc-no-item">도구 없음</span>';
-    const scorePct = Math.max(1, Math.round((c.bestTotalScore || c.totalScore || 0) * 100));
-    const defHit = c.defHitMin !== undefined
-      ? (c.defHitMin === c.defHitMax ? `${c.defHitMin}/16` : `${c.defHitMin}~${c.defHitMax}/16`)
-      : (c.defScore ? `${Math.round(c.defScore * 16)}/16` : '-');
-    const atkHit = c.atkHitMin !== undefined
-      ? (c.atkHitMin === c.atkHitMax ? `${c.atkHitMin}/16` : `${c.atkHitMin}~${c.atkHitMax}/16`)
-      : (c.atkScore ? `${Math.round(c.atkScore * 16)}/16` : '-');
     const speedRange = c.speedInfo?.active
       ? `S 가능범위 ${c.speEvMin ?? c.speedInfo.speMin}~${c.speEvMax ?? c.speedInfo.speMax}`
       : '속도 미사용';
@@ -12872,28 +13375,50 @@ function renderRevCalcResults() {
     const totalRange = totalMax !== undefined && totalMax !== totalMin
       ? `${totalMin}~${totalMax}`
       : `${totalMin}`;
-    const groupNote = c.groupCount > 1 ? `<small class="rc-result-group">${c.groupCount}개 후보 묶음</small>` : '';
-    const practical = rcNaturePracticalInfo(c);
     const speedPlan = rcSpeedPlanLabel(c, r.speedActive);
     const roleInfo = rcRoleCompletionInfo(c, r.speedActive);
+    const followupChips = followupMoveIds
+      .map(moveId => rcRenderFollowupMoveChip(rcAnalyzeMyFollowupMove(c, moveId, r.speedActive)))
+      .filter(Boolean)
+      .join('');
+    const selected = i === selectedIndex;
+    const predictedAnalysis = selected && predictedMoveId
+      ? rcAnalyzeOpponentFollowupMove(c, predictedMoveId, r.speedActive)
+      : null;
+    const predictedPanel = selected ? `
+      <div class="rc-prediction-panel">
+        <label class="field">
+          <span class="field-label">상대 예상 기술</span>
+          <select data-rc-action="predictedOppMove">${oppMoveOptions}</select>
+        </label>
+        <div class="rc-prediction-result">
+          ${predictedMoveId
+            ? (rcRenderFollowupMoveChip(predictedAnalysis) || '<span class="rc-mini-note">계산 가능한 공격 기술을 선택해 주세요.</span>')
+            : '<span class="rc-mini-note">상대 다음 기술을 선택하면 내 피해 범위를 표시합니다.</span>'}
+        </div>
+      </div>
+    ` : '';
     return `
-      <div class="rc-result-row rc-form-result">
+      <div class="rc-result-row rc-form-result ${selected ? 'selected' : ''}" data-rc-selectresult="${i}">
         <div class="rc-result-rank">#${i + 1}</div>
-        <div class="rc-result-stars"><b>${scorePct}%</b><small>일치 ${defHit} / ${atkHit}</small></div>
-        <div class="rc-result-spread">
-          <b>${evDesc.join(' / ') || '무투자'}</b>
-          <span class="rc-result-nature">(${natureKo})</span>
-          ${itemTag}
-          <span class="rc-practical-badge ${practical.cls}">${practical.label}</span>
-          ${groupNote}
+        <div class="rc-result-profile">
+          <div class="rc-result-title">
+            <b>${evDesc.join(' / ') || '무투자'}</b>
+            <span class="rc-result-nature">(${natureKo})</span>
+            ${itemTag}
+          </div>
+          <div class="rc-result-lines">
+            <span>${escapeHTML(roleInfo.label)} · ${escapeHTML(roleInfo.parts.join(' / ') || '-')}</span>
+            <span>${escapeHTML(speedPlan)} · ${escapeHTML(speedRange)} · 관측 ${escapeHTML(totalRange)} / 완성 66</span>
+          </div>
         </div>
-        <div class="rc-result-stats">
-          <span class="rc-role-completion">${escapeHTML(roleInfo.label)} · ${escapeHTML(roleInfo.parts.join(' / ') || '-')}</span>
-          <small>${speedPlan} · ${speedRange} · 관측 ${totalRange} / 완성 66</small>
+        <div class="rc-followup-panel">
+          <div class="rc-followup-head"><span>내 다음 기술 대미지</span><small>현재 상대 HP 기준</small></div>
+          <div class="rc-followup-grid">
+            ${followupChips || '<span class="rc-mini-note">내 기술폭 4개를 입력하면 후보별 다음 대미지를 표시합니다.</span>'}
+          </div>
         </div>
-        <div class="rc-result-action">
-          <button class="rc-apply-btn" data-rc-applyresult="${i}" title="이 후보를 계산기 방어측에 적용">계산기 적용</button>
-        </div>
+        ${predictedPanel}
       </div>
     `;
   }).join('');
@@ -12902,9 +13427,6 @@ function renderRevCalcResults() {
     <div class="rc-briefing">
       <div class="rc-briefing-title">인텔리전스 브리핑</div>
       <div>${escapeHTML(briefing)}</div>
-    </div>
-    <div class="rc-results-summary">
-      모드: <b>${modeLabel}</b> · 생존 후보 <b>${r.total}</b>개 · 압축 그룹 <b>${r.groupTotal || r.results.length}</b>개 · 제거 후보 <b>${r.filteredByRule || 0}</b>개 · 내 속도 기준 <b>${r.mySpeed}</b>
     </div>
     <div class="rc-results-list">${rows}</div>
     <div class="rc-hint">상대는 남은 HP%의 정수 내림값, 내 포켓몬은 남은 HP 실수치를 기준으로 16단계 난수 중 일치한 횟수를 표시합니다.</div>
@@ -12923,6 +13445,10 @@ function renderRevCalcAll() {
 function rcSyncInputsFromDom() {
   const root = document.getElementById('page-revcalc');
   if (!root) return;
+  root.querySelectorAll('[data-rc-moveslot]').forEach(el => {
+    const idx = parseInt(el.dataset.rcMoveslot, 10);
+    if (Number.isInteger(idx) && idx >= 0 && idx < RC_MOVESET_SIZE) rcMoveSet()[idx] = el.value;
+  });
   const evInputs = Array.from(root.querySelectorAll('[data-rc-ev]'));
   if (evInputs.length) {
     const requested = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
@@ -12943,8 +13469,11 @@ function rcSyncInputsFromDom() {
     if (action === 'myMove') revCalcState.myMove = el.value;
     else if (action === 'myNature') revCalcState.my.nature = el.value;
     else if (action === 'myAbility') revCalcState.my.ability = el.value;
+    else if (action === 'oppAbility') revCalcState.opp.ability = el.value;
     else if (action === 'oppStatus') revCalcState.opp.status = el.value;
     else if (action === 'oppMove') revCalcState.oppMove = el.value;
+    else if (action === 'oppItemKnown') revCalcState.oppItemKnown = el.value;
+    else if (action === 'predictedOppMove') revCalcState.predictedOppMove = el.value;
     else if (action === 'myMoveBp') revCalcState.myMoveBp = el.value;
     else if (action === 'oppMoveBp') revCalcState.oppMoveBp = el.value;
     else if (action === 'observedTheirPct') revCalcState.observedTheirPct = el.value;
@@ -12958,10 +13487,20 @@ function rcSyncInputsFromDom() {
     nextField[key] = el.type === 'checkbox' ? el.checked : el.value;
   });
   revCalcState.field = nextField;
+  root.querySelectorAll('[data-rc-observed-field]').forEach(el => {
+    const side = el.dataset.rcObservedField;
+    const key = el.dataset.rcFieldKey;
+    if (!revCalcState.observedFields[side]) revCalcState.observedFields[side] = {};
+    revCalcState.observedFields[side][key] = !!el.checked;
+  });
   const itemBoxes = root.querySelectorAll('[data-rc-item]');
   if (itemBoxes.length) {
-    const selectedItems = Array.from(itemBoxes).filter(el => el.checked).map(el => el.dataset.rcItem).filter(Boolean);
-    revCalcState.itemCandidates = ['', ...selectedItems.filter((id, idx, arr) => arr.indexOf(id) === idx)];
+    if (revCalcState.oppItemKnown === 'unknown') {
+      const selectedItems = Array.from(itemBoxes).filter(el => el.checked).map(el => el.dataset.rcItem).filter(Boolean);
+      revCalcState.itemCandidates = ['', ...selectedItems.filter((id, idx, arr) => arr.indexOf(id) === idx)];
+    } else {
+      revCalcState.itemCandidates = [];
+    }
   }
 }
 
@@ -13011,6 +13550,7 @@ function rcApplyMyPokemonSelection(id) {
     revCalcState.my.teraType = p.types[0];
   }
   revCalcState.myMove = '';
+  revCalcState.myMoveSet = ['', '', '', ''];
   revCalcState.myMoveBp = '';
 }
 
@@ -13036,6 +13576,9 @@ function rcWireOppComboboxes() {
       revCalcState.opp.pokemonIdx = opt.dataset.id;
       revCalcState.oppMove = '';
       revCalcState.oppMoveBp = '';
+      revCalcState.opp.ability = '';
+      revCalcState.predictedOppMove = '';
+      rcResetItemCandidatesForOpponent();
       renderRevCalcAll();
     });
   });
@@ -13056,17 +13599,42 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
   }
   if (t.dataset.rcAction === 'myNature') { revCalcState.my.nature = t.value; renderRevCalcMy(); renderRevCalcInputs(); return; }
   if (t.dataset.rcAction === 'myAbility') { revCalcState.my.ability = t.value; return; }
+  if (t.dataset.rcAction === 'oppAbility') { revCalcState.opp.ability = t.value; return; }
+  if (t.dataset.rcAction === 'oppItemKnown') {
+    revCalcState.oppItemKnown = t.value;
+    rcResetItemCandidatesForOpponent();
+    renderRevCalcInputs();
+    return;
+  }
   if (t.dataset.rcAction === 'oppStatus') { revCalcState.opp.status = t.value; return; }
   if (t.dataset.rcAction === 'myMove') {
     revCalcState.myMove = t.value;
+    rcEnsureMoveInSet(t.value);
     revCalcState.myMoveBp = '';   // 자동 채움
     renderRevCalcInputs();
+    renderRevCalcResults();
     return;
   }
   if (t.dataset.rcAction === 'oppMove') {
     revCalcState.oppMove = t.value;
     revCalcState.oppMoveBp = '';
+    if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = t.value;
     renderRevCalcInputs();
+    return;
+  }
+  if (t.dataset.rcAction === 'predictedOppMove') {
+    revCalcState.predictedOppMove = t.value;
+    renderRevCalcResults();
+    return;
+  }
+  if (t.dataset.rcMoveslot !== undefined) {
+    const idx = parseInt(t.dataset.rcMoveslot, 10);
+    if (Number.isInteger(idx) && idx >= 0 && idx < RC_MOVESET_SIZE) {
+      rcMoveSet()[idx] = t.value;
+      if (!revCalcState.myMove && t.value) revCalcState.myMove = t.value;
+      renderRevCalcInputs();
+      renderRevCalcResults();
+    }
     return;
   }
   if (t.dataset.rcAction === 'myMoveBp') { revCalcState.myMoveBp = t.value; return; }
@@ -13079,6 +13647,13 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
     const k = t.dataset.rcField;
     const v = t.type === 'checkbox' ? t.checked : t.value;
     revCalcState.field[k] = v;
+    return;
+  }
+  if (t.dataset.rcObservedField) {
+    const side = t.dataset.rcObservedField;
+    const key = t.dataset.rcFieldKey;
+    if (!revCalcState.observedFields[side]) revCalcState.observedFields[side] = {};
+    revCalcState.observedFields[side][key] = !!t.checked;
     return;
   }
   if (t.dataset.rcItem !== undefined) {
@@ -13102,6 +13677,13 @@ document.getElementById('page-revcalc')?.addEventListener('input', e => {
 
 document.getElementById('page-revcalc')?.addEventListener('click', e => {
   const t = e.target;
+  const selectedRow = t.closest?.('[data-rc-selectresult]');
+  if (selectedRow && !t.closest('button, select, input, label')) {
+    revCalcState.selectedResultIndex = parseInt(selectedRow.dataset.rcSelectresult, 10) || 0;
+    if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
+    renderRevCalcResults();
+    return;
+  }
   if (t.dataset.rcEvset !== undefined) {
     const stat = t.dataset.rcEvset;
     const evs = revCalcState.my.evs;
@@ -13142,6 +13724,8 @@ document.getElementById('rcAnalyze')?.addEventListener('click', async () => {
   await new Promise(resolve => setTimeout(resolve, 30));
   try {
     revCalcState.results = rcAnalyze();
+    revCalcState.selectedResultIndex = 0;
+    if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
   } catch (e) {
     revCalcState.results = { error: '분석 실패: ' + e.message };
   }
@@ -13183,10 +13767,17 @@ function rcApplyResultToCalc(idx) {
 function loadSideToRevCalc(sideKey) {
   const src = state[sideKey];
   revCalcState.my = JSON.parse(JSON.stringify(src));
+  revCalcState.myMoveSet = [...(src.moves || [])].slice(0, RC_MOVESET_SIZE);
+  while (revCalcState.myMoveSet.length < RC_MOVESET_SIZE) revCalcState.myMoveSet.push('');
+  revCalcState.myMove = revCalcState.myMoveSet.find(id => MoveById[id]?.cat !== 'Status') || '';
+  revCalcState.myMoveBp = '';
   const otherKey = sideKey === 'atk' ? 'def' : 'atk';
   revCalcState.opp.pokemonIdx = state[otherKey].pokemonIdx;
   revCalcState.opp.ranks = { ...state[otherKey].ranks };
   revCalcState.opp.status = state[otherKey].status || 'none';
+  revCalcState.opp.ability = state[otherKey].ability || '';
+  revCalcState.oppItemKnown = 'unknown';
+  rcResetItemCandidatesForOpponent();
   revCalcState.mySpeedOverride = '';
   revCalcState.field = rcDefaultField();
   const navBtn = document.querySelector('.nav-tab[data-page="revcalc"]');
