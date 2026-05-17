@@ -29,10 +29,10 @@ export const FormatsData: import('../../../sim/dex-species').ModdedSpeciesFormat
 		tier: "UU",
 	},
 	charizardmegax: {
-		tier: "UU",
+		tier: "UUBL",
 	},
 	charizardmegay: {
-		tier: "UU",
+		tier: "UUBL",
 	},
 	charizardgmax: {
 		isNonstandard: "Past",
@@ -449,7 +449,7 @@ export const FormatsData: import('../../../sim/dex-species').ModdedSpeciesFormat
 		tier: "UU",
 	},
 	alakazammega: {
-		tier: "UU",
+		tier: "UUBL",
 	},
 	machop: {
 		isNonstandard: "Past",
@@ -4693,7 +4693,7 @@ export const FormatsData: import('../../../sim/dex-species').ModdedSpeciesFormat
 		tier: "Illegal",
 	},
 	espathra: {
-		tier: "UU",
+		tier: "UUBL",
 	},
 	wiglett: {
 		isNonstandard: "Past",
