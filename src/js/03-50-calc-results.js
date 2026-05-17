@@ -2,7 +2,6 @@
 function runCalc() {
   const calcState = makeCalcState();
   lastAutoEntry = calcState.entryMeta;
-  const entryLog = lastAutoEntry.logs;
   const calcAtk = calcState.atk;
   const calcDef = calcState.def;
   const calcField = calcState.field;
@@ -25,7 +24,7 @@ function runCalc() {
   const moveResults = state.atk.moves.map((mvId, i) => {
     if (!mvId) return { empty: true, slot: i+1 };
     const baseMove = MoveById[mvId];
-    const move = baseMove ? moveWithManualBp(baseMove, calcAtk.moveBpOverrides?.[i]) : null;
+    const move = baseMove ? moveWithManualBp(baseMove, calcAtk.moveBpOverrides?.[i], calcAtk.moveTypeOverrides?.[i]) : null;
     if (!move) return { empty: true, slot: i+1 };
     if (move.cat === 'Status') {
       return { empty: true, slot: i+1, move, statusMove: true };
@@ -34,8 +33,8 @@ function runCalc() {
     if (!result) return { empty: true, slot: i+1, move };
     const hko = hkoLabel(result.damages, result.defHP, calcDef, calcField);
     const defStartHp = Math.max(1, sideCurrentHp(result.defHP, calcDef) - calcHazardDamage(calcDef, calcField));
-    const first = firstMover(move.pri, atkSpe, defSpe, calcField);
-    return { ...result, hko, first, slot: i+1, move, defStartHp };
+  const first = firstMover(move.pri, atkSpe, defSpe);
+    return { ...result, hko, first, slot: i+1, move, defStartHp, entryMeta: calcState.entryMeta };
   });
   
   // 틀깨기 / 다능 등 공격측 특성으로 무시되는 방어측 특성 체크
@@ -45,24 +44,8 @@ function runCalc() {
   const ignoredAb = moldBreakerActive && MOLD_BREAKER_IGNORED_ABILITIES.includes(defAb)
     ? AbilityById[defAb] : null;
 
-  // 재앙 효과 정보
-  const ruinActive = [];
-  if (calcField.ruinSword)  ruinActive.push('검의재앙(방어 ×0.75)');
-  if (calcField.ruinTablet) ruinActive.push('목간의재앙(공격 ×0.75)');
-  if (calcField.ruinBeads)  ruinActive.push('구슬의재앙(특방 ×0.75)');
-  if (calcField.ruinVessel) ruinActive.push('그릇의재앙(특공 ×0.75)');
-
   const body = document.getElementById('results-body');
   body.innerHTML = `
-    ${entryLog.length > 0 ? `
-    <div class="entry-effects">
-      <div class="entry-effects-label">📋 진입 효과 자동 적용</div>
-      ${entryLog.map(e => `<div class="entry-effect-item">${e}</div>`).join('')}
-    </div>
-    ` : ''}
-
-    ${renderEntryRankSummary(calcState)}
-
     ${moldBreakerActive ? `
     <div class="mold-breaker-info">
       <span class="mold-breaker-tag">${AbilityById[atkAb]?.koName || atkAb}</span>
@@ -70,40 +53,30 @@ function runCalc() {
     </div>
     ` : ''}
 
-    ${ruinActive.length > 0 ? `
-    <div class="ruin-info">
-      <span class="ruin-tag">⚔️ 재앙 활성</span>
-      ${ruinActive.join(' · ')}
-    </div>
-    ` : ''}
-
     <!-- 속도 대결 -->
     <div class="speed-row">
       <div class="speed-side atk">
-        <div class="speed-name-card">
-          <span>공격측</span>
-          <b>${pkName(atkP)}</b>
-        </div>
-        <div class="speed-value">
-          <span>속도</span>
-          <b>${atkSpe}</b>
-        </div>
+        <span class="speed-identity">
+          <span class="speed-role">공격측</span>
+          <b class="speed-pokemon">${pkName(atkP)}</b>
+        </span>
+        <span class="speed-value-wrap">
+          <strong class="speed-value">${atkSpe}</strong>
+          ${renderEntrySpeedNote(calcState, 'atk')}
+        </span>
       </div>
-      <div class="speed-vs">VS</div>
+      <div class="speed-center">
+        <span class="speed-label">속도</span>
+      </div>
       <div class="speed-side def">
-        <div class="speed-value">
-          <span>속도</span>
-          <b>${defSpe}</b>
-        </div>
-        <div class="speed-name-card">
-          <span>방어측</span>
-          <b>${pkName(defP)}</b>
-        </div>
-      </div>
-      <div class="speed-verdict">
-        ${atkSpe > defSpe ? `공격측이 <b>${atkSpe - defSpe}</b> 더 빠름 ${calcField.isTrickRoom ? '→ 트릭룸: 방어측 선공' : '→ 동우선도시 공격측 선공'}` :
-          atkSpe < defSpe ? `방어측이 <b>${defSpe - atkSpe}</b> 더 빠름 ${calcField.isTrickRoom ? '→ 트릭룸: 공격측 선공' : '→ 동우선도시 방어측 선공'}` :
-          `속도 동일 (스피드 타이 50%)`}
+        <span class="speed-value-wrap">
+          <strong class="speed-value">${defSpe}</strong>
+          ${renderEntrySpeedNote(calcState, 'def')}
+        </span>
+        <span class="speed-identity">
+          <span class="speed-role">수비측</span>
+          <b class="speed-pokemon">${pkName(defP)}</b>
+        </span>
       </div>
     </div>
     
@@ -114,15 +87,47 @@ function runCalc() {
   `;
 }
 
-function renderModsTrace(mods, limit = 6) {
-  const labels = [...new Set((mods || []).filter(Boolean).map(m => m.toString()))];
+function resultOffensiveStat(r) {
+  return r?.move?.overrideOffensiveStat || (r?.category === 'Physical' ? 'atk' : 'spa');
+}
+
+function prettifyResultModLabel(label, result) {
+  const text = String(label);
+  const atkRank = text.match(/^공격랭크([+-]\d+)$/);
+  if (atkRank && result) {
+    const stat = resultOffensiveStat(result);
+    return `${STAT_LABEL[stat] || '공격'} ${atkRank[1]}랭크`;
+  }
+  const defRank = text.match(/^방어랭크([+-]\d+)$/);
+  if (defRank) return `방어 ${defRank[1]}랭크`;
+  return text;
+}
+
+function resultModPriority(label) {
+  return /랭크|진홍빛고동|하드론엔진/.test(label) ? 0 : 1;
+}
+
+function renderModsTrace(mods, limit = 6, result = null) {
+  const labels = [...new Set((mods || [])
+    .filter(Boolean)
+    .map(m => prettifyResultModLabel(m, result)))];
   if (!labels.length) return '';
-  const visible = labels.slice(0, limit);
+  const ordered = labels
+    .map((label, index) => ({ label, index }))
+    .sort((a, b) => resultModPriority(a.label) - resultModPriority(b.label) || a.index - b.index)
+    .map(item => item.label);
+  const visible = ordered.slice(0, limit);
   const hidden = labels.length - visible.length;
-  const title = escapeHTML(labels.join(' · '));
+  const title = escapeHTML(ordered.join(' · '));
   const parts = visible.map(m => `<b>${escapeHTML(m)}</b>`);
   if (hidden > 0) parts.push(`<b title="${title}">+${hidden}</b>`);
   return `<span class="mods-trace" title="${title}">${parts.join('<span class="sep">·</span>')}</span>`;
+}
+
+function renderEntrySpeedNote(calcState, sideKey) {
+  const delta = calcState.entryMeta?.rankDeltas?.[sideKey]?.spe || 0;
+  if (!delta) return '';
+  return `<span class="speed-entry-note">${STAT_LABEL.spe} ${formatRankValue(delta)}랭크</span>`;
 }
 
 function renderMoveCard(r) {
@@ -132,8 +137,7 @@ function renderMoveCard(r) {
         <div class="move-card none compact">
           <div class="move-card-placeholder">
             <span class="move-slot-num mono">${r.slot}</span>
-            <span class="move-name">${mvName(r.move)} (변화기)</span>
-            <span class="move-meta"><span class="cat-stat">STAT</span>${r.move.desc ? ` · ${r.move.desc}` : ''}</span>
+            <span class="move-name">${escapeHTML(mvName(r.move))} · 변화기</span>
           </div>
         </div>
       `;
@@ -169,9 +173,10 @@ function renderMoveCard(r) {
   const hpRemMax = Math.max(0, startHp - min);
   
   const moveData = r.move;
-  const typeChange = r.moveType !== moveData.type;
+  const originalMoveType = moveData.originalType || moveData.type;
+  const typeChange = r.moveType !== originalMoveType;
   // 타입 셀은 단일 컬럼: 변환 시 작은 원본 표시는 type-pill 안에 흡수
-  const typeLabel = `<span class="type-pill t-${r.moveType}" ${typeChange ? `title="원래: ${TYPE_KO[moveData.type]}"` : ''}>${TYPE_KO[r.moveType] || r.moveType}${typeChange ? '*' : ''}</span>`;
+  const typeLabel = `<span class="type-pill t-${r.moveType}" ${typeChange ? `title="원래: ${TYPE_KO[originalMoveType]}"` : ''}>${TYPE_KO[r.moveType] || r.moveType}${typeChange ? '*' : ''}</span>`;
   
   // 반동/회복 계산
   let sideEffect = '';
@@ -198,20 +203,21 @@ function renderMoveCard(r) {
   let multihitLabel = '';
   if (moveData.mh) {
     if (Array.isArray(moveData.mh)) {
-      multihitLabel = `<span style="color:var(--warn)">· ${moveData.mh[0]}~${moveData.mh[1]}타</span>`;
+      multihitLabel = `<span class="move-meta-note">${moveData.mh[0]}~${moveData.mh[1]}타</span>`;
     } else {
-      multihitLabel = `<span style="color:var(--warn)">· ${moveData.mh}타 고정</span>`;
+      multihitLabel = `<span class="move-meta-note">${moveData.mh}타 고정</span>`;
     }
   }
   // 부자유친 표시
   if (r.mods?.some(m => m.includes('부자유친'))) {
-    multihitLabel = `<span style="color:var(--warn)">· 1타 + 0.25타</span>`;
+    multihitLabel = `<span class="move-meta-note">1타 + 0.25타</span>`;
   }
   const stabBadge = r.stab ? '<span class="stab-mark">자속</span>' : '';
   const metaHtml = multihitLabel ? `<span class="move-meta">${multihitLabel}</span>` : '';
   const hkoTone = r.hko.cls === 'no' ? 'no' :
                   r.hko.label === '난수' ? 'chance' :
                   r.hko.turns === '1타' ? 'ko-strong' : 'ko-stable';
+  const hkoTitle = escapeHTML([r.hko.label, r.hko.turns, r.hko.pct, r.hko.sub].filter(Boolean).join(' · '));
   
   return `
     <div class="move-card">
@@ -222,28 +228,30 @@ function renderMoveCard(r) {
             <span class="move-name">${mvName(moveData)}</span>
           </div>
           <div class="move-badges">
-            ${typeLabel}
             <span class="cat-badge ${catCls}">${cat}</span>
+            ${typeLabel}
             ${stabBadge}
             <span class="eff-badge ${effCls}">${effText}</span>
             ${metaHtml}
           </div>
         </div>
-        <div class="dmg-summary">
-          <span class="dmg-pct">${pctMin} ~ ${pctMax}%</span>
-          <span class="hp-remain">잔여 HP ${hpRemMin}-${hpRemMax} / ${r.defHP}</span>
-        </div>
-        <div class="dmg-bar">
-          <div class="dmg-bar-fill" style="width: ${barMax}%"></div>
-          <div class="dmg-bar-fill min" style="width: ${barMin}%"></div>
+        <div class="dmg-range-box">
+          <div class="dmg-summary">
+            <span class="dmg-pct">${pctMin} ~ ${pctMax}%</span>
+            <span class="hp-remain">잔여 HP ${hpRemMin}-${hpRemMax} / ${r.defHP}</span>
+          </div>
+          <div class="dmg-bar">
+            <div class="dmg-bar-fill" style="width: ${barMax}%"></div>
+            <div class="dmg-bar-fill min" style="width: ${barMin}%"></div>
+          </div>
         </div>
         <div class="dmg-info">
-          <span>실제 대미지 <b>${min}–${max}</b></span>
-          ${renderModsTrace(r.mods)}
+          <span>실제 대미지 <b>${min}-${max}</b></span>
+          ${renderModsTrace(r.mods, 6, r)}
           ${sideEffect}
         </div>
       </div>
-      <div class="hko-badge ${hkoTone}">
+      <div class="hko-badge ${hkoTone}" title="${hkoTitle}">
         <div class="hko-main ${r.hko.cls}">
           <span class="hko-label">${r.hko.label}</span>
           <span class="hko-turns">${r.hko.turns}</span>
@@ -255,60 +263,8 @@ function renderMoveCard(r) {
   `;
 }
 
-/* ════════════════════════════════════════════════════════════
-   필드 이벤트
-   ════════════════════════════════════════════════════════════ */
-/* ════════════════════════════════════════════════════════════
-   자동/수동 계산 모드
-   ════════════════════════════════════════════════════════════ */
-let autoCalcMode = true;
-
 function triggerCalc() {
-  if (autoCalcMode) {
-    runCalc();
-  } else {
-    const calcState = makeCalcState();
-    lastAutoEntry = calcState.entryMeta;
-    syncFieldControls(calcState.field);
-  }
-}
-
-function updateFieldSummary(fieldState = null, entryMeta = null) {
-  const f = fieldState || state.field;
-  const meta = entryMeta || lastAutoEntry;
-  const parts = [];
-  const sourceMark = fieldKey => {
-    if (manualAutoFieldOverrides[fieldKey]) return '<span class="field-source-mark manual">수동</span>';
-    if (meta?.fields?.[fieldKey]) return '<span class="field-source-mark auto">자동</span>';
-    return '';
-  };
-
-  if (f.weather && f.weather !== 'none') {
-    const wMap = { Sun: '쾌청', Rain: '비', Sand: '모래바람', Snow: '눈', 'Harsh Sunshine': '대쾌청', 'Heavy Rain': '강한비' };
-    parts.push(`<b>${wMap[f.weather] || f.weather}</b>${sourceMark('weather')}`);
-  } else if (manualAutoFieldOverrides.weather) {
-    parts.push(`<b>날씨 없음</b>${sourceMark('weather')}`);
-  }
-  if (f.terrain && f.terrain !== 'none') {
-    const tMap = { Electric: '일렉트릭', Grassy: '그래스', Psychic: '사이코', Misty: '미스트' };
-    parts.push(`<b>${tMap[f.terrain] || f.terrain}필드</b>${sourceMark('terrain')}`);
-  } else if (manualAutoFieldOverrides.terrain) {
-    parts.push(`<b>필드 없음</b>${sourceMark('terrain')}`);
-  }
-  if (f.gameType === 'Doubles') parts.push('더블');
-  if (f.isCritical) parts.push('급소');
-  if (f.defReflect) parts.push('리플렉터');
-  if (f.defLightScreen) parts.push('빛의장막');
-  if (f.atkHelpingHand) parts.push('도우미');
-  if (f.defProtect) parts.push('방어');
-  const ruins = [];
-  if (f.ruinSword) ruins.push(`검${sourceMark('ruinSword')}`);
-  if (f.ruinTablet) ruins.push(`목간${sourceMark('ruinTablet')}`);
-  if (f.ruinBeads) ruins.push(`구슬${sourceMark('ruinBeads')}`);
-  if (f.ruinVessel) ruins.push(`그릇${sourceMark('ruinVessel')}`);
-  if (ruins.length) parts.push(`<span style="color:var(--tera)">⚔️${ruins.join('/')}</span>`);
-  document.getElementById('field-summary').innerHTML =
-    parts.length ? parts.join(' · ') : '기본값';
+  runCalc();
 }
 
 // 접이식 패널

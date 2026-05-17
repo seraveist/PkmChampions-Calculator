@@ -18,10 +18,5 @@
   "screenFinalMods": [
     { "field": "defReflect", "category": "Physical", "singlesMod": "x0_5", "doublesMod": 2732, "label": "리플렉터×0.5" },
     { "field": "defLightScreen", "category": "Special", "singlesMod": "x0_5", "doublesMod": 2732, "label": "빛의장막×0.5" }
-  ],
-  "protect": {
-    "field": "defProtect",
-    "blockedLabel": "방어/막아내기로 차단",
-    "bypassLabel": "방어 관통"
-  }
+  ]
 }

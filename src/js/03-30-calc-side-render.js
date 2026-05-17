@@ -1,9 +1,70 @@
-/* Damage calculator side panel rendering and side-level events. */
+﻿/* Damage calculator side panel rendering and side-level events. */
+const calcEvPresetProgress = {
+  atk: { evPreset: null, nature: null },
+  def: { evPreset: null, nature: null },
+};
+
+function renderDurabilityStrip(side) {
+  const dStats = calcStats(side);
+  const physBulk = Math.round(dStats.hp * dStats.def / 0.411);
+  const specBulk = Math.round(dStats.hp * dStats.spd / 0.411);
+  return `
+    <div class="durability-grid compact">
+      <div class="durability-card phys">
+        <span class="durability-label">\uBB3C\uB9AC \uB0B4\uAD6C</span>
+        <span class="durability-value">${physBulk.toLocaleString()}</span>
+      </div>
+      <div class="durability-card spec">
+        <span class="durability-label">\uD2B9\uC218 \uB0B4\uAD6C</span>
+        <span class="durability-value">${specBulk.toLocaleString()}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderMoveList(sideKey, side) {
+  return `
+    <div class="moves-list">
+      <div class="move-list-header" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span>\uACB0\uC815\uB825</span>
+      </div>
+      ${[0,1,2,3].map(i => {
+        const moveId = side.moves[i];
+        const move = moveId ? MoveById[moveId] : null;
+        const slotBp = move ? manualBpForSlot(side, i, move) : '';
+        const manualBp = normalizeManualBp(side.moveBpOverrides?.[i]);
+        const slotType = move ? manualTypeForSlot(side, i, move) : '';
+        const manualType = normalizeMoveType(side.moveTypeOverrides?.[i]);
+        const targetSide = state[sideKey === 'atk' ? 'def' : 'atk'];
+        const moveForCalc = move ? moveWithManualBp(move, manualBp, manualType) : null;
+        const power = moveForCalc ? estimateMovePower(side, moveForCalc, targetSide) : null;
+        return `
+          <div class="move-slot" data-move-slot="${i}">
+            <span class="move-slot-num">${i+1}</span>
+            <div class="move-select combobox" data-cb="${sideKey}-move-${i}">
+              <input type="text" class="cb-input" value="${move ? escapeHTML(mvName(move)) : ''}" data-cb-type="move" data-side="${sideKey}" data-field="moves.${i}" placeholder="\uC5C6\uC74C" autocomplete="off" aria-label="${sideKey} move ${i+1} select" aria-expanded="false">
+              <div class="combobox-options" role="listbox"></div>
+            </div>
+            <div class="move-type-control combobox type-pill-combobox ${slotType ? `t-${slotType}` : 'type-none'}" data-cb="${sideKey}-move-type-${i}">
+              <button type="button" class="cb-input cb-trigger" data-cb-type="moveType" data-side="${sideKey}" data-field="moveTypes.${i}" aria-label="${sideKey} move ${i+1} type" aria-expanded="false" ${move ? '' : 'disabled'}>${slotType ? escapeHTML(TYPE_KO[slotType] || slotType) : ''}</button>
+              <div class="combobox-options" role="listbox"></div>
+            </div>
+            <label class="hp-inline-control move-bp-control ui-inline-number is-plain" title="power">
+              <input type="text" class="hp-percent-input move-bp-input ui-inline-number-input" data-action="moveBp" data-side="${sideKey}" data-slot="${i}" value="${move ? slotBp : ''}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} move ${i+1} power" ${move ? '' : 'disabled'}>
+            </label>
+            ${move ? `<span class="move-stat-info"><b>${typeof power.eff === 'number' ? power.eff.toLocaleString() : power.eff}</b></span>` : '<span class="move-stat-info empty">-</span>'}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
 function renderSide(sideKey) {
   const side = state[sideKey];
   const container = document.getElementById(`${sideKey}-body`);
   const p = PokemonById[side.pokemonIdx];
-  if (!p) { container.innerHTML = '<div class="empty-state">포켓몬 선택 필요</div>'; return; }
+  if (!p) { container.innerHTML = '<div class="empty-state">\uD3EC\uCF13\uBAAC \uC120\uD0DD \uD544\uC694</div>'; return; }
   
   const stats = calcStats(side);
   deriveHpFlags(side);
@@ -11,23 +72,44 @@ function renderSide(sideKey) {
   const totalEV = Object.values(side.evs).reduce((a,b) => a+b, 0);
   const overEV = totalEV > 66;
   const manualDamageBlockToggle = renderManualDamageBlockToggle(sideKey, side);
+  const natureInfo = NATURE_BY_ID[side.nature] || {};
+  const evPresetButtons = ['AS', 'HA', 'HB', 'CS', 'HC', 'HD'].map(preset =>
+    `<button class="ev-preset-btn ${calcEvPresetProgress[sideKey]?.evPreset === preset ? 'active' : ''}" data-action="evPreset" data-side="${sideKey}" data-preset="${preset}">${preset}</button>`
+  ).join('');
+  const naturePresets = [
+    ['adamant', '\uACE0\uC9D1', '\uACF5\uACA9 \uC0C1\uC2B9 / \uD2B9\uACF5 \uD558\uB77D'],
+    ['jolly', '\uBA85\uB791', '\uC18D\uB3C4 \uC0C1\uC2B9 / \uD2B9\uACF5 \uD558\uB77D'],
+    ['impish', '\uC7A5\uB09C\uAFB8\uB7EC\uAE30', '\uBC29\uC5B4 \uC0C1\uC2B9 / \uD2B9\uACF5 \uD558\uB77D'],
+    ['careful', '\uC2E0\uC911', '\uD2B9\uBC29 \uC0C1\uC2B9 / \uD2B9\uACF5 \uD558\uB77D'],
+    ['modest', '\uC870\uC2EC', '\uD2B9\uACF5 \uC0C1\uC2B9 / \uACF5\uACA9 \uD558\uB77D'],
+    ['timid', '\uAC81\uC7C1\uC774', '\uC18D\uB3C4 \uC0C1\uC2B9 / \uACF5\uACA9 \uD558\uB77D'],
+    ['bold', '\uB300\uB2F4', '\uBC29\uC5B4 \uC0C1\uC2B9 / \uACF5\uACA9 \uD558\uB77D'],
+    ['calm', '\uCC28\uBD84', '\uD2B9\uBC29 \uC0C1\uC2B9 / \uACF5\uACA9 \uD558\uB77D'],
+  ];
+  const naturePresetButtons = naturePresets.map(([id, label, title]) =>
+    `<button class="ev-preset-btn nature-btn ${calcEvPresetProgress[sideKey]?.nature === id ? 'active' : ''}" data-action="naturePreset" data-side="${sideKey}" data-nature="${id}" data-tooltip="${calcComboboxAttr(title)}" aria-label="${calcComboboxAttr(`${label}: ${title}`)}">${label}</button>`
+  ).join('');
   
   container.innerHTML = `
-    <!-- 포켓몬 선택 -->
-    <div class="field">
-      <div class="field-label">
-        <span>포켓몬</span>
-        <span class="hint mono">${p.bs.hp}/${p.bs.atk}/${p.bs.def}/${p.bs.spa}/${p.bs.spd}/${p.bs.spe}</span>
+    <!-- ?ъ폆紐??좏깮 -->
+    <div class="field pokemon-field">
+      <div class="pokemon-field-head ui-field-head">
+        <div class="field-label">
+          <span>\uD3EC\uCF13\uBAAC \uC120\uD0DD</span>
+        </div>
+        <div class="pokemon-actions ui-field-actions">
+          <button type="button" class="party-load-button ui-label-action ui-field-action" data-party-import-target="calc:${sideKey}">불러오기</button>
+          <button type="button" class="ft-jump-btn ui-label-action ui-field-action" data-ft-from-side="${sideKey}" title="fine tune">\uC138\uBD80\uC870\uC815</button>
+          <button type="button" class="ft-jump-btn ui-label-action ui-field-action" data-rc-from-side="${sideKey}" title="reverse calc">\uC5ED\uACC4\uC0B0</button>
+        </div>
       </div>
       <div class="pokemon-select combobox" data-cb="${sideKey}-poke">
-        <input type="text" class="cb-input" value="${escapeHTML(pkName(p))}" data-cb-type="pokemon" data-side="${sideKey}" data-field="pokemonIdx" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 포켓몬 선택" aria-expanded="false">
+        <input type="text" class="cb-input" value="${escapeHTML(pkName(p))}" data-cb-type="pokemon" data-side="${sideKey}" data-field="pokemonIdx" autocomplete="off" aria-label="${sideKey} pokemon select" aria-expanded="false">
         <div class="combobox-options" role="listbox"></div>
       </div>
-      <div class="types-display">
+      <div class="pokemon-meta-row ui-field-meta-row">
         ${renderTypeControls(sideKey, side)}
-        <button type="button" class="ft-jump-btn" data-ft-from-side="${sideKey}" title="이 포켓몬의 세팅을 세부조정 탭으로 가져가기">🔧 세부조정</button>
-        <button type="button" class="ft-jump-btn" data-rc-from-side="${sideKey}" title="이 포켓몬의 세팅을 형태 역계산 탭으로 가져가기">🔎 역계산</button>
-        <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 -->
+        <!-- ?뚮씪?ㅽ깉? 梨뷀뵾?몄뒪 紐⑤뱶?먯꽌 鍮꾪솢?깊솕??-->
       </div>
     </div>
 
@@ -35,205 +117,150 @@ function renderSide(sideKey) {
 
     <div class="section-divider"></div>
 
-    <!-- 특성/도구 + 성격/HP/상태 -->
+    <!-- ?뱀꽦/?꾧뎄 + ?깃꺽/HP/?곹깭 -->
     <div class="field">
       <div class="calc-pair-grid">
         <div class="calc-control-cell">
-          <span class="calc-control-label">특성</span>
+          <span class="calc-control-label">\uD2B9\uC131</span>
           <div class="compound-control ability-toggle-cell">
             <div class="combobox" data-cb="${sideKey}-ability">
-              <input type="text" class="cb-input" value="${escapeHTML(calcAbilityDisplayLabel(sideKey))}" data-cb-type="ability" data-side="${sideKey}" data-field="ability" placeholder="특성 선택" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 특성 선택" aria-expanded="false">
+              <input type="text" class="cb-input" value="${escapeHTML(calcAbilityDisplayLabel(sideKey))}" data-cb-type="ability" data-side="${sideKey}" data-field="ability" placeholder="Ability" autocomplete="off" aria-label="${sideKey} ability select" aria-expanded="false">
               <div class="combobox-options" role="listbox"></div>
             </div>
             ${manualDamageBlockToggle || '<span class="manual-ability-spacer" aria-hidden="true"></span>'}
           </div>
         </div>
         <div class="calc-control-cell">
-          <span class="calc-control-label">도구</span>
+          <span class="calc-control-label">\uB3C4\uAD6C</span>
           <div class="combobox" data-cb="${sideKey}-item">
-            <input type="text" class="cb-input" value="${side.item ? (ItemById[side.item] ? escapeHTML(itName(ItemById[side.item])) : '') : '없음'}" data-cb-type="item" data-side="${sideKey}" data-field="item" placeholder="도구 선택" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 도구 선택" aria-expanded="false">
+            <input type="text" class="cb-input" value="${side.item ? (ItemById[side.item] ? escapeHTML(itName(ItemById[side.item])) : '') : '없음'}" data-cb-type="item" data-side="${sideKey}" data-field="item" placeholder="Item" autocomplete="off" aria-label="${sideKey} item select" aria-expanded="false">
             <div class="combobox-options" role="listbox"></div>
           </div>
         </div>
         <div class="calc-control-cell">
-          <span class="calc-control-label">성격</span>
+          <span class="calc-control-label">\uC131\uACA9</span>
           <div class="compound-control nature-spacer-cell">
             <div class="combobox" data-cb="${sideKey}-nature">
-              <input type="text" class="cb-input" value="${escapeHTML(calcNatureLabel(NATURE_BY_ID[side.nature]))}" data-cb-type="nature" data-side="${sideKey}" data-field="nature" placeholder="성격 선택" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 성격 선택" aria-expanded="false">
+              <input type="text" class="cb-input" value="${escapeHTML(calcNatureLabel(NATURE_BY_ID[side.nature]))}" data-cb-type="nature" data-side="${sideKey}" data-field="nature" placeholder="Nature" autocomplete="off" aria-label="${sideKey} nature select" aria-expanded="false">
               <div class="combobox-options" role="listbox"></div>
             </div>
             <span class="manual-ability-spacer" aria-hidden="true"></span>
           </div>
         </div>
         <div class="calc-control-cell">
-          <span class="calc-control-label">상태</span>
+          <span class="calc-control-label">\uC0C1\uD0DC</span>
           <div class="compound-control hp-status-cell">
-            <label class="hp-inline-control">
-              <input type="text" class="hp-percent-input" data-action="hpPct" data-side="${sideKey}" value="${hpPercentInputValue(side)}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 현재 HP 퍼센트">
-              <span>%</span>
+            <label class="hp-inline-control ui-inline-number">
+              <input type="text" class="hp-percent-input ui-inline-number-input" data-action="hpPct" data-side="${sideKey}" value="${hpPercentInputValue(side)}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} current HP percent">
+              <span class="ui-inline-number-unit">%</span>
             </label>
             <div class="combobox" data-cb="${sideKey}-status">
-              <input type="text" class="cb-input" value="${escapeHTML(calcStatusDisplayLabel(side.status))}" data-cb-type="status" data-side="${sideKey}" data-field="status" placeholder="상태 선택" autocomplete="off" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 상태 및 조건 선택" aria-expanded="false">
+              <button type="button" class="cb-input cb-trigger" data-cb-type="status" data-side="${sideKey}" data-field="status" aria-label="${sideKey} status select" aria-expanded="false">${escapeHTML(calcStatusDisplayLabel(side.status))}</button>
               <div class="combobox-options" role="listbox"></div>
             </div>
           </div>
         </div>
       </div>
-      ${renderCalcHpNote(side, stats)}
     </div>
 
     <div class="section-divider"></div>
 
-    <!-- 스탯 (능력포인트 + 랭크 + 실수치) -->
-    <div class="field">
-      <div class="field-label">
-        <span>능력 포인트 · 랭크</span>
-        <span class="hint">최대 32/스탯</span>
+    <!-- ?ㅽ꺈 (?λ젰?ъ씤??+ ??겕 + ?ㅼ닔移? -->
+    <div class="field ev-field ev-preset-shell" data-ev-preset-side="${sideKey}">
+      <div class="ev-field-head">
+        <div class="field-label ev-title-label">
+          <span>\uB2A5\uB825 \uD3EC\uC778\uD2B8 \u00B7 \uB7AD\uD06C</span>
+          <button type="button" class="ev-preset-toggle ui-label-action" data-action="evPresetMenu" data-side="${sideKey}" aria-expanded="false" aria-controls="ev-presets-${sideKey}">\uD504\uB9AC\uC14B</button>
+        </div>
+        <div class="ev-total ui-label-action is-static ${overEV ? 'over' : ''}">
+          <span>\uCD1D\uD569</span>
+          <span><b>${totalEV}</b>/66</span>
+        </div>
       </div>
-      <div class="ev-total ${overEV ? 'over' : ''}" style="margin-top: 0; margin-bottom: 8px;">
-        <span>투자 합계</span>
-        <span><b>${totalEV}</b> / 66</span>
-      </div>
-      <div class="stat-grid">
-        ${STATS.map(s => {
-          const r = (side.ranks[s] || 0);
-          const isRankable = s !== 'hp';
-          const cls = r > 0 ? 'up' : r < 0 ? 'down' : '';
-          return `
-            <div class="stat-name">${STAT_LABEL[s]}</div>
-            <div class="ev-input-group">
-              <button class="ev-quick min" data-action="evQuick" data-side="${sideKey}" data-stat="${s}" data-val="0" title="0으로">최소</button>
-              <input type="number" class="ev-input" data-action="ev" data-side="${sideKey}" data-stat="${s}" value="${side.evs[s]}" min="0" max="32">
-              <button class="ev-quick max" data-action="evQuick" data-side="${sideKey}" data-stat="${s}" data-val="32" title="32로">최대</button>
-            </div>
-            ${isRankable ? `
-              <div class="stat-rank-btns">
-                <button data-action="rank" data-side="${sideKey}" data-stat="${s}" data-dir="-1">−</button>
-                <span class="stat-rank-val ${cls}">${r > 0 ? '+' + r : r}</span>
-                <button data-action="rank" data-side="${sideKey}" data-stat="${s}" data-dir="1">+</button>
+      <div class="ev-control-layout">
+        <div class="stat-grid">
+          <div class="stat-table-head">\uB2A5\uB825</div>
+          <div class="stat-table-head">\uC885\uC871\uAC12</div>
+          <div class="stat-table-head">\uB178\uB825\uCE58</div>
+          <div class="stat-table-head">\uC2E4\uC218\uCE58</div>
+          <div class="stat-table-head">\uB7AD\uD06C</div>
+          ${STATS.map(s => {
+            const r = (side.ranks[s] || 0);
+            const isRankable = s !== 'hp';
+            const cls = r > 0 ? 'up' : r < 0 ? 'down' : '';
+            const natureMark = natureInfo.up === s
+              ? '<span class="nature-stat-mark up" aria-label="nature up">\u25B2</span>'
+              : natureInfo.down === s
+                ? '<span class="nature-stat-mark down" aria-label="nature down">\u25BC</span>'
+                : '<span class="nature-stat-mark empty" aria-hidden="true"></span>';
+            return `
+              <div class="stat-name"><span class="stat-name-text">${STAT_LABEL[s]}</span>${natureMark}</div>
+              <div class="stat-base">${p.bs[s]}</div>
+              <div class="ev-input-group">
+                <button class="ev-quick min ui-stat-button" data-action="evQuick" data-side="${sideKey}" data-stat="${s}" data-val="0" title="set 0">0</button>
+                <label class="hp-inline-control ev-inline-control ui-inline-number is-plain">
+                  <input type="text" class="hp-percent-input ev-input ui-inline-number-input" data-action="ev" data-side="${sideKey}" data-stat="${s}" value="${side.evs[s]}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${STAT_LABEL[s]} EV">
+                </label>
+                <button class="ev-quick max ui-stat-button" data-action="evQuick" data-side="${sideKey}" data-stat="${s}" data-val="32" title="set 32">32</button>
               </div>
-            ` : '<div></div>'}
-            <div class="stat-final">${stats[s]}</div>
-          `;
-        }).join('')}
+              <div class="stat-final">${stats[s]}</div>
+              ${isRankable ? `
+                <div class="stat-rank-btns">
+                  <button class="ui-stat-button" data-action="rank" data-side="${sideKey}" data-stat="${s}" data-dir="-1">-</button>
+                  <span class="stat-rank-val ui-stat-value ${cls}">${r > 0 ? '+' + r : r}</span>
+                  <button class="ui-stat-button" data-action="rank" data-side="${sideKey}" data-stat="${s}" data-dir="1">+</button>
+                </div>
+              ` : '<div class="stat-rank-empty" aria-hidden="true"></div>'}
+            `;
+          }).join('')}
+        </div>
       </div>
-
-      <div class="ev-presets">
-        <div class="ev-presets-label">
-          <span>${sideKey === 'atk' ? '공격형 프리셋' : '방어형 프리셋'}</span>
-          <span class="reset-btn" data-action="evReset" data-side="${sideKey}">↺ 초기화</span>
-        </div>
-        <div class="ev-presets-row">
-          ${sideKey === 'atk' ? `
-            <button class="ev-preset-btn" data-action="evPreset" data-side="atk" data-preset="AS">AS</button>
-            <button class="ev-preset-btn" data-action="evPreset" data-side="atk" data-preset="CS">CS</button>
-            <button class="ev-preset-btn" data-action="evPreset" data-side="atk" data-preset="HA">HA</button>
-            <button class="ev-preset-btn" data-action="evPreset" data-side="atk" data-preset="HC">HC</button>
-          ` : `
-            <button class="ev-preset-btn" data-action="evPreset" data-side="def" data-preset="HA">HA</button>
-            <button class="ev-preset-btn" data-action="evPreset" data-side="def" data-preset="HB">HB</button>
-            <button class="ev-preset-btn" data-action="evPreset" data-side="def" data-preset="HC">HC</button>
-            <button class="ev-preset-btn" data-action="evPreset" data-side="def" data-preset="HD">HD</button>
-          `}
-        </div>
-        <div class="ev-presets-label" style="margin-top: 8px;">
-          <span>성격 프리셋</span>
-        </div>
-        <div class="ev-presets-row natures">
-          ${sideKey === 'atk' ? `
-            <button class="ev-preset-btn nature-btn ${side.nature === 'adamant' ? 'active' : ''}" data-action="naturePreset" data-side="atk" data-nature="adamant" title="공격↑ 특공↓">고집</button>
-            <button class="ev-preset-btn nature-btn ${side.nature === 'jolly' ? 'active' : ''}"   data-action="naturePreset" data-side="atk" data-nature="jolly"   title="속도↑ 특공↓">명랑</button>
-            <button class="ev-preset-btn nature-btn ${side.nature === 'modest' ? 'active' : ''}"  data-action="naturePreset" data-side="atk" data-nature="modest"  title="특공↑ 공격↓">조심</button>
-            <button class="ev-preset-btn nature-btn ${side.nature === 'timid' ? 'active' : ''}"   data-action="naturePreset" data-side="atk" data-nature="timid"   title="속도↑ 공격↓">겁쟁이</button>
-            <button class="ev-preset-btn nature-btn ${side.nature === 'hardy' ? 'active' : ''}"   data-action="naturePreset" data-side="atk" data-nature="hardy"   title="보정 없음">무보정</button>
-          ` : `
-            <button class="ev-preset-btn nature-btn ${side.nature === 'impish' ? 'active' : ''}"  data-action="naturePreset" data-side="def" data-nature="impish"  title="방어↑ 특공↓">장난꾸러기</button>
-            <button class="ev-preset-btn nature-btn ${side.nature === 'bold' ? 'active' : ''}"    data-action="naturePreset" data-side="def" data-nature="bold"    title="방어↑ 공격↓">대담</button>
-            <button class="ev-preset-btn nature-btn ${side.nature === 'careful' ? 'active' : ''}" data-action="naturePreset" data-side="def" data-nature="careful" title="특방↑ 특공↓">신중</button>
-            <button class="ev-preset-btn nature-btn ${side.nature === 'calm' ? 'active' : ''}"    data-action="naturePreset" data-side="def" data-nature="calm"    title="특방↑ 공격↓">차분</button>
-            <button class="ev-preset-btn nature-btn ${side.nature === 'hardy' ? 'active' : ''}"   data-action="naturePreset" data-side="def" data-nature="hardy"   title="보정 없음">무보정</button>
-          `}
+      ${renderDurabilityStrip(side)}
+      <div class="ev-preset-popover" id="ev-presets-${sideKey}" role="dialog" aria-label="${sideKey} EV presets" aria-hidden="true">
+        <div class="ev-presets">
+          <div class="ev-presets-label">
+            <span>\uB178\uB825\uCE58 \uD504\uB9AC\uC14B</span>
+            <button type="button" class="reset-btn" data-action="evReset" data-side="${sideKey}">\uCD08\uAE30\uD654</button>
+          </div>
+          <div class="ev-presets-row">
+            ${evPresetButtons}
+          </div>
+          <div class="ev-presets-label secondary">
+            <span>\uC131\uACA9 \uD504\uB9AC\uC14B</span>
+          </div>
+          <div class="ev-presets-row natures">
+            ${naturePresetButtons}
+          </div>
         </div>
       </div>
     </div>
 
-    ${sideKey === 'atk' ? `
     <div class="section-divider"></div>
 
-    <!-- 기술 -->
-    <div class="field">
-      <div class="field-label">
-        <span>기술 배치</span>
-        <span class="hint">HP 조건은 현재 HP에서 자동 파생</span>
+    <!-- 湲곗닠 -->
+    <div class="field move-field">
+      <div class="ev-field-head move-field-head">
+        <div class="field-label move-title-label">
+          <span>\uAE30\uC220 \uBC30\uCE58</span>
+        </div>
       </div>
-      <div class="moves-list">
-        ${[0,1,2,3].map(i => {
-          const moveId = side.moves[i];
-          const move = moveId ? MoveById[moveId] : null;
-          const slotBp = move ? manualBpForSlot(side, i, move) : '';
-          const manualBp = normalizeManualBp(side.moveBpOverrides?.[i]);
-          const moveForCalc = move ? moveWithManualBp(move, manualBp) : null;
-          const power = moveForCalc ? estimateMovePower(side, moveForCalc) : null;
-          return `
-            <div class="move-slot" data-move-slot="${i}">
-              <span class="move-slot-num">${i+1}</span>
-              <div class="move-select combobox" data-cb="${sideKey}-move-${i}">
-                <input type="text" class="cb-input" value="${move ? escapeHTML(mvName(move)) : ''}" data-cb-type="move" data-side="atk" data-field="moves.${i}" placeholder="기술 검색..." autocomplete="off" aria-label="기술 ${i+1} 선택" aria-expanded="false">
-                <div class="combobox-options" role="listbox"></div>
-              </div>
-              <label class="move-bp-control" title="계산용 위력">
-                <span>위력</span>
-                <input type="number" class="move-bp-input" data-action="moveBp" data-side="atk" data-slot="${i}" value="${move ? slotBp : ''}" min="0" max="999" ${move ? '' : 'disabled'}>
-              </label>
-              ${move ? `<span class="move-stat-info">${power.bp || '—'}<span class="move-stat-sep">/</span><b>${typeof power.eff === 'number' ? power.eff.toLocaleString() : power.eff}</b></span>` : '<span class="move-stat-info empty">—</span>'}
-            </div>
-          `;
-        }).join('')}
+      <div class="move-section">
+        ${renderMoveList(sideKey, side)}
       </div>
     </div>
 
-    ${renderBattleConditions('atk')}
-    ` : ''}
-
-    ${sideKey === 'def' ? `
-    <div class="section-divider"></div>
-
-    <!-- 내구력 -->
-    <div class="field">
-      <div class="field-label"><span>내구력</span><span class="hint">HP × 방어/특방</span></div>
-      <div class="durability-grid">
-        ${(() => {
-          const dStats = calcStats(side);
-          const physBulk = Math.round(dStats.hp * dStats.def / 0.411);
-          const specBulk = Math.round(dStats.hp * dStats.spd / 0.411);
-          return `
-            <div class="durability-card phys">
-              <div class="durability-label">물리 내구</div>
-              <div class="durability-value">${physBulk.toLocaleString()}</div>
-              <div class="durability-sub">HP ${dStats.hp} × 방어 ${dStats.def}</div>
-            </div>
-            <div class="durability-card spec">
-              <div class="durability-label">특수 내구</div>
-              <div class="durability-value">${specBulk.toLocaleString()}</div>
-              <div class="durability-sub">HP ${dStats.hp} × 특방 ${dStats.spd}</div>
-            </div>
-          `;
-        })()}
-      </div>
-    </div>
-    ` : ''}
+    ${sideKey === 'atk' ? renderBattleConditions('atk') : ''}
   `;
   
   wireSide(sideKey);
 }
 
-/* ════════════════════════════════════════════════════════════
-   이벤트 바인딩
-   ════════════════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   ?대깽??諛붿씤??   ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 function wireSide(sideKey) {
   const container = document.getElementById(`${sideKey}-body`);
   
-  // Combobox 입력
+  // Combobox ?낅젰
   container.querySelectorAll('.cb-input').forEach(input => {
     const side = input.dataset.side;
     const field = input.dataset.field || '';
@@ -245,7 +272,7 @@ function wireSide(sideKey) {
           resetAutoFields = applyPokemonToCalcSide(side, id).resetAutoFields;
         } else if (field === 'ability') {
           state[side].ability = id || '';
-          state[side].damageBlockActive = false;
+          setSideDamageBlockActive(state[side], false);
         } else if (field === 'item') {
           state[side].item = id || '';
         } else if (field === 'types.0') {
@@ -258,8 +285,13 @@ function wireSide(sideKey) {
           state[side].status = id || 'none';
         } else if (field.startsWith('moves.')) {
           const idx = parseInt(field.split('.')[1], 10);
-          state.atk.moves[idx] = id || '';
-          state.atk.moveBpOverrides[idx] = null;
+          state[side].moves[idx] = id || '';
+          state[side].moveBpOverrides[idx] = null;
+          if (!Array.isArray(state[side].moveTypeOverrides)) state[side].moveTypeOverrides = [null, null, null, null];
+          state[side].moveTypeOverrides[idx] = null;
+        } else if (field.startsWith('moveTypes.')) {
+          const idx = parseInt(field.split('.')[1], 10);
+          applyMoveTypeOverride(side, idx, id);
         }
 
         renderSide(side);
@@ -269,7 +301,7 @@ function wireSide(sideKey) {
     });
   });
   
-  // 일반 input/select
+  // ?쇰컲 input/select
   container.querySelectorAll('[data-action]').forEach(el => {
     const action = el.dataset.action;
     if (action === 'moveBp') {
@@ -278,7 +310,14 @@ function wireSide(sideKey) {
       return;
     }
     const evt = el.tagName === 'BUTTON' ? 'click' : 'change';
-    el.addEventListener(evt, () => {
+    el.addEventListener(evt, event => {
+      if (['evPresetMenu', 'evPreset', 'naturePreset', 'evReset'].includes(action)) {
+        event.stopPropagation();
+      }
+      if (action === 'evPresetMenu') {
+        toggleEvPresetPopover(el);
+        return;
+      }
       const side = state[el.dataset.side];
       if (action === 'hpPct') {
         setSideHpPct(side, el.value);
@@ -293,7 +332,7 @@ function wireSide(sideKey) {
         return;
       }
       else if (action === 'damageBlockToggle') {
-        side.damageBlockActive = !side.damageBlockActive;
+        setSideDamageBlockActive(side, !side.damageBlockActive);
         renderSide(el.dataset.side);
         triggerCalc();
         return;
@@ -321,13 +360,12 @@ function wireSide(sideKey) {
       else if (action === 'ev') {
         const stat = el.dataset.stat;
         const requested = Math.max(0, Math.min(32, parseInt(el.value) || 0));
-        // 다른 스탯 합계
+        // ?ㅻⅨ ?ㅽ꺈 ?⑷퀎
         const otherTotal = STATS.reduce((sum, s) => sum + (s === stat ? 0 : (side.evs[s] || 0)), 0);
         const remaining = Math.max(0, 66 - otherTotal);
-        // 요청값과 잔여 한도 중 작은 값으로 클램프
-        const finalVal = Math.min(requested, remaining);
+        // ?붿껌媛믨낵 ?붿뿬 ?쒕룄 以??묒? 媛믪쑝濡??대옩??        const finalVal = Math.min(requested, remaining);
         side.evs[stat] = finalVal;
-        // 사용자가 입력한 값과 실제 적용된 값이 다르면 input.value도 업데이트
+        // ?ъ슜?먭? ?낅젰??媛믨낵 ?ㅼ젣 ?곸슜??媛믪씠 ?ㅻⅤ硫?input.value???낅뜲?댄듃
         if (finalVal !== requested) {
           el.value = finalVal;
         }
@@ -346,21 +384,25 @@ function wireSide(sideKey) {
         const dir = parseInt(el.dataset.dir);
         const curr = side.ranks[el.dataset.stat] || 0;
         side.ranks[el.dataset.stat] = Math.max(-6, Math.min(6, curr + dir));
-        // 재렌더링해서 표시 업데이트
+        // ?щ젋?붾쭅?댁꽌 ?쒖떆 ?낅뜲?댄듃
         renderSide(el.dataset.side);
         triggerCalc();
         return;
       }
       else if (action === 'evPreset') {
-        applyEvPreset(el.dataset.side, el.dataset.preset);
-        renderSide(el.dataset.side);
-        triggerCalc();
+        if (stageEvPresetSelection(el, 'ev')) {
+          applyStagedEvPreset(el.dataset.side);
+          renderSide(el.dataset.side);
+          triggerCalc();
+        }
         return;
       }
       else if (action === 'naturePreset') {
-        side.nature = el.dataset.nature;
-        renderSide(el.dataset.side);
-        triggerCalc();
+        if (stageEvPresetSelection(el, 'nature')) {
+          applyStagedEvPreset(el.dataset.side);
+          renderSide(el.dataset.side);
+          triggerCalc();
+        }
         return;
       }
       else if (action === 'evReset') {
@@ -369,7 +411,7 @@ function wireSide(sideKey) {
         triggerCalc();
         return;
       }
-      // 실수치 표시 갱신
+      // ?ㅼ닔移??쒖떆 媛깆떊
       if (action === 'ev' || action === 'nature') {
         renderSide(el.dataset.side);
       }
@@ -378,18 +420,83 @@ function wireSide(sideKey) {
   });
 }
 
-/* ════════════════════════════════════════════════════════════
-   EV 프리셋 적용 (EV만 변경, 성격은 건드리지 않음)
-   ════════════════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   EV ?꾨━???곸슜 (EV留?蹂寃? ?깃꺽? 嫄대뱶由ъ? ?딆쓬)
+   ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+function setEvPresetPopover(wrapper, open) {
+  if (!wrapper) return;
+  wrapper.classList.toggle('is-preset-open', open);
+  const toggle = wrapper.querySelector('.ev-preset-toggle');
+  const popover = wrapper.querySelector('.ev-preset-popover');
+  toggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
+  popover?.setAttribute('aria-hidden', open ? 'false' : 'true');
+  if (!open) {
+    resetEvPresetProgress(wrapper.dataset.evPresetSide);
+    clearEvPresetActiveButtons(wrapper);
+  }
+}
+
+function closeEvPresetPopovers(except = null) {
+  document.querySelectorAll('#page-calc .ev-preset-shell.is-preset-open').forEach(wrapper => {
+    if (wrapper !== except) setEvPresetPopover(wrapper, false);
+  });
+}
+
+function toggleEvPresetPopover(button) {
+  const wrapper = button?.closest('.ev-preset-shell');
+  if (!wrapper) return;
+  const willOpen = !wrapper.classList.contains('is-preset-open');
+  closeEvPresetPopovers(wrapper);
+  resetEvPresetProgress(wrapper.dataset.evPresetSide);
+  clearEvPresetActiveButtons(wrapper);
+  setEvPresetPopover(wrapper, willOpen);
+}
+
+function resetEvPresetProgress(sideKey) {
+  if (!calcEvPresetProgress[sideKey]) return;
+  calcEvPresetProgress[sideKey].evPreset = null;
+  calcEvPresetProgress[sideKey].nature = null;
+}
+
+function clearEvPresetActiveButtons(wrapper) {
+  wrapper?.querySelectorAll('.ev-preset-btn.active').forEach(button => {
+    button.classList.remove('active');
+  });
+}
+
+function stageEvPresetSelection(button, kind) {
+  const sideKey = button?.dataset.side;
+  const pending = calcEvPresetProgress[sideKey];
+  if (!pending) return true;
+  if (kind === 'ev') {
+    pending.evPreset = button.dataset.preset;
+  } else {
+    pending.nature = button.dataset.nature;
+  }
+  const row = button.closest('.ev-presets-row');
+  row?.querySelectorAll('.ev-preset-btn').forEach(item => {
+    item.classList.toggle('active', item === button);
+  });
+  return Boolean(pending.evPreset && pending.nature);
+}
+
+function applyStagedEvPreset(sideKey) {
+  const pending = calcEvPresetProgress[sideKey];
+  if (!pending?.evPreset || !pending?.nature) return;
+  applyEvPreset(sideKey, pending.evPreset);
+  state[sideKey].nature = pending.nature;
+  resetEvPresetProgress(sideKey);
+}
+
 function applyEvPreset(sideKey, preset) {
   const side = state[sideKey];
   const p = PokemonById[side.pokemonIdx];
   if (!p) return;
 
-  // 모든 EV 0으로 리셋
+  // 紐⑤뱺 EV 0?쇰줈 由ъ뀑
   side.evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
 
-  // 프리셋별 두 스탯에 32 투자 (성격은 사용자가 별도로 선택)
+  // ?꾨━?뗫퀎 ???ㅽ꺈??32 ?ъ옄 (?깃꺽? ?ъ슜?먭? 蹂꾨룄濡??좏깮)
   const presetMap = {
     AS: ['atk', 'spe'],
     CS: ['spa', 'spe'],
@@ -403,9 +510,8 @@ function applyEvPreset(sideKey, preset) {
   stats.forEach(s => { side.evs[s] = 32; });
 }
 
-/* ════════════════════════════════════════════════════════════
-   자동 진입 효과 적용
-   - 원본 state는 유지하고 계산용 복사본에만 자동 효과를 적용
-   - 자동으로 켜진 필드는 사용자가 수동 변경하면 다음 포켓몬 변경 전까지 덮어쓰지 않음
-   ════════════════════════════════════════════════════════════ */
-
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   ?먮룞 吏꾩엯 ?④낵 ?곸슜
+   - ?먮낯 state???좎??섍퀬 怨꾩궛??蹂듭궗蹂몄뿉留??먮룞 ?④낵瑜??곸슜
+   - ?먮룞?쇰줈 耳쒖쭊 ?꾨뱶???ъ슜?먭? ?섎룞 蹂寃쏀븯硫??ㅼ쓬 ?ъ폆紐?蹂寃??꾧퉴吏 ??뼱?곗? ?딆쓬
+   ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */

@@ -560,34 +560,33 @@ function rcRenderInfoBadges(badges) {
 
 function rcRenderFollowupMoveChip(analysis) {
   if (!analysis) return '';
+  const badgeHtml = rcRenderInfoBadges(analysis.badges);
   if (analysis.statusMove) {
     return `
       <div class="rc-followup-chip status">
         <b>${escapeHTML(mvName(analysis.move))}</b>
         <span class="rc-followup-damage status">변화기</span>
+        ${badgeHtml || '<span></span>'}
         <em>직접 피해 없음</em>
-        ${rcRenderInfoBadges(analysis.badges)}
       </div>
     `;
   }
   const koClass = analysis.summary.koClass || 'ko-none';
   return `
     <div class="rc-followup-chip">
+      <em class="${koClass}">${escapeHTML(analysis.summary.koState)}</em>
       <b>${escapeHTML(mvName(analysis.move))}</b>
       <span class="rc-followup-damage ${koClass}">${rcFormatDamage(analysis.summary)}</span>
-      <em class="${koClass}">${escapeHTML(analysis.summary.koState)}</em>
-      ${rcRenderInfoBadges(analysis.badges)}
+      ${badgeHtml || '<span></span>'}
     </div>
   `;
 }
 
 function rcRenderNextRankCells(ranks, action) {
-  const labels = { atk: 'A', def: 'B', spa: 'C', spd: 'D', spe: 'S' };
   return ['atk','def','spa','spd','spe'].map(stat => {
     const value = ranks[stat] || 0;
     return `
       <div class="rc-next-rank-cell">
-        <span>${labels[stat]}</span>
         <button type="button" data-rc-${action}="${stat}" data-rc-dir="-1">-</button>
         <b class="${value > 0 ? 'pos' : value < 0 ? 'neg' : ''}">${value > 0 ? '+' + value : value}</b>
         <button type="button" data-rc-${action}="${stat}" data-rc-dir="1">+</button>
@@ -599,20 +598,24 @@ function rcRenderNextRankCells(ranks, action) {
 function rcRenderNextRankPanel() {
   const myRanks = rcNextMyRanks();
   const oppRanks = rcNextOpponentRanks();
+  const isOpen = !!revCalcState.nextRankOpen;
   return `
-    <div class="rc-next-rank-panel">
-      <div class="rc-next-rank-title">
+    <div class="rc-next-rank-panel ${isOpen ? 'open' : 'collapsed'}">
+      <button type="button" class="rc-next-rank-title" data-rc-toggle-next-ranks aria-expanded="${isOpen ? 'true' : 'false'}">
         <b>다음 행동 랭크</b>
-        <span>내 다음 기술과 상대 예상 기술의 랭크 변화를 함께 반영합니다.</span>
-      </div>
-      <div class="rc-next-rank-groups">
-        <div class="rc-next-rank-group">
-          <span class="rc-next-rank-group-label">내 랭크</span>
-          <div class="rc-next-rank-grid">${rcRenderNextRankCells(myRanks, 'nextmyrank')}</div>
+        <span>${isOpen ? '접기' : '펼치기'}</span>
+      </button>
+      <div class="rc-next-rank-table" ${isOpen ? '' : 'hidden'}>
+        <div class="rc-next-rank-head" aria-hidden="true">
+          <span></span><span>공격</span><span>방어</span><span>특공</span><span>특방</span><span>속도</span>
         </div>
-        <div class="rc-next-rank-group">
+        <div class="rc-next-rank-row">
+          <span class="rc-next-rank-group-label">내 랭크</span>
+          ${rcRenderNextRankCells(myRanks, 'nextmyrank')}
+        </div>
+        <div class="rc-next-rank-row">
           <span class="rc-next-rank-group-label">상대 랭크</span>
-          <div class="rc-next-rank-grid">${rcRenderNextRankCells(oppRanks, 'nextrank')}</div>
+          ${rcRenderNextRankCells(oppRanks, 'nextrank')}
         </div>
       </div>
     </div>
@@ -866,4 +869,3 @@ function rcGroupCandidates(candidates) {
     return (b.groupCount || 0) - (a.groupCount || 0);
   });
 }
-

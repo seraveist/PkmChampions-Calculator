@@ -14,11 +14,6 @@ function renderRevCalcMy() {
     </div>
   `).join('');
 
-  const abOptions = Object.values(p.ab || {}).map(abN => {
-    const id = toId(abN);
-    return `<option value="${id}" ${my.ability === id ? 'selected' : ''}>${escapeHTML(abName(AbilityById[id] || { name: abN }))}</option>`;
-  }).join('');
-
   const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
   const RANK_STATS = ['atk','def','spa','spd','spe'];
   const statRows = ['hp', ...RANK_STATS].map(s => {
@@ -26,7 +21,7 @@ function renderRevCalcMy() {
     const final = stats[s];
     const nature = NATURE_BY_ID?.[my.nature];
     const isUp = nature?.up === s, isDown = nature?.down === s;
-    const natureMark = isUp ? '<span style="color:#ff6b85;">▲</span>' : isDown ? '<span style="color:#7e9eff;">▼</span>' : '';
+    const natureMark = isUp ? '<span class="ft-nature-up">▲</span>' : isDown ? '<span class="ft-nature-down">▼</span>' : '<span class="ft-nature-spacer"></span>';
     const rank = my.ranks?.[s] || 0;
     const rankCtrl = s === 'hp' ? '<div class="ft-rank-empty"></div>' : `
       <div class="ft-rank">
@@ -37,7 +32,7 @@ function renderRevCalcMy() {
     `;
     return `
       <div class="ft-stat-row">
-        <div class="ft-stat-name">${STAT_KO[s]} ${natureMark}</div>
+        <div class="ft-stat-name"><span class="ft-stat-label">${STAT_KO[s]}</span>${natureMark}</div>
         <div class="ft-stat-base">${p.bs[s]}</div>
         <div class="ft-stat-ev">
           <button class="ft-ev-quick" data-rc-evset="${s}" data-rc-evval="0">0</button>
@@ -51,46 +46,62 @@ function renderRevCalcMy() {
   }).join('');
 
   container.innerHTML = `
-    <div class="ft-poke-row">
-      <div class="ft-pickname">
-        <span class="ft-section-title">포켓몬</span>
-        <div class="combobox" style="flex:1;">
-          <input type="text" class="cb-input rc-cb-input" data-rc-pick="my" value="${escapeHTML(pkName(p))}">
-          <div class="combobox-options"></div>
-        </div>
-        <div class="types-display" style="margin-left:8px;">
-          ${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join('')}
+    <div class="rc-setup-grid">
+      <div class="rc-pokemon-main-row">
+        <div class="field rc-cb-field rc-pokemon-field">
+          <div class="ui-field-head rc-pokemon-head">
+            <span class="field-label">포켓몬</span>
+            <div class="party-load-head-actions">
+              <button type="button" class="party-load-button ui-label-action" data-party-import-target="revcalc:my">불러오기</button>
+              <div class="types-display rc-types-display rc-type-strip">
+                ${p.types.map(t => `<span class="type-pill rc-type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="combobox pokemon-select rc-flex-combobox">
+            <input type="text" class="cb-input rc-cb-input" data-rc-pick="my" value="${escapeHTML(pkName(p))}" autocomplete="off">
+            <div class="combobox-options"></div>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="ft-controls-row">
-      <label class="field"><span class="field-label">성격</span>
-        <select data-rc-action="myNature">
-          ${(typeof NATURES !== 'undefined' ? NATURES : []).map(n => `<option value="${n.id}" ${my.nature === n.id ? 'selected' : ''}>${n.ko}</option>`).join('')}
-        </select>
-      </label>
-      <label class="field"><span class="field-label">특성</span>
-        <select data-rc-action="myAbility">${abOptions}</select>
-      </label>
-      <label class="field"><span class="field-label">도구</span>
+      <label class="field rc-cb-field rc-field rc-ability-field"><span class="field-label">특성</span>
         <div class="combobox">
-          <input type="text" class="cb-input rc-cb-input" data-rc-pick="myitem" value="${my.item ? escapeHTML(itName(ItemById[my.item] || { name: my.item })) : '없음'}">
+          <input type="text" class="cb-input rc-cb-input" data-rc-pick="myability" value="${escapeHTML(rcComboLabel('ability', my.ability))}" placeholder="특성 검색..." autocomplete="off">
+          <div class="combobox-options"></div>
+        </div>
+      </label>
+      <label class="field rc-cb-field rc-field rc-nature-field"><span class="field-label">성격</span>
+        <div class="combobox pokemon-select">
+          <input type="text" class="cb-input rc-cb-input" data-rc-pick="mynature" value="${escapeHTML(rcComboLabel('nature', my.nature))}" placeholder="성격 검색..." autocomplete="off">
+          <div class="combobox-options"></div>
+        </div>
+      </label>
+      <label class="field rc-cb-field rc-field rc-item-field"><span class="field-label">도구</span>
+        <div class="combobox rc-flex-combobox">
+          <input type="text" class="cb-input rc-cb-input" data-rc-pick="myitem" value="${my.item ? escapeHTML(itName(ItemById[my.item] || { name: my.item })) : '없음'}" autocomplete="off">
           <div class="combobox-options"></div>
         </div>
       </label>
     </div>
     <div class="rc-my-build-row">
-      <div class="ft-stats-grid" style="grid-template-columns: 64px 56px 168px 60px 96px;">
-        <div class="ft-stats-head"><div>스탯</div><div>종족값</div><div>노력치</div><div>실수치</div><div>랭크</div></div>
-        ${statRows}
+      <div class="rc-my-stats-block">
+        <div class="rc-table-headline">
+          <div class="ft-table-title">능력 포인트</div>
+          <div class="ft-ev-total ${overEV ? 'over' : ''}">
+            총합 <b>${totalEV}</b> / 66 ${overEV ? '<span class="rc-ev-over">초과</span>' : ''}
+          </div>
+        </div>
+        <div class="rc-table-section">
+          <div class="ft-stats-grid rc-stats-grid">
+            <div class="ft-stats-head"><div>능력</div><div>종족값</div><div>포인트</div><div>실수치</div><div>랭크</div></div>
+            ${statRows}
+          </div>
+        </div>
       </div>
       <div class="rc-my-moves-panel">
         <div class="ft-section-title">기술배치</div>
         <div class="rc-move-set-grid compact">${moveSetRows}</div>
       </div>
-    </div>
-    <div class="ft-ev-total ${overEV ? 'over' : ''}">
-      노력치 합계: <b>${totalEV}</b> / 66 ${overEV ? '<span style="color:var(--atk);"> 초과!</span>' : ''}
     </div>
   `;
   rcWireMyComboboxes();
@@ -102,54 +113,61 @@ function renderRevCalcOpp() {
   if (!container) return;
   const opp = revCalcState.opp;
   const p = PokemonById[opp.pokemonIdx];
-  const STAT_KO = { atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
+  const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
 
-  const rankRows = ['atk','def','spa','spd','spe'].map(s => {
+  const statRows = ['hp','atk','def','spa','spd','spe'].map(s => {
     const r = opp.ranks?.[s] || 0;
     return `
-      <div class="rc-opp-rank">
-        <span>${STAT_KO[s]}</span>
-        <div class="ft-rank">
-          <button class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="-1">−</button>
-          <span class="ft-rank-val ${r > 0 ? 'pos' : r < 0 ? 'neg' : ''}">${r > 0 ? '+' + r : r}</span>
-          <button class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="1">+</button>
+      <div class="rc-opp-stat-row">
+        <div class="rc-opp-stat-name">${STAT_KO[s]}</div>
+        <div class="rc-opp-stat-base">${p?.bs?.[s] ?? '-'}</div>
+        <div class="rc-opp-rank-cell">
+          ${s === 'hp' ? '<span class="rc-opp-rank-empty"></span>' : `
+            <div class="ft-rank">
+              <button class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="-1">−</button>
+              <span class="ft-rank-val ${r > 0 ? 'pos' : r < 0 ? 'neg' : ''}">${r > 0 ? '+' + r : r}</span>
+              <button class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="1">+</button>
+            </div>
+          `}
         </div>
       </div>
     `;
   }).join('');
 
   container.innerHTML = `
-    <div class="ft-poke-row">
-      <div class="ft-pickname">
-        <span class="ft-section-title">포켓몬</span>
-        <div class="combobox" style="flex:1;">
-          <input type="text" class="cb-input rc-cb-input" data-rc-pick="opp" value="${p ? escapeHTML(pkName(p)) : ''}">
-          <div class="combobox-options"></div>
+    <div class="rc-setup-grid rc-opp-setup">
+      <div class="rc-pokemon-main-row">
+        <div class="field rc-cb-field rc-pokemon-field">
+          <div class="ui-field-head rc-pokemon-head">
+            <span class="field-label">포켓몬</span>
+            ${p ? `<div class="types-display rc-types-display rc-type-strip">
+              ${p.types.map(t => `<span class="type-pill rc-type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}
+            </div>` : '<div class="types-display rc-types-display rc-type-strip empty" aria-hidden="true"></div>'}
+          </div>
+          <div class="combobox pokemon-select rc-flex-combobox">
+            <input type="text" class="cb-input rc-cb-input" data-rc-pick="opp" value="${p ? escapeHTML(pkName(p)) : ''}" autocomplete="off">
+            <div class="combobox-options"></div>
+          </div>
         </div>
-        ${p ? `<div class="types-display" style="margin-left:8px;">
-          ${p.types.map(t => `<span class="type-pill t-${t}" style="font-size:10px;padding:1px 6px;">${TYPE_KO[t] || t}</span>`).join('')}
-        </div>` : ''}
       </div>
+      ${p ? `
+        <label class="field rc-field rc-opp-status-field"><span class="field-label">상태</span>
+          <div class="combobox rc-status-combobox">
+            <button type="button" class="cb-input cb-trigger" data-rc-status="opp" aria-label="상대 상태 선택" aria-expanded="false">${escapeHTML(rcStatusDisplayLabel(opp.status))}</button>
+            <div class="combobox-options" role="listbox"></div>
+          </div>
+        </label>
+      ` : ''}
     </div>
     ${p ? `
-      <div class="ft-section-title">종족값</div>
-      <div class="rc-base-stats">
-        ${['hp','atk','def','spa','spd','spe'].map(s => `<span class="rc-base"><small>${({hp:'HP',atk:'공',def:'방',spa:'특공',spd:'특방',spe:'속'})[s]}</small><b>${p.bs[s]}</b></span>`).join('')}
-      </div>
-      <div class="ft-section-title">상대 측 랭크 (위협 받음, 자가 부스트 등)</div>
-      <div class="rc-opp-ranks">${rankRows}</div>
-      <div class="ft-controls-row" style="margin-top: 8px;">
-        <label class="field"><span class="field-label">상대 상태이상</span>
-          <select data-rc-action="oppStatus">
-            <option value="none" ${opp.status === 'none' ? 'selected' : ''}>없음</option>
-            <option value="Burn" ${opp.status === 'Burn' ? 'selected' : ''}>화상</option>
-            <option value="Paralysis" ${opp.status === 'Paralysis' ? 'selected' : ''}>마비</option>
-            <option value="Poison" ${opp.status === 'Poison' ? 'selected' : ''}>독</option>
-            <option value="Toxic" ${opp.status === 'Toxic' ? 'selected' : ''}>맹독</option>
-            <option value="Sleep" ${opp.status === 'Sleep' ? 'selected' : ''}>수면</option>
-            <option value="Freeze" ${opp.status === 'Freeze' ? 'selected' : ''}>동결</option>
-          </select>
-        </label>
+      <div class="ft-section-title rc-opp-stat-title">능력 상태</div>
+      <div class="rc-opp-stat-table">
+        <div class="rc-opp-stat-head">
+          <span>능력</span>
+          <span>종족값</span>
+          <span>랭크</span>
+        </div>
+        ${statRows}
       </div>
     ` : ''}
   `;
@@ -160,36 +178,17 @@ function renderRevCalcInputs() {
   const container = document.getElementById('rc-input-body');
   if (!container) return;
   const my = revCalcState.my;
-  const myP = PokemonById[my.pokemonIdx];
-  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
 
   // 내 관측 기술은 입력한 기술폭 4개 안에서 선택하고, 상대 기술은 변화기 관측까지 허용한다.
   rcNormalizeObservedMyMove();
-  const observedMyMoves = rcObservedMyMoveIds();
 
-  const myMoveData = revCalcState.myMove ? MoveById[revCalcState.myMove] : null;
-  const oppMoveData = revCalcState.oppMove ? MoveById[revCalcState.oppMove] : null;
-
-  const myStats = calcStats(my);
   const myCurrentHp = rcCurrentHpValue(my);
-  const autoMySpeed = rcSpeedWithMods(myStats.spe, my.ranks?.spe || 0, my.item || '', my.status || 'none');
-  const myMoveOptions = selected => `
-    <option value="">선택…</option>
-    ${observedMyMoves.map(id => {
-      const m = MoveById[id];
-      return `<option value="${m.id}" ${selected === m.id ? 'selected' : ''}>${escapeHTML(mvName(m))}</option>`;
-    }).join('')}
-  `;
 
   // 도구 후보 체크박스 (type-boost 도구 + 그외 사용 가능 도구)
   const itemMaster = ITEMS.filter(i => !i.ms && !i.isBerry);
   const knownOppItem = rcKnownOpponentItem();
   const itemCandidates = knownOppItem === null ? rcActiveItemCandidates() : [];
-  const oppItemOptions = `
-    <option value="unknown" ${revCalcState.oppItemKnown === 'unknown' ? 'selected' : ''}>미관측</option>
-    <option value="" ${revCalcState.oppItemKnown === '' ? 'selected' : ''}>없음 확인</option>
-    ${itemMaster.map(i => `<option value="${i.id}" ${revCalcState.oppItemKnown === i.id ? 'selected' : ''}>${escapeHTML(itName(i))}</option>`).join('')}
-  `;
+  const itemPanelOpen = !!revCalcState.itemCandidatesOpen;
   const itemBoxes = itemMaster.map(i => `
     <label class="rc-item-chk ${knownOppItem !== null ? 'disabled' : ''}">
       <input type="checkbox" data-rc-item="${i.id}" ${knownOppItem === null && itemCandidates.includes(i.id) ? 'checked' : ''} ${knownOppItem !== null ? 'disabled' : ''}>
@@ -199,103 +198,88 @@ function renderRevCalcInputs() {
 
   container.innerHTML = `
     <div class="rc-input-grid">
-      <div class="rc-input-block">
-        <div class="ft-section-title">관측 기술 (상대에게 줌)</div>
-        <div class="ft-controls-row">
-          <label class="field" style="flex:2;">
-            <span class="field-label">기술</span>
-            <select data-rc-action="myMove">
-              ${myMoveOptions(revCalcState.myMove)}
-            </select>
+      <div class="rc-input-block rc-action-block">
+        <div class="ft-section-title">내 행동</div>
+        <div class="rc-input-divider"></div>
+        <div class="ft-controls-row rc-observed-row">
+          <label class="field rc-field-wide">
+            <span class="field-label">사용 기술</span>
+            ${rcRenderMoveCombobox('myMove', revCalcState.myMove, { placeholder: '사용 기술 선택' })}
           </label>
-          <label class="field" style="flex:1;">
+          <label class="field rc-field-compact">
             <span class="field-label">상대 남은 HP %</span>
             <input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="100" placeholder="0~100">
           </label>
         </div>
+        <div class="rc-input-divider"></div>
         <div class="rc-side-condition-row">
-          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defReflect" ${revCalcState.observedFields.dealt.defReflect ? 'checked' : ''}> 상대 리플렉터</label>
-          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.dealt.defLightScreen ? 'checked' : ''}> 상대 빛의장막</label>
-          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="isCritical" ${revCalcState.observedFields.dealt.isCritical ? 'checked' : ''}> 내 공격 급소</label>
+          <label class="checkbox-label rc-compact-toggle"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defReflect" ${revCalcState.observedFields.dealt.defReflect ? 'checked' : ''}> 상대 리플렉터</label>
+          <label class="checkbox-label rc-compact-toggle"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.dealt.defLightScreen ? 'checked' : ''}> 상대 빛의장막</label>
+          <label class="checkbox-label rc-compact-toggle"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="isCritical" ${revCalcState.observedFields.dealt.isCritical ? 'checked' : ''}> 내 공격 급소</label>
         </div>
       </div>
 
-      <div class="rc-input-block">
-        <div class="ft-section-title">상대 기술 (내가 받음)</div>
-        <div class="ft-controls-row">
-          <label class="field" style="flex:1;">
-            <span class="field-label">상대 도구</span>
-            <select data-rc-action="oppItemKnown">${oppItemOptions}</select>
-          </label>
-          <label class="field" style="flex:2;">
-            <span class="field-label">기술</span>
+      <div class="rc-input-block rc-action-block">
+        <div class="ft-section-title">상대 행동</div>
+        <div class="rc-input-divider"></div>
+        <div class="ft-controls-row rc-observed-row">
+          <label class="field rc-field-wide">
+            <span class="field-label">사용 기술</span>
             ${rcRenderMoveCombobox('oppMove', revCalcState.oppMove, { placeholder: '상대 기술 선택' })}
           </label>
-          <label class="field" style="flex:1;">
+          <label class="field rc-field-compact">
             <span class="field-label">내 남은 HP</span>
             <input type="number" data-rc-action="observedMyHp" value="${revCalcState.observedMyHp}" min="0" max="${myCurrentHp}" placeholder="0~${myCurrentHp}">
           </label>
         </div>
+        <div class="rc-input-divider"></div>
+        <div class="ft-controls-row rc-observed-row rc-opp-item-row">
+          <label class="field rc-field-wide">
+            <span class="field-label">상대 도구</span>
+            ${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}
+          </label>
+        </div>
+        <div class="rc-input-divider"></div>
         <div class="rc-side-condition-row">
-          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defReflect" ${revCalcState.observedFields.received.defReflect ? 'checked' : ''}> 내 리플렉터</label>
-          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.received.defLightScreen ? 'checked' : ''}> 내 빛의장막</label>
-          <label class="checkbox-label"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="isCritical" ${revCalcState.observedFields.received.isCritical ? 'checked' : ''}> 상대 공격 급소</label>
+          <label class="checkbox-label rc-compact-toggle"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defReflect" ${revCalcState.observedFields.received.defReflect ? 'checked' : ''}> 내 리플렉터</label>
+          <label class="checkbox-label rc-compact-toggle"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.received.defLightScreen ? 'checked' : ''}> 내 빛의장막</label>
+          <label class="checkbox-label rc-compact-toggle"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="isCritical" ${revCalcState.observedFields.received.isCritical ? 'checked' : ''}> 상대 공격 급소</label>
         </div>
       </div>
 
       <div class="rc-input-block rc-speed-block">
-        <div class="ft-section-title">선후공 / 속도 조건</div>
-        <div class="ft-controls-row">
-          <label class="field" style="flex:1;">
+        <div class="ft-section-title">선후공 | 필드 상태</div>
+        <div class="rc-input-divider"></div>
+        <div class="ft-controls-row rc-speed-field-row">
+          <label class="field rc-field-compact">
             <span class="field-label">이번 턴 행동 순서</span>
-            <select data-rc-action="turnOrder">
-              <option value="unknown" ${revCalcState.turnOrder === 'unknown' ? 'selected' : ''}>사용 안 함</option>
-              <option value="opp-first" ${revCalcState.turnOrder === 'opp-first' ? 'selected' : ''}>상대가 먼저 행동</option>
-              <option value="my-first" ${revCalcState.turnOrder === 'my-first' ? 'selected' : ''}>내가 먼저 행동</option>
-              <option value="speed-tie" ${revCalcState.turnOrder === 'speed-tie' ? 'selected' : ''}>동속 확인</option>
-            </select>
+            ${rcRenderTurnOrderCombobox(revCalcState.turnOrder)}
           </label>
-          <label class="field" style="flex:1;">
-            <span class="field-label">내 속도 실수치</span>
-            <input type="number" data-rc-action="mySpeedOverride" value="${revCalcState.mySpeedOverride}" min="1" max="999" placeholder="${autoMySpeed}">
-          </label>
-          <div class="rc-speed-readout">
-            <span>자동 기준</span>
-            <b>${autoMySpeed}</b>
-          </div>
-        </div>
-        <div class="rc-hint">상대 체력은 전투 UI의 남은 HP%를, 내 체력은 전투 UI에 보이는 남은 HP 실수치를 입력합니다. 속도 조건을 켜면 상대 S 투자와 구애스카프 후보가 같은 66포인트 예산 안에서 함께 검증됩니다.</div>
-      </div>
-
-      <div class="rc-input-block">
-        <div class="ft-section-title">필드 상태</div>
-        <div class="ft-controls-row">
           <label class="field"><span class="field-label">날씨</span>
-            <select data-rc-field="weather">
-              <option value="none">없음</option><option value="Sun" ${revCalcState.field.weather === 'Sun' ? 'selected' : ''}>쾌청</option>
-              <option value="Rain" ${revCalcState.field.weather === 'Rain' ? 'selected' : ''}>비</option>
-              <option value="Sand" ${revCalcState.field.weather === 'Sand' ? 'selected' : ''}>모래</option>
-              <option value="Snow" ${revCalcState.field.weather === 'Snow' ? 'selected' : ''}>눈</option>
-            </select>
+            ${rcRenderFieldCombobox('weather', revCalcState.field.weather)}
           </label>
           <label class="field"><span class="field-label">필드</span>
-            <select data-rc-field="terrain">
-              <option value="none">없음</option><option value="Electric" ${revCalcState.field.terrain === 'Electric' ? 'selected' : ''}>일렉트릭</option>
-              <option value="Grassy" ${revCalcState.field.terrain === 'Grassy' ? 'selected' : ''}>그래스</option>
-              <option value="Psychic" ${revCalcState.field.terrain === 'Psychic' ? 'selected' : ''}>사이코</option>
-              <option value="Misty" ${revCalcState.field.terrain === 'Misty' ? 'selected' : ''}>미스트</option>
-            </select>
+            ${rcRenderFieldCombobox('terrain', revCalcState.field.terrain)}
           </label>
         </div>
       </div>
 
-      <div class="rc-input-block">
-        <div class="ft-section-title">도구 후보 (상대 도구 미관측 시만 사용) — ${knownOppItem === null ? `${itemCandidates.length}개 선택됨` : '상대 도구 선택됨'}</div>
-        <div class="rc-item-grid">${itemBoxes}</div>
+      <div class="rc-input-block rc-item-candidates-block ${itemPanelOpen ? 'open' : 'collapsed'}">
+        <button type="button" class="ft-section-title rc-title-with-badge rc-collapse-head" data-rc-toggle-item-candidates aria-expanded="${itemPanelOpen ? 'true' : 'false'}">
+          <span>도구 후보</span>
+          <span class="rc-count-badge rc-item-candidate-count">${knownOppItem === null ? `${itemCandidates.length}개` : '고정됨'}</span>
+        </button>
+        <div class="rc-input-divider rc-collapse-divider"></div>
+        <div class="rc-item-candidates-body" ${itemPanelOpen ? '' : 'hidden'}>
+          <div class="rc-item-grid">${itemBoxes}</div>
+        </div>
       </div>
     </div>
   `;
   rcWireMoveComboboxes(container);
+  rcWireOppItemComboboxes(container);
+  rcWireTurnOrderComboboxes(container);
+  rcWireFieldComboboxes(container);
 }
 
 function renderRevCalcResults() {
@@ -311,40 +295,13 @@ function renderRevCalcResults() {
     return;
   }
   if (r.error) {
-    container.innerHTML = `<div class="empty-state" style="color:var(--atk);">⚠ ${escapeHTML(r.error)}</div>`;
+    container.innerHTML = `<div class="empty-state error">분석 오류: ${escapeHTML(r.error)}</div>`;
     return;
   }
 
   if (!r.results.length) {
-    const d = r.debug || {};
-    const debugBits = [
-      `내 ${escapeHTML(d.myPokemon || '-')}`,
-      `상대 ${escapeHTML(d.oppPokemon || '-')}`,
-      `내 성격 ${escapeHTML(d.myNature || '-')}`,
-      `내 EV H${d.myEvs?.hp ?? '-'} C${d.myEvs?.spa ?? '-'} S${d.myEvs?.spe ?? '-'}`,
-      `내 실수치 C${d.myStats?.spa ?? '-'} S${d.myStats?.spe ?? '-'}`,
-      `기술 ${escapeHTML(d.myMove || '-')} / ${escapeHTML(d.oppMove || '-')}`,
-      `필드 ${escapeHTML(d.field || 'none')}`,
-      `내 공격조건 ${escapeHTML(d.dealtField || 'none')}`,
-      `상대 공격조건 ${escapeHTML(d.receivedField || 'none')}`,
-      `도구후보 ${d.itemCount ?? '-'}개${d.hasNoItem ? '+없음' : ''}`,
-      `내구후보 ${d.stage1 ?? '-'}`,
-      `정제대상 ${d.stage1Trimmed ?? '-'}`,
-      `화력후보 ${d.refined ?? '-'}`,
-      `속도제거 ${d.speedRemoved ?? '-'}`,
-      `예산제거 ${d.budgetRemoved ?? '-'}`,
-      `후보 생성 ${r.rawTotal || 0}개`,
-      `최종 생존 ${r.total || 0}개`,
-      `규칙 제거 ${r.filteredByRule || 0}개`,
-      `내 HP 기준 ${r.myCurrentHp || '-'}`,
-      `내 속도 기준 ${r.mySpeed || '-'}`,
-      `상대 남은 HP ${escapeHTML(revCalcState.observedTheirPct || '-')}%`,
-      `내 남은 HP ${escapeHTML(revCalcState.observedMyHp || '-')}`,
-    ];
     container.innerHTML = `
       <div class="empty-state">66포인트 룰과 관측값을 동시에 만족하는 형태가 없습니다.</div>
-      <div class="rc-results-summary">${debugBits.join(' · ')}</div>
-      <div class="rc-hint">상대 쪽 입력은 남은 HP%, 내 쪽 입력은 남은 HP 실수치 기준입니다. 기술 위력/필드/랭크/도구 후보/선후공 조건도 함께 확인해 주세요.</div>
     `;
     return;
   }
@@ -362,7 +319,6 @@ function renderRevCalcResults() {
   const briefing = `상위 후보는 ${topItem}, ${NATURE_BY_ID[first.nature]?.ko || first.nature} 성격입니다. 관측 투자 범위는 ${investmentBrief}입니다. ${scarfBrief}`;
 
   const followupMoveIds = rcVisibleMoveSet();
-  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
   const openIndexes = new Set((Array.isArray(revCalcState.openResultIndexes) ? revCalcState.openResultIndexes : [])
     .map(v => parseInt(v, 10))
     .filter(v => Number.isInteger(v) && v >= 0 && v < r.results.length));
@@ -398,9 +354,8 @@ function renderRevCalcResults() {
       : null;
     const predictedPanel = expanded ? `
       <div class="rc-prediction-panel">
-        <div class="rc-result-panel-label">상대 다음 예상 기술</div>
         <label class="field">
-          <span class="field-label">기술</span>
+          <span class="field-label">상대 다음 기술</span>
           ${rcRenderMoveCombobox('predictedOppMove', predictedMoveId, { compact: true, placeholder: '예상 기술' })}
         </label>
         <div class="rc-prediction-result">
@@ -412,7 +367,7 @@ function renderRevCalcResults() {
     ` : '';
     const followupPanel = expanded ? `
       <div class="rc-followup-panel">
-        <div class="rc-followup-head"><span>내 다음 기술 대미지</span><small>현재 상대 HP 기준</small></div>
+        <div class="rc-followup-head"><span>내 기술들</span><small>현재 상대 HP 기준</small></div>
         <div class="rc-followup-grid">
           ${followupChips || '<span class="rc-mini-note">내 기술폭 4개를 입력하면 후보별 다음 대미지를 표시합니다.</span>'}
         </div>
@@ -420,7 +375,7 @@ function renderRevCalcResults() {
     ` : '';
     const infoPanel = `
       <div class="rc-result-profile rc-result-info-panel">
-        ${expanded ? '<div class="rc-result-panel-label">상대 예상 정보</div>' : ''}
+        ${expanded ? '<div class="rc-result-panel-label">예상 정보</div>' : ''}
         <div class="rc-result-title">
           <b>${evDesc.join(' / ') || '무투자'}</b>
           ${natureTag}
@@ -437,7 +392,7 @@ function renderRevCalcResults() {
       <div class="rc-result-row rc-form-result ${expanded ? 'open' : 'collapsed'}" data-rc-toggle-result="${i}">
         <div class="rc-result-rank">#${i + 1}</div>
         ${expanded
-          ? `<div class="rc-result-expanded-body">${infoPanel}${predictedPanel}${followupPanel}</div>`
+          ? `<div class="rc-result-expanded-body">${infoPanel}${followupPanel}${predictedPanel}</div>`
           : infoPanel}
       </div>
     `;
@@ -445,12 +400,11 @@ function renderRevCalcResults() {
 
   container.innerHTML = `
     <div class="rc-briefing">
-      <div class="rc-briefing-title">인텔리전스 브리핑</div>
+      <div class="rc-briefing-title">요약</div>
       <div>${escapeHTML(briefing)}</div>
     </div>
     ${rcRenderNextRankPanel()}
     <div class="rc-results-list">${rows}</div>
-    <div class="rc-hint">상대는 남은 HP%의 정수 내림값, 내 포켓몬은 남은 HP 실수치를 기준으로 16단계 난수 중 일치한 횟수를 표시합니다.</div>
   `;
   rcWireMoveComboboxes(container);
 }
@@ -463,4 +417,3 @@ function renderRevCalcAll() {
 }
 
 // === 콤보박스 / 이벤트 ===
-

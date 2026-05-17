@@ -24,14 +24,15 @@ function emptyEntryMeta() {
 }
 
 function cloneSideForCalc(side) {
-  return applyManualDamageBlockHpAdjustment(deriveHpFlags({
+  return deriveHpFlags({
     ...side,
     evs: { ...side.evs },
     ranks: { ...side.ranks },
     types: Array.isArray(side.types) ? [...side.types] : [],
     moves: Array.isArray(side.moves) ? [...side.moves] : [],
     moveBpOverrides: Array.isArray(side.moveBpOverrides) ? [...side.moveBpOverrides] : [null, null, null, null],
-  }));
+    moveTypeOverrides: Array.isArray(side.moveTypeOverrides) ? [...side.moveTypeOverrides] : [null, null, null, null],
+  });
 }
 
 function cloneFieldForCalc(field) {
@@ -178,48 +179,17 @@ function syncFieldControls(fieldState = null) {
   setChecked('defReflect', f.defReflect);
   setChecked('defLightScreen', f.defLightScreen);
   setChecked('atkHelpingHand', f.atkHelpingHand);
-  setChecked('defProtect', f.defProtect);
   setChecked('defStealthRock', f.defStealthRock);
   setChecked('defSpikes', f.defSpikesLayers > 0);
   setComboboxValue('defSpikesLayers', String(Math.max(1, f.defSpikesLayers || 1)), 'spikesLayers');
-  setChecked('trickRoom', f.isTrickRoom);
+  if (typeof syncSpikesLayerControl === 'function') syncSpikesLayerControl(f.defSpikesLayers > 0);
   setChecked('gravity', f.isGravity);
-  if (typeof updateFieldSummary === 'function') updateFieldSummary(f, lastAutoEntry);
   if (typeof updateRuinCheckboxes === 'function') updateRuinCheckboxes(f);
 }
 
 function formatRankValue(value) {
   return value > 0 ? `+${value}` : `${value}`;
 }
-
-function renderEntryRankSummary(calcState) {
-  const meta = calcState.entryMeta;
-  const rows = [];
-  for (const sideKey of ['atk', 'def']) {
-    for (const stat of ['atk', 'def', 'spa', 'spd', 'spe']) {
-      const delta = meta.rankDeltas?.[sideKey]?.[stat] || 0;
-      if (!delta) continue;
-      const base = state[sideKey].ranks[stat] || 0;
-      const final = calcState[sideKey].ranks[stat] || 0;
-      rows.push(`
-        <div class="entry-rank-item ${sideKey}">
-          <span>${sideEntryLabel(sideKey)} ${STAT_LABEL[stat]}</span>
-          <b>${formatRankValue(base)}</b>
-          <em>${formatRankValue(delta)}</em>
-          <strong>${formatRankValue(final)}</strong>
-        </div>
-      `);
-    }
-  }
-  if (!rows.length) return '';
-  return `
-    <div class="entry-rank-summary">
-      <div class="entry-rank-label">계산 적용 랭크</div>
-      <div class="entry-rank-list">${rows.join('')}</div>
-    </div>
-  `;
-}
-
 
 /* ════════════════════════════════════════════════════════════
    결과 렌더링

@@ -139,6 +139,7 @@ function statusMatches(rule, status) {
   if (rule.status === 'any') return status && status !== 'none';
   if (rule.status === 'burn') return isBurnStatus(status);
   if (rule.status === 'poison') return isPoisonStatus(status);
+  if (rule.status === 'toxic') return isToxicStatus(status);
   return false;
 }
 
@@ -219,7 +220,9 @@ function damageBlockApplies(block, pokemon, side, move, isPhysical) {
 }
 
 function normalizedStatus(status) {
-  return (status || 'none').toString().toLowerCase();
+  const normalized = (status || 'none').toString().toLowerCase();
+  if (['badly poison', 'badly poisoned', 'badlypoison', 'badlypoisoned'].includes(normalized)) return 'toxic';
+  return normalized;
 }
 
 function isBurnStatus(status) {
@@ -228,6 +231,10 @@ function isBurnStatus(status) {
 
 function isPoisonStatus(status) {
   return ['poison', 'toxic', 'psn', 'tox'].includes(normalizedStatus(status));
+}
+
+function isToxicStatus(status) {
+  return ['toxic', 'tox'].includes(normalizedStatus(status));
 }
 
 function attackerBlocksBerries(atkAb) {
@@ -362,7 +369,7 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     }
     case 'targetPoisonDouble': {
       // 대상이 독/맹독이면 ×2
-      return ['Poison','Toxic','poison','toxic','psn','tox'].includes(defSide.status) ? baseBp * 2 : baseBp;
+      return isPoisonStatus(defSide.status) ? baseBp * 2 : baseBp;
     }
     case 'userStatusDouble': {
       // 사용자가 화상/마비/독/맹독이면 ×2 (수면 제외)
@@ -566,7 +573,7 @@ function resolveDamagePreludeStage(ctx) {
   let category = move.cat;
 
   // Weather Ball: 날씨에 따라 타입 변경 (BP는 computeVariableBp 에서 처리됨)
-  if (move.typeChangeKind === 'weatherBall') {
+  if (!move.manualType && move.typeChangeKind === 'weatherBall') {
     const wt = weather;
     if (wt === 'Sun' || wt === 'Harsh Sunshine') moveType = 'Fire';
     else if (wt === 'Rain' || wt === 'Heavy Rain') moveType = 'Water';
@@ -575,7 +582,7 @@ function resolveDamagePreludeStage(ctx) {
     if (wt && wt !== 'none') mods.push(`웨더볼 → ${displayType(moveType)}`);
   }
   // Terrain Pulse: 필드에 따라 타입 변경 (그라운드 시)
-  if (move.typeChangeKind === 'terrainPulse') {
+  if (!move.manualType && move.typeChangeKind === 'terrainPulse') {
     const grounded = isGrounded(atkSide, field, atkAb, atkItem);
     if (grounded) {
       if (field.terrain === 'Electric') moveType = 'Electric';
@@ -588,7 +595,7 @@ function resolveDamagePreludeStage(ctx) {
 
   let typeChangeMod = null;
   const abilityTypeChange = atkAbilityData?.typeChange;
-  if (abilityTypeChange && (!abilityTypeChange.flag || move.flags?.[abilityTypeChange.flag])) {
+  if (!move.manualType && abilityTypeChange && (!abilityTypeChange.flag || move.flags?.[abilityTypeChange.flag])) {
     if (!abilityTypeChange.from || moveType === abilityTypeChange.from) {
       moveType = abilityTypeChange.type;
       typeChangeMod = abilityTypeChange.mod || null;
@@ -597,7 +604,7 @@ function resolveDamagePreludeStage(ctx) {
   }
 
   // Tera Blast: 테라스탈 시 공격 > 특공이면 물리
-  if (move.typeChangeKind === 'teraBlast' && isTeraActive(atkSide)) {
+  if (!move.manualType && move.typeChangeKind === 'teraBlast' && isTeraActive(atkSide)) {
     moveType = atkSide.teraType;
     const physAtk = applyBoost(atkStats.atk, atkSide.ranks.atk || 0);
     const specAtk = applyBoost(atkStats.spa, atkSide.ranks.spa || 0);
@@ -607,7 +614,7 @@ function resolveDamagePreludeStage(ctx) {
   }
 
   // Tera Starstorm (Terapagos-Stellar): 스텔라 타입
-  if (move.typeChangeKind === 'teraStarstorm' && atkP.id === 'terapagosstellar') {
+  if (!move.manualType && move.typeChangeKind === 'teraStarstorm' && atkP.id === 'terapagosstellar') {
     moveType = 'Stellar';
   }
 
@@ -1053,28 +1060,6 @@ function calculateFinalDamageStage(ctx) {
     mods.push(`${berryName}${ripenMod ? `+${ripenName}` : ''}${formatCalcMultiplier(ripenMod ? mechanicMod(ripenMod) : MOD.x0_5)}`);
   }
 
-  // ─ 방어 관통 메커니즘 ─
-  // 방어/막아내기는 모든 공격 차단 (단, 일부 기술은 무시)
-  const protectRule = fieldMechanics().protect || {};
-  if (field[protectRule.field || 'defProtect']) {
-    const ignoresProtect = !!move.breaksProtect;
-
-    if (!ignoresProtect) {
-      // 피어싱드릴 (메가몰드비스트): 접촉기로 방어 관통, 25% 대미지
-      // 연격의태세 (Unseen Fist): 접촉기로 방어 관통, 25% 대미지 (챔피언스 너프)
-      const protectBypass = ctx.atkAbilityData?.protectBypass;
-      if (protectBypass?.flag && move.flags?.[protectBypass.flag]) {
-        const mod = mechanicMod(protectBypass.mod);
-        finalMods.push(mod);
-        const abName = ctx.atkAbilityData?.koName || ctx.atkAbilityData?.name || atkAb;
-        mods.push(formatModLabel(abName, mod, protectRule.bypassLabel || '방어 관통'));
-      } else {
-        // 일반 공격은 방어막에 막힘 → 대미지 0
-        return { damages: new Array(16).fill(0), minPct: 0, maxPct: 0, effectiveness, moveType, category, bp, atk: atkStat, def: defStat, defHP: defStats.hp, mods: [protectRule.blockedLabel || '방어/막아내기로 차단'] };
-      }
-    }
-  }
-
   const finalMod = chainMods(finalMods, 41, 131072);
 
   // ═ 16개 롤 계산 ═
@@ -1334,20 +1319,10 @@ function effectiveSpeed(side, field) {
   // Tailwind
   if (side.tailwind) spe *= 2;
   
-  // Trick Room은 실제 속도 뒤집기는 아니지만 표시용으로 반영 안함
-  
   return spe;
 }
 
-function firstMover(movePri, atkSpe, defSpe, field) {
-  // Trick Room이면 느린 쪽이 선공
-  if (field.isTrickRoom) {
-    if (movePri > 0) return "atk";
-    if (movePri < 0) return "def";
-    if (atkSpe < defSpe) return "atk";
-    if (atkSpe > defSpe) return "def";
-    return "tie";
-  }
+function firstMover(movePri, atkSpe, defSpe) {
   if (movePri > 0) return "atk";
   if (movePri < 0) return "def";
   if (atkSpe > defSpe) return "atk";

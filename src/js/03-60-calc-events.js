@@ -1,23 +1,11 @@
 /* Damage calculator field controls and page-level events. */
-document.getElementById('field-head').addEventListener('click', () => {
+document.getElementById('field-head').addEventListener('click', e => {
+  if (e.target.closest('input, button, label, .combobox, .field-auto-toggle')) return;
   document.getElementById('field-panel').classList.toggle('collapsed');
 });
 
-// 계산 버튼
-document.getElementById('btnCalculate').addEventListener('click', () => {
-  runCalc();
-});
-
-// 자동/수동 토글
-document.getElementById('btnAutoCalc').addEventListener('click', e => {
-  autoCalcMode = !autoCalcMode;
-  e.target.textContent = `자동 계산: ${autoCalcMode ? 'ON' : 'OFF'}`;
-  e.target.classList.toggle('active', autoCalcMode);
-  if (autoCalcMode) runCalc();
-});
-// 초기 활성 표시
-document.getElementById('btnAutoCalc').classList.add('active');
-document.getElementById('btnResetManual').addEventListener('click', resetCalcManualValues);
+document.getElementById('btnCalculate')?.addEventListener('click', runCalc);
+document.getElementById('btnResetManual')?.addEventListener('click', resetCalcManualValues);
 
 /* ════════════════════════════════════════════════════════════
    필드 이벤트
@@ -57,11 +45,22 @@ function wireFieldComboboxes() {
 }
 
 wireFieldComboboxes();
+
+function syncSpikesLayerControl(enabled = false) {
+  const input = document.getElementById('defSpikesLayers');
+  const options = input?.closest('.combobox')?.querySelector('.combobox-options');
+  if (!input) return;
+  input.disabled = !enabled;
+  if (!enabled) {
+    input.setAttribute('aria-expanded', 'false');
+    options?.classList.remove('open');
+  }
+}
+
 document.getElementById('critHit').addEventListener('change', e => { state.field.isCritical = e.target.checked; triggerCalc(); });
 document.getElementById('defReflect').addEventListener('change', e => { state.field.defReflect = e.target.checked; triggerCalc(); });
 document.getElementById('defLightScreen').addEventListener('change', e => { state.field.defLightScreen = e.target.checked; triggerCalc(); });
 document.getElementById('atkHelpingHand').addEventListener('change', e => { state.field.atkHelpingHand = e.target.checked; triggerCalc(); });
-document.getElementById('defProtect').addEventListener('change', e => { state.field.defProtect = e.target.checked; triggerCalc(); });
 // 재앙 토글
 document.getElementById('ruinSword').addEventListener('change', e => { markManualAutoFieldOverride('ruinSword'); state.field.ruinSword = e.target.checked; triggerCalc(); });
 document.getElementById('ruinTablet').addEventListener('change', e => { markManualAutoFieldOverride('ruinTablet'); state.field.ruinTablet = e.target.checked; triggerCalc(); });
@@ -72,11 +71,11 @@ document.getElementById('defStealthRock').addEventListener('change', e => { stat
 document.getElementById('defSpikes').addEventListener('change', e => {
   const layerInput = document.getElementById('defSpikesLayers');
   const layers = parseInt(layerInput?.dataset.value || layerInput?.value, 10) || 1;
+  syncSpikesLayerControl(e.target.checked);
   state.field.defSpikesLayers = e.target.checked ? layers : 0;
   triggerCalc();
 });
-// 트릭룸 / 중력장
-document.getElementById('trickRoom').addEventListener('change', e => { state.field.isTrickRoom = e.target.checked; triggerCalc(); });
+// 중력장
 document.getElementById('gravity').addEventListener('change', e => { state.field.isGravity = e.target.checked; triggerCalc(); });
 // 자동 진입 효과 토글
 document.getElementById('autoEntry').addEventListener('change', e => {
@@ -84,6 +83,7 @@ document.getElementById('autoEntry').addEventListener('change', e => {
   lastAutoEntry = emptyEntryMeta();
   triggerCalc();
 });
+syncSpikesLayerControl(document.getElementById('defSpikes')?.checked);
 
 // 재앙 체크박스 동기화 (자동 진입 효과로 변경됐을 때)
 function updateRuinCheckboxes(fieldState = null) {
@@ -96,6 +96,9 @@ function updateRuinCheckboxes(fieldState = null) {
 // 공격측 ↔ 방어측 교대 (사이드 객체 전체를 통째로 교환)
 // 사이드 패널 점프 버튼 위임 — fine-tune/reverse view modules의 sync 함수 호출
 document.addEventListener('click', e => {
+  if (!e.target.closest('#page-calc .ev-preset-shell') && typeof closeEvPresetPopovers === 'function') {
+    closeEvPresetPopovers();
+  }
   const ftBtn = e.target.closest('.ft-jump-btn[data-ft-from-side]');
   if (ftBtn && typeof loadSideToFineTune === 'function') {
     loadSideToFineTune(ftBtn.dataset.ftFromSide);
@@ -108,15 +111,19 @@ document.addEventListener('click', e => {
   }
 });
 
-document.getElementById('btnSwapSides')?.addEventListener('click', () => {
+function swapCalcSides() {
   const tmp = state.atk;
   state.atk = state.def;
   state.def = tmp;
+  document.getElementById('page-calc')?.classList.toggle('sides-swapped');
   lastAutoEntry = emptyEntryMeta();
   renderSide('atk');
   renderSide('def');
   triggerCalc();
-});
+}
+
+document.getElementById('btnSwapSides')?.addEventListener('click', swapCalcSides);
+document.getElementById('btnSwapSidesResult')?.addEventListener('click', swapCalcSides);
 /* ════════════════════════════════════════════════════════════
    ⬆️ 원본 로직 끝 ⬆️
    ════════════════════════════════════════════════════════════ */

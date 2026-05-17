@@ -21,7 +21,7 @@
 
 | 종류 | 그룹 | 항목 | 판정 | 비고 |
 | --- | --- | --- | --- | --- |
-| - | - | - | 없음 | - |
+| field | 필드/상태 보정 | Protect 처리 | 지원 근거 없음 | field-mechanics.json에서 처리 |
 
 ## 보류 요약
 
@@ -228,7 +228,7 @@
 | 보류 | Magic Room | 보류 | - | 도구/스탯/양쪽 방어 상태를 전역으로 뒤집는 효과라 단발 계산기 상태 모델 밖 |
 | 보류 | Power Spot | 보류 | - | 아군 위치/사이드 컨텍스트가 필요한 더블 보정 |
 | 보류 | Wonder Room | 보류 | - | 도구/스탯/양쪽 방어 상태를 전역으로 뒤집는 효과라 단발 계산기 상태 모델 밖 |
-| 필드/상태 보정 | Protect 처리 | 지원 감지 | mechanics | field-mechanics.json에서 처리 |
+| 필드/상태 보정 | Protect 처리 | 지원 근거 없음 | - | field-mechanics.json에서 처리 |
 | 필드/상태 보정 | 스크린 보정 | 지원 감지 | mechanics | field-mechanics.json에서 처리 |
 | 필드/상태 보정 | 지형 BP 보정 | 지원 감지 | mechanics | field-mechanics.json에서 처리 |
 | 필드/상태 보정 | 날씨 대미지 보정 | 지원 감지 | mechanics | field-mechanics.json에서 처리 |

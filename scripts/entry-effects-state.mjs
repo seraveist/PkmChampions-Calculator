@@ -29,6 +29,9 @@ function makeElement(id) {
     querySelectorAll() { return []; },
     closest() { return null; },
     insertAdjacentHTML() {},
+    setAttribute(name, value) { this[name] = value; },
+    getAttribute(name) { return this[name]; },
+    removeAttribute(name) { delete this[name]; },
   };
 }
 
@@ -76,6 +79,7 @@ function loadUiApi() {
         effectiveTypes,
         makeCalcState,
         setSideHpPct,
+        setSideDamageBlockActive,
         maxFallenAllies,
         clampFallenAllies,
         normalizeBattleConditionState,
@@ -178,14 +182,16 @@ resetScenario();
 state.def.pokemonIdx = 'mimikyu';
 state.def.ability = 'disguise';
 state.def.hpPct = 1;
-state.def.damageBlockActive = false;
+api.setSideDamageBlockActive(state.def, false);
 calc = api.refresh();
 let mimikyuHp = api.calcStats(calc.def).hp;
 let expectedDisguiseConsumedHp = mimikyuHp - Math.floor(mimikyuHp / 8);
+assertEqual(Math.floor(mimikyuHp * state.def.hpPct), expectedDisguiseConsumedHp, 'disguise off updates source hp');
 assertEqual(Math.floor(mimikyuHp * calc.def.hpPct), expectedDisguiseConsumedHp, 'disguise off derives consumed hp');
 assertEqual(calc.def.fullHP, false, 'disguise off derives not full hp');
-state.def.damageBlockActive = true;
+api.setSideDamageBlockActive(state.def, true);
 calc = api.refresh();
+assertEqual(state.def.hpPct, 1, 'disguise on updates source hp pct');
 assertEqual(calc.def.hpPct, 1, 'disguise on keeps source hp pct');
 assertEqual(calc.def.fullHP, true, 'disguise on keeps full hp flag');
 

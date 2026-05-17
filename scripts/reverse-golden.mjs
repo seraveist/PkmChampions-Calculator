@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
@@ -144,7 +144,6 @@ function configurePrimarinaArchaludon(api, observedMyHp, options = {}) {
     defReflect: false,
     defLightScreen: false,
     gameType: 'Singles',
-    isTrickRoom: false,
     isGravity: false,
     ruinSword: false,
     ruinTablet: false,
@@ -153,7 +152,6 @@ function configurePrimarinaArchaludon(api, observedMyHp, options = {}) {
     defStealthRock: false,
     defSpikesLayers: 0,
     atkHelpingHand: false,
-    defProtect: false,
   };
   api.revCalcState.itemCandidates = options.itemCandidates || [''];
   api.revCalcState.results = null;
@@ -190,7 +188,6 @@ function configureArchaludonPrimarina(api, observedMyHp, options = {}) {
     defReflect: false,
     defLightScreen: false,
     gameType: 'Singles',
-    isTrickRoom: false,
     isGravity: false,
     ruinSword: false,
     ruinTablet: false,
@@ -199,7 +196,6 @@ function configureArchaludonPrimarina(api, observedMyHp, options = {}) {
     defStealthRock: false,
     defSpikesLayers: 0,
     atkHelpingHand: false,
-    defProtect: false,
   };
   api.revCalcState.itemCandidates = options.itemCandidates || DEFAULT_RC_ITEM_CANDIDATES;
   api.revCalcState.results = null;
@@ -231,10 +227,10 @@ function configureMegaKangaskhanAzumarill(api) {
   api.revCalcState.field = {
     weather: 'none', terrain: 'none', isCritical: false,
     defReflect: false, defLightScreen: false, gameType: 'Singles',
-    isTrickRoom: false, isGravity: false,
+    isGravity: false,
     ruinSword: false, ruinTablet: false, ruinBeads: false, ruinVessel: false,
     defStealthRock: false, defSpikesLayers: 0,
-    atkHelpingHand: false, defProtect: false,
+    atkHelpingHand: false,
   };
   api.revCalcState.observedFields = {
     dealt: { defReflect: false, defLightScreen: false, isCritical: false },
@@ -268,16 +264,18 @@ for (const id of ['page-revcalc', 'rc-my-body', 'rc-opp-body', 'rc-input-body', 
   assertIncludes(template, id, `Reverse template includes #${id}`);
 }
 
-const reverseCss = readFileSync(path.join(ROOT, 'src', 'styles', '02-pages.css'), 'utf8');
+const reverseCss = readdirSync(path.join(ROOT, 'src', 'styles'))
+  .filter(file => file.endsWith('.css'))
+  .sort()
+  .map(file => readFileSync(path.join(ROOT, 'src', 'styles', file), 'utf8'))
+  .join('\n');
 for (const className of [
   '.rc-grid',
   '.rc-input-grid',
   '.rc-input-block',
   '.rc-item-grid',
   '.rc-analyze-btn',
-  '.rc-results-summary',
   '.rc-result-row',
-  '.rc-result-action',
   '.rc-briefing',
   '.rc-followup-grid',
   '.rc-followup-chip',
@@ -288,6 +286,7 @@ for (const className of [
 }
 
 const reverseSource = readViewSource(ROOT);
+const reverseWithSharedUiSource = `${reverseSource}\n${readCalcUiSource(ROOT)}`;
 assertNotIncludes(reverseSource, 'observedMyPct', 'Reverse source no longer uses percent name for my raw HP input');
 assertNotIncludes(reverseSource, 'RC_DEF_NATURES', 'Reverse source removed stale defensive-only nature list');
 assertNotIncludes(reverseSource, 'RC_ATK_NATURES', 'Reverse source removed stale offensive-only nature list');
@@ -296,6 +295,8 @@ assertIncludes(reverseSource, 'rcAnalyzeMyFollowupMove', 'Reverse source calcula
 assertIncludes(reverseSource, 'rcAnalyzeOpponentFollowupMove', 'Reverse source calculates selected opponent follow-up damage');
 assertIncludes(reverseSource, 'statusMove', 'Reverse source represents predicted status moves as no-damage cases');
 assertIncludes(reverseSource, 'data-rc-move-picker', 'Reverse source renders move inputs as searchable comboboxes');
+assertIncludes(reverseWithSharedUiSource, 'ArrowDown', 'Reverse custom comboboxes support keyboard navigation');
+assertIncludes(reverseWithSharedUiSource, 'aria-activedescendant', 'Reverse custom comboboxes expose active option state');
 assertIncludes(reverseSource, 'rcFilterMovePool', 'Reverse move combobox filters options from the typed query');
 assertIncludes(reverseSource, 'rcBestMoveForTypedName', 'Reverse move combobox resolves typed move names before falling back to the first option');
 assertIncludes(reverseSource, 'selectingMoveOption', 'Reverse move combobox preserves option clicks against delayed blur cleanup');
@@ -303,7 +304,7 @@ assertIncludes(reverseSource, 'rcObservedMyMoveIds', 'Reverse source limits obse
 assertIncludes(reverseSource, 'openResultIndexes', 'Reverse source tracks individually expanded result cards');
 assertIncludes(reverseSource, 'data-rc-toggle-result', 'Reverse result cards toggle open state on click');
 assertIncludes(reverseSource, 'rc-result-expanded-body', 'Reverse expanded cards use a three-column detail body');
-assertIncludes(reverseSource, '상대 다음 예상 기술', 'Reverse expanded cards label the opponent prediction column');
+assertIncludes(reverseSource, '상대 다음 기술', 'Reverse expanded cards label the opponent prediction column');
 assertIncludes(reverseSource, 'nextMyRanks', 'Reverse source stores next-action own rank controls');
 assertIncludes(reverseSource, 'nextOppRanks', 'Reverse source stores next-action opponent rank controls');
 assertIncludes(reverseSource, 'abilityIds', 'Reverse source groups all possible damage-relevant abilities for display');
@@ -362,23 +363,23 @@ assertOk(rankedResult.results.length <= 5, 'Reverse results are limited to five 
 const rankedHtml = reverseRenderedHtml();
 assertIncludes(rankedHtml, '관측 투자 범위', 'Reverse briefing explains observed investment ranges');
 assertIncludes(rankedHtml, '완성 66', 'Reverse rows show full 66 point completion assumption');
-assertNotIncludes(rankedHtml, '내 다음 기술 대미지', 'Reverse rows start collapsed without follow-up damage section');
+assertNotIncludes(rankedHtml, '내 기술들</span>', 'Reverse rows start collapsed without follow-up damage section');
 assertNotIncludes(rankedHtml, 'data-rc-move-picker="predictedOppMove"', 'Reverse rows start collapsed without predicted move selector');
 assertIncludes(rankedHtml, 'rc-next-rank-panel', 'Reverse rows expose next-action opponent rank controls');
 assertIncludes(rankedHtml, '내 랭크', 'Reverse next-action panel exposes own ranks');
 assertIncludes(rankedHtml, 'rc-result-nature-badge', 'Reverse rows render nature as a badge');
 api.revCalcState.openResultIndexes = [0, 1];
 const expandedHtml = reverseRenderedHtml();
-assertIncludes(expandedHtml, '내 다음 기술 대미지', 'Reverse expanded rows show follow-up damage section');
+assertIncludes(expandedHtml, '내 기술들</span>', 'Reverse expanded rows show follow-up damage section');
 assertIncludes(expandedHtml, 'rc-followup-chip', 'Reverse expanded rows render follow-up damage chips');
 assertIncludes(expandedHtml, 'rc-followup-damage', 'Reverse expanded rows color follow-up damage predictions');
 assertIncludes(expandedHtml, 'data-rc-move-picker="predictedOppMove"', 'Reverse expanded row renders predicted move as a compact combobox');
-assertIncludes(expandedHtml, '상대 예상 정보', 'Reverse expanded row labels the opponent form information column');
-assertIncludes(expandedHtml, '상대 다음 예상 기술', 'Reverse expanded row labels the opponent next-move column');
+assertIncludes(expandedHtml, '예상 정보', 'Reverse expanded row labels the opponent form information column');
+assertIncludes(expandedHtml, '상대 다음 기술', 'Reverse expanded row labels the opponent next-move column');
 assertIncludes(expandedHtml, 'rc-form-result open', 'Reverse can keep multiple result cards open');
 assertNotIncludes(rankedHtml, 'class="rc-results-summary"', 'Reverse rendered results omit the old mode summary panel');
 assertNotIncludes(rankedHtml, 'rc-result-stars', 'Reverse rendered results omit internal match score column');
-assertIncludes(expandedHtml, '상대 다음 예상 기술', 'Reverse expanded row renders opponent prediction selector');
+assertIncludes(expandedHtml, '상대 다음 기술', 'Reverse expanded row renders opponent prediction selector');
 assertNotIncludes(rankedHtml, '추가 관측', 'Reverse briefing omits the old extra-observation wording');
 assertNotIncludes(rankedHtml, '남은 포인트는 미관측 스탯으로 66까지 배분됩니다', 'Reverse briefing omits the old leftover-budget sentence');
 

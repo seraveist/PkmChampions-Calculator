@@ -9,7 +9,6 @@
    ════════════════════════════════════════════════════════════ */
 renderSide('atk');
 renderSide('def');
-updateFieldSummary();
 triggerCalc();
 renderTypeFilter();
 renderDexContent('');
@@ -19,3 +18,4 @@ renderMatchupCoverageInputs();
 renderMatchupTable();
 renderFineTuneAll();
 renderRevCalcAll();
+initPartyPresets();

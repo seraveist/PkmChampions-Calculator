@@ -120,12 +120,10 @@ function field(overrides = {}) {
     terrain: 'none',
     gameType: 'Singles',
     isCritical: false,
-    isTrickRoom: false,
     isGravity: false,
     defReflect: false,
     defLightScreen: false,
     atkHelpingHand: false,
-    defProtect: false,
     ruinSword: false,
     ruinTablet: false,
     ruinBeads: false,
@@ -577,25 +575,6 @@ const cases = [
       damages: [102, 102, 103, 105, 106, 108, 108, 109, 111, 112, 114, 114, 115, 117, 118, 120],
       minPct: 54.5,
       maxPct: 64.2,
-      effectiveness: 2,
-      moveType: 'Fire',
-      category: 'Physical',
-      bp: 144,
-      atk: 183,
-      def: 148,
-      defHP: 187,
-    },
-  },
-  {
-    name: 'protect blocks damage through field mechanics data',
-    move: 'flareblitz',
-    atk: atkIncineroar,
-    def: defVenusaur,
-    field: field({ defProtect: true }),
-    expected: {
-      damages: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      minPct: 0,
-      maxPct: 0,
       effectiveness: 2,
       moveType: 'Fire',
       category: 'Physical',
@@ -1615,15 +1594,6 @@ if (api.RULES.teraDisabled !== true) {
   process.exitCode = 1;
 }
 
-assertDeepEqual(
-  api.RULES.fieldMechanics?.protect,
-  {
-    field: 'defProtect',
-    blockedLabel: '방어/막아내기로 차단',
-    bypassLabel: '방어 관통',
-  },
-  'field mechanics protect data is bundled',
-);
 assertDeepEqual(
   api.RULES.fieldMechanics?.bpMods?.map(rule => rule.label),
   ['일렉트릭필드×1.3', '그래스필드×1.3', '사이코필드×1.3', '미스트필드 드래곤×0.5', '그래스필드 지진×0.5', '도우미×1.5'],

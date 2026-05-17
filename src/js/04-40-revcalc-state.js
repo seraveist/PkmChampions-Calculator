@@ -3,10 +3,10 @@ function rcDefaultField() {
   return {
     weather: 'none', terrain: 'none', isCritical: false,
     defReflect: false, defLightScreen: false, gameType: 'Singles',
-    isTrickRoom: false, isGravity: false,
+    isGravity: false,
     ruinSword: false, ruinTablet: false, ruinBeads: false, ruinVessel: false,
     defStealthRock: false, defSpikesLayers: 0,
-    atkHelpingHand: false, defProtect: false,
+    atkHelpingHand: false,
   };
 }
 
@@ -27,11 +27,11 @@ const revCalcState = {
   predictedOppMove: '',
   selectedResultIndex: 0,
   openResultIndexes: [],
+  nextRankOpen: false,
   nextMyRanks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
   nextOppRanks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
   observedMyHp: '',
   turnOrder: 'unknown',
-  mySpeedOverride: '',
   field: rcDefaultField(),
   observedFields: {
     dealt: { defReflect: false, defLightScreen: false, isCritical: false },
@@ -39,6 +39,7 @@ const revCalcState = {
   },
   // 도구 후보 — 기본은 빈 도구, 구애스카프, type-boost 도구. 사용자가 추가/제거 가능.
   itemCandidates: [],
+  itemCandidatesOpen: false,
   results: null,
   analyzing: false,
 };
@@ -51,7 +52,6 @@ function rcAnalysisField() {
     isCritical: !!revCalcState.field.isCritical,
     defReflect: !!revCalcState.field.defReflect,
     defLightScreen: !!revCalcState.field.defLightScreen,
-    isTrickRoom: !!revCalcState.field.isTrickRoom,
   };
 }
 
@@ -62,7 +62,6 @@ function rcActiveFieldSummary(field) {
   if (field.isCritical) parts.push('critical');
   if (field.defReflect) parts.push('reflect');
   if (field.defLightScreen) parts.push('lightscreen');
-  if (field.isTrickRoom) parts.push('trickroom');
   return parts.join(',') || 'none';
 }
 
@@ -90,6 +89,10 @@ function rcMoveSearchTokens(m) {
     .filter(Boolean);
 }
 
+function rcMoveNoneOption() {
+  return { id: '', name: 'None', koName: '없음', cat: '', type: '', bp: '' };
+}
+
 function rcMoveMatchesQuery(m, query, mode = 'contains') {
   const raw = String(query || '').trim().toLowerCase();
   if (!raw) return true;
@@ -114,6 +117,7 @@ function rcFilterMovePool(pool, query) {
 function rcFindMoveByTypedName(raw, pool) {
   const text = String(raw || '').trim();
   if (!text) return '';
+  if (toId(text) === 'none' || text === '없음') return '';
   const id = toId(text);
   const lowerText = text.toLowerCase();
   const exact = pool.find(m => {
@@ -166,6 +170,7 @@ function rcLearnableMovesForPokemon(p, includeStatus = false) {
 }
 
 function rcMoveOptionLabel(m) {
+  if (!m?.id) return m?.koName || '없음';
   return mvName(m);
 }
 
@@ -389,8 +394,6 @@ function rcSpeedWithMods(baseSpeed, rank, item, status) {
 }
 
 function rcMySpeedValue() {
-  const manual = parseInt(revCalcState.mySpeedOverride, 10);
-  if (Number.isFinite(manual) && manual > 0) return manual;
   const stats = calcStats(revCalcState.my);
   return rcSpeedWithMods(
     stats.spe,
@@ -411,7 +414,8 @@ function rcOpponentSpeedValue(oppP, nature, item, speEv) {
 }
 
 function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField()) {
-  const order = revCalcState.turnOrder || 'unknown';
+  const rawOrder = revCalcState.turnOrder || 'unknown';
+  const order = rawOrder === 'opp-first' || rawOrder === 'my-first' ? rawOrder : 'unknown';
   const mySpeed = rcMySpeedValue();
   if (order === 'unknown') {
     return {
@@ -431,11 +435,9 @@ function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField()) {
     const oppSpeed = rcOpponentSpeedValue(oppP, nature, item, speEv);
     let matches = false;
     if (order === 'opp-first') {
-      matches = field.isTrickRoom ? oppSpeed < mySpeed : oppSpeed > mySpeed;
+      matches = oppSpeed > mySpeed;
     } else if (order === 'my-first') {
-      matches = field.isTrickRoom ? oppSpeed > mySpeed : oppSpeed < mySpeed;
-    } else if (order === 'speed-tie') {
-      matches = oppSpeed === mySpeed;
+      matches = oppSpeed < mySpeed;
     }
     if (matches) ok.push({ speEv, oppSpeed });
   }
@@ -456,4 +458,3 @@ function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField()) {
     label: item === 'choicescarf' ? '구애스카프 속도 조건 충족' : '속도 조건 충족',
   };
 }
-

@@ -23,6 +23,7 @@ const CHAMP = path.join(DATA, 'mods', 'champions');
 const OVERRIDES = path.join(DATA, 'overrides');
 
 const UNOFFICIAL_NONSTANDARD = new Set(['CAP', 'Custom']);
+const ROTOM_LEARNSET_FORM_IDS = new Set(['rotomheat', 'rotomwash', 'rotomfrost', 'rotomfan', 'rotommow']);
 
 function readBase(file, exportName) {
   const mod = loadTsModule(path.join(DATA, file));
@@ -203,10 +204,18 @@ async function build() {
     if (!p) continue;
     const fd = mergedFormats[id] || {};
     const inheritedFd = battleOnlyBaseById.has(id) ? (mergedFormats[battleOnlyBaseById.get(id)] || {}) : {};
-    const ls = mergedLearnsets[id]?.learnset || mergedLearnsets[toId(p.baseSpecies)]?.learnset;
+    const battleOnlyLearnsetId = battleOnlyBaseIds(p)[0];
+    const ownLearnset = mergedLearnsets[id]?.learnset;
+    const fallbackLearnset = mergedLearnsets[battleOnlyLearnsetId]?.learnset
+      || mergedLearnsets[toId(p.baseSpecies)]?.learnset;
+    const rotomBaseLearnset = ROTOM_LEARNSET_FORM_IDS.has(id) ? mergedLearnsets.rotom?.learnset : undefined;
+    const ls = rotomBaseLearnset
+      ? { ...rotomBaseLearnset, ...(ownLearnset || {}) }
+      : (ownLearnset || fallbackLearnset);
     const learnset = ls ? Object.keys(ls).filter(moveId => isAvailable(mergedMoves[moveId], 'moves', moveId, dataFilters)) : undefined;
     finalPokemon.push({
       id,
+      num: p.num,
       name: p.name,
       koName: koPokemon[id] || p.name,
       base: p.baseSpecies,

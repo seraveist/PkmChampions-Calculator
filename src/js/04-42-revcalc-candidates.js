@@ -206,71 +206,34 @@ function rcCombineReverseCandidates(defByNature, atkByNature, oppP, oppMove, fie
   return shaped;
 }
 
-// Stage 1: 내구 검색
-function rcStage1Defense(my, oppP, myMove, observedPct, field, defStat) {
-  const candidates = [];
-  for (const natureId of RC_NATURE_IDS) {
-    for (let hpEv = 0; hpEv <= 32; hpEv++) {
-      for (let defEv = 0; defEv <= 32; defEv++) {
-        if (hpEv + defEv > 64) continue;
-        const oppState = rcBuildOpponentState(oppP, {
-          evs: { hp: hpEv, [defStat]: defEv },
-          nature: natureId,
-        });
-        const result = calculateDamage(my, oppState, myMove, field);
-        if (!result || !result.damages) continue;
-        const oppHp = calcStats(oppState).hp;
-        const matches = rcMatchingRemainingPct(result.damages, observedPct, oppHp);
-        if (matches > 0) {
-          candidates.push({
-            nature: natureId,
-            hpEv, defEv, defStat,
-            defScore: matches / 16,
-            oppHp,
-            oppDef: calcStats(oppState)[defStat],
-            damages: result.damages,
-          });
-        }
-      }
-    }
+function rcNatureMapFromCandidates(candidates, natureIds = RC_NATURE_IDS) {
+  const byNature = new Map(natureIds.map(nature => [nature, []]));
+  for (const candidate of candidates || []) {
+    const nature = candidate.nature || 'hardy';
+    if (!byNature.has(nature)) byNature.set(nature, []);
+    byNature.get(nature).push(candidate);
   }
-  return candidates;
+  return byNature;
 }
 
-// Stage 3: 공격 검색 (Stage 1 candidates 와 함께 정제)
-function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedPct, field, atkStat) {
-  const refined = [];
-  const myHp = rcCurrentHpValue(my);
+function rcStage1Defense(my, oppP, myMove, observedPct, field, defStat) {
+  const defByNature = rcBuildDefenseMatches(my, oppP, myMove, observedPct, field, defStat, RC_NATURE_IDS);
+  return [...defByNature.values()].flat();
+}
 
-  for (const c of defCandidates) {
-    const remainingEv = 66 - c.hpEv - c.defEv;
-
-    for (let atkEv = 0; atkEv <= Math.min(32, remainingEv); atkEv++) {
-      for (const item of rcRelevantOffenseItems(oppMove)) {
-        const oppState = rcBuildOpponentState(oppP, {
-          evs: { hp: c.hpEv, [c.defStat]: c.defEv, [atkStat]: atkEv },
-          nature: c.nature,
-          item,
-        });
-        const result = calculateDamage(oppState, my, oppMove, field);
-        if (!result || !result.damages) continue;
-        const matches = rcMatchingRemainingHp(result.damages, observedPct, myHp);
-        if (matches > 0) {
-          const atkScore = matches / 16;
-          const totalScore = c.defScore * atkScore;
-          const cand = {
-            ...c,
-            atkEv, atkStat, item: item || '',
-            atkScore, totalScore,
-            oppAtk: calcStats(oppState)[atkStat],
-            myDamages: result.damages,
-          };
-          refined.push(cand);
-        }
-      }
-    }
-  }
-  return refined;
+function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedHp, field, atkStat) {
+  const natureIds = rcNatureCandidatesForMove(oppMove);
+  const defByNature = rcNatureMapFromCandidates(defCandidates, natureIds);
+  const atkByNature = rcBuildOffenseMatches(my, oppP, oppMove, observedHp, field, atkStat, natureIds);
+  const debug = {
+    speedRemoved: 0,
+    budgetRemoved: 0,
+    scarfSkipped: 0,
+    statConflictRemoved: 0,
+    abilityConflictRemoved: 0,
+    presetRemoved: 0,
+  };
+  return rcCombineReverseCandidates(defByNature, atkByNature, oppP, oppMove, field, revCalcState.turnOrder !== 'unknown', debug);
 }
 
 // 분석 메인
@@ -406,4 +369,3 @@ function rcAnalyze() {
 }
 
 // === UI 렌더링 ===
-
