@@ -110,8 +110,11 @@ function coverageThreatGrade(has4x, quadCovered, alt2Count) {
 function renderMatchupModeTabs() {
   const tabs = document.getElementById('matchupModeTabs');
   if (!tabs) return;
-  tabs.querySelectorAll('.matchup-mode-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.matchupMode === matchupMode);
+  const buttons = tabs.querySelectorAll('.matchup-mode-btn');
+  const activeButton = [...buttons].find(btn => btn.dataset.matchupMode === matchupMode) || null;
+  syncUiTabs(buttons, activeButton);
+  bindUiTabKeyboard(tabs, { selector: '.matchup-mode-btn' });
+  buttons.forEach(btn => {
     btn.onclick = () => {
       matchupMode = btn.dataset.matchupMode || 'defense';
       renderMatchupModeTabs();
@@ -141,7 +144,7 @@ function renderMatchupSlots() {
   container.innerHTML = matchupSlots.map((id, i) => {
     const p = id ? PokemonById[id] : null;
     return `
-      <div class="matchup-slot ${p ? 'filled' : ''}" data-slot="${i}">
+      <div class="matchup-slot ui-control-frame ${p ? 'filled' : ''}" data-slot="${i}">
         <div class="matchup-slot-num">${i + 1}</div>
         <div class="combobox">
           <input type="text" class="cb-input matchup-cb-input" data-slot="${i}"
@@ -151,7 +154,7 @@ function renderMatchupSlots() {
         <div class="matchup-slot-types">
           ${p ? p.types.map(t => `<span class="type-pill matchup-type-pill t-${t}">${TYPE_KO[t]}</span>`).join('') : ''}
         </div>
-        ${p ? `<button class="matchup-slot-clear" data-slot="${i}" title="비우기">✕</button>` : ''}
+        ${p ? `<button type="button" class="matchup-slot-clear" data-slot="${i}" title="비우기">✕</button>` : ''}
       </div>
     `;
   }).join('');
@@ -280,7 +283,7 @@ function renderMatchupCoverageInputs() {
     const rows = p ? matchupCoverageMoves[slot].map((moveId, moveIndex) => {
       const m = moveId ? MoveById[moveId] : null;
       return `
-        <div class="matchup-move-field">
+        <div class="matchup-move-field ui-control-row">
           <span class="matchup-move-num">${moveIndex + 1}</span>
           <div class="combobox matchup-move-combobox">
             <input type="text" class="cb-input matchup-move-input" data-slot="${slot}" data-move-index="${moveIndex}"
@@ -290,12 +293,12 @@ function renderMatchupCoverageInputs() {
           <span class="matchup-move-type-slot">
             ${m ? `<span class="type-pill matchup-type-pill t-${m.type}">${TYPE_KO[m.type] || m.type}</span>` : ''}
           </span>
-          <button class="matchup-move-clear" data-slot="${slot}" data-move-index="${moveIndex}" title="비우기" ${m ? '' : 'disabled'}>✕</button>
+          <button type="button" class="matchup-move-clear" data-slot="${slot}" data-move-index="${moveIndex}" title="비우기" ${m ? '' : 'disabled'}>✕</button>
         </div>
       `;
     }).join('') : '';
     return `
-      <div class="matchup-coverage-card ${p ? 'filled' : ''}">
+      <div class="matchup-coverage-card ui-control-frame ${p ? 'filled' : ''}">
         <div class="matchup-coverage-head">
           <span>${escapeHTML(title)}</span>
           ${p ? p.types.map(t => `<span class="type-pill matchup-type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('') : ''}

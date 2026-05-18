@@ -12,9 +12,11 @@
 
 ## Latest Focus
 
-이번 분기의 중심은 UI/UX 공통화와 파티 프리셋 기능 추가다.
+이번 분기의 중심은 UI/UX 공통화, 파티 프리셋 기능 추가, HTML/CSS 구조 리모델링, 공개 페이지 기본 품질 정리다.
 
 대미지 계산기, 도감, 상성표, 세부조정, 형태 역계산의 1차 UI 정리를 마친 뒤, 각 메뉴가 서로 다른 입력칸/패널/드롭다운 규격을 쓰던 부분을 공통 스타일로 끌어올렸다. 이후 공통 네비게이션에 `파티 프리셋` 모달을 추가하고, 저장된 파티를 각 메뉴로 불러오는 흐름까지 연결했다.
+
+그 다음 단계로 `src/calc-template.html`과 주요 JS renderer의 HTML 계층을 리모델링했다. 기존 화면 요소와 이벤트 hook은 유지하면서 `page-frame`, `ui-frame-*`, `ui-control-*`, `ui-action-row` 기준의 구조 어휘를 추가했고, 탭/패널 ARIA 상태와 button type 규칙을 정리했다. 공개 배포를 위한 메타 태그, 단일 main landmark, skip link, 탭 키보드 동작, hash 기반 페이지 진입도 추가했다.
 
 ## Major Changes
 
@@ -31,6 +33,27 @@
   - 도감 목록, 상세 페이지, 상세 모달, 필터, 탭 스타일을 담당한다.
 - `src/styles/07-tools-redesign.css`
   - 상성표, 세부조정, 형태 역계산의 도구형 화면 스타일을 담당한다.
+
+### HTML structure remodel
+
+- `src/calc-template.html`
+  - 페이지 DOM 순서를 상단 네비게이션 순서(`calc`, `revcalc`, `finetune`, `matchup`, `dex`)에 맞췄다.
+  - 앱 본문은 단일 `main#appContent.app-content` landmark를 기준으로 하고, 각 페이지는 `section.page.page-frame` tab panel을 사용한다.
+  - 도감 테이블 markup을 긴 한 줄 구조에서 읽을 수 있는 table/head/body 구조로 펼쳤다.
+  - 메인 nav, 도감 tab, 상성표 mode tab에 `role`, `aria-controls`, `aria-selected`, `aria-hidden` 상태를 정리했다.
+- `src/js/01-20-html-structure.js`
+  - `uiButton`, `syncUiTabs`, `syncUiPanels`, `bindUiTabKeyboard`, `bindMainNavigation` 등 구조 helper를 담당한다.
+  - 반복 button markup은 가능한 한 이 helper를 사용한다.
+  - 메인 페이지 hash 진입은 `#calc`, `#revcalc`, `#finetune`, `#matchup`, `#dex`를 지원한다.
+- 주요 renderer
+  - `src/js/03-30-calc-side-render.js`
+  - `src/js/04-10-dex.js`
+  - `src/js/04-20-matchup.js`
+  - `src/js/04-30-finetune.js`
+  - `src/js/04-43-revcalc-render.js`
+  - 위 파일들은 기존 ID/data hook을 유지한 채 `ui-control-frame`, `ui-control-row`, `ui-control-grid`, `ui-stat-grid`, `ui-metric-row` 구조 class를 추가했다.
+- `docs/html-structure-remodel-2026-05-17.md`
+  - HTML 리모델링의 범위, 구조 어휘, button contract, 검증 방법을 기록한다.
 
 ### Party preset
 
@@ -120,6 +143,7 @@ npm.cmd test
 
 - source check
 - build
+- html structure
 - data validate
 - dex smoke
 - damage golden
@@ -135,6 +159,7 @@ npm.cmd test
 - 파티 프리셋 JSON/Showdown helper
 - 각 메뉴의 파티 불러오기 target
 - 파티/슬롯 접힘 CSS
+- HTML 구조 class와 button type contract
 
 ## Current Status
 
@@ -147,6 +172,38 @@ npm.cmd test
 - 형태 역계산: 후보 압축, 다음 행동 판단, 결과 카드 1차 완료.
 - 파티 프리셋: 저장/불러오기/JSON/Showdown text/접힘 UI 1차 완료.
 
+## CSS Structure Remodel
+
+The CSS remodel now follows the new HTML structure vocabulary.
+
+- `src/styles/04-ui-foundation.css` owns `page-frame`, `ui-frame-*`, `ui-control-*`, `ui-action-row`, `ui-stat-grid`, and `ui-metric-row`.
+- Calculator, dex, matchup, fine-tune, and reverse calculator styles now target `ui-frame-head/body` for frame structure instead of legacy `panel-head/body` selectors.
+- Repeated subframes in tool pages share a central structural selector for border/radius ownership.
+- `scripts/css-structure-check.mjs` verifies CSS ownership and is included in `npm.cmd test`.
+- Full details live in `docs/css-structure-remodel-2026-05-17.md`.
+
+## Hosting Structure Decision
+
+The app will keep the single generated HTML static SPA structure for now.
+
+- Hosted artifact remains `pokemon-champions-calculator-v3.html`.
+- Page-specific HTML files are not planned in this pass.
+- Cross-tool workflows continue to share one runtime and one data bundle.
+- `scripts/spa-hosting-check.mjs` verifies the generated file is suitable for static hosting.
+- `npm.cmd test` now includes `npm.cmd run spa:hosting`.
+- `npm.cmd run build:public` rebuilds the app and prepares `dist/index.html` for static hosts.
+- Full details live in `docs/single-html-spa-hosting-2026-05-17.md`.
+
+## Public Readiness
+
+- `src/calc-template.html` now has publishable page metadata, Open Graph/Twitter summary metadata, theme color, robots policy, and an inline SVG favicon.
+- `main#appContent` is the only main landmark; page panels are `section.page.page-frame`.
+- Main nav, dex tabs, and matchup mode tabs support arrow-key navigation through `bindUiTabKeyboard`.
+- Main pages can be opened by hash: `#calc`, `#revcalc`, `#finetune`, `#matchup`, `#dex`.
+- Party preset modal includes a browser-local storage backup note pointing users to JSON export before device/browser resets.
+- `scripts/public-readiness-check.mjs` verifies the public-page contract and is included in `npm.cmd test`.
+- Full details live in `docs/public-readiness-2026-05-17.md`.
+
 ## Recommended Next Work
 
 1. 파티 프리셋을 실제 전술 샘플 2~3개로 입력해 보고, 각 메뉴 불러오기 UX를 손으로 점검한다.
@@ -156,6 +213,6 @@ npm.cmd test
    - 타입 배지 위치
    - 섹션 구분자
    - 모달 header/footer
-4. 공개 웹앱 배포 전에는 localStorage 백업 안내와 JSON export 위치를 UI에 짧게 안내할지 결정한다.
-5. 현재 생성 HTML이 약 1.3MB이므로, 배포 단계에서 data chunking 또는 gzip/brotli 기준을 확인한다.
-
+4. 공개 웹앱 배포 전에는 실제 배포 URL이 정해진 뒤 canonical/OG URL을 추가할지 결정한다.
+5. CSS 정리는 `docs/html-structure-remodel-2026-05-17.md`의 `ui-frame-*`, `ui-control-*`, `ui-action-row` 기준으로 진행한다.
+6. 현재 생성 HTML이 약 1.3MB이므로, 배포 단계에서 data chunking 또는 gzip/brotli 기준을 확인한다.

@@ -184,6 +184,9 @@ function makeCombobox(sideKey, type) {
       if (type === 'status') {
         return calcMatches(s, d.id, d.label, d.sub);
       }
+      if (type === 'form') {
+        return calcMatches(s, d.id, d.label, d.sub, d.raw?.name, d.raw?.koName, d.raw?.forme, d.raw?.baseForme);
+      }
       if (CALC_FIELD_OPTION_SETS[type]) {
         return calcMatches(s, d.id, d.label, d.sub);
       }
@@ -198,6 +201,16 @@ function makeCombobox(sideKey, type) {
 
 let calcComboboxUid = 0;
 let calcSharedComboboxUid = 0;
+
+function closeSiblingComboboxOptions(optsEl, control) {
+  if (typeof document?.querySelectorAll !== 'function') return;
+  document.querySelectorAll('.combobox-options.open').forEach(el => {
+    if (el !== optsEl) el.classList.remove('open');
+  });
+  document.querySelectorAll('.cb-input[aria-expanded="true"]').forEach(el => {
+    if (el !== control) el.setAttribute('aria-expanded', 'false');
+  });
+}
 
 function calcComboboxOptionMatchesExactText(option, query) {
   const needle = calcSearchText(query).trim();
@@ -327,6 +340,10 @@ function wireSharedComboboxKeyboard(control, optsEl, { showOptions, onSelect, ge
     const index = optionEls().indexOf(option);
     if (index >= 0 && index !== activeIndex) setActive(index, false);
   });
+  document.addEventListener('mousedown', e => {
+    if (control.contains(e.target) || optsEl.contains(e.target)) return;
+    close();
+  });
   return { open, close, select, commitTyped, commitExact: commitTyped, commitActive };
 }
 
@@ -336,6 +353,7 @@ function calcComboboxOptionLabel(type, option) {
   if (type === 'move') return mvName(option);
   if (type === 'ability') return abName(option);
   if (type === 'type1' || type === 'type2' || type === 'moveType') return option?.label || TYPE_KO[option?.id] || option?.id || '';
+  if (type === 'form') return option?.label || calcPokemonFormLabel(option?.raw || option);
   if (type === 'nature') return calcNatureLabel(option);
   if (type === 'status') return option?.label || '';
   if (CALC_FIELD_OPTION_SETS[type]) return option?.label || '';
@@ -343,6 +361,7 @@ function calcComboboxOptionLabel(type, option) {
 }
 
 function calcComboboxOptionSub(type, option) {
+  if (type === 'form') return '';
   if (type === 'type1' || type === 'type2' || type === 'moveType') return '';
   if (option?.sub) return option.sub;
   if (option?.label && !option.type && !option.ab && !option.up) return '';
@@ -525,6 +544,7 @@ function calcComboboxCurrentId(input) {
   if (field === 'item') return side.item || '';
   if (field === 'types.0') return sideTypeId(side, 0);
   if (field === 'types.1') return sideTypeId(side, 1);
+  if (field === 'formIdx') return side.pokemonIdx || '';
   if (field.startsWith('moveTypes.')) {
     const idx = parseInt(field.split('.')[1], 10);
     const move = MoveById[side.moves?.[idx]];
@@ -549,6 +569,7 @@ function calcComboboxDisplayLabel(input) {
   if (type === 'ability') return calcAbilityDisplayLabel(sideKey);
   if (type === 'moveType') return id ? (TYPE_KO[id] || id) : '';
   if (type === 'type1' || type === 'type2') return id ? (TYPE_KO[id] || id) : '없음';
+  if (type === 'form') return PokemonById[id] ? calcPokemonFormLabel(PokemonById[id]) : '';
   if (type === 'item') return id && ItemById[id] ? itName(ItemById[id]) : '없음';
   if (type === 'nature') return calcNatureLabel(NATURE_BY_ID[id]);
   if (type === 'status') return calcStatusDisplayLabel(id);
@@ -845,10 +866,15 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
     if (!opt || opt.classList.contains('empty')) return;
     e.preventDefault();
     e.stopPropagation();
+    if (isButtonTrigger && (e.type === 'mousedown' || e.type === 'touchstart')) return;
     selectOption(opt);
   }
 
   optsEl.addEventListener('mousedown', handleOptionSelect);
+  optsEl.addEventListener('click', e => {
+    if (!isButtonTrigger) return;
+    handleOptionSelect(e);
+  });
   optsEl.addEventListener('touchstart', handleOptionSelect, { passive: false });
   optsEl.addEventListener('mouseover', e => {
     const opt = e.target.closest('.tooltip-option[data-tooltip]');

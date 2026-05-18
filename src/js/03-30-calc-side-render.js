@@ -9,7 +9,7 @@ function renderDurabilityStrip(side) {
   const physBulk = Math.round(dStats.hp * dStats.def / 0.411);
   const specBulk = Math.round(dStats.hp * dStats.spd / 0.411);
   return `
-    <div class="durability-grid compact">
+    <div class="durability-grid compact ui-metric-row">
       <div class="durability-card phys">
         <span class="durability-label">\uBB3C\uB9AC \uB0B4\uAD6C</span>
         <span class="durability-value">${physBulk.toLocaleString()}</span>
@@ -24,7 +24,7 @@ function renderDurabilityStrip(side) {
 
 function renderMoveList(sideKey, side) {
   return `
-    <div class="moves-list">
+    <div class="moves-list ui-control-frame">
       <div class="move-list-header" aria-hidden="true">
         <span></span><span></span><span></span><span></span><span>\uACB0\uC815\uB825</span>
       </div>
@@ -74,7 +74,12 @@ function renderSide(sideKey) {
   const manualDamageBlockToggle = renderManualDamageBlockToggle(sideKey, side);
   const natureInfo = NATURE_BY_ID[side.nature] || {};
   const evPresetButtons = ['AS', 'HA', 'HB', 'CS', 'HC', 'HD'].map(preset =>
-    `<button class="ev-preset-btn ${calcEvPresetProgress[sideKey]?.evPreset === preset ? 'active' : ''}" data-action="evPreset" data-side="${sideKey}" data-preset="${preset}">${preset}</button>`
+    uiButton(preset, {
+      class: `ev-preset-btn ${calcEvPresetProgress[sideKey]?.evPreset === preset ? 'active' : ''}`,
+      'data-action': 'evPreset',
+      'data-side': sideKey,
+      'data-preset': preset,
+    })
   ).join('');
   const naturePresets = [
     ['adamant', '\uACE0\uC9D1', '\uACF5\uACA9 \uC0C1\uC2B9 / \uD2B9\uACF5 \uD558\uB77D'],
@@ -87,12 +92,19 @@ function renderSide(sideKey) {
     ['calm', '\uCC28\uBD84', '\uD2B9\uBC29 \uC0C1\uC2B9 / \uACF5\uACA9 \uD558\uB77D'],
   ];
   const naturePresetButtons = naturePresets.map(([id, label, title]) =>
-    `<button class="ev-preset-btn nature-btn ${calcEvPresetProgress[sideKey]?.nature === id ? 'active' : ''}" data-action="naturePreset" data-side="${sideKey}" data-nature="${id}" data-tooltip="${calcComboboxAttr(title)}" aria-label="${calcComboboxAttr(`${label}: ${title}`)}">${label}</button>`
+    uiButton(label, {
+      class: `ev-preset-btn nature-btn ${calcEvPresetProgress[sideKey]?.nature === id ? 'active' : ''}`,
+      'data-action': 'naturePreset',
+      'data-side': sideKey,
+      'data-nature': id,
+      'data-tooltip': title,
+      'aria-label': `${label}: ${title}`,
+    })
   ).join('');
   
   container.innerHTML = `
     <!-- ?ъ폆紐??좏깮 -->
-    <div class="field pokemon-field">
+    <div class="field pokemon-field ui-control-frame">
       <div class="pokemon-field-head ui-field-head">
         <div class="field-label">
           <span>\uD3EC\uCF13\uBAAC \uC120\uD0DD</span>
@@ -107,8 +119,9 @@ function renderSide(sideKey) {
         <input type="text" class="cb-input" value="${escapeHTML(pkName(p))}" data-cb-type="pokemon" data-side="${sideKey}" data-field="pokemonIdx" autocomplete="off" aria-label="${sideKey} pokemon select" aria-expanded="false">
         <div class="combobox-options" role="listbox"></div>
       </div>
-      <div class="pokemon-meta-row ui-field-meta-row">
+      <div class="pokemon-meta-row ui-field-meta-row ui-control-row">
         ${renderTypeControls(sideKey, side)}
+        ${renderFormSwitchControls(sideKey, side)}
         <!-- ?뚮씪?ㅽ깉? 梨뷀뵾?몄뒪 紐⑤뱶?먯꽌 鍮꾪솢?깊솕??-->
       </div>
     </div>
@@ -119,7 +132,7 @@ function renderSide(sideKey) {
 
     <!-- ?뱀꽦/?꾧뎄 + ?깃꺽/HP/?곹깭 -->
     <div class="field">
-      <div class="calc-pair-grid">
+      <div class="calc-pair-grid ui-control-grid">
         <div class="calc-control-cell">
           <span class="calc-control-label">\uD2B9\uC131</span>
           <div class="compound-control ability-toggle-cell">
@@ -166,7 +179,7 @@ function renderSide(sideKey) {
     <div class="section-divider"></div>
 
     <!-- ?ㅽ꺈 (?λ젰?ъ씤??+ ??겕 + ?ㅼ닔移? -->
-    <div class="field ev-field ev-preset-shell" data-ev-preset-side="${sideKey}">
+    <div class="field ev-field ev-preset-shell ui-control-frame" data-ev-preset-side="${sideKey}">
       <div class="ev-field-head">
         <div class="field-label ev-title-label">
           <span>\uB2A5\uB825 \uD3EC\uC778\uD2B8 \u00B7 \uB7AD\uD06C</span>
@@ -178,7 +191,7 @@ function renderSide(sideKey) {
         </div>
       </div>
       <div class="ev-control-layout">
-        <div class="stat-grid">
+        <div class="stat-grid ui-stat-grid">
           <div class="stat-table-head">\uB2A5\uB825</div>
           <div class="stat-table-head">\uC885\uC871\uAC12</div>
           <div class="stat-table-head">\uB178\uB825\uCE58</div>
@@ -197,18 +210,18 @@ function renderSide(sideKey) {
               <div class="stat-name"><span class="stat-name-text">${STAT_LABEL[s]}</span>${natureMark}</div>
               <div class="stat-base">${p.bs[s]}</div>
               <div class="ev-input-group">
-                <button class="ev-quick min ui-stat-button" data-action="evQuick" data-side="${sideKey}" data-stat="${s}" data-val="0" title="set 0">0</button>
+                <button type="button" class="ev-quick min ui-stat-button" data-action="evQuick" data-side="${sideKey}" data-stat="${s}" data-val="0" title="set 0">0</button>
                 <label class="hp-inline-control ev-inline-control ui-inline-number is-plain">
                   <input type="text" class="hp-percent-input ev-input ui-inline-number-input" data-action="ev" data-side="${sideKey}" data-stat="${s}" value="${side.evs[s]}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${STAT_LABEL[s]} EV">
                 </label>
-                <button class="ev-quick max ui-stat-button" data-action="evQuick" data-side="${sideKey}" data-stat="${s}" data-val="32" title="set 32">32</button>
+                <button type="button" class="ev-quick max ui-stat-button" data-action="evQuick" data-side="${sideKey}" data-stat="${s}" data-val="32" title="set 32">32</button>
               </div>
               <div class="stat-final">${stats[s]}</div>
               ${isRankable ? `
                 <div class="stat-rank-btns">
-                  <button class="ui-stat-button" data-action="rank" data-side="${sideKey}" data-stat="${s}" data-dir="-1">-</button>
+                  <button type="button" class="ui-stat-button" data-action="rank" data-side="${sideKey}" data-stat="${s}" data-dir="-1">-</button>
                   <span class="stat-rank-val ui-stat-value ${cls}">${r > 0 ? '+' + r : r}</span>
-                  <button class="ui-stat-button" data-action="rank" data-side="${sideKey}" data-stat="${s}" data-dir="1">+</button>
+                  <button type="button" class="ui-stat-button" data-action="rank" data-side="${sideKey}" data-stat="${s}" data-dir="1">+</button>
                 </div>
               ` : '<div class="stat-rank-empty" aria-hidden="true"></div>'}
             `;
@@ -238,7 +251,7 @@ function renderSide(sideKey) {
     <div class="section-divider"></div>
 
     <!-- 湲곗닠 -->
-    <div class="field move-field">
+    <div class="field move-field ui-control-frame">
       <div class="ev-field-head move-field-head">
         <div class="field-label move-title-label">
           <span>\uAE30\uC220 \uBC30\uCE58</span>
@@ -279,6 +292,8 @@ function wireSide(sideKey) {
           setSideType(side, 0, id);
         } else if (field === 'types.1') {
           setSideType(side, 1, id);
+        } else if (field === 'formIdx') {
+          applyPokemonFormToCalcSide(side, id);
         } else if (field === 'nature') {
           state[side].nature = id || 'hardy';
         } else if (field === 'status') {
@@ -319,6 +334,14 @@ function wireSide(sideKey) {
         return;
       }
       const side = state[el.dataset.side];
+      if (action === 'formSwitch') {
+        const result = applyPokemonFormToCalcSide(el.dataset.side, el.dataset.formId);
+        if (result.changed) {
+          renderSide(el.dataset.side);
+          triggerCalc();
+        }
+        return;
+      }
       if (action === 'hpPct') {
         setSideHpPct(side, el.value);
         renderSide(el.dataset.side);

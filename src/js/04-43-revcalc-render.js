@@ -5,6 +5,13 @@ function renderRevCalcMy() {
   const my = revCalcState.my;
   const p = PokemonById[my.pokemonIdx];
   if (!p) { container.innerHTML = '<div class="empty-state">포켓몬 선택 필요</div>'; return; }
+  const formControl = renderToolFormCombobox({
+    pokemonId: my.pokemonIdx,
+    inputClass: 'rc-cb-input',
+    pickAttr: 'data-rc-pick',
+    pickValue: 'myForm',
+    ariaLabel: '내 포켓몬 폼 선택',
+  });
   const stats = calcStats(my);
   const totalEV = ['hp','atk','def','spa','spd','spe'].reduce((a,s) => a + (my.evs[s]||0), 0);
   const overEV = totalEV > 66;
@@ -25,9 +32,9 @@ function renderRevCalcMy() {
     const rank = my.ranks?.[s] || 0;
     const rankCtrl = s === 'hp' ? '<div class="ft-rank-empty"></div>' : `
       <div class="ft-rank">
-        <button class="ft-rank-btn" data-rc-rank="${s}" data-rc-dir="-1">−</button>
+        <button type="button" class="ft-rank-btn" data-rc-rank="${s}" data-rc-dir="-1">−</button>
         <span class="ft-rank-val ${rank > 0 ? 'pos' : rank < 0 ? 'neg' : ''}">${rank > 0 ? '+' + rank : rank}</span>
-        <button class="ft-rank-btn" data-rc-rank="${s}" data-rc-dir="1">+</button>
+        <button type="button" class="ft-rank-btn" data-rc-rank="${s}" data-rc-dir="1">+</button>
       </div>
     `;
     return `
@@ -35,9 +42,9 @@ function renderRevCalcMy() {
         <div class="ft-stat-name"><span class="ft-stat-label">${STAT_KO[s]}</span>${natureMark}</div>
         <div class="ft-stat-base">${p.bs[s]}</div>
         <div class="ft-stat-ev">
-          <button class="ft-ev-quick" data-rc-evset="${s}" data-rc-evval="0">0</button>
+          <button type="button" class="ft-ev-quick" data-rc-evset="${s}" data-rc-evval="0">0</button>
           <input type="number" class="ft-ev-input" data-rc-ev="${s}" value="${ev}" min="0" max="32">
-          <button class="ft-ev-quick" data-rc-evset="${s}" data-rc-evval="32">32</button>
+          <button type="button" class="ft-ev-quick" data-rc-evset="${s}" data-rc-evval="32">32</button>
         </div>
         <div class="ft-stat-final">${final}</div>
         ${rankCtrl}
@@ -46,13 +53,16 @@ function renderRevCalcMy() {
   }).join('');
 
   container.innerHTML = `
-    <div class="rc-setup-grid">
-      <div class="rc-pokemon-main-row">
-        <div class="field rc-cb-field rc-pokemon-field">
-          <div class="ui-field-head rc-pokemon-head">
-            <span class="field-label">포켓몬</span>
-            <div class="party-load-head-actions">
+    <div class="rc-setup-grid ui-control-grid">
+      <div class="rc-pokemon-main-row ui-control-row">
+        <div class="field rc-cb-field rc-pokemon-field ui-control-frame">
+          <div class="ui-field-head rc-pokemon-head tool-pokemon-head">
+            <div class="tool-pokemon-title-actions">
+              <span class="field-label">포켓몬</span>
               <button type="button" class="party-load-button ui-label-action" data-party-import-target="revcalc:my">불러오기</button>
+            </div>
+            <div class="tool-pokemon-meta-actions">
+              ${formControl}
               <div class="types-display rc-types-display rc-type-strip">
                 ${p.types.map(t => `<span class="type-pill rc-type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}
               </div>
@@ -83,8 +93,8 @@ function renderRevCalcMy() {
         </div>
       </label>
     </div>
-    <div class="rc-my-build-row">
-      <div class="rc-my-stats-block">
+      <div class="rc-my-build-row ui-control-row">
+      <div class="rc-my-stats-block ui-control-frame">
         <div class="rc-table-headline">
           <div class="ft-table-title">능력 포인트</div>
           <div class="ft-ev-total ${overEV ? 'over' : ''}">
@@ -114,6 +124,13 @@ function renderRevCalcOpp() {
   const opp = revCalcState.opp;
   const p = PokemonById[opp.pokemonIdx];
   const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
+  const formControl = renderToolFormCombobox({
+    pokemonId: opp.pokemonIdx,
+    inputClass: 'rc-cb-input',
+    pickAttr: 'data-rc-pick',
+    pickValue: 'oppForm',
+    ariaLabel: '상대 포켓몬 폼 선택',
+  });
 
   const statRows = ['hp','atk','def','spa','spd','spe'].map(s => {
     const r = opp.ranks?.[s] || 0;
@@ -124,9 +141,9 @@ function renderRevCalcOpp() {
         <div class="rc-opp-rank-cell">
           ${s === 'hp' ? '<span class="rc-opp-rank-empty"></span>' : `
             <div class="ft-rank">
-              <button class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="-1">−</button>
+            <button type="button" class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="-1">−</button>
               <span class="ft-rank-val ${r > 0 ? 'pos' : r < 0 ? 'neg' : ''}">${r > 0 ? '+' + r : r}</span>
-              <button class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="1">+</button>
+              <button type="button" class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="1">+</button>
             </div>
           `}
         </div>
@@ -135,14 +152,19 @@ function renderRevCalcOpp() {
   }).join('');
 
   container.innerHTML = `
-    <div class="rc-setup-grid rc-opp-setup">
-      <div class="rc-pokemon-main-row">
-        <div class="field rc-cb-field rc-pokemon-field">
-          <div class="ui-field-head rc-pokemon-head">
-            <span class="field-label">포켓몬</span>
-            ${p ? `<div class="types-display rc-types-display rc-type-strip">
-              ${p.types.map(t => `<span class="type-pill rc-type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}
-            </div>` : '<div class="types-display rc-types-display rc-type-strip empty" aria-hidden="true"></div>'}
+    <div class="rc-setup-grid rc-opp-setup ui-control-grid">
+      <div class="rc-pokemon-main-row ui-control-row">
+        <div class="field rc-cb-field rc-pokemon-field ui-control-frame">
+          <div class="ui-field-head rc-pokemon-head tool-pokemon-head">
+            <div class="tool-pokemon-title-actions">
+              <span class="field-label">포켓몬</span>
+            </div>
+            <div class="tool-pokemon-meta-actions">
+              ${formControl}
+              ${p ? `<div class="types-display rc-types-display rc-type-strip">
+                ${p.types.map(t => `<span class="type-pill rc-type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}
+              </div>` : '<div class="types-display rc-types-display rc-type-strip empty" aria-hidden="true"></div>'}
+            </div>
           </div>
           <div class="combobox pokemon-select rc-flex-combobox">
             <input type="text" class="cb-input rc-cb-input" data-rc-pick="opp" value="${p ? escapeHTML(pkName(p)) : ''}" autocomplete="off">
@@ -197,11 +219,11 @@ function renderRevCalcInputs() {
   `).join('');
 
   container.innerHTML = `
-    <div class="rc-input-grid">
-      <div class="rc-input-block rc-action-block">
+    <div class="rc-input-grid ui-control-grid">
+      <div class="rc-input-block rc-action-block ui-control-frame">
         <div class="ft-section-title">내 행동</div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row">
+        <div class="ft-controls-row rc-observed-row ui-control-row">
           <label class="field rc-field-wide">
             <span class="field-label">사용 기술</span>
             ${rcRenderMoveCombobox('myMove', revCalcState.myMove, { placeholder: '사용 기술 선택' })}
@@ -219,10 +241,10 @@ function renderRevCalcInputs() {
         </div>
       </div>
 
-      <div class="rc-input-block rc-action-block">
+      <div class="rc-input-block rc-action-block ui-control-frame">
         <div class="ft-section-title">상대 행동</div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row">
+        <div class="ft-controls-row rc-observed-row ui-control-row">
           <label class="field rc-field-wide">
             <span class="field-label">사용 기술</span>
             ${rcRenderMoveCombobox('oppMove', revCalcState.oppMove, { placeholder: '상대 기술 선택' })}
@@ -233,7 +255,7 @@ function renderRevCalcInputs() {
           </label>
         </div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row rc-opp-item-row">
+        <div class="ft-controls-row rc-observed-row rc-opp-item-row ui-control-row">
           <label class="field rc-field-wide">
             <span class="field-label">상대 도구</span>
             ${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}
@@ -247,10 +269,10 @@ function renderRevCalcInputs() {
         </div>
       </div>
 
-      <div class="rc-input-block rc-speed-block">
+      <div class="rc-input-block rc-speed-block ui-control-frame">
         <div class="ft-section-title">선후공 | 필드 상태</div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-speed-field-row">
+        <div class="ft-controls-row rc-speed-field-row ui-control-row">
           <label class="field rc-field-compact">
             <span class="field-label">이번 턴 행동 순서</span>
             ${rcRenderTurnOrderCombobox(revCalcState.turnOrder)}
@@ -264,7 +286,7 @@ function renderRevCalcInputs() {
         </div>
       </div>
 
-      <div class="rc-input-block rc-item-candidates-block ${itemPanelOpen ? 'open' : 'collapsed'}">
+      <div class="rc-input-block rc-item-candidates-block ui-control-frame ${itemPanelOpen ? 'open' : 'collapsed'}">
         <button type="button" class="ft-section-title rc-title-with-badge rc-collapse-head" data-rc-toggle-item-candidates aria-expanded="${itemPanelOpen ? 'true' : 'false'}">
           <span>도구 후보</span>
           <span class="rc-count-badge rc-item-candidate-count">${knownOppItem === null ? `${itemCandidates.length}개` : '고정됨'}</span>

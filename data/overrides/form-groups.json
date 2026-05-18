@@ -1,0 +1,22 @@
+{
+  "_README": "Calculator form switch groups. Only in-battle form changes belong here; keep Mega, regional, Rotom appliance, and Battle Bond Greninja forms as separate search-only entries.",
+  "battle": {
+    "aegislash": {
+      "label": "폼",
+      "trigger": "스탠스체인지",
+      "forms": ["aegislash", "aegislashblade"]
+    },
+    "palafin": {
+      "label": "폼",
+      "trigger": "마이티체인지",
+      "forms": ["palafin", "palafinhero"]
+    }
+  },
+  "condition": {
+    "castform": {
+      "label": "날씨 폼",
+      "trigger": "Forecast",
+      "forms": ["castform", "castformsunny", "castformrainy", "castformsnowy"]
+    }
+  }
+}

@@ -71,6 +71,31 @@ function battleOnlyBaseIds(pokemon) {
   if (!value) return [];
   return (Array.isArray(value) ? value : [value]).map(toId).filter(Boolean);
 }
+function normalizeFormGroups(raw) {
+  const groups = [];
+  for (const [mode, modeGroups] of Object.entries(raw || {})) {
+    if (mode.startsWith('_') || !modeGroups || typeof modeGroups !== 'object') continue;
+    for (const [key, group] of Object.entries(modeGroups)) {
+      const forms = Array.isArray(group?.forms) ? group.forms.map(toId).filter(Boolean) : [];
+      if (!forms.length) continue;
+      groups.push({
+        key: toId(key),
+        mode,
+        label: group.label || '폼',
+        trigger: group.trigger || '',
+        forms: [...new Set(forms)],
+      });
+    }
+  }
+  return groups;
+}
+function formGroupMaps(groups) {
+  const byForm = new Map();
+  for (const group of groups) {
+    for (const formId of group.forms) byForm.set(formId, group);
+  }
+  return { byForm };
+}
 function moveMechanicFlags(id, move, moveMechanics) {
   const flags = { ...(moveMechanics[id] || {}) };
   if ((move.damage || move.ohko) && flags.fixedDamageKind) delete flags.fixedDamageKind;
@@ -155,6 +180,8 @@ async function build() {
   // champions formats-data 에 명시된 항목만 사용한다.
   const mergedFormats = champFormatsData;
   const dataFilters = readDataFilters();
+  const formGroups = normalizeFormGroups(readJsonFile(path.join(OVERRIDES, 'form-groups.json'), {}));
+  const { byForm: formGroupByForm } = formGroupMaps(formGroups);
   const moveMechanics = readJsonFile(path.join(OVERRIDES, 'move-mechanics.json'), {});
   const itemMechanics = readJsonFile(path.join(OVERRIDES, 'item-mechanics.json'), {});
   const abilityMechanics = readJsonFile(path.join(OVERRIDES, 'ability-mechanics.json'), {});
@@ -197,13 +224,27 @@ async function build() {
     legalPokemonIds.add(id);
     battleOnlyBaseById.set(id, legalBaseId);
   }
+  const formGroupBaseById = new Map();
+  for (const group of formGroups) {
+    const legalBaseId = group.forms.find(formId => legalPokemonIds.has(formId));
+    if (!legalBaseId) continue;
+    for (const formId of group.forms) {
+      if (legalPokemonIds.has(formId)) continue;
+      if (dataFilters?.exclude?.pokemon?.has(formId)) continue;
+      const p = mergedPokedex[formId];
+      if (!p?.name || isUnofficial(p)) continue;
+      legalPokemonIds.add(formId);
+      formGroupBaseById.set(formId, legalBaseId);
+    }
+  }
 
   const finalPokemon = [];
   for (const id of Object.keys(mergedPokedex).filter(id => legalPokemonIds.has(id))) {
     const p = mergedPokedex[id];
     if (!p) continue;
     const fd = mergedFormats[id] || {};
-    const inheritedFd = battleOnlyBaseById.has(id) ? (mergedFormats[battleOnlyBaseById.get(id)] || {}) : {};
+    const inheritedBaseId = battleOnlyBaseById.get(id) || formGroupBaseById.get(id);
+    const inheritedFd = inheritedBaseId ? (mergedFormats[inheritedBaseId] || {}) : {};
     const battleOnlyLearnsetId = battleOnlyBaseIds(p)[0];
     const ownLearnset = mergedLearnsets[id]?.learnset;
     const fallbackLearnset = mergedLearnsets[battleOnlyLearnsetId]?.learnset
@@ -213,12 +254,14 @@ async function build() {
       ? { ...rotomBaseLearnset, ...(ownLearnset || {}) }
       : (ownLearnset || fallbackLearnset);
     const learnset = ls ? Object.keys(ls).filter(moveId => isAvailable(mergedMoves[moveId], 'moves', moveId, dataFilters)) : undefined;
+    const formGroup = formGroupByForm.get(id);
     finalPokemon.push({
       id,
       num: p.num,
       name: p.name,
       koName: koPokemon[id] || p.name,
       base: p.baseSpecies,
+      baseForme: p.baseForme,
       forme: p.forme,
       types: p.types,
       bs: p.baseStats,
@@ -229,8 +272,17 @@ async function build() {
       primal: /^Primal/.test(p.forme || '') || undefined,
       tier: fd.tier || inheritedFd.tier,
       requiredItem: p.requiredItem,
+      requiredAbility: p.requiredAbility,
       requiredMove: p.requiredMove,
+      battleOnly: p.battleOnly,
       changesFrom: p.changesFrom,
+      ...(formGroup ? {
+        formGroup: formGroup.key,
+        formGroupMode: formGroup.mode,
+        formGroupLabel: formGroup.label,
+        formGroupTrigger: formGroup.trigger,
+        formGroupForms: formGroup.forms,
+      } : {}),
       ls: learnset,
     });
   }
