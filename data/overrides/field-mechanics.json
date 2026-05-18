@@ -1,0 +1,22 @@
+{
+  "bpMods": [
+    { "terrain": "Electric", "types": ["Electric"], "attackerGrounded": true, "mod": "x1_3", "label": "일렉트릭필드×1.3" },
+    { "terrain": "Grassy", "types": ["Grass"], "attackerGrounded": true, "mod": "x1_3", "label": "그래스필드×1.3" },
+    { "terrain": "Psychic", "types": ["Psychic"], "attackerGrounded": true, "mod": "x1_3", "label": "사이코필드×1.3" },
+    { "terrain": "Misty", "types": ["Dragon"], "defenderGrounded": true, "mod": "x0_5", "label": "미스트필드 드래곤×0.5" },
+    { "terrain": "Grassy", "moveFlag": "weakenedByGrassyTerrain", "mod": "x0_5", "label": "그래스필드 지진×0.5" },
+    { "field": "atkHelpingHand", "mod": "x1_5", "label": "도우미×1.5" }
+  ],
+  "weatherDamageMods": [
+    { "weather": ["Sun", "Harsh Sunshine"], "types": ["Fire"], "mod": "x1_5", "label": "쾌청 불꽃×1.5" },
+    { "weather": ["Rain", "Heavy Rain"], "types": ["Water"], "mod": "x1_5", "label": "비 물×1.5" },
+    { "weather": ["Sun"], "types": ["Water"], "mod": "x0_5", "skipWhen": "ignoresWeatherDamagePenalty", "label": "쾌청 물×0.5" },
+    { "weather": ["Rain"], "types": ["Fire"], "mod": "x0_5", "skipWhen": "ignoresWeatherDamagePenalty", "label": "비 불꽃×0.5" },
+    { "weather": ["Harsh Sunshine"], "types": ["Water"], "nullDamage": true, "label": "대쾌청: 물 기술 무효" },
+    { "weather": ["Heavy Rain"], "types": ["Fire"], "nullDamage": true, "label": "강한비: 불꽃 기술 무효" }
+  ],
+  "screenFinalMods": [
+    { "field": "defReflect", "category": "Physical", "singlesMod": "x0_5", "doublesMod": 2732, "label": "리플렉터×0.5" },
+    { "field": "defLightScreen", "category": "Special", "singlesMod": "x0_5", "doublesMod": 2732, "label": "빛의장막×0.5" }
+  ]
+}

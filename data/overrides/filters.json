@@ -1,0 +1,15 @@
+{
+  "_README": "Manual data filters applied during build. CAP and Custom Showdown records are excluded by default; use exclude for additional removals and include for explicit exceptions.",
+  "exclude": {
+    "pokemon": [],
+    "moves": [],
+    "abilities": [],
+    "items": []
+  },
+  "include": {
+    "pokemon": [],
+    "moves": [],
+    "abilities": [],
+    "items": []
+  }
+}

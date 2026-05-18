@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>포켓몬 챔피언스 대미지 계산기 v3</title>
+<title>포켓몬 챔피언스 랩 (POKEMON CHAMPIONS LAB)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Fira+Code:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* __INLINE_CSS__ */
 </style>
@@ -16,23 +16,29 @@
 <header>
   <div class="header-top">
     <div class="header-brand">
-      <div class="brand-sub">POKÉMON CHAMPIONS · Reg.A</div>
-      <h1>포켓몬 챔피언스</h1>
+      <div class="brand-sub">POKEMON CHAMPIONS LAB</div>
+      <h1>포켓몬 챔피언스 랩</h1>
     </div>
     <div class="header-actions">
-      <button id="btnKoFetch" class="ko-fetch-btn">🇰🇷 한국어 보강</button>
-      <label class="champions-toggle"><input type="checkbox" id="championsMode" checked> 챔피언스 (Reg.A)</label>
+      <button class="party-preset-button" id="partyPresetOpen" type="button">파티 프리셋</button>
     </div>
   </div>
   <nav class="main-nav">
-    <button class="nav-tab active" data-page="calc">⚔️ 대미지 계산기</button>
-    <button class="nav-tab" data-page="dex">📖 도감</button>
-    <button class="nav-tab" data-page="matchup">📊 상성표</button>
-    <button class="nav-tab" data-page="finetune">🔧 세부조정</button>
-    <button class="nav-tab" data-page="revcalc">🔍 내구 역계산</button>
+    <button class="nav-tab active" data-page="calc">대미지 계산기</button>
+    <button class="nav-tab" data-page="revcalc">형태 역계산</button>
+    <button class="nav-tab" data-page="finetune">세부조정</button>
+    <button class="nav-tab" data-page="matchup">상성표</button>
+    <button class="nav-tab" data-page="dex">도감</button>
   </nav>
-  <div class="header-status" id="data-status">데이터 로딩 중...</div>
 </header>
+
+<div class="site-shell">
+  <aside class="ad-rail ad-rail-left" aria-label="Left advertisement rail">
+    <div class="ad-slot ad-slot-rail">
+      <span>Advertisement</span>
+    </div>
+  </aside>
+  <div class="app-content">
 
 <!-- 메인 계산기 뷰 -->
 <main id="page-calc" class="page active">
@@ -54,48 +60,69 @@
   <div class="field-row">
     <section class="panel collapsible collapsed" id="field-panel">
       <div class="panel-head" id="field-head">
-        <div class="panel-title">필드 · 부가 효과</div>
-        <div class="panel-head-actions"><span class="field-summary" id="field-summary">기본값</span><span class="panel-tag" style="background: var(--border-bright);">FIELD</span></div>
+        <div class="field-head-main">
+          <div class="panel-title">필드 · 부가 효과</div>
+          <label class="field-auto-toggle">
+            <input type="checkbox" id="autoEntry" checked>
+            <span>자동진입효과</span>
+          </label>
+        </div>
       </div>
       <div class="panel-body">
         <div class="field-grid">
-          <div class="field"><label class="field-label" for="weather">날씨</label><select id="weather"><option value="none">없음</option><option value="Sun">쾌청</option><option value="Rain">비</option><option value="Sand">모래바람</option><option value="Snow">눈</option><option value="Harsh Sunshine">대쾌청</option><option value="Heavy Rain">강한비</option></select></div>
-          <div class="field"><label class="field-label" for="terrain">필드</label><select id="terrain"><option value="none">없음</option><option value="Electric">일렉트릭필드</option><option value="Grassy">그래스필드</option><option value="Psychic">사이코필드</option><option value="Misty">미스트필드</option></select></div>
-          <div class="field"><label class="field-label" for="gameType">배틀 룰</label><select id="gameType"><option value="Singles">싱글배틀</option><option value="Doubles">더블배틀</option></select></div>
+          <div class="field">
+            <label class="field-label" for="weather">날씨</label>
+            <div class="combobox field-combobox" data-cb="field-weather">
+              <button type="button" id="weather" class="cb-input cb-trigger" data-cb-type="weather" data-field="weather" data-value="none" aria-label="날씨 선택" aria-expanded="false">없음</button>
+              <div class="combobox-options" role="listbox"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="terrain">필드</label>
+            <div class="combobox field-combobox" data-cb="field-terrain">
+              <button type="button" id="terrain" class="cb-input cb-trigger" data-cb-type="terrain" data-field="terrain" data-value="none" aria-label="필드 선택" aria-expanded="false">없음</button>
+              <div class="combobox-options" role="listbox"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="gameType">룰</label>
+            <div class="combobox field-combobox" data-cb="field-game-type">
+              <button type="button" id="gameType" class="cb-input cb-trigger" data-cb-type="gameType" data-field="gameType" data-value="Singles" aria-label="룰 선택" aria-expanded="false">싱글</button>
+              <div class="combobox-options" role="listbox"></div>
+            </div>
+          </div>
         </div>
         <div class="field-checkbox-grid">
-          <label class="checkbox-label"><input type="checkbox" id="critHit"> 급소 명중</label>
-          <label class="checkbox-label"><input type="checkbox" id="defReflect"> 방어측 리플렉터</label>
-          <label class="checkbox-label"><input type="checkbox" id="defLightScreen"> 방어측 빛의장막</label>
-          <label class="checkbox-label"><input type="checkbox" id="atkHelpingHand"> 공격측 도우미</label>
-          <label class="checkbox-label"><input type="checkbox" id="defProtect"> 방어측 방어/막아내기</label>
-          <label class="checkbox-label" style="color: var(--tera);"><input type="checkbox" id="ruinSword"> ⚔️ 검의재앙 (방어 ×0.75)</label>
-          <label class="checkbox-label" style="color: var(--tera);"><input type="checkbox" id="ruinTablet"> ⚔️ 목간의재앙 (공격 ×0.75)</label>
-          <label class="checkbox-label" style="color: var(--tera);"><input type="checkbox" id="ruinBeads"> ⚔️ 구슬의재앙 (특방 ×0.75)</label>
-          <label class="checkbox-label" style="color: var(--tera);"><input type="checkbox" id="ruinVessel"> ⚔️ 그릇의재앙 (특공 ×0.75)</label>
-          <label class="checkbox-label"><input type="checkbox" id="defStealthRock"> 🪨 방어측 스텔스록</label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="defSpikes"> 🛡️ 방어측 압정뿌리기
-            <select id="defSpikesLayers" style="margin-left: 4px; font-size: 11px;">
-              <option value="1">1층</option><option value="2">2층</option><option value="3">3층</option>
-            </select>
+          <label class="checkbox-label"><input type="checkbox" id="critHit"><span>급소</span></label>
+          <label class="checkbox-label"><input type="checkbox" id="defReflect"><span>리플렉터</span></label>
+          <label class="checkbox-label"><input type="checkbox" id="defLightScreen"><span>빛의장막</span></label>
+          <label class="checkbox-label"><input type="checkbox" id="atkHelpingHand"><span>도우미</span></label>
+          <label class="checkbox-label ruin"><input type="checkbox" id="ruinSword"><span>검의재앙</span></label>
+          <label class="checkbox-label ruin"><input type="checkbox" id="ruinTablet"><span>목간의재앙</span></label>
+          <label class="checkbox-label ruin"><input type="checkbox" id="ruinBeads"><span>구슬의재앙</span></label>
+          <label class="checkbox-label ruin"><input type="checkbox" id="ruinVessel"><span>그릇의재앙</span></label>
+          <label class="checkbox-label"><input type="checkbox" id="defStealthRock"><span>스텔스록</span></label>
+          <label class="checkbox-label spikes">
+            <input type="checkbox" id="defSpikes"><span>압정뿌리기</span>
+            <div class="combobox field-inline-combobox" data-cb="field-spikes-layers">
+              <button type="button" id="defSpikesLayers" class="cb-input cb-trigger field-inline-input" data-cb-type="spikesLayers" data-field="defSpikesLayers" data-value="1" disabled aria-label="압정뿌리기 중첩 수" aria-expanded="false">1중첩</button>
+              <div class="combobox-options" role="listbox"></div>
+            </div>
           </label>
-          <label class="checkbox-label"><input type="checkbox" id="trickRoom"> 🔄 트릭룸 (느린 쪽 선공)</label>
-          <label class="checkbox-label"><input type="checkbox" id="gravity"> 🌐 중력장 (Ground 면역 무효 / Sapple ×1.5)</label>
-          <label class="checkbox-label" style="color: var(--ok); grid-column: 1/-1;"><input type="checkbox" id="autoEntry" checked> 📋 자동 진입 효과 (위협, 가뭄, 다운로드 등)</label>
+          <label class="checkbox-label"><input type="checkbox" id="gravity"><span>중력장</span></label>
         </div>
       </div>
     </section>
   </div>
 
-  <div class="calc-row">
-    <button class="btn-calculate" id="btnCalculate">계산 실행</button>
-    <button class="btn-secondary active" id="btnAutoCalc">자동 계산: ON</button>
-  </div>
   <section class="results">
     <div class="results-head">
       <div class="results-title">결과</div>
-      <div class="mono" style="font-size: 10px; color: var(--text-faint);">pokeRound · chainMods · 16롤 · Gen 9 공식 방식</div>
+      <div class="results-actions">
+        <button class="btn-calculate" id="btnSwapSidesResult" type="button">공수교대</button>
+        <button class="btn-secondary" id="btnCalculate" type="button">계산 재실행</button>
+        <button class="btn-secondary" id="btnResetManual" type="button">기본값 복원</button>
+      </div>
     </div>
     <div class="results-body" id="results-body"></div>
   </section>
@@ -103,19 +130,27 @@
 
 <!-- 도감 페이지 -->
 <main id="page-dex" class="page">
-  <div class="dex-nav">
-    <button class="dex-tab active" data-dex="pokemon">포켓몬</button>
-    <button class="dex-tab" data-dex="moves">기술</button>
-    <button class="dex-tab" data-dex="abilities">특성</button>
-    <button class="dex-tab" data-dex="items">도구</button>
-  </div>
-  <div class="dex-search">
-    <input type="text" id="dexSearch" placeholder="이름 또는 영문명으로 검색..." autocomplete="off">
-    <span class="dex-count" id="dexCount"></span>
-  </div>
-  <div class="dex-type-filter" id="dexTypeFilter"></div>
-  <div class="dex-content active" id="dex-pokemon"><div class="dex-table-wrap"><table class="dex-table" id="dexTablePokemon"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>타입</th><th class="sortable num" data-sort="hp">HP</th><th class="sortable num" data-sort="atk">공격</th><th class="sortable num" data-sort="def">방어</th><th class="sortable num" data-sort="spa">특공</th><th class="sortable num" data-sort="spd">특방</th><th class="sortable num" data-sort="spe">속도</th><th class="sortable num" data-sort="bst">합계</th><th>특성</th></tr></thead><tbody id="dexBodyPokemon"></tbody></table></div></div>
-  <div class="dex-content" id="dex-moves"><div class="dex-table-wrap"><table class="dex-table" id="dexTableMoves"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>타입</th><th>분류</th><th class="sortable num" data-sort="bp">위력</th><th class="sortable num" data-sort="acc">명중</th><th class="sortable num" data-sort="pp">PP</th><th class="sortable num" data-sort="pri">우선</th><th>설명</th></tr></thead><tbody id="dexBodyMoves"></tbody></table></div></div>
+  <section class="panel dex-control-panel">
+    <div class="panel-head dex-control-head">
+      <div class="dex-nav">
+        <button class="dex-tab active" data-dex="pokemon">포켓몬</button>
+        <button class="dex-tab" data-dex="moves">기술</button>
+        <button class="dex-tab" data-dex="abilities">특성</button>
+        <button class="dex-tab" data-dex="items">도구</button>
+      </div>
+    </div>
+    <div class="panel-body dex-control-body">
+      <div class="dex-filter-frame">
+        <div class="dex-search">
+          <button class="dex-reset-btn" id="dexResetFilters" type="button" aria-label="필터 초기화" title="필터 초기화">↻</button>
+          <input type="text" id="dexSearch" placeholder="이름, 특성으로 검색" autocomplete="off">
+        </div>
+        <div class="dex-type-filter" id="dexTypeFilter"></div>
+      </div>
+    </div>
+  </section>
+  <div class="dex-content active" id="dex-pokemon"><div class="dex-table-wrap"><table class="dex-table" id="dexTablePokemon"><thead><tr><th class="sortable" data-sort="koName">이름</th><th class="sortable" data-sort="type">타입</th><th class="sortable num" data-sort="hp">HP</th><th class="sortable num" data-sort="atk">공격</th><th class="sortable num" data-sort="def">방어</th><th class="sortable num" data-sort="spa">특공</th><th class="sortable num" data-sort="spd">특방</th><th class="sortable num" data-sort="spe">속도</th><th class="sortable num" data-sort="bst">합계</th><th>특성 1</th><th>특성 2</th><th>숨겨진 특성</th></tr></thead><tbody id="dexBodyPokemon"></tbody></table></div></div>
+  <div class="dex-content" id="dex-moves"><div class="dex-table-wrap"><table class="dex-table" id="dexTableMoves"><thead><tr><th class="sortable" data-sort="koName">이름</th><th class="sortable" data-sort="type">타입</th><th class="sortable" data-sort="cat">분류</th><th class="sortable num" data-sort="bp">위력</th><th class="sortable num" data-sort="acc">명중</th><th class="sortable num" data-sort="pri">우선</th><th>설명</th></tr></thead><tbody id="dexBodyMoves"></tbody></table></div></div>
   <div class="dex-content" id="dex-abilities"><div class="dex-table-wrap"><table class="dex-table" id="dexTableAbilities"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>영문명</th><th>설명</th></tr></thead><tbody id="dexBodyAbilities"></tbody></table></div></div>
   <div class="dex-content" id="dex-items"><div class="dex-table-wrap"><table class="dex-table" id="dexTableItems"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>영문명</th><th>설명</th><th>상태</th></tr></thead><tbody id="dexBodyItems"></tbody></table></div></div>
   <!-- 포켓몬/기술/특성 상세 풀페이지 (도감 탭 내부에서 표시) -->
@@ -124,52 +159,67 @@
 
 <!-- 상성표 페이지 -->
 <!-- 세부조정 페이지 -->
-<main id="page-finetune" class="page">
-  <div class="finetune-grid">
-    <section class="panel ft-my">
+<main id="page-finetune" class="page tool-page">
+  <div class="finetune-grid ft-layout">
+    <section class="panel ft-editor">
       <div class="panel-head">
-        <div class="panel-title">내 포켓몬 (세부조정)</div>
+        <div>
+          <div class="panel-title">세부조정</div>
+        </div>
         <div class="panel-head-actions">
-          <button class="ft-action-btn atk" id="ftApplyAtk" title="현재 세팅을 계산기 공격측으로 적용 (상대는 방어측으로)">⚔️ 공격측 적용</button>
-          <button class="ft-action-btn def" id="ftApplyDef" title="현재 세팅을 계산기 방어측으로 적용 (상대는 공격측으로)">🛡️ 방어측 적용</button>
+          <button class="ft-action-btn atk" id="ftApplyAtk" title="현재 세팅을 계산기 공격측으로 적용 (상대는 방어측으로)">공격측</button>
+          <button class="ft-action-btn def" id="ftApplyDef" title="현재 세팅을 계산기 방어측으로 적용 (상대는 공격측으로)">방어측</button>
         </div>
       </div>
       <div class="panel-body" id="ft-my-body"></div>
     </section>
-    <section class="panel ft-opp">
+    <aside class="panel ft-hp-panel">
       <div class="panel-head">
-        <div class="panel-title">상대 포켓몬 (스피드 비교용)</div>
-        <span class="ft-hint">특성 무시 · 스카프와 랭크만 반영</span>
+        <div>
+          <div class="panel-title">HP 브레이크포인트</div>
+          <div class="ft-panel-subtitle">HP 기준점 · 조정 포인트</div>
+        </div>
       </div>
-      <div class="panel-body" id="ft-opp-body"></div>
+      <div class="panel-body" id="ft-hp-body"></div>
+    </aside>
+    <section class="panel ft-speed-panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">상대 / 스피드</div>
+        </div>
+      </div>
+      <div class="panel-body ft-speed-panel-body">
+        <div id="ft-opp-body"></div>
+        <div class="ft-speed-embedded">
+          <div class="ft-speed-head">
+            <div>
+              <span class="ft-section-title">스피드 비교</span>
+            </div>
+            <label class="ft-margin-field">
+              <span>+</span>
+              <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftMargin" value="1" aria-label="추월 마진">
+              <span>추월</span>
+            </label>
+          </div>
+          <div id="ft-speed-body"></div>
+        </div>
+      </div>
     </section>
   </div>
-
-  <section class="panel ft-results">
-    <div class="panel-head">
-      <div class="panel-title">스피드 비교</div>
-      <div class="panel-head-actions">
-        <span class="field-label" style="margin-right:6px;">추월 마진 (+n):</span>
-        <input type="number" id="ftMargin" value="1" min="0" max="100" style="width: 60px;">
-      </div>
-    </div>
-    <div class="panel-body" id="ft-speed-body"></div>
-  </section>
 </main>
 
-<!-- 내구 역계산 페이지 -->
-<main id="page-revcalc" class="page">
+<!-- 형태 역계산 페이지 -->
+<main id="page-revcalc" class="page tool-page">
   <div class="rc-grid">
     <section class="panel rc-my">
       <div class="panel-head">
-        <div class="panel-title">내 포켓몬 (공격자)</div>
+        <div class="panel-title">내 포켓몬</div>
       </div>
       <div class="panel-body" id="rc-my-body"></div>
     </section>
     <section class="panel rc-opp">
       <div class="panel-head">
-        <div class="panel-title">상대 포켓몬 (역계산 대상)</div>
-        <span class="ft-hint">EV/성격/도구는 분석 결과로 추정</span>
+        <div class="panel-title">상대 포켓몬</div>
       </div>
       <div class="panel-body" id="rc-opp-body"></div>
     </section>
@@ -177,91 +227,79 @@
 
   <section class="panel">
     <div class="panel-head">
-      <div class="panel-title">관측 데이터 · 필드 상태</div>
+      <div class="panel-title">관측 데이터</div>
     </div>
     <div class="panel-body" id="rc-input-body"></div>
   </section>
 
   <section class="panel">
     <div class="panel-head">
-      <div class="panel-title">분석 결과</div>
+      <div class="panel-title">형태 분석 결과</div>
       <div class="panel-head-actions">
-        <button class="rc-analyze-btn" id="rcAnalyze">🔍 분석 시작</button>
+        <button class="btn-calculate rc-analyze-btn" id="rcAnalyze">형태 분석</button>
       </div>
     </div>
     <div class="panel-body" id="rc-results-body">
-      <div class="empty-state">위에 데이터를 입력하고 "분석 시작" 버튼을 눌러주세요.</div>
+      <div class="empty-state">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>
     </div>
   </section>
 </main>
 
-<main id="page-matchup" class="page">
+<main id="page-matchup" class="page tool-page">
   <section class="panel">
     <div class="panel-head">
       <div class="panel-title">상성표</div>
-      <span class="panel-tag" style="background: var(--warn);">MATCHUP</span>
     </div>
     <div class="panel-body">
-      <div class="matchup-intro">최대 6마리의 포켓몬을 선택하면 18가지 공격 타입에 대한 방어 상성을 한눈에 비교할 수 있습니다.</div>
+      <div class="matchup-control-row">
+        <div class="matchup-mode-tabs" id="matchupModeTabs">
+          <button class="matchup-mode-btn active" data-matchup-mode="defense">방어 상성</button>
+          <button class="matchup-mode-btn" data-matchup-mode="coverage">타점 체크</button>
+        </div>
+        <button type="button" class="party-load-button ui-label-action" data-party-import-target="matchup">불러오기</button>
+      </div>
       <div class="matchup-slots" id="matchupSlots"></div>
+      <div class="matchup-coverage-inputs" id="matchupCoverageInputs"></div>
     </div>
   </section>
-  <section class="panel" style="margin-top: 14px;">
+  <section class="panel matchup-results-panel">
     <div class="panel-body">
-      <div class="matchup-table-wrap">
-        <table class="matchup-table" id="matchupTable">
+      <div class="matchup-result-layout">
+        <div class="matchup-main">
+          <div class="matchup-table-wrap">
+            <table class="matchup-table" id="matchupTable">
           <thead id="matchupHead"></thead>
           <tbody id="matchupBody"></tbody>
-        </table>
-      </div>
-      <div class="matchup-legend">
-        <span><span class="cell-demo eff-4">◎</span> 4배 약점</span>
-        <span><span class="cell-demo eff-2">○</span> 2배 약점</span>
+            </table>
+          </div>
+          <div class="matchup-legend">
+        <span><span class="cell-demo eff-4">◎</span> 4배</span>
+        <span><span class="cell-demo eff-2">○</span> 2배</span>
         <span><span class="cell-demo eff-1">—</span> 1배</span>
-        <span><span class="cell-demo eff-05">△</span> 1/2 저항</span>
-        <span><span class="cell-demo eff-025">△△</span> 1/4 저항</span>
+        <span><span class="cell-demo eff-05">△</span> 1/2배</span>
+        <span><span class="cell-demo eff-025">△△</span> 1/4배</span>
         <span><span class="cell-demo eff-0">✕</span> 무효</span>
+          </div>
+        </div>
+        <aside class="matchup-meta" id="matchupMeta"></aside>
       </div>
     </div>
   </section>
 </main>
 
-<!-- 모달 다이얼로그 -->
-<dialog class="ko-modal" id="koModal">
-  <div class="ko-modal-title">🇰🇷 한국어 이름 보강</div>
-  <div class="ko-modal-desc">
-    PokéAPI에서 누락된 번역을 가져와 브라우저에 영구 저장합니다. 다음 방문부터는 자동으로 적용됩니다.<br>
-    <span style="color: var(--text-faint); font-size: 11px;">⚠️ 약 1,100개 요청, 1~2분 소요</span>
   </div>
-  <div id="koProgressArea">
-    <div class="ko-progress-row">
-      <span class="label">기술</span>
-      <div class="ko-progress-bar"><div class="ko-progress-bar-fill" id="koBarMoves" style="width:0%"></div></div>
-      <span class="stat" id="koStatMoves">대기 중</span>
+  <aside class="ad-rail ad-rail-right" aria-label="Right advertisement rail">
+    <div class="ad-slot ad-slot-rail">
+      <span>Advertisement</span>
     </div>
-    <div class="ko-progress-row">
-      <span class="label">특성</span>
-      <div class="ko-progress-bar"><div class="ko-progress-bar-fill" id="koBarAbilities" style="width:0%"></div></div>
-      <span class="stat" id="koStatAbilities">대기 중</span>
-    </div>
-    <div class="ko-progress-row">
-      <span class="label">아이템</span>
-      <div class="ko-progress-bar"><div class="ko-progress-bar-fill" id="koBarItems" style="width:0%"></div></div>
-      <span class="stat" id="koStatItems">대기 중</span>
-    </div>
-  </div>
-  <div class="ko-modal-result" id="koResult" style="display:none;"></div>
-  <div class="ko-modal-actions">
-    <button class="ko-modal-btn" id="koCancel">닫기</button>
-    <button class="ko-modal-btn primary" id="koStart">시작</button>
-  </div>
-</dialog>
+  </aside>
+</div>
 
 <!-- 도감 상세 모달 -->
 <dialog class="dex-modal" id="dexDetailModal">
   <div class="dex-modal-head">
     <div><span class="dex-modal-title" id="dexDetailTitle"></span><span class="dex-modal-title-en" id="dexDetailTitleEn"></span></div>
-    <button class="dex-modal-close" id="dexDetailClose">✕ 닫기</button>
+    <button class="dex-modal-close" id="dexDetailClose">닫기</button>
   </div>
   <div class="dex-modal-body" id="dexDetailBody"></div>
   <div class="dex-modal-actions" id="dexDetailActions"></div>
@@ -272,6 +310,10 @@
 <script id="data-moves" type="application/json">__MOVES_DATA__</script>
 <script id="data-abilities" type="application/json">__ABILITIES_DATA__</script>
 <script id="data-items" type="application/json">__ITEMS_DATA__</script>
+<script id="data-natures" type="application/json">__NATURES_DATA__</script>
+<script id="data-typechart" type="application/json">__TYPECHART_DATA__</script>
+<script id="data-rules" type="application/json">__CHAMP_RULES__</script>
+<script id="data-meta-threats" type="application/json">__META_THREATS_DATA__</script>
 
 <script>
 "use strict";

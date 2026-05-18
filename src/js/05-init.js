@@ -9,11 +9,13 @@
    ════════════════════════════════════════════════════════════ */
 renderSide('atk');
 renderSide('def');
-updateFieldSummary();
 triggerCalc();
 renderTypeFilter();
 renderDexContent('');
+renderMatchupModeTabs();
 renderMatchupSlots();
+renderMatchupCoverageInputs();
 renderMatchupTable();
 renderFineTuneAll();
 renderRevCalcAll();
+initPartyPresets();
