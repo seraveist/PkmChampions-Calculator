@@ -7,6 +7,7 @@
     "build": "node build.mjs",
     "prepare-public": "node scripts/prepare-public.mjs",
     "build:public": "npm run build && npm run prepare-public",
+    "build:pages": "node scripts/build-pages.mjs",
     "check": "node scripts/check.mjs",
     "html:structure": "node scripts/html-structure-check.mjs",
     "css:structure": "node scripts/css-structure-check.mjs",
