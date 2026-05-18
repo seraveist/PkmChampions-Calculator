@@ -33,3 +33,6 @@ jobs:
 
       - name: Build calculator
         run: npm run build
+
+      - name: Build Cloudflare Pages output
+        run: npm run build:pages

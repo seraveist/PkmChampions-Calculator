@@ -80,6 +80,7 @@ function loadReverseApi() {
 
   const source = [
     readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8'),
+    readFileSync(path.join(ROOT, 'src', 'js', '01-20-html-structure.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '02-engine.js'), 'utf8'),
     readCalcUiSource(ROOT),
     readViewSource(ROOT),

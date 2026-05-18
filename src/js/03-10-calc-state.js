@@ -143,6 +143,15 @@ const CALC_FIELD_OPTION_BY_TYPE = Object.fromEntries(
 );
 const CALC_TYPE_OPTIONS = BATTLE_TYPES.map(type => ({ id: type, label: TYPE_KO[type] || type, sub: type }));
 const CALC_SECOND_TYPE_OPTIONS = [{ id: '', label: '없음', sub: '단일 타입' }, ...CALC_TYPE_OPTIONS];
+const CALC_FORM_LABEL_KO = {
+  Shield: '실드 폼',
+  Blade: '블레이드 폼',
+  Zero: '나이브 폼',
+  Hero: '마이티 폼',
+  Sunny: '태양의 모습',
+  Rainy: '빗방울의 모습',
+  Snowy: '설운의 모습',
+};
 
 function calcSearchText(value) {
   return String(value || '').toLowerCase();
@@ -229,6 +238,62 @@ function sortPokemonForCalcSelect(pokemon) {
 function defaultPokemonTypes(pokemon) {
   return Array.isArray(pokemon?.types) ? pokemon.types.slice(0, 2) : [];
 }
+function sameTypeList(left = [], right = []) {
+  const a = left.filter(Boolean);
+  const b = right.filter(Boolean);
+  return a.length === b.length && a.every((type, index) => type === b[index]);
+}
+function calcPokemonFormLabel(pokemon) {
+  if (!pokemon) return '';
+  const raw = pokemon.forme || pokemon.baseForme || '';
+  return CALC_FORM_LABEL_KO[raw] || raw || '기본';
+}
+function calcFormGroupForPokemon(pokemon) {
+  if (!pokemon?.formGroup || !Array.isArray(pokemon.formGroupForms)) return null;
+  const forms = pokemon.formGroupForms
+    .map(id => PokemonById[id])
+    .filter(Boolean);
+  if (forms.length < 2) return null;
+  return {
+    key: pokemon.formGroup,
+    mode: pokemon.formGroupMode || 'battle',
+    label: pokemon.formGroupLabel || '폼',
+    trigger: pokemon.formGroupTrigger || '',
+    forms,
+  };
+}
+function calcFormGroupForSide(side) {
+  return calcFormGroupForPokemon(PokemonById[side?.pokemonIdx]);
+}
+function calcFormOptionDataForPokemon(pokemonId) {
+  const group = calcFormGroupForPokemon(PokemonById[pokemonId]);
+  if (!group) return [];
+  return group.forms.map(form => ({
+    id: form.id,
+    label: calcPokemonFormLabel(form),
+    sub: pkName(form),
+    raw: form,
+  }));
+}
+function renderToolFormCombobox({ pokemonId, inputClass, pickAttr, pickValue, ariaLabel = '폼 선택' } = {}) {
+  const group = calcFormGroupForPokemon(PokemonById[pokemonId]);
+  if (!group || !inputClass || !pickAttr || !pickValue) return '';
+  const currentForm = PokemonById[pokemonId];
+  const currentLabel = calcPokemonFormLabel(currentForm);
+  const attrs = {
+    class: `cb-input cb-trigger form-switch-btn ${inputClass}`,
+    'data-cb-type': 'form',
+    'aria-label': ariaLabel,
+    'aria-expanded': 'false',
+  };
+  attrs[pickAttr] = pickValue;
+  return `
+    <div class="combobox tool-form-combobox">
+      <button type="button" ${htmlAttrs(attrs)}>${escapeHTML(currentLabel)}</button>
+      <div class="combobox-options" role="listbox"></div>
+    </div>
+  `;
+}
 function normalizeSideTypes(side) {
   const pokemon = PokemonById[side?.pokemonIdx];
   const fallback = defaultPokemonTypes(pokemon);
@@ -260,6 +325,43 @@ function resetSideTypes(sideKey) {
   side.types = defaultPokemonTypes(pokemon);
   side.teraType = side.types[0] || 'Normal';
 }
+function applyPokemonFormToSideState(side, targetPokemonId) {
+  const currentPokemon = PokemonById[side?.pokemonIdx];
+  const targetPokemon = PokemonById[targetPokemonId];
+  const group = calcFormGroupForPokemon(currentPokemon);
+  if (!side || !currentPokemon || !targetPokemon || !group) return { applied: false, changed: false };
+  if (!group.forms.some(form => form.id === targetPokemonId)) return { applied: false, changed: false };
+
+  const changed = side.pokemonIdx !== targetPokemonId;
+  if (!changed) return { applied: true, changed: false };
+
+  const currentDefaultTypes = defaultPokemonTypes(currentPokemon);
+  const currentTypes = normalizeSideTypes(side);
+  const usesDefaultTypes = sameTypeList(currentTypes, currentDefaultTypes);
+  const usesDefaultTeraType = !side.teraType || side.teraType === currentDefaultTypes[0];
+  const targetDefaultTypes = defaultPokemonTypes(targetPokemon);
+
+  side.pokemonIdx = targetPokemonId;
+
+  const targetAbilities = Object.values(targetPokemon.ab || {}).map(toId);
+  if (side.ability && !targetAbilities.includes(side.ability)) {
+    side.ability = defaultPokemonAbilityId(targetPokemon);
+    setSideDamageBlockActive(side, false);
+  }
+  if (usesDefaultTypes) {
+    side.types = targetDefaultTypes;
+  } else {
+    side.types = normalizeSideTypes(side);
+  }
+  if (usesDefaultTeraType || !BATTLE_TYPES.includes(side.teraType)) {
+    side.teraType = targetDefaultTypes[0] || 'Normal';
+  }
+
+  return { applied: true, changed: true };
+}
+function applyPokemonFormToCalcSide(sideKey, targetPokemonId) {
+  return applyPokemonFormToSideState(state[sideKey], targetPokemonId);
+}
 function calcPokemonAbilityTerms(pokemon) {
   return Object.values(pokemon?.ab || {}).flatMap(name => {
     const data = AbilityById[toId(name)];
@@ -267,6 +369,9 @@ function calcPokemonAbilityTerms(pokemon) {
   });
 }
 function calcDatasetForCombobox(sideKey, type) {
+  if (type === 'form') {
+    return calcFormOptionDataForPokemon(state[sideKey]?.pokemonIdx);
+  }
   if (type === 'pokemon') return sortPokemonForCalcSelect(POKEMON);
   if (type === 'type1') return CALC_TYPE_OPTIONS;
   if (type === 'type2') return CALC_SECOND_TYPE_OPTIONS;
@@ -661,6 +766,21 @@ function renderTypeControls(sideKey, side) {
         <div class="combobox-options" role="listbox"></div>
       </div>
       <button type="button" class="type-reset-btn" data-action="typeReset" data-side="${sideKey}" title="포켓몬 기본 타입으로 복구">기본</button>
+    </div>
+  `;
+}
+function renderFormSwitchControls(sideKey, side) {
+  const group = calcFormGroupForSide(side);
+  if (!group) return '';
+  const trigger = group.trigger ? ` · ${group.trigger}` : '';
+  const currentForm = PokemonById[side?.pokemonIdx];
+  const currentLabel = calcPokemonFormLabel(currentForm);
+  return `
+    <div class="form-switch-row" aria-label="${escapeHTML(group.label + trigger)}">
+      <div class="combobox form-switch-combobox" data-cb="${sideKey}-form">
+        <button type="button" class="cb-input cb-trigger form-switch-btn" data-cb-type="form" data-side="${sideKey}" data-field="formIdx" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} ${escapeHTML(group.label)} 선택" aria-expanded="false">${escapeHTML(currentLabel)}</button>
+        <div class="combobox-options" role="listbox"></div>
+      </div>
     </div>
   `;
 }

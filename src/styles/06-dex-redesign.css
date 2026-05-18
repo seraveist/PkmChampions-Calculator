@@ -21,13 +21,13 @@
   font-family: 'Noto Sans KR', sans-serif;
 }
 
-#page-dex .dex-control-panel {
+#page-dex .dex-control-panel.ui-frame {
   position: relative;
   display: grid;
   overflow: hidden;
 }
 
-#page-dex .dex-control-head {
+#page-dex .dex-control-head.ui-frame-head {
   display: block;
   align-items: center;
   padding: var(--ui-panel-head-padding);
@@ -35,7 +35,7 @@
   box-shadow: inset 0 4px 0 var(--dex-accent);
 }
 
-#page-dex .dex-control-body {
+#page-dex .dex-control-body.ui-frame-body {
   padding: 10px;
   background: linear-gradient(180deg, #ffffff, #f8fafc);
 }
@@ -810,7 +810,7 @@
 }
 
 .dex-fullpage-body,
-.dex-modal-body {
+.dex-modal .ui-frame-body {
   display: grid;
   gap: 12px;
   padding: 14px;
@@ -856,7 +856,7 @@
   backdrop-filter: blur(3px);
 }
 
-.dex-modal-head {
+.dex-modal .ui-frame-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -900,7 +900,7 @@
   color: #6f4815;
 }
 
-.dex-modal-body {
+.dex-modal .ui-frame-body {
   min-height: 0;
   max-height: none;
   overflow-y: auto;
@@ -1367,7 +1367,7 @@
     font-size: 21px;
   }
 
-  .dex-modal-head {
+  .dex-modal .ui-frame-head {
     align-items: flex-start;
   }
 
@@ -1466,7 +1466,7 @@
 }
 
 @media (max-width: 520px) {
-  .dex-modal-head {
+  .dex-modal .ui-frame-head {
     align-items: center;
     min-height: 52px;
     padding: 11px 12px;

@@ -24,14 +24,14 @@
   box-sizing: border-box;
 }
 
-.tool-page .panel {
+.tool-page .ui-frame {
   overflow: visible;
   border-color: var(--tool-line);
   background: var(--tool-surface);
   box-shadow: var(--tool-shadow);
 }
 
-.tool-page .panel-head {
+.tool-page .ui-frame-head {
   position: relative;
   display: flex;
   align-items: center;
@@ -61,7 +61,7 @@
   letter-spacing: 0;
 }
 
-.tool-page .panel-body {
+.tool-page .ui-frame-body {
   padding: 16px;
 }
 
@@ -78,6 +78,104 @@
 .tool-page .field {
   min-width: 0;
   margin: 0;
+}
+
+.tool-page .tool-pokemon-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tool-page .tool-pokemon-title-actions,
+.tool-page .tool-pokemon-meta-actions {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+}
+
+.tool-page .tool-pokemon-title-actions {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+}
+
+.tool-page .tool-pokemon-title-actions .field-label {
+  margin-bottom: 0;
+}
+
+.tool-page .tool-pokemon-meta-actions {
+  position: relative;
+  z-index: 5;
+  flex: 0 1 auto;
+  justify-content: flex-end;
+  overflow: visible;
+}
+
+.tool-page .tool-form-combobox {
+  flex: 0 0 128px;
+  width: 128px;
+  min-width: 0;
+  height: 26px;
+}
+
+.tool-page .tool-form-combobox::after {
+  right: 8px;
+}
+
+.tool-page .tool-form-combobox .form-switch-btn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 26px;
+  min-height: 26px !important;
+  margin: 0;
+  padding: 0 22px 0 9px !important;
+  overflow: hidden;
+  border: 1px solid var(--tool-line);
+  border-radius: 4px;
+  background: #ffffff;
+  color: var(--tool-muted);
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-page .tool-form-combobox .form-switch-btn:hover {
+  border-color: #b9c5d1;
+  background: var(--tool-surface-soft);
+  color: var(--tool-text);
+}
+
+.tool-page .tool-form-combobox .form-switch-btn:focus-visible {
+  outline: 0;
+  border-color: var(--tool-accent);
+  box-shadow: 0 0 0 2px rgba(123, 97, 255, 0.16);
+}
+
+.tool-page .tool-form-combobox .combobox-options {
+  left: auto;
+  right: 0;
+  width: max-content;
+  min-width: 128px;
+  max-width: calc(100vw - 24px);
+  transform: none;
+  z-index: 60;
+}
+
+.tool-page .tool-form-combobox .combobox-option {
+  min-width: 128px;
+  border-left: 3px solid transparent;
+}
+
+.tool-page .tool-form-combobox .combobox-option.selected {
+  border-left-color: var(--tool-combo-selected, var(--tool-accent));
 }
 
 .tool-page .combobox-option.pokemon-option.selected,
@@ -182,6 +280,12 @@
   text-align: center;
 }
 
+.tool-page :where(.matchup-slot, .matchup-coverage-card, .ft-table-section, .ft-analysis-section, .rc-my-moves-panel, .rc-table-section, .rc-input-block) {
+  min-width: 0;
+  border: 1px solid var(--tool-line);
+  border-radius: var(--ui-subframe-radius);
+}
+
 #page-revcalc .empty-state.error {
   color: var(--tool-danger);
 }
@@ -196,7 +300,7 @@
   display: block;
 }
 
-#page-matchup .panel-head {
+#page-matchup .ui-frame-head {
   --panel-point-color: #789b86;
 }
 
@@ -205,10 +309,8 @@
 }
 
 #page-matchup .matchup-control-row {
-  display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 10px;
   min-width: 0;
   margin-bottom: 14px;
 }
@@ -258,10 +360,8 @@
   grid-template-columns: 28px minmax(0, 1fr) calc((var(--ui-type-chip-width) * 2) + var(--ui-type-strip-gap)) 28px;
   align-items: center;
   gap: var(--ui-control-grid-gap);
-  min-width: 0;
   min-height: 46px;
   padding: 7px 8px;
-  border: 1px solid var(--tool-line);
   border-radius: 9px;
   background: #ffffff;
 }
@@ -375,8 +475,6 @@
 
 #page-matchup .matchup-coverage-card {
   padding: var(--ui-subframe-padding);
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
   background: var(--tool-surface-soft);
 }
 
@@ -847,7 +945,7 @@
   display: block;
 }
 
-#page-finetune .panel,
+#page-finetune .ui-frame,
 #page-finetune .ft-layout,
 #page-finetune .ft-editor,
 #page-finetune .ft-hp-panel,
@@ -877,15 +975,15 @@
   grid-area: speed;
 }
 
-#page-finetune .ft-editor .panel-head {
+#page-finetune .ft-editor .ui-frame-head {
   --panel-point-color: var(--ft-accent);
 }
 
-#page-finetune .ft-hp-panel .panel-head {
+#page-finetune .ft-hp-panel .ui-frame-head {
   --panel-point-color: transparent;
 }
 
-#page-finetune .ft-speed-panel .panel-head {
+#page-finetune .ft-speed-panel .ui-frame-head {
   --panel-point-color: var(--ft-speed);
 }
 
@@ -955,9 +1053,9 @@
   flex-wrap: nowrap;
   justify-content: flex-end;
   height: var(--ui-type-chip-height);
-  max-width: calc(100% - 72px);
+  max-width: none;
   min-height: var(--ui-type-chip-height);
-  overflow: hidden;
+  overflow: visible;
   pointer-events: none;
 }
 
@@ -993,6 +1091,12 @@
 #page-finetune .ft-cb-field .cb-input {
   min-width: 0;
   width: 100%;
+}
+
+#page-finetune .ft-cb-field .tool-form-combobox {
+  flex: 0 0 128px;
+  width: 128px;
+  max-width: 128px;
 }
 
 #page-finetune .ft-type-strip,
@@ -1040,8 +1144,6 @@
   min-width: 0;
   margin-top: 14px;
   padding: var(--ui-subframe-padding);
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
   background: var(--ui-subframe-bg);
 }
 
@@ -1210,7 +1312,7 @@
   --ft-rank-gap: clamp(3px, 0.35vw, 5px);
   --ft-rank-col: calc((var(--ft-rank-btn) * 2) + var(--ft-rank-val) + (var(--ft-rank-gap) * 2));
   width: max-content;
-  max-width: 100%;
+  max-width: none;
   grid-template-columns:
     clamp(54px, 5.4vw, 70px)
     clamp(40px, 4.4vw, 54px)
@@ -1447,8 +1549,6 @@
 #page-finetune .ft-analysis-section {
   min-width: 0;
   padding: var(--ui-subframe-padding);
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
   background: var(--ui-subframe-bg);
 }
 
@@ -1489,7 +1589,7 @@
   margin: 8px 0 0;
   border-radius: 999px;
   background: #e8edf3;
-  overflow: hidden;
+  overflow: visible;
 }
 
 #page-finetune .ft-ev-meter span {
@@ -1651,20 +1751,16 @@
 }
 
 #page-finetune .ft-opp-types {
-  position: absolute;
-  top: 0;
-  right: 4px;
-  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: nowrap;
   gap: var(--ui-type-strip-gap);
   height: var(--ui-type-chip-height);
-  max-width: calc(100% - 72px);
+  max-width: none;
   min-width: 0;
   min-height: var(--ui-type-chip-height);
-  overflow: hidden;
+  overflow: visible;
   pointer-events: none;
 }
 
@@ -2064,8 +2160,8 @@
   display: block;
 }
 
-#page-revcalc > .panel + .panel,
-#page-revcalc .rc-grid + .panel {
+#page-revcalc > .ui-frame + .ui-frame,
+#page-revcalc .rc-grid + .ui-frame {
   margin-top: 14px;
 }
 
@@ -2075,11 +2171,11 @@
   gap: 14px;
 }
 
-#page-revcalc .rc-my .panel-head {
+#page-revcalc .rc-my .ui-frame-head {
   --panel-point-color: #8f7cc8;
 }
 
-#page-revcalc .rc-opp .panel-head {
+#page-revcalc .rc-opp .ui-frame-head {
   --panel-point-color: #6aa4c5;
 }
 
@@ -2131,6 +2227,12 @@
   min-width: 0;
 }
 
+#page-revcalc .rc-pokemon-field .tool-form-combobox {
+  flex: 0 0 128px;
+  width: 128px;
+  max-width: 128px;
+}
+
 #page-revcalc .cb-trigger {
   display: flex;
   align-items: center;
@@ -2152,10 +2254,10 @@
   flex-wrap: nowrap;
   justify-content: flex-end;
   height: var(--ui-type-chip-height);
-  max-width: calc(100% - 72px);
+  max-width: none;
   min-height: var(--ui-type-chip-height);
   margin: 0;
-  overflow: hidden;
+  overflow: visible;
   pointer-events: none;
 }
 
@@ -2215,8 +2317,6 @@
   display: grid;
   gap: 8px;
   padding: var(--ui-subframe-padding);
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
   background: var(--ui-subframe-bg);
 }
 
@@ -2227,8 +2327,6 @@
 #page-revcalc .rc-table-section {
   min-width: 0;
   padding: var(--ui-subframe-padding);
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
   background: var(--ui-subframe-bg);
 }
 
@@ -2430,8 +2528,6 @@
 
 #page-revcalc .rc-input-block {
   padding: var(--ui-subframe-padding);
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
   background: var(--tool-surface-soft);
 }
 
@@ -3274,7 +3370,7 @@
 
   #page-finetune .ft-pokemon-main-row .ft-type-strip {
     gap: 4px;
-    max-width: calc(100% - 64px);
+    max-width: none;
   }
 
   #page-finetune .ft-pokemon-main-row .type-pill,
@@ -3284,7 +3380,7 @@
     font-size: 10px;
   }
 
-  #page-finetune .panel-head {
+  #page-finetune .ui-frame-head {
     gap: 8px;
     padding: var(--ui-panel-head-padding-compact);
   }
@@ -3314,6 +3410,43 @@
     font-size: 12px;
   }
 
+  #page-revcalc .rc-stats-grid {
+    grid-template-columns:
+      minmax(38px, 0.54fr)
+      minmax(30px, 0.38fr)
+      minmax(86px, 1fr)
+      minmax(36px, 0.46fr)
+      minmax(54px, 0.54fr);
+    gap: 5px 1px;
+  }
+
+  #page-revcalc .rc-stats-grid .ft-stat-ev {
+    grid-template-columns: 22px minmax(38px, 1fr) 22px;
+    gap: 2px;
+  }
+
+  #page-revcalc .rc-stats-grid .ft-ev-quick {
+    width: 22px;
+    height: 28px;
+    line-height: 28px;
+  }
+
+  #page-revcalc .rc-stats-grid .ft-ev-input {
+    height: 28px;
+    min-height: 28px;
+    line-height: 28px;
+  }
+
+  #page-revcalc .rc-stats-grid .ft-rank {
+    grid-template-columns: 18px 18px 18px;
+    gap: 1px;
+  }
+
+  #page-revcalc .rc-stats-grid .ft-rank-btn {
+    width: 18px;
+    height: 28px;
+  }
+
   #page-finetune .ft-table-section {
     padding: 10px 8px;
   }
@@ -3323,10 +3456,8 @@
   }
 
   #page-finetune .ft-opp-types {
-    top: -1px;
-    right: 3px;
     justify-content: flex-end;
-    max-width: calc(100% - 64px);
+    max-width: none;
     min-height: 0;
   }
 
@@ -3487,5 +3618,92 @@
   #page-finetune .ft-magic-current-slot {
     width: var(--ft-magic-current);
     min-height: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  #page-finetune .ft-stats-grid {
+    --ft-ev-btn: 20px;
+    --ft-ev-input: 40px;
+    --ft-ev-gap: 2px;
+    --ft-magic-edge: 16px;
+    --ft-magic-current: 16px;
+    --ft-magic-gap: 1px;
+    --ft-rank-btn: 18px;
+    --ft-rank-val: 16px;
+    --ft-rank-gap: 1px;
+    grid-template-columns:
+      36px
+      27px
+      minmax(var(--ft-point-col), var(--ft-point-col))
+      minmax(var(--ft-magic-col), var(--ft-magic-col))
+      32px
+      minmax(var(--ft-rank-col), var(--ft-rank-col));
+    gap: 5px 2px;
+  }
+
+  #page-finetune .ft-stat-name {
+    padding-left: 5px;
+    font-size: 10px;
+  }
+
+  #page-finetune .ft-stats-head > div,
+  #page-finetune .ft-stat-base,
+  #page-finetune .ft-stat-final,
+  #page-finetune .ft-rank-val {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  #page-revcalc .rc-stats-grid {
+    grid-template-columns:
+      minmax(38px, 0.54fr)
+      minmax(28px, 0.38fr)
+      minmax(86px, 1fr)
+      minmax(34px, 0.46fr)
+      minmax(56px, 0.56fr);
+    gap: 5px 2px;
+  }
+
+  #page-revcalc .rc-stats-grid .ft-stat-name,
+  #page-revcalc .rc-stats-grid .ft-stat-label {
+    font-size: 10px;
+  }
+
+  #page-revcalc .rc-stats-grid .ft-stat-ev {
+    grid-template-columns: 22px minmax(38px, 1fr) 22px;
+  }
+
+  #page-revcalc .rc-stats-grid .ft-ev-quick {
+    width: 22px;
+  }
+
+  #page-revcalc .rc-stats-grid .ft-rank {
+    grid-template-columns: 18px 18px 18px;
+  }
+
+  #page-revcalc .rc-stats-grid .ft-rank-btn {
+    width: 18px;
+  }
+
+  #page-finetune .ft-stats-grid {
+    --ft-ev-btn: 18px;
+    --ft-ev-input: 36px;
+    --ft-ev-gap: 2px;
+    --ft-magic-edge: 12px;
+    --ft-magic-current: 14px;
+    --ft-magic-gap: 1px;
+    --ft-rank-btn: 16px;
+    --ft-rank-val: 14px;
+    --ft-rank-gap: 1px;
+    grid-template-columns:
+      32px
+      24px
+      minmax(var(--ft-point-col), var(--ft-point-col))
+      minmax(var(--ft-magic-col), var(--ft-magic-col))
+      30px
+      minmax(var(--ft-rank-col), var(--ft-rank-col));
+    gap: 5px 2px;
   }
 }

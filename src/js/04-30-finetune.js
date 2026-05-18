@@ -185,6 +185,8 @@ function ftComboData(target) {
   if (target === 'my' || target === 'opp') {
     return sortPokemonForFineTuneSelect(POKEMON).map(p => ({ id: p.id, label: pkName(p), sub: `SPE ${p.bs?.spe || 0} · ${p.types.join('/')} · BST ${p.bst}`, raw: p }));
   }
+  if (target === 'myForm') return calcFormOptionDataForPokemon(fineTuneState.my.pokemonIdx);
+  if (target === 'oppForm') return calcFormOptionDataForPokemon(fineTuneState.opp.pokemonIdx);
   if (target === 'item') {
     return calcItemOptionData();
   }
@@ -197,6 +199,7 @@ function ftComboData(target) {
 
 function ftComboLabel(target, id) {
   if (target === 'my' || target === 'opp') return pkName(PokemonById[id] || { name: '' });
+  if (target === 'myForm' || target === 'oppForm') return PokemonById[id] ? calcPokemonFormLabel(PokemonById[id]) : '';
   if (target === 'item') return id ? itName(ItemById[id] || { name: id }) : '없음';
   if (target === 'nature') return calcNatureLabel(NATURE_BY_ID[id]) || id;
   if (target === 'ability') return id ? abName(AbilityById[id] || { name: id }) : '없음';
@@ -231,9 +234,16 @@ function ftApplyPokemonToFineTune(pokemonId) {
 
 function ftSelectCombo(target, id) {
   if (target === 'my') ftApplyPokemonToFineTune(id);
+  if (target === 'myForm') {
+    applyPokemonFormToSideState(fineTuneState.my, id);
+    if (!ftAbilitySpeedActivation(fineTuneState.my.ability)) fineTuneState.weatherAbilityActive = false;
+  }
   if (target === 'opp' && PokemonById[id]) {
     fineTuneState.opp.pokemonIdx = id;
     fineTuneState.opp.baseSpe = '';
+  }
+  if (target === 'oppForm') {
+    applyPokemonFormToSideState(fineTuneState.opp, id);
   }
   if (target === 'item') fineTuneState.my.item = id || '';
   if (target === 'nature') fineTuneState.my.nature = id || 'hardy';
@@ -246,6 +256,8 @@ function ftSelectCombo(target, id) {
 function ftCurrentComboId(target) {
   if (target === 'my') return fineTuneState.my.pokemonIdx || '';
   if (target === 'opp') return fineTuneState.opp.pokemonIdx || '';
+  if (target === 'myForm') return fineTuneState.my.pokemonIdx || '';
+  if (target === 'oppForm') return fineTuneState.opp.pokemonIdx || '';
   if (target === 'item') return fineTuneState.my.item || '';
   if (target === 'nature') return fineTuneState.my.nature || 'hardy';
   if (target === 'ability') return fineTuneState.my.ability || '';
@@ -262,6 +274,7 @@ function ftWireComboboxes(rootId) {
     const cb = input.closest('.combobox');
     const optsEl = cb?.querySelector('.combobox-options');
     if (!optsEl) return;
+    const isButtonTrigger = input.tagName === 'BUTTON';
     const showOptions = q => {
       calcHideOptionTooltip();
       const query = String(q || '').trim();
@@ -272,7 +285,7 @@ function ftWireComboboxes(rootId) {
       ));
       const matches = query ? allMatches.slice(0, target === 'item' ? 50 : 80) : allMatches;
       const currentId = ftCurrentComboId(target);
-      const renderType = (target === 'my' || target === 'opp') ? 'pokemon' : target;
+      const renderType = (target === 'my' || target === 'opp') ? 'pokemon' : (target === 'myForm' || target === 'oppForm') ? 'form' : target;
       const header = (target === 'my' || target === 'opp')
         ? (typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('pokemon') : '')
         : target === 'nature'
@@ -281,6 +294,7 @@ function ftWireComboboxes(rootId) {
       optsEl.innerHTML = matches.length ? header + matches.map(option =>
         calcRenderComboboxOption(renderType, option, currentId)
       ).join('') : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
+      closeSiblingComboboxOptions(optsEl, input);
       optsEl.classList.add('open');
     };
     const restoreInput = () => {
@@ -311,6 +325,9 @@ function ftWireComboboxes(rootId) {
     input.addEventListener('click', () => combo?.open(''));
     input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
     input.addEventListener('blur', () => setTimeout(() => {
+      if (isButtonTrigger) {
+        return;
+      }
       if (!String(input.value || '').trim()) {
         if (clearOptionalInput()) return;
         calcHideOptionTooltip();
@@ -322,6 +339,13 @@ function ftWireComboboxes(rootId) {
       combo?.commitTyped();
     }, 180));
     optsEl.addEventListener('mousedown', e => {
+      const opt = e.target.closest('.combobox-option');
+      if (!opt || opt.classList.contains('empty')) return;
+      e.preventDefault();
+      if (isButtonTrigger) return;
+      combo?.select(opt);
+    });
+    optsEl.addEventListener('click', e => {
       const opt = e.target.closest('.combobox-option');
       if (!opt || opt.classList.contains('empty')) return;
       e.preventDefault();
@@ -504,7 +528,7 @@ function renderFineTuneSummary() {
   const pct = Math.min(100, Math.round(ev.total / 66 * 100));
 
   container.innerHTML = `
-    <section class="ft-analysis-section ft-summary-section">
+    <section class="ft-analysis-section ft-summary-section ui-control-frame">
       <div class="ft-ev-footer-head">
         <span>포인트 합계 <b class="${ev.over ? 'over' : ''}">${ev.total}/66</b></span>
         <span>잔여 <b>${ev.remaining}</b></span>
@@ -587,7 +611,7 @@ function renderFineTuneHp() {
   const groups = ftGroupHpBreakpoints(my, rows).sort(ftCompareBreakpointGroups);
 
   container.innerHTML = `
-    <section class="ft-analysis-section ft-hp-section">
+    <section class="ft-analysis-section ft-hp-section ui-control-frame">
       <div class="ft-analysis-title">
         <span>HP 기준점</span>
         <b>HP ${calcStats(my).hp}</b>
@@ -621,15 +645,22 @@ function renderFineTuneMy() {
   const bulk = ftBulkMetrics(my);
   const rankStats = ['atk','def','spa','spd','spe'];
   const typeBadges = ftRenderTypePills(normalizeSideTypes(my));
+  const formControl = renderToolFormCombobox({
+    pokemonId: my.pokemonIdx,
+    inputClass: 'ft-cb-input',
+    pickAttr: 'data-ft-pick',
+    pickValue: 'myForm',
+    ariaLabel: '내 포켓몬 폼 선택',
+  });
   const speedActivation = ftAbilitySpeedActivation(my.ability);
   const statRows = ['hp', ...rankStats].map(stat => {
     const ev = my.evs[stat] || 0;
     const rank = my.ranks?.[stat] || 0;
     const rankCtrl = stat === 'hp' ? '<div class="ft-rank-empty"></div>' : `
       <div class="ft-rank">
-        <button class="ft-rank-btn" data-ft-rank="${stat}" data-ft-dir="-1">-</button>
+        <button type="button" class="ft-rank-btn" data-ft-rank="${stat}" data-ft-dir="-1">-</button>
         <span class="ft-rank-val ${rank > 0 ? 'pos' : rank < 0 ? 'neg' : ''}">${rank > 0 ? '+' + rank : rank}</span>
-        <button class="ft-rank-btn" data-ft-rank="${stat}" data-ft-dir="1">+</button>
+        <button type="button" class="ft-rank-btn" data-ft-rank="${stat}" data-ft-dir="1">+</button>
       </div>
     `;
     return `
@@ -637,9 +668,9 @@ function renderFineTuneMy() {
         <div class="ft-stat-name">${STAT_LABEL?.[stat] || stat} ${ftNatureMark(stat, my.nature)}</div>
         <div class="ft-stat-base">${p.bs[stat]}</div>
         <div class="ft-stat-ev">
-          <button class="ft-ev-quick" data-ft-evset="${stat}" data-ft-evval="0" title="0">0</button>
+          <button type="button" class="ft-ev-quick" data-ft-evset="${stat}" data-ft-evval="0" title="0">0</button>
           <input type="number" class="ft-ev-input" data-ft-ev="${stat}" value="${ev}" min="0" max="32" aria-label="${STAT_LABEL?.[stat] || stat} 포인트">
-          <button class="ft-ev-quick" data-ft-evset="${stat}" data-ft-evval="32" title="32">32</button>
+          <button type="button" class="ft-ev-quick" data-ft-evset="${stat}" data-ft-evval="32" title="32">32</button>
         </div>
         ${ftRenderMagicCell(my, stat, ev)}
         <div class="ft-stat-final">${stats[stat]}</div>
@@ -649,13 +680,16 @@ function renderFineTuneMy() {
   }).join('');
 
   container.innerHTML = `
-    <div class="ft-setup-grid">
-      <div class="ft-pokemon-main-row">
-      <div class="field ft-cb-field ft-pokemon-field">
-        <div class="ui-field-head ft-pokemon-head">
-          <span class="field-label">포켓몬</span>
-          <div class="party-load-head-actions">
+    <div class="ft-setup-grid ui-control-grid">
+      <div class="ft-pokemon-main-row ui-control-row">
+      <div class="field ft-cb-field ft-pokemon-field ui-control-frame">
+        <div class="ui-field-head ft-pokemon-head tool-pokemon-head">
+          <div class="tool-pokemon-title-actions">
+            <span class="field-label">포켓몬</span>
             <button type="button" class="party-load-button ui-label-action" data-party-import-target="finetune:my">불러오기</button>
+          </div>
+          <div class="tool-pokemon-meta-actions">
+            ${formControl}
             <div class="ft-type-strip" aria-label="타입">${typeBadges}</div>
           </div>
         </div>
@@ -688,11 +722,11 @@ function renderFineTuneMy() {
       </label>
     </div>
 
-    <div class="ft-table-section">
+    <div class="ft-table-section ui-control-frame">
       <div class="ft-table-title">능력 포인트</div>
       <div class="ft-edit-layout">
         <div class="ft-stats-column">
-          <div class="ft-stats-grid">
+        <div class="ft-stats-grid ui-stat-grid">
             <div class="ft-stats-head">
               <div>능력</div>
               <div>종족값</div>
@@ -727,30 +761,45 @@ function renderFineTuneOpp() {
   const opp = fineTuneState.opp;
   const p = PokemonById[opp.pokemonIdx];
   const baseSpe = p ? ftOpponentBaseSpeed(opp) : '';
+  const formControl = renderToolFormCombobox({
+    pokemonId: opp.pokemonIdx,
+    inputClass: 'ft-cb-input',
+    pickAttr: 'data-ft-pick',
+    pickValue: 'oppForm',
+    ariaLabel: '상대 포켓몬 폼 선택',
+  });
 
   container.innerHTML = `
-    <section class="ft-analysis-section ft-opp-section">
+    <section class="ft-analysis-section ft-opp-section ui-control-frame">
       <div class="ft-opp-card-head">
         <span class="ft-section-title">상대 포켓몬</span>
       </div>
-      <div class="ft-opp-pick-row">
-        <label class="field ft-cb-field"><span class="field-label">포켓몬</span>
+      <div class="ft-opp-pick-row ui-control-row">
+        <div class="field ft-cb-field ft-pokemon-field">
+          <div class="ui-field-head ft-pokemon-head tool-pokemon-head">
+            <div class="tool-pokemon-title-actions">
+              <span class="field-label">포켓몬</span>
+            </div>
+            <div class="tool-pokemon-meta-actions">
+              ${formControl}
+              ${p ? `<div class="ft-opp-types" aria-label="상대 타입">${ftRenderTypePills(p.types)}</div>` : '<div class="ft-opp-types empty" aria-hidden="true"></div>'}
+            </div>
+          </div>
           <div class="combobox pokemon-select">
             <input type="text" class="cb-input ft-cb-input" data-ft-pick="opp" value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="검색...">
             <div class="combobox-options"></div>
           </div>
-        </label>
-        ${p ? `<div class="ft-opp-types" aria-label="상대 타입">${ftRenderTypePills(p.types)}</div>` : '<div class="ft-opp-types empty" aria-hidden="true"></div>'}
+        </div>
       </div>
-      <div class="ft-opp-speed-controls">
+      <div class="ft-opp-speed-controls ui-control-row">
         <label class="field ft-base-speed-field"><span class="field-label">속도 종족값</span>
           <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftOppBaseSpe" value="${escapeHTML(baseSpe)}" placeholder="속도">
         </label>
         <div class="field ft-rank-field"><span class="field-label">랭크</span>
           <div class="ft-rank">
-            <button class="ft-rank-btn" data-ft-opprank="-1">-</button>
+            <button type="button" class="ft-rank-btn" data-ft-opprank="-1">-</button>
             <span class="ft-rank-val ${opp.speRank > 0 ? 'pos' : opp.speRank < 0 ? 'neg' : ''}">${opp.speRank > 0 ? '+' + opp.speRank : opp.speRank}</span>
-            <button class="ft-rank-btn" data-ft-opprank="1">+</button>
+            <button type="button" class="ft-rank-btn" data-ft-opprank="1">+</button>
           </div>
         </div>
         <label class="checkbox-label ft-opp-scarf">

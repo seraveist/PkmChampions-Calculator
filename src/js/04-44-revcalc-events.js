@@ -80,12 +80,18 @@ function rcWireMyComboboxes() {
     const target = input.dataset.rcPick;
     const cb = input.closest('.combobox');
     const optsEl = cb.querySelector('.combobox-options');
+    const isButtonTrigger = input.tagName === 'BUTTON';
     const showOpts = q => {
       calcHideOptionTooltip();
       const s = (q || '').toLowerCase();
       if (target === 'my') {
         const matches = sortPokemonForCalcSelect(POKEMON).filter(d => calcMatches(s, d.koName || pkName(d)));
         optsEl.innerHTML = calcComboboxHeaderHtml('pokemon') + matches.map(m => calcRenderPokemonOption(m, revCalcState.my.pokemonIdx)).join('');
+      } else if (target === 'myForm') {
+        const matches = calcFormOptionDataForPokemon(revCalcState.my.pokemonIdx).filter(option => rcComboSearchMatches(s, option));
+        optsEl.innerHTML = matches.length
+          ? matches.map(option => calcRenderComboboxOption('form', option, revCalcState.my.pokemonIdx)).join('')
+          : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
       } else {
         const kind = rcComboKind(target);
         const allMatches = rcComboData(kind).filter(option => rcComboSearchMatches(s, option));
@@ -95,12 +101,15 @@ function rcWireMyComboboxes() {
           ? header + matches.map(option => calcRenderComboboxOption(kind, option, rcCurrentComboId(kind))).join('')
           : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
       }
+      closeSiblingComboboxOptions(optsEl, input);
       optsEl.classList.add('open');
     };
     const applyOption = opt => {
       const id = opt.dataset.id;
       if (target === 'my') {
         rcApplyMyPokemonSelection(id);
+      } else if (target === 'myForm') {
+        applyPokemonFormToSideState(revCalcState.my, id);
       } else if (target === 'myitem') {
         revCalcState.my.item = id || '';
       } else if (target === 'mynature') {
@@ -114,6 +123,8 @@ function rcWireMyComboboxes() {
     const restoreInput = () => {
       input.value = target === 'my'
         ? pkName(PokemonById[revCalcState.my.pokemonIdx] || { name: '' })
+        : target === 'myForm'
+          ? calcPokemonFormLabel(PokemonById[revCalcState.my.pokemonIdx])
         : rcComboLabel(rcComboKind(target), rcCurrentComboId(rcComboKind(target)));
     };
     const clearOptionalInput = () => {
@@ -138,6 +149,9 @@ function rcWireMyComboboxes() {
     input.addEventListener('click', () => combo?.open(''));
     input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
     input.addEventListener('blur', () => setTimeout(() => {
+      if (isButtonTrigger) {
+        return;
+      }
       if (!String(input.value || '').trim()) {
         if (clearOptionalInput()) return;
         calcHideOptionTooltip();
@@ -149,6 +163,13 @@ function rcWireMyComboboxes() {
       combo?.commitTyped();
     }, 200));
     optsEl.addEventListener('mousedown', e => {
+      const opt = e.target.closest('.combobox-option');
+      if (!opt || opt.classList.contains('empty')) return;
+      e.preventDefault();
+      if (isButtonTrigger) return;
+      combo?.select(opt);
+    });
+    optsEl.addEventListener('click', e => {
       const opt = e.target.closest('.combobox-option');
       if (!opt || opt.classList.contains('empty')) return;
       e.preventDefault();
@@ -188,17 +209,32 @@ function rcDefaultKnownOpponentItemForPokemon(pokemon) {
 
 function rcWireOppComboboxes() {
   document.getElementById('rc-opp-body').querySelectorAll('.rc-cb-input').forEach(input => {
+    const target = input.dataset.rcPick || 'opp';
     const cb = input.closest('.combobox');
     const optsEl = cb.querySelector('.combobox-options');
+    const isButtonTrigger = input.tagName === 'BUTTON';
     const showOpts = q => {
       const s = (q || '').toLowerCase();
-      const matches = sortPokemonForCalcSelect(POKEMON).filter(d => calcMatches(s, d.koName || pkName(d)));
-      optsEl.innerHTML = calcComboboxHeaderHtml('pokemon') + matches.map(m =>
-        calcRenderPokemonOption(m, revCalcState.opp.pokemonIdx)
-      ).join('');
+      if (target === 'oppForm') {
+        const matches = calcFormOptionDataForPokemon(revCalcState.opp.pokemonIdx).filter(option => rcComboSearchMatches(s, option));
+        optsEl.innerHTML = matches.length
+          ? matches.map(option => calcRenderComboboxOption('form', option, revCalcState.opp.pokemonIdx)).join('')
+          : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
+      } else {
+        const matches = sortPokemonForCalcSelect(POKEMON).filter(d => calcMatches(s, d.koName || pkName(d)));
+        optsEl.innerHTML = calcComboboxHeaderHtml('pokemon') + matches.map(m =>
+          calcRenderPokemonOption(m, revCalcState.opp.pokemonIdx)
+        ).join('');
+      }
+      closeSiblingComboboxOptions(optsEl, input);
       optsEl.classList.add('open');
     };
     const applyOption = opt => {
+      if (target === 'oppForm') {
+        applyPokemonFormToSideState(revCalcState.opp, opt.dataset.id);
+        renderRevCalcAll();
+        return;
+      }
       revCalcState.opp.pokemonIdx = opt.dataset.id;
       const pokemon = PokemonById[revCalcState.opp.pokemonIdx];
       revCalcState.opp.item = defaultPokemonItemId(pokemon);
@@ -215,13 +251,18 @@ function rcWireOppComboboxes() {
       onSelect: applyOption,
       getQuery: () => input.value || '',
       onInvalidInput: () => {
-        input.value = pkName(PokemonById[revCalcState.opp.pokemonIdx] || { name: '' });
+        input.value = target === 'oppForm'
+          ? calcPokemonFormLabel(PokemonById[revCalcState.opp.pokemonIdx])
+          : pkName(PokemonById[revCalcState.opp.pokemonIdx] || { name: '' });
       },
     });
     input.addEventListener('focus', () => combo?.open(''));
     input.addEventListener('click', () => combo?.open(''));
     input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
     input.addEventListener('blur', () => setTimeout(() => {
+      if (isButtonTrigger) {
+        return;
+      }
       if (!String(input.value || '').trim()) {
         combo?.close();
         input.value = pkName(PokemonById[revCalcState.opp.pokemonIdx] || { name: '' });
@@ -231,7 +272,14 @@ function rcWireOppComboboxes() {
     }, 200));
     optsEl.addEventListener('mousedown', e => {
       const opt = e.target.closest('.combobox-option');
-      if (!opt) return;
+      if (!opt || opt.classList.contains('empty')) return;
+      e.preventDefault();
+      if (isButtonTrigger) return;
+      combo?.select(opt);
+    });
+    optsEl.addEventListener('click', e => {
+      const opt = e.target.closest('.combobox-option');
+      if (!opt || opt.classList.contains('empty')) return;
       e.preventDefault();
       combo?.select(opt);
     });

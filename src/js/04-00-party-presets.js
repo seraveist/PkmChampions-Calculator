@@ -613,7 +613,7 @@ function ensurePartyPresetModal() {
   modal.className = 'party-preset-modal-backdrop';
   modal.hidden = true;
   modal.innerHTML = `
-    <div class="party-preset-modal" role="dialog" aria-modal="true" aria-labelledby="partyPresetTitle">
+    <div class="party-preset-modal" role="dialog" aria-modal="true" aria-labelledby="partyPresetTitle" aria-describedby="partyPresetBackupNote">
       <div class="party-preset-modal-head">
         <div>
           <div class="party-preset-eyebrow">PARTY PRESET</div>
@@ -626,6 +626,9 @@ function ensurePartyPresetModal() {
           <button type="button" class="party-preset-close" id="partyPresetClose">닫기</button>
           <input type="file" id="partyPresetImportFile" accept=".json,application/json" hidden>
         </div>
+      </div>
+      <div class="party-preset-backup-note" id="partyPresetBackupNote" role="note">
+        프리셋은 현재 브라우저에 저장됩니다. 기기 변경이나 브라우저 초기화 전에 JSON 내보내기로 백업하세요.
       </div>
       <div class="party-preset-modal-body" id="partyPresetBody"></div>
       <div class="party-preset-text-dialog" id="partyPresetTextDialog" hidden>

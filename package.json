@@ -5,7 +5,14 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
+    "prepare-public": "node scripts/prepare-public.mjs",
+    "build:public": "npm run build && npm run prepare-public",
+    "build:pages": "node scripts/build-pages.mjs",
     "check": "node scripts/check.mjs",
+    "html:structure": "node scripts/html-structure-check.mjs",
+    "css:structure": "node scripts/css-structure-check.mjs",
+    "spa:hosting": "node scripts/spa-hosting-check.mjs",
+    "public:ready": "node scripts/public-readiness-check.mjs",
     "data:validate": "node scripts/validate-data.mjs",
     "dex:smoke": "node scripts/dex-ui-smoke.mjs",
     "damage:golden": "node scripts/damage-golden.mjs",
@@ -13,7 +20,7 @@
     "coverage:matrix": "node scripts/coverage-matrix.mjs",
     "state:entry": "node scripts/entry-effects-state.mjs",
     "state:finetune": "node scripts/fine-tune-state.mjs",
-    "test": "npm run check && npm run build && npm run data:validate && npm run dex:smoke && npm run damage:golden && npm run reverse:golden && npm run state:entry && npm run state:finetune",
+    "test": "npm run check && npm run build && npm run html:structure && npm run css:structure && npm run spa:hosting && npm run public:ready && npm run data:validate && npm run dex:smoke && npm run damage:golden && npm run reverse:golden && npm run state:entry && npm run state:finetune",
     "sync-data": "node scripts/sync-ps-data.mjs",
     "sync-data:dry": "node scripts/sync-ps-data.mjs --dry-run",
     "fetch-ko": "node scripts/fetch-ko.mjs"

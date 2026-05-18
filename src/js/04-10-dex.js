@@ -146,20 +146,33 @@ function renderTypeFilter() {
   if (currentDex === 'pokemon' || currentDex === 'moves') {
     el.style.display = 'flex';
     const isAll = dexTypeFilter.length === 0;
-    const all = `<button class="type-filter-btn ${isAll ? 'active' : ''}" data-filter-type="">전체</button>`;
+    const all = uiButton('전체', {
+      class: `type-filter-btn ${isAll ? 'active' : ''}`,
+      'data-filter-type': '',
+    });
     const buttons = BATTLE_TYPES.map(t => {
       const active = dexTypeFilter.includes(t);
-      return `<button class="type-filter-btn type-pill-mini ${active ? 'active' : ''}" data-filter-type="${t}" title="${TYPE_KO[t]}">${TYPE_KO[t]}</button>`;
+      return uiButton(TYPE_KO[t], {
+        class: `type-filter-btn type-pill-mini ${active ? 'active' : ''}`,
+        'data-filter-type': t,
+        title: TYPE_KO[t],
+      });
     }).join('');
     const limit = currentDex === 'pokemon' ? '<span class="dex-filter-limit">최대 2개</span>' : '';
     el.innerHTML = `${all}${buttons}${limit}`;
   } else if (currentDex === 'items') {
     el.style.display = 'flex';
     const isAll = dexItemCategory === null;
-    const all = `<button class="type-filter-btn ${isAll ? 'active' : ''}" data-filter-itemcat="">전체</button>`;
+    const all = uiButton('전체', {
+      class: `type-filter-btn ${isAll ? 'active' : ''}`,
+      'data-filter-itemcat': '',
+    });
     const buttons = ITEM_CATEGORY_ORDER.map(cat => {
       const active = dexItemCategory === cat;
-      return `<button class="type-filter-btn ${active ? 'active' : ''}" data-filter-itemcat="${cat}">${ITEM_CATEGORY_LABEL[cat]}</button>`;
+      return uiButton(ITEM_CATEGORY_LABEL[cat], {
+        class: `type-filter-btn ${active ? 'active' : ''}`,
+        'data-filter-itemcat': cat,
+      });
     }).join('');
     el.innerHTML = `${all}${buttons}`;
   } else {
@@ -329,15 +342,23 @@ document.getElementById('dexResetFilters')?.addEventListener('click', () => {
 document.querySelectorAll('.dex-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     saveDexViewState(currentDex);
-    document.querySelectorAll('.dex-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('.dex-content').forEach(c => c.classList.remove('active'));
-    document.getElementById('dex-' + tab.dataset.dex).classList.add('active');
+    const dexTabs = document.querySelectorAll('.dex-tab');
+    const dexPanels = document.querySelectorAll('.dex-content');
+    const activePanel = document.getElementById('dex-' + tab.dataset.dex);
+    syncUiTabs(dexTabs, tab);
+    syncUiPanels(dexPanels, activePanel);
     currentDex = tab.dataset.dex;
     closeDexFullPage();           // 탭 전환 시 풀페이지 상세 닫기
     restoreDexViewState(currentDex);
   });
 });
+
+const dexNav = document.querySelector('.dex-nav');
+if (dexNav) {
+  const dexTabs = document.querySelectorAll('.dex-tab');
+  syncUiTabs(dexTabs, document.querySelector('.dex-tab.active'));
+  bindUiTabKeyboard(dexNav);
+}
 
 document.querySelectorAll('.dex-content .dex-table-wrap').forEach(wrap => {
   wrap.addEventListener('scroll', () => {
@@ -360,15 +381,6 @@ document.querySelectorAll('.dex-table th.sortable').forEach(th => {
       sort.dir = th.classList.contains('num') ? 'desc' : 'asc';
     }
     renderDexContent(dexSearchEl?.value || '');
-  });
-});
-
-document.querySelectorAll('.nav-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + tab.dataset.page).classList.add('active');
   });
 });
 
@@ -561,7 +573,7 @@ function openDexDetailPage(type, id) {
     : `<div class="dex-fullpage-actions" id="dexFullPageActions">${content.actions}</div>`;
   container.innerHTML = `
     <div class="dex-fullpage-head">
-      <button class="dex-fullpage-back" id="dexFullPageBack">뒤로</button>
+      <button type="button" class="dex-fullpage-back" id="dexFullPageBack">뒤로</button>
       <div class="dex-fullpage-title-block">
         <span class="dex-fullpage-title-line">
           <span class="dex-fullpage-title">${escapeHTML(content.titleKo)}</span>
@@ -573,9 +585,8 @@ function openDexDetailPage(type, id) {
     <div class="dex-fullpage-body" id="dexFullPageBody">${content.body}</div>
     ${footerActions}
   `;
-  document.querySelectorAll('.dex-content').forEach(c => c.classList.remove('active'));
+  syncUiPanels(document.querySelectorAll('.dex-content'), container);
   setDexFullPageMode(true);
-  container.classList.add('active');
 }
 
 function closeDexFullPage() {
@@ -585,9 +596,8 @@ function closeDexFullPage() {
   container.classList.remove('active');
   dexFullPageCtx = { type: null, id: null };
   setDexFullPageMode(false);
-  // currentDex 의 원래 컨텐츠 다시 표시
   const target = document.getElementById('dex-' + currentDex);
-  if (target) target.classList.add('active');
+  if (target) syncUiPanels(document.querySelectorAll('.dex-content'), target);
   restoreDexScroll(currentDex);
 }
 
@@ -634,7 +644,7 @@ function renderPokemonDetail(p) {
     const id = toId(abN);
     const data = AbilityById[id];
     const label = data ? escapeHTML(abName(data)) : escapeHTML(abN);
-    return `<button class="dex-link" data-dex-link="ability" data-id="${id}">${label}</button>`;
+    return uiButton(label, { class: 'dex-link', 'data-dex-link': 'ability', 'data-id': id });
   }).join('');
 
   // 방어 타입 매치업 (각 공격 타입에 대한 효과 배율)
@@ -649,7 +659,7 @@ function renderPokemonDetail(p) {
     <div class="dex-modal-section">
       <div class="dex-modal-section-title">다른 폼</div>
       <div class="dex-link-list">
-        ${relatedForms.map(form => `<button class="dex-link" data-dex-link="pokemon" data-id="${form.id}">${pokemonListName(form)}</button>`).join('')}
+        ${relatedForms.map(form => uiButton(pokemonListName(form), { class: 'dex-link', 'data-dex-link': 'pokemon', 'data-id': form.id })).join('')}
       </div>
     </div>
   ` : '';
@@ -687,8 +697,8 @@ function renderPokemonDetail(p) {
   `;
 
   const actions = `
-    <button class="dex-modal-btn atk" data-dex-apply="pokemon-atk">공격측</button>
-    <button class="dex-modal-btn def" data-dex-apply="pokemon-def">방어측</button>
+    <button type="button" class="dex-modal-btn atk" data-dex-apply="pokemon-atk">공격측</button>
+    <button type="button" class="dex-modal-btn def" data-dex-apply="pokemon-def">방어측</button>
   `;
   return [body, actions];
 }
@@ -740,10 +750,14 @@ function renderLearnsetByType(learnable) {
   // 필터 버튼 (이 포켓몬이 학습 가능한 타입만 표시)
   const filterButtons = `
     <div class="learnset-filter-row">
-      <button class="type-filter-btn ${pokemonDetailTypeFilter === null ? 'active' : ''}" data-learnset-filter="">전체</button>
+      ${uiButton('전체', { class: `type-filter-btn ${pokemonDetailTypeFilter === null ? 'active' : ''}`, 'data-learnset-filter': '' })}
       ${presentTypes.map(t => {
         const active = pokemonDetailTypeFilter === t;
-        return `<button class="type-filter-btn type-pill-mini ${active ? 'active' : ''}" data-learnset-filter="${t}" title="${TYPE_KO[t]}">${TYPE_KO[t]}</button>`;
+        return uiButton(TYPE_KO[t], {
+          class: `type-filter-btn type-pill-mini ${active ? 'active' : ''}`,
+          'data-learnset-filter': t,
+          title: TYPE_KO[t],
+        });
       }).join('')}
     </div>
   `;
@@ -760,7 +774,12 @@ function renderLearnsetByType(learnable) {
       <div class="dex-link-list dex-link-list-expanded">
         ${moves.map(m => {
           const tooltip = `${moveCategoryLabel(m.cat)} | 위력 ${movePowerLabel(m)} | 명중 ${moveAccuracyLabel(m)}`;
-          return `<button class="dex-link dex-learnset-move-link" data-dex-link="move" data-id="${m.id}" data-dex-tooltip="${dexAttr(tooltip)}"><span class="dex-link-text">${escapeHTML(mvName(m))}</span></button>`;
+          return uiButton(`<span class="dex-link-text">${escapeHTML(mvName(m))}</span>`, {
+            class: 'dex-link dex-learnset-move-link',
+            'data-dex-link': 'move',
+            'data-id': m.id,
+            'data-dex-tooltip': tooltip,
+          });
         }).join('')}
       </div>
     `;
@@ -790,7 +809,7 @@ function renderMoveDetail(m) {
   // 사용 가능 포켓몬
   const users = (PokemonByMove[m.id] || []).slice().sort((a,b) => (a.koName||a.name).localeCompare(b.koName||b.name, 'ko'));
   const userList = users.length > 0
-    ? `<div class="dex-link-list">${users.map(p => `<button class="dex-link" data-dex-link="pokemon" data-id="${p.id}">${escapeHTML(pkName(p))}</button>`).join('')}</div>`
+    ? `<div class="dex-link-list">${users.map(p => uiButton(escapeHTML(pkName(p)), { class: 'dex-link', 'data-dex-link': 'pokemon', 'data-id': p.id })).join('')}</div>`
     : dexEmptyText('학습 가능 포켓몬 정보 없음');
 
   const body = `
@@ -816,10 +835,10 @@ function renderMoveDetail(m) {
   `;
 
   const actions = m.cat === 'Status'
-    ? '<button class="dex-modal-btn" disabled>변화기는 데미지 계산 불가</button>'
+    ? '<button type="button" class="dex-modal-btn" disabled>변화기는 데미지 계산 불가</button>'
     : `
       <span class="dex-action-label">공격측 슬롯</span>
-      ${[1,2,3,4].map(i => `<button class="dex-modal-btn atk" data-dex-apply="move-${i-1}">슬롯 ${i}</button>`).join('')}
+      ${[1,2,3,4].map(i => uiButton(`슬롯 ${i}`, { class: 'dex-modal-btn atk', 'data-dex-apply': `move-${i-1}` })).join('')}
     `;
   return [body, actions];
 }
@@ -828,7 +847,7 @@ function renderMoveDetail(m) {
 function renderAbilityDetail(a) {
   const owners = (PokemonByAbility[a.id] || []).slice().sort((x,y) => (x.koName||x.name).localeCompare(y.koName||y.name, 'ko'));
   const ownerList = owners.length > 0
-    ? `<div class="dex-link-list">${owners.map(p => `<button class="dex-link" data-dex-link="pokemon" data-id="${p.id}">${escapeHTML(pkName(p))}</button>`).join('')}</div>`
+    ? `<div class="dex-link-list">${owners.map(p => uiButton(escapeHTML(pkName(p)), { class: 'dex-link', 'data-dex-link': 'pokemon', 'data-id': p.id })).join('')}</div>`
     : dexEmptyText('보유 포켓몬 없음');
 
   // 평가 (Pokemon Showdown rating: -1~5)
@@ -893,7 +912,7 @@ function renderItemDetail(it) {
             const origLabel = origData ? pkName(origData) : orig;
             const megaLabel = megaData ? pkName(megaData) : mega;
             return megaData
-              ? `<button class="dex-link" data-dex-link="pokemon" data-id="${megaId}">${escapeHTML(origLabel)} → ${escapeHTML(megaLabel)}</button>`
+              ? uiButton(`${escapeHTML(origLabel)} → ${escapeHTML(megaLabel)}`, { class: 'dex-link', 'data-dex-link': 'pokemon', 'data-id': megaId })
               : `<span class="dex-modal-flag">${escapeHTML(origLabel)} → ${escapeHTML(megaLabel)}</span>`;
           }).join('')}
         </div>
@@ -930,13 +949,13 @@ function renderItemDetail(it) {
     ${it.itemUser ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">전용</span>${it.itemUser.map(u => {
       const ud = dexPokemonByLooseName(u);
       return ud
-        ? `<button class="dex-link" data-dex-link="pokemon" data-id="${ud.id}">${escapeHTML(pkName(ud))}</button>`
+        ? uiButton(escapeHTML(pkName(ud)), { class: 'dex-link', 'data-dex-link': 'pokemon', 'data-id': ud.id })
         : `<span class="dex-modal-flag">${escapeHTML(u)}</span>`;
     }).join(' ')}</div></div>` : ''}
   `;
   const actions = `
-    <button class="dex-modal-btn atk" data-dex-apply="item-atk">공격측</button>
-    <button class="dex-modal-btn def" data-dex-apply="item-def">방어측</button>
+    <button type="button" class="dex-modal-btn atk" data-dex-apply="item-atk">공격측</button>
+    <button type="button" class="dex-modal-btn def" data-dex-apply="item-def">방어측</button>
   `;
   return [body, actions];
 }

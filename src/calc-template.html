@@ -4,6 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>포켓몬 챔피언스 랩 (POKEMON CHAMPIONS LAB)</title>
+<meta name="description" content="포켓몬 챔피언스 룰에 맞춘 대미지 계산기, 형태 역계산, 세부조정, 상성표, 도감을 한 화면에서 다루는 정적 웹앱입니다.">
+<meta name="application-name" content="포켓몬 챔피언스 랩">
+<meta name="apple-mobile-web-app-title" content="포켓몬 챔피언스 랩">
+<meta name="theme-color" content="#f4f6f8">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="index,follow">
+<meta property="og:site_name" content="포켓몬 챔피언스 랩">
+<meta property="og:title" content="포켓몬 챔피언스 랩">
+<meta property="og:description" content="챔피언스 룰 기반 대미지 계산, 형태 역계산, 세부조정, 상성표, 도감을 제공하는 정적 웹앱입니다.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="포켓몬 챔피언스 랩">
+<meta name="twitter:description" content="챔피언스 룰 기반 대미지 계산, 형태 역계산, 세부조정, 상성표, 도감을 제공하는 정적 웹앱입니다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23f4f6f8'/%3E%3Cpath d='M8 32a24 24 0 1 1 48 0H8Z' fill='%23d64c56'/%3E%3Cpath d='M8 32a24 24 0 1 0 48 0H8Z' fill='%23ffffff'/%3E%3Cpath d='M8 31h48v4H8z' fill='%2317202a'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%2317202a'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23ffffff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Fira+Code:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,298 +27,391 @@
 </style>
 </head>
 <body>
+<a class="skip-link" href="#appContent">본문으로 건너뛰기</a>
 
-<header>
+<header class="app-header" role="banner">
   <div class="header-top">
     <div class="header-brand">
       <div class="brand-sub">POKEMON CHAMPIONS LAB</div>
-      <h1>포켓몬 챔피언스 랩</h1>
-    </div>
-    <div class="header-actions">
-      <button class="party-preset-button" id="partyPresetOpen" type="button">파티 프리셋</button>
+      <div class="header-title-row">
+        <h1>포켓몬 챔피언스 랩</h1>
+        <button type="button" class="party-preset-button" id="partyPresetOpen">파티 프리셋</button>
+      </div>
     </div>
   </div>
-  <nav class="main-nav">
-    <button class="nav-tab active" data-page="calc">대미지 계산기</button>
-    <button class="nav-tab" data-page="revcalc">형태 역계산</button>
-    <button class="nav-tab" data-page="finetune">세부조정</button>
-    <button class="nav-tab" data-page="matchup">상성표</button>
-    <button class="nav-tab" data-page="dex">도감</button>
+  <nav class="main-nav" aria-label="주요 메뉴" role="tablist">
+    <button type="button" id="nav-calc" class="nav-tab active" data-page="calc" role="tab" aria-controls="page-calc" aria-selected="true" tabindex="0">계산기</button>
+    <button type="button" id="nav-revcalc" class="nav-tab" data-page="revcalc" role="tab" aria-controls="page-revcalc" aria-selected="false" tabindex="-1">형태 역계산</button>
+    <button type="button" id="nav-finetune" class="nav-tab" data-page="finetune" role="tab" aria-controls="page-finetune" aria-selected="false" tabindex="-1">세부조정</button>
+    <button type="button" id="nav-matchup" class="nav-tab" data-page="matchup" role="tab" aria-controls="page-matchup" aria-selected="false" tabindex="-1">상성표</button>
+    <button type="button" id="nav-dex" class="nav-tab" data-page="dex" role="tab" aria-controls="page-dex" aria-selected="false" tabindex="-1">도감</button>
   </nav>
 </header>
 
 <div class="site-shell">
-  <aside class="ad-rail ad-rail-left" aria-label="Left advertisement rail">
+  <aside class="ad-rail ad-rail-left" aria-label="왼쪽 광고 영역">
     <div class="ad-slot ad-slot-rail">
-      <span>Advertisement</span>
+      <span>광고</span>
     </div>
   </aside>
-  <div class="app-content">
 
-<!-- 메인 계산기 뷰 -->
-<main id="page-calc" class="page active">
-  <div class="battle-grid">
-    <section class="panel atk">
-      <div class="panel-head"><div class="panel-title">공격측</div><span class="panel-tag">ATK</span></div>
-      <div class="panel-body" id="atk-body"></div>
-    </section>
-    <button class="swap-sides" id="btnSwapSides" type="button" title="공격측과 방어측 교대">
-      <span class="icon">⇄</span>
-      <span class="label">교대</span>
-    </button>
-    <section class="panel def">
-      <div class="panel-head"><div class="panel-title">방어측</div><span class="panel-tag">DEF</span></div>
-      <div class="panel-body" id="def-body"></div>
-    </section>
-  </div>
+  <main id="appContent" class="app-content" tabindex="-1">
+    <!-- 대미지 계산기 -->
+    <section id="page-calc" class="page page-frame active" role="tabpanel" aria-labelledby="nav-calc" aria-hidden="false">
+      <div class="battle-grid ui-frame-row">
+        <section class="panel ui-frame atk">
+          <div class="panel-head ui-frame-head">
+            <div class="panel-title" role="heading" aria-level="2">공격측</div>
+            <span class="panel-tag">ATK</span>
+          </div>
+          <div class="panel-body ui-frame-body" id="atk-body"></div>
+        </section>
 
-  <div class="field-row">
-    <section class="panel collapsible collapsed" id="field-panel">
-      <div class="panel-head" id="field-head">
-        <div class="field-head-main">
-          <div class="panel-title">필드 · 부가 효과</div>
-          <label class="field-auto-toggle">
-            <input type="checkbox" id="autoEntry" checked>
-            <span>자동진입효과</span>
-          </label>
-        </div>
+        <button class="swap-sides" id="btnSwapSides" type="button" title="공격측과 방어측 교대">
+          <span class="icon">⇄</span>
+          <span class="label">교대</span>
+        </button>
+
+        <section class="panel ui-frame def">
+          <div class="panel-head ui-frame-head">
+            <div class="panel-title" role="heading" aria-level="2">방어측</div>
+            <span class="panel-tag">DEF</span>
+          </div>
+          <div class="panel-body ui-frame-body" id="def-body"></div>
+        </section>
       </div>
-      <div class="panel-body">
-        <div class="field-grid">
-          <div class="field">
-            <label class="field-label" for="weather">날씨</label>
-            <div class="combobox field-combobox" data-cb="field-weather">
-              <button type="button" id="weather" class="cb-input cb-trigger" data-cb-type="weather" data-field="weather" data-value="none" aria-label="날씨 선택" aria-expanded="false">없음</button>
-              <div class="combobox-options" role="listbox"></div>
+
+      <div class="field-row ui-frame-row">
+        <section class="panel ui-frame collapsible collapsed" id="field-panel">
+          <div class="panel-head ui-frame-head" id="field-head">
+            <div class="field-head-main">
+              <div class="panel-title" role="heading" aria-level="2">필드 · 부가 효과</div>
+              <label class="field-auto-toggle">
+                <input type="checkbox" id="autoEntry" checked>
+                <span>자동진입효과</span>
+              </label>
             </div>
           </div>
-          <div class="field">
-            <label class="field-label" for="terrain">필드</label>
-            <div class="combobox field-combobox" data-cb="field-terrain">
-              <button type="button" id="terrain" class="cb-input cb-trigger" data-cb-type="terrain" data-field="terrain" data-value="none" aria-label="필드 선택" aria-expanded="false">없음</button>
-              <div class="combobox-options" role="listbox"></div>
+          <div class="panel-body ui-frame-body">
+            <div class="field-grid ui-control-grid">
+              <div class="field">
+                <label class="field-label" for="weather">날씨</label>
+                <div class="combobox field-combobox" data-cb="field-weather">
+                  <button type="button" id="weather" class="cb-input cb-trigger" data-cb-type="weather" data-field="weather" data-value="none" aria-label="날씨 선택" aria-expanded="false">없음</button>
+                  <div class="combobox-options" role="listbox"></div>
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="terrain">필드</label>
+                <div class="combobox field-combobox" data-cb="field-terrain">
+                  <button type="button" id="terrain" class="cb-input cb-trigger" data-cb-type="terrain" data-field="terrain" data-value="none" aria-label="필드 선택" aria-expanded="false">없음</button>
+                  <div class="combobox-options" role="listbox"></div>
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="gameType">룰</label>
+                <div class="combobox field-combobox" data-cb="field-game-type">
+                  <button type="button" id="gameType" class="cb-input cb-trigger" data-cb-type="gameType" data-field="gameType" data-value="Singles" aria-label="룰 선택" aria-expanded="false">싱글</button>
+                  <div class="combobox-options" role="listbox"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-checkbox-grid">
+              <label class="checkbox-label"><input type="checkbox" id="critHit"><span>급소</span></label>
+              <label class="checkbox-label"><input type="checkbox" id="defReflect"><span>리플렉터</span></label>
+              <label class="checkbox-label"><input type="checkbox" id="defLightScreen"><span>빛의장막</span></label>
+              <label class="checkbox-label"><input type="checkbox" id="atkHelpingHand"><span>도우미</span></label>
+              <label class="checkbox-label ruin"><input type="checkbox" id="ruinSword"><span>검의재앙</span></label>
+              <label class="checkbox-label ruin"><input type="checkbox" id="ruinTablet"><span>목간의재앙</span></label>
+              <label class="checkbox-label ruin"><input type="checkbox" id="ruinBeads"><span>구슬의재앙</span></label>
+              <label class="checkbox-label ruin"><input type="checkbox" id="ruinVessel"><span>그릇의재앙</span></label>
+              <label class="checkbox-label"><input type="checkbox" id="defStealthRock"><span>스텔스록</span></label>
+              <label class="checkbox-label spikes">
+                <input type="checkbox" id="defSpikes"><span>압정뿌리기</span>
+                <div class="combobox field-inline-combobox" data-cb="field-spikes-layers">
+                  <button type="button" id="defSpikesLayers" class="cb-input cb-trigger field-inline-input" data-cb-type="spikesLayers" data-field="defSpikesLayers" data-value="1" disabled aria-label="압정뿌리기 중첩 수" aria-expanded="false">1중첩</button>
+                  <div class="combobox-options" role="listbox"></div>
+                </div>
+              </label>
+              <label class="checkbox-label"><input type="checkbox" id="gravity"><span>중력장</span></label>
             </div>
           </div>
-          <div class="field">
-            <label class="field-label" for="gameType">룰</label>
-            <div class="combobox field-combobox" data-cb="field-game-type">
-              <button type="button" id="gameType" class="cb-input cb-trigger" data-cb-type="gameType" data-field="gameType" data-value="Singles" aria-label="룰 선택" aria-expanded="false">싱글</button>
-              <div class="combobox-options" role="listbox"></div>
-            </div>
+        </section>
+      </div>
+
+      <section class="results ui-frame">
+        <div class="results-head ui-frame-head">
+          <div class="results-title" role="heading" aria-level="2">결과</div>
+          <div class="results-actions ui-action-row">
+            <button class="btn-calculate" id="btnSwapSidesResult" type="button">공수교대</button>
+            <button class="btn-secondary" id="btnCalculate" type="button">계산 재실행</button>
+            <button class="btn-secondary" id="btnResetManual" type="button">기본값 복원</button>
           </div>
         </div>
-        <div class="field-checkbox-grid">
-          <label class="checkbox-label"><input type="checkbox" id="critHit"><span>급소</span></label>
-          <label class="checkbox-label"><input type="checkbox" id="defReflect"><span>리플렉터</span></label>
-          <label class="checkbox-label"><input type="checkbox" id="defLightScreen"><span>빛의장막</span></label>
-          <label class="checkbox-label"><input type="checkbox" id="atkHelpingHand"><span>도우미</span></label>
-          <label class="checkbox-label ruin"><input type="checkbox" id="ruinSword"><span>검의재앙</span></label>
-          <label class="checkbox-label ruin"><input type="checkbox" id="ruinTablet"><span>목간의재앙</span></label>
-          <label class="checkbox-label ruin"><input type="checkbox" id="ruinBeads"><span>구슬의재앙</span></label>
-          <label class="checkbox-label ruin"><input type="checkbox" id="ruinVessel"><span>그릇의재앙</span></label>
-          <label class="checkbox-label"><input type="checkbox" id="defStealthRock"><span>스텔스록</span></label>
-          <label class="checkbox-label spikes">
-            <input type="checkbox" id="defSpikes"><span>압정뿌리기</span>
-            <div class="combobox field-inline-combobox" data-cb="field-spikes-layers">
-              <button type="button" id="defSpikesLayers" class="cb-input cb-trigger field-inline-input" data-cb-type="spikesLayers" data-field="defSpikesLayers" data-value="1" disabled aria-label="압정뿌리기 중첩 수" aria-expanded="false">1중첩</button>
-              <div class="combobox-options" role="listbox"></div>
-            </div>
-          </label>
-          <label class="checkbox-label"><input type="checkbox" id="gravity"><span>중력장</span></label>
-        </div>
-      </div>
+        <div class="results-body ui-frame-body" id="results-body"></div>
+      </section>
     </section>
-  </div>
 
-  <section class="results">
-    <div class="results-head">
-      <div class="results-title">결과</div>
-      <div class="results-actions">
-        <button class="btn-calculate" id="btnSwapSidesResult" type="button">공수교대</button>
-        <button class="btn-secondary" id="btnCalculate" type="button">계산 재실행</button>
-        <button class="btn-secondary" id="btnResetManual" type="button">기본값 복원</button>
-      </div>
-    </div>
-    <div class="results-body" id="results-body"></div>
-  </section>
-</main>
+    <!-- 형태 역계산 -->
+    <section id="page-revcalc" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-revcalc" aria-hidden="true" hidden>
+      <div class="rc-grid ui-frame-row">
+        <section class="panel ui-frame rc-my">
+          <div class="panel-head ui-frame-head">
+            <div class="panel-title" role="heading" aria-level="2">내 포켓몬</div>
+          </div>
+          <div class="panel-body ui-frame-body" id="rc-my-body"></div>
+        </section>
 
-<!-- 도감 페이지 -->
-<main id="page-dex" class="page">
-  <section class="panel dex-control-panel">
-    <div class="panel-head dex-control-head">
-      <div class="dex-nav">
-        <button class="dex-tab active" data-dex="pokemon">포켓몬</button>
-        <button class="dex-tab" data-dex="moves">기술</button>
-        <button class="dex-tab" data-dex="abilities">특성</button>
-        <button class="dex-tab" data-dex="items">도구</button>
+        <section class="panel ui-frame rc-opp">
+          <div class="panel-head ui-frame-head">
+            <div class="panel-title" role="heading" aria-level="2">상대 포켓몬</div>
+          </div>
+          <div class="panel-body ui-frame-body" id="rc-opp-body"></div>
+        </section>
       </div>
-    </div>
-    <div class="panel-body dex-control-body">
-      <div class="dex-filter-frame">
-        <div class="dex-search">
-          <button class="dex-reset-btn" id="dexResetFilters" type="button" aria-label="필터 초기화" title="필터 초기화">↻</button>
-          <input type="text" id="dexSearch" placeholder="이름, 특성으로 검색" autocomplete="off">
-        </div>
-        <div class="dex-type-filter" id="dexTypeFilter"></div>
-      </div>
-    </div>
-  </section>
-  <div class="dex-content active" id="dex-pokemon"><div class="dex-table-wrap"><table class="dex-table" id="dexTablePokemon"><thead><tr><th class="sortable" data-sort="koName">이름</th><th class="sortable" data-sort="type">타입</th><th class="sortable num" data-sort="hp">HP</th><th class="sortable num" data-sort="atk">공격</th><th class="sortable num" data-sort="def">방어</th><th class="sortable num" data-sort="spa">특공</th><th class="sortable num" data-sort="spd">특방</th><th class="sortable num" data-sort="spe">속도</th><th class="sortable num" data-sort="bst">합계</th><th>특성 1</th><th>특성 2</th><th>숨겨진 특성</th></tr></thead><tbody id="dexBodyPokemon"></tbody></table></div></div>
-  <div class="dex-content" id="dex-moves"><div class="dex-table-wrap"><table class="dex-table" id="dexTableMoves"><thead><tr><th class="sortable" data-sort="koName">이름</th><th class="sortable" data-sort="type">타입</th><th class="sortable" data-sort="cat">분류</th><th class="sortable num" data-sort="bp">위력</th><th class="sortable num" data-sort="acc">명중</th><th class="sortable num" data-sort="pri">우선</th><th>설명</th></tr></thead><tbody id="dexBodyMoves"></tbody></table></div></div>
-  <div class="dex-content" id="dex-abilities"><div class="dex-table-wrap"><table class="dex-table" id="dexTableAbilities"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>영문명</th><th>설명</th></tr></thead><tbody id="dexBodyAbilities"></tbody></table></div></div>
-  <div class="dex-content" id="dex-items"><div class="dex-table-wrap"><table class="dex-table" id="dexTableItems"><thead><tr><th class="sortable" data-sort="koName">이름</th><th>영문명</th><th>설명</th><th>상태</th></tr></thead><tbody id="dexBodyItems"></tbody></table></div></div>
-  <!-- 포켓몬/기술/특성 상세 풀페이지 (도감 탭 내부에서 표시) -->
-  <div class="dex-content" id="dexFullPageDetail"></div>
-</main>
 
-<!-- 상성표 페이지 -->
-<!-- 세부조정 페이지 -->
-<main id="page-finetune" class="page tool-page">
-  <div class="finetune-grid ft-layout">
-    <section class="panel ft-editor">
-      <div class="panel-head">
-        <div>
-          <div class="panel-title">세부조정</div>
+      <section class="panel ui-frame">
+        <div class="panel-head ui-frame-head">
+          <div class="panel-title" role="heading" aria-level="2">관측 데이터</div>
         </div>
-        <div class="panel-head-actions">
-          <button class="ft-action-btn atk" id="ftApplyAtk" title="현재 세팅을 계산기 공격측으로 적용 (상대는 방어측으로)">공격측</button>
-          <button class="ft-action-btn def" id="ftApplyDef" title="현재 세팅을 계산기 방어측으로 적용 (상대는 공격측으로)">방어측</button>
+        <div class="panel-body ui-frame-body" id="rc-input-body"></div>
+      </section>
+
+      <section class="panel ui-frame">
+        <div class="panel-head ui-frame-head">
+          <div class="panel-title" role="heading" aria-level="2">형태 분석 결과</div>
+          <div class="panel-head-actions ui-action-row">
+            <button type="button" class="btn-calculate rc-analyze-btn" id="rcAnalyze">형태 분석</button>
+          </div>
         </div>
-      </div>
-      <div class="panel-body" id="ft-my-body"></div>
+        <div class="panel-body ui-frame-body" id="rc-results-body">
+          <div class="empty-state">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>
+        </div>
+      </section>
     </section>
-    <aside class="panel ft-hp-panel">
-      <div class="panel-head">
-        <div>
-          <div class="panel-title">HP 브레이크포인트</div>
-          <div class="ft-panel-subtitle">HP 기준점 · 조정 포인트</div>
-        </div>
-      </div>
-      <div class="panel-body" id="ft-hp-body"></div>
-    </aside>
-    <section class="panel ft-speed-panel">
-      <div class="panel-head">
-        <div>
-          <div class="panel-title">상대 / 스피드</div>
-        </div>
-      </div>
-      <div class="panel-body ft-speed-panel-body">
-        <div id="ft-opp-body"></div>
-        <div class="ft-speed-embedded">
-          <div class="ft-speed-head">
+
+    <!-- 세부조정 -->
+    <section id="page-finetune" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-finetune" aria-hidden="true" hidden>
+      <div class="finetune-grid ft-layout ui-frame-row">
+        <section class="panel ui-frame ft-editor">
+          <div class="panel-head ui-frame-head">
             <div>
-              <span class="ft-section-title">스피드 비교</span>
+              <div class="panel-title" role="heading" aria-level="2">세부조정</div>
             </div>
-            <label class="ft-margin-field">
-              <span>+</span>
-              <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftMargin" value="1" aria-label="추월 마진">
-              <span>추월</span>
-            </label>
+            <div class="panel-head-actions ui-action-row">
+              <button type="button" class="ft-action-btn atk" id="ftApplyAtk" title="현재 세팅을 계산기 공격측으로 적용 (상대는 방어측으로)">공격측</button>
+              <button type="button" class="ft-action-btn def" id="ftApplyDef" title="현재 세팅을 계산기 방어측으로 적용 (상대는 공격측으로)">방어측</button>
+            </div>
           </div>
-          <div id="ft-speed-body"></div>
-        </div>
+          <div class="panel-body ui-frame-body" id="ft-my-body"></div>
+        </section>
+
+        <aside class="panel ui-frame ft-hp-panel">
+          <div class="panel-head ui-frame-head">
+            <div>
+              <div class="panel-title" role="heading" aria-level="2">HP 브레이크포인트</div>
+              <div class="ft-panel-subtitle">HP 기준점 · 조정 포인트</div>
+            </div>
+          </div>
+          <div class="panel-body ui-frame-body" id="ft-hp-body"></div>
+        </aside>
+
+        <section class="panel ui-frame ft-speed-panel">
+          <div class="panel-head ui-frame-head">
+            <div>
+              <div class="panel-title" role="heading" aria-level="2">상대 / 스피드</div>
+            </div>
+          </div>
+          <div class="panel-body ui-frame-body ft-speed-panel-body">
+            <div id="ft-opp-body"></div>
+            <div class="ft-speed-embedded">
+              <div class="ft-speed-head">
+                <div>
+                  <span class="ft-section-title">스피드 비교</span>
+                </div>
+                <label class="ft-margin-field">
+                  <span>+</span>
+                  <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftMargin" value="1" aria-label="추월 마진">
+                  <span>추월</span>
+                </label>
+              </div>
+              <div id="ft-speed-body"></div>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
-  </div>
-</main>
 
-<!-- 형태 역계산 페이지 -->
-<main id="page-revcalc" class="page tool-page">
-  <div class="rc-grid">
-    <section class="panel rc-my">
-      <div class="panel-head">
-        <div class="panel-title">내 포켓몬</div>
-      </div>
-      <div class="panel-body" id="rc-my-body"></div>
-    </section>
-    <section class="panel rc-opp">
-      <div class="panel-head">
-        <div class="panel-title">상대 포켓몬</div>
-      </div>
-      <div class="panel-body" id="rc-opp-body"></div>
-    </section>
-  </div>
-
-  <section class="panel">
-    <div class="panel-head">
-      <div class="panel-title">관측 데이터</div>
-    </div>
-    <div class="panel-body" id="rc-input-body"></div>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head">
-      <div class="panel-title">형태 분석 결과</div>
-      <div class="panel-head-actions">
-        <button class="btn-calculate rc-analyze-btn" id="rcAnalyze">형태 분석</button>
-      </div>
-    </div>
-    <div class="panel-body" id="rc-results-body">
-      <div class="empty-state">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>
-    </div>
-  </section>
-</main>
-
-<main id="page-matchup" class="page tool-page">
-  <section class="panel">
-    <div class="panel-head">
-      <div class="panel-title">상성표</div>
-    </div>
-    <div class="panel-body">
-      <div class="matchup-control-row">
-        <div class="matchup-mode-tabs" id="matchupModeTabs">
-          <button class="matchup-mode-btn active" data-matchup-mode="defense">방어 상성</button>
-          <button class="matchup-mode-btn" data-matchup-mode="coverage">타점 체크</button>
+    <!-- 상성표 -->
+    <section id="page-matchup" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-matchup" aria-hidden="true" hidden>
+      <section class="panel ui-frame">
+        <div class="panel-head ui-frame-head">
+          <div class="panel-title" role="heading" aria-level="2">상성표</div>
         </div>
-        <button type="button" class="party-load-button ui-label-action" data-party-import-target="matchup">불러오기</button>
-      </div>
-      <div class="matchup-slots" id="matchupSlots"></div>
-      <div class="matchup-coverage-inputs" id="matchupCoverageInputs"></div>
-    </div>
-  </section>
-  <section class="panel matchup-results-panel">
-    <div class="panel-body">
-      <div class="matchup-result-layout">
-        <div class="matchup-main">
-          <div class="matchup-table-wrap">
-            <table class="matchup-table" id="matchupTable">
-          <thead id="matchupHead"></thead>
-          <tbody id="matchupBody"></tbody>
-            </table>
+        <div class="panel-body ui-frame-body">
+          <div class="matchup-control-row ui-action-row">
+            <div class="matchup-mode-tabs" id="matchupModeTabs" aria-label="상성표 모드" role="tablist">
+              <button type="button" class="matchup-mode-btn active" data-matchup-mode="defense" role="tab" aria-selected="true" tabindex="0">방어 상성</button>
+              <button type="button" class="matchup-mode-btn" data-matchup-mode="coverage" role="tab" aria-selected="false" tabindex="-1">타점 체크</button>
+            </div>
+            <button type="button" class="party-load-button ui-label-action" data-party-import-target="matchup">불러오기</button>
           </div>
-          <div class="matchup-legend">
-        <span><span class="cell-demo eff-4">◎</span> 4배</span>
-        <span><span class="cell-demo eff-2">○</span> 2배</span>
-        <span><span class="cell-demo eff-1">—</span> 1배</span>
-        <span><span class="cell-demo eff-05">△</span> 1/2배</span>
-        <span><span class="cell-demo eff-025">△△</span> 1/4배</span>
-        <span><span class="cell-demo eff-0">✕</span> 무효</span>
+          <div class="matchup-slots" id="matchupSlots"></div>
+          <div class="matchup-coverage-inputs" id="matchupCoverageInputs"></div>
+        </div>
+      </section>
+
+      <section class="panel ui-frame matchup-results-panel">
+        <div class="panel-head ui-frame-head">
+          <div class="panel-title" role="heading" aria-level="2">결과</div>
+        </div>
+        <div class="panel-body ui-frame-body">
+          <div class="matchup-result-layout">
+            <div class="matchup-main">
+              <div class="matchup-table-wrap">
+                <table class="matchup-table" id="matchupTable">
+                  <thead id="matchupHead"></thead>
+                  <tbody id="matchupBody"></tbody>
+                </table>
+              </div>
+              <div class="matchup-legend">
+                <span><span class="cell-demo eff-4">◎</span> 4배</span>
+                <span><span class="cell-demo eff-2">○</span> 2배</span>
+                <span><span class="cell-demo eff-1">—</span> 1배</span>
+                <span><span class="cell-demo eff-05">△</span> 1/2배</span>
+                <span><span class="cell-demo eff-025">△△</span> 1/4배</span>
+                <span><span class="cell-demo eff-0">✕</span> 무효</span>
+              </div>
+            </div>
+            <aside class="matchup-meta" id="matchupMeta"></aside>
           </div>
         </div>
-        <aside class="matchup-meta" id="matchupMeta"></aside>
-      </div>
-    </div>
-  </section>
-</main>
+      </section>
+    </section>
 
-  </div>
-  <aside class="ad-rail ad-rail-right" aria-label="Right advertisement rail">
+    <!-- 도감 -->
+    <section id="page-dex" class="page page-frame" role="tabpanel" aria-labelledby="nav-dex" aria-hidden="true" hidden>
+      <section class="panel ui-frame dex-control-panel">
+        <div class="panel-head ui-frame-head dex-control-head">
+          <div class="dex-nav" aria-label="도감 분류" role="tablist">
+            <button type="button" id="dex-tab-pokemon" class="dex-tab active" data-dex="pokemon" role="tab" aria-controls="dex-pokemon" aria-selected="true" tabindex="0">포켓몬</button>
+            <button type="button" id="dex-tab-moves" class="dex-tab" data-dex="moves" role="tab" aria-controls="dex-moves" aria-selected="false" tabindex="-1">기술</button>
+            <button type="button" id="dex-tab-abilities" class="dex-tab" data-dex="abilities" role="tab" aria-controls="dex-abilities" aria-selected="false" tabindex="-1">특성</button>
+            <button type="button" id="dex-tab-items" class="dex-tab" data-dex="items" role="tab" aria-controls="dex-items" aria-selected="false" tabindex="-1">도구</button>
+          </div>
+        </div>
+        <div class="panel-body ui-frame-body dex-control-body">
+          <div class="dex-filter-frame">
+            <div class="dex-search">
+              <button class="dex-reset-btn" id="dexResetFilters" type="button" aria-label="필터 초기화" title="필터 초기화">↻</button>
+              <input type="text" id="dexSearch" placeholder="이름, 특성으로 검색" autocomplete="off">
+            </div>
+            <div class="dex-type-filter" id="dexTypeFilter"></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="dex-content active" id="dex-pokemon" role="tabpanel" aria-labelledby="dex-tab-pokemon" aria-hidden="false">
+        <div class="dex-table-wrap">
+          <table class="dex-table" id="dexTablePokemon">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="koName">이름</th>
+                <th class="sortable" data-sort="type">타입</th>
+                <th class="sortable num" data-sort="hp">HP</th>
+                <th class="sortable num" data-sort="atk">공격</th>
+                <th class="sortable num" data-sort="def">방어</th>
+                <th class="sortable num" data-sort="spa">특공</th>
+                <th class="sortable num" data-sort="spd">특방</th>
+                <th class="sortable num" data-sort="spe">속도</th>
+                <th class="sortable num" data-sort="bst">합계</th>
+                <th>특성 1</th>
+                <th>특성 2</th>
+                <th>숨겨진 특성</th>
+              </tr>
+            </thead>
+            <tbody id="dexBodyPokemon"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="dex-content" id="dex-moves" role="tabpanel" aria-labelledby="dex-tab-moves" aria-hidden="true" hidden>
+        <div class="dex-table-wrap">
+          <table class="dex-table" id="dexTableMoves">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="koName">이름</th>
+                <th class="sortable" data-sort="type">타입</th>
+                <th class="sortable" data-sort="cat">분류</th>
+                <th class="sortable num" data-sort="bp">위력</th>
+                <th class="sortable num" data-sort="acc">명중</th>
+                <th class="sortable num" data-sort="pri">우선</th>
+                <th>설명</th>
+              </tr>
+            </thead>
+            <tbody id="dexBodyMoves"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="dex-content" id="dex-abilities" role="tabpanel" aria-labelledby="dex-tab-abilities" aria-hidden="true" hidden>
+        <div class="dex-table-wrap">
+          <table class="dex-table" id="dexTableAbilities">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="koName">이름</th>
+                <th>영문명</th>
+                <th>설명</th>
+              </tr>
+            </thead>
+            <tbody id="dexBodyAbilities"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="dex-content" id="dex-items" role="tabpanel" aria-labelledby="dex-tab-items" aria-hidden="true" hidden>
+        <div class="dex-table-wrap">
+          <table class="dex-table" id="dexTableItems">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="koName">이름</th>
+                <th>영문명</th>
+                <th>설명</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody id="dexBodyItems"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="dex-content" id="dexFullPageDetail" role="region" aria-label="도감 상세" aria-hidden="true"></div>
+    </section>
+  </main>
+
+  <aside class="ad-rail ad-rail-right" aria-label="오른쪽 광고 영역">
     <div class="ad-slot ad-slot-rail">
-      <span>Advertisement</span>
+      <span>광고</span>
     </div>
   </aside>
 </div>
 
-<!-- 도감 상세 모달 -->
-<dialog class="dex-modal" id="dexDetailModal">
-  <div class="dex-modal-head">
-    <div><span class="dex-modal-title" id="dexDetailTitle"></span><span class="dex-modal-title-en" id="dexDetailTitleEn"></span></div>
-    <button class="dex-modal-close" id="dexDetailClose">닫기</button>
+<dialog class="dex-modal ui-frame" id="dexDetailModal" aria-labelledby="dexDetailTitle">
+  <div class="dex-modal-head ui-frame-head">
+    <div>
+      <span class="dex-modal-title" id="dexDetailTitle"></span>
+      <span class="dex-modal-title-en" id="dexDetailTitleEn"></span>
+    </div>
+    <button type="button" class="dex-modal-close" id="dexDetailClose">닫기</button>
   </div>
-  <div class="dex-modal-body" id="dexDetailBody"></div>
-  <div class="dex-modal-actions" id="dexDetailActions"></div>
+  <div class="dex-modal-body ui-frame-body" id="dexDetailBody"></div>
+  <div class="dex-modal-actions ui-action-row" id="dexDetailActions"></div>
 </dialog>
+
+<noscript>
+  <div class="noscript-notice" role="status">이 계산기는 JavaScript가 켜져 있어야 동작합니다.</div>
+</noscript>
 
 <!-- 데이터 주입부 (빌드 스크립트가 JSON으로 교체함) -->
 <script id="data-pokemon" type="application/json">__POKEMON_DATA__</script>

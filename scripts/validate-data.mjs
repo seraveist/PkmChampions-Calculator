@@ -83,6 +83,18 @@ const source = {
 };
 const filters = filterSets();
 const entryEffects = readJson(path.join(DATA, 'overrides', 'entry-effects.json'), { effects: {}, blockers: {} });
+const formGroupsRaw = readJson(path.join(DATA, 'overrides', 'form-groups.json'), {});
+const formGroups = [];
+for (const [mode, groups] of Object.entries(formGroupsRaw || {})) {
+  if (mode.startsWith('_') || !groups || typeof groups !== 'object') continue;
+  for (const [key, group] of Object.entries(groups)) {
+    formGroups.push({
+      key: normalizeId(key),
+      mode,
+      forms: Array.isArray(group?.forms) ? group.forms.map(normalizeId).filter(Boolean) : [],
+    });
+  }
+}
 
 let failed = false;
 function fail(message) {
@@ -136,6 +148,36 @@ for (const pokemon of finalData.pokemon) {
   }
   for (const moveId of pokemon.ls || []) {
     if (!finalSets.moves.has(moveId)) fail(`pokemon.${pokemon.id} learnset references missing move ${moveId}`);
+  }
+}
+
+const bannedFormGroupIds = new Set(['greninjabond', 'greninjaash']);
+const regionalFormTokens = ['alola', 'galar', 'hisui', 'paldea'];
+for (const group of formGroups) {
+  if (!group.key) fail('form group has empty key');
+  if (group.forms.length < 2) fail(`form group ${group.key} must include at least two forms`);
+  if (!group.forms.includes(group.key)) fail(`form group ${group.key} must include its base id`);
+  for (const formId of group.forms) {
+    const sourcePokemon = source.pokemon[formId];
+    const builtPokemon = byId.pokemon[formId];
+    if (!sourcePokemon) fail(`form group ${group.key} references missing source pokemon ${formId}`);
+    if (!finalSets.pokemon.has(formId)) fail(`form group ${group.key} references missing built pokemon ${formId}`);
+    if (bannedFormGroupIds.has(formId)) fail(`form group ${group.key} must not include Battle Bond Greninja form ${formId}`);
+    if (/mega|primal/.test(formId) || sourcePokemon?.forme?.startsWith('Mega') || sourcePokemon?.forme?.startsWith('Primal')) {
+      fail(`form group ${group.key} must not include Mega/Primal form ${formId}`);
+    }
+    if (regionalFormTokens.some(token => normalizeId(sourcePokemon?.forme).includes(token))) {
+      fail(`form group ${group.key} must not include regional form ${formId}`);
+    }
+    if (builtPokemon) {
+      if (builtPokemon.formGroup !== group.key) fail(`pokemon.${formId} has mismatched formGroup`);
+      if (!Array.isArray(builtPokemon.formGroupForms) || builtPokemon.formGroupForms.length !== group.forms.length) {
+        fail(`pokemon.${formId} has incomplete formGroupForms`);
+      }
+      if (!builtPokemon.bs || !builtPokemon.types?.length || !builtPokemon.ab) {
+        fail(`pokemon.${formId} is missing form switch battle data`);
+      }
+    }
   }
 }
 
