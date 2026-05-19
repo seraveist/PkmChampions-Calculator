@@ -201,6 +201,26 @@ function makeCombobox(sideKey, type) {
 
 let calcComboboxUid = 0;
 let calcSharedComboboxUid = 0;
+let calcComboboxLastPointerTarget = null;
+let calcComboboxLastPointerAt = 0;
+let calcComboboxLastOpenedControl = null;
+let calcComboboxLastOpenedAt = 0;
+
+function calcComboboxTrackPointerTarget(event) {
+  calcComboboxLastPointerTarget = event.target?.closest?.('.combobox') || null;
+  calcComboboxLastPointerAt = Date.now();
+}
+
+function calcComboboxMarkOpened(control) {
+  calcComboboxLastOpenedControl = control || null;
+  calcComboboxLastOpenedAt = Date.now();
+}
+
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+  document.addEventListener('pointerdown', calcComboboxTrackPointerTarget, true);
+  document.addEventListener('mousedown', calcComboboxTrackPointerTarget, true);
+  document.addEventListener('touchstart', calcComboboxTrackPointerTarget, true);
+}
 
 function closeSiblingComboboxOptions(optsEl, control) {
   if (typeof document?.querySelectorAll !== 'function') return;
@@ -210,6 +230,30 @@ function closeSiblingComboboxOptions(optsEl, control) {
   document.querySelectorAll('.cb-input[aria-expanded="true"]').forEach(el => {
     if (el !== control) el.setAttribute('aria-expanded', 'false');
   });
+}
+
+function calcComboboxFocusMovedToAnother(control, optsEl) {
+  const currentCombobox = control?.closest?.('.combobox') || null;
+  if (
+    calcComboboxLastOpenedControl
+    && calcComboboxLastOpenedControl !== control
+    && Date.now() - calcComboboxLastOpenedAt < 700
+  ) {
+    return true;
+  }
+  if (
+    calcComboboxLastPointerTarget
+    && calcComboboxLastPointerTarget !== currentCombobox
+    && Date.now() - calcComboboxLastPointerAt < 700
+  ) {
+    return true;
+  }
+
+  const active = document.activeElement;
+  if (!active || active === document.body || active === document.documentElement) return false;
+  if (active === control || control?.contains?.(active) || optsEl?.contains?.(active)) return false;
+  const activeCombobox = active.closest?.('.combobox');
+  return !!activeCombobox && activeCombobox !== currentCombobox;
 }
 
 function calcComboboxOptionMatchesExactText(option, query) {
@@ -261,6 +305,7 @@ function wireSharedComboboxKeyboard(control, optsEl, { showOptions, onSelect, ge
     showOptions(query);
     optsEl.classList.add('open');
     control.setAttribute('aria-expanded', 'true');
+    calcComboboxMarkOpened(control);
     const options = optionEls();
     options.forEach((option, index) => {
       if (!option.id) option.id = `${optsEl.id}-opt-${index}`;
@@ -463,6 +508,12 @@ function wirePokemonSelectCombobox(input, {
   input.addEventListener('blur', () => {
     setTimeout(() => {
       if (isButtonTrigger) return;
+      if (calcComboboxFocusMovedToAnother(input, optsEl)) {
+        calcHideOptionTooltip();
+        combo?.close();
+        restoreInput();
+        return;
+      }
       if (!String(input.value || '').trim()) {
         calcHideOptionTooltip();
         combo?.close();
@@ -905,6 +956,7 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
 
     optsEl.classList.add('open');
     input.setAttribute('aria-expanded', 'true');
+    calcComboboxMarkOpened(input);
     const selectedIndex = optionData.findIndex(option => String(option?.id || '') === String(currentId));
     setActiveOption(activateFirst ? 0 : selectedIndex);
 
@@ -962,7 +1014,10 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
     if (input.readOnly || isButtonTrigger) e.stopPropagation();
   });
   input.addEventListener('click', e => {
-    if (!input.readOnly && !isButtonTrigger) return;
+    if (!input.readOnly && !isButtonTrigger) {
+      showOptions('');
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
     if (document.activeElement !== input && typeof input.focus === 'function') {
@@ -1002,6 +1057,11 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
   });
   input.addEventListener('blur', () => {
     setTimeout(() => {
+      if (calcComboboxFocusMovedToAnother(input, optsEl)) {
+        closeOptions();
+        restoreDisplayLabel();
+        return;
+      }
       if (justSelected) {
         justSelected = false;
         closeOptions();

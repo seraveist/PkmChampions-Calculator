@@ -69,31 +69,35 @@ function renderRevCalcMy() {
   }).join('');
 
   container.innerHTML = `
-    <div class="rc-setup-grid ui-control-grid">
+    <div class="rc-setup-grid tool-settings-layout ui-control-grid">
       <div class="rc-pokemon-main-row ui-control-row">
         ${pokemonPicker}
       </div>
-      <label class="field rc-cb-field rc-field rc-ability-field ui-field"><span class="field-label ui-field-label">특성</span>
-        <div class="combobox">
-          <input type="text" class="cb-input rc-cb-input" data-rc-pick="myability" value="${escapeHTML(rcComboLabel('ability', my.ability))}" placeholder="특성 검색..." autocomplete="off">
-          <div class="combobox-options"></div>
+      <div class="field rc-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+        <div class="rc-settings-grid tool-settings-grid ui-control-grid">
+          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="ability"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">특성</span>
+            <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
+              <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="myability" value="${escapeHTML(rcComboLabel('ability', my.ability))}" placeholder="특성 검색..." autocomplete="off">
+              <div class="combobox-options"></div>
+            </div>
+          </label>
+          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="nature"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">성격</span>
+            <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
+              <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="mynature" value="${escapeHTML(rcComboLabel('nature', my.nature))}" placeholder="성격 검색..." autocomplete="off">
+              <div class="combobox-options"></div>
+            </div>
+          </label>
+          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="item"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">도구</span>
+            <div class="combobox rc-flex-combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
+              <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="myitem" value="${my.item ? escapeHTML(itName(ItemById[my.item] || { name: my.item })) : '없음'}" autocomplete="off">
+              <div class="combobox-options"></div>
+            </div>
+          </label>
         </div>
-      </label>
-      <label class="field rc-cb-field rc-field rc-nature-field ui-field"><span class="field-label ui-field-label">성격</span>
-        <div class="combobox pokemon-select">
-          <input type="text" class="cb-input rc-cb-input" data-rc-pick="mynature" value="${escapeHTML(rcComboLabel('nature', my.nature))}" placeholder="성격 검색..." autocomplete="off">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
-      <label class="field rc-cb-field rc-field rc-item-field ui-field"><span class="field-label ui-field-label">도구</span>
-        <div class="combobox rc-flex-combobox">
-          <input type="text" class="cb-input rc-cb-input" data-rc-pick="myitem" value="${my.item ? escapeHTML(itName(ItemById[my.item] || { name: my.item })) : '없음'}" autocomplete="off">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
+      </div>
     </div>
       <div class="rc-my-build-row ui-control-row">
-      <div class="tool-stat-panel ui-control-frame ui-subframe ui-field">
+      <div class="tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
         <div class="tool-stat-panel-head ui-section-head">
           <div class="tool-stat-panel-title ui-section-title">능력 포인트</div>
           <div class="ft-ev-total tool-stat-total ui-metric-chip ${overEV ? 'over' : ''}">
@@ -107,9 +111,9 @@ function renderRevCalcMy() {
           </div>
         </div>
       </div>
-      <div class="rc-my-moves-panel ui-control-frame ui-subframe">
+      <div class="rc-my-moves-panel ui-control-frame ui-subframe ui-subframe-stack">
         <div class="ft-section-title">기술배치</div>
-        <div class="rc-move-set-grid compact">${moveSetRows}</div>
+        <div class="rc-move-set-grid compact ui-control-grid">${moveSetRows}</div>
       </div>
     </div>
   `;
@@ -167,28 +171,38 @@ function renderRevCalcOpp() {
   }).join('');
 
   container.innerHTML = `
-    <div class="rc-setup-grid rc-opp-setup ui-control-grid">
+    <div class="rc-setup-grid rc-opp-setup tool-settings-layout ui-control-grid">
       <div class="rc-pokemon-main-row ui-control-row">
         ${pokemonPicker}
       </div>
       ${p ? `
-        <label class="field rc-field rc-opp-status-field ui-field"><span class="field-label ui-field-label">상태</span>
-          <div class="combobox rc-status-combobox">
-            <button type="button" class="cb-input cb-trigger" data-rc-status="opp" aria-label="상대 상태 선택" aria-expanded="false">${escapeHTML(rcStatusDisplayLabel(opp.status))}</button>
-            <div class="combobox-options" role="listbox"></div>
+        <div class="field rc-settings-field rc-opp-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+          <div class="rc-settings-grid rc-opp-settings-grid tool-settings-grid ui-control-grid">
+            <label class="field rc-field rc-opp-status-field tool-settings-cell tool-settings-choice-cell tool-settings-condition-cell ui-control-cell ui-field" data-tool-setting="condition"><span class="field-label tool-settings-label tool-settings-choice-label ui-field-label ui-control-label">상태</span>
+              <div class="combobox rc-status-combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-condition-control tool-settings-status-combobox">
+                <button type="button" class="cb-input cb-trigger tool-settings-choice-surface tool-settings-choice-input" data-rc-status="opp" aria-label="상대 상태 선택" aria-expanded="false">${escapeHTML(rcStatusDisplayLabel(opp.status))}</button>
+                <div class="combobox-options" role="listbox"></div>
+              </div>
+            </label>
           </div>
-        </label>
+        </div>
       ` : ''}
     </div>
     ${p ? `
-      <div class="ft-section-title rc-opp-stat-title">능력 상태</div>
-      <div class="rc-opp-stat-table">
-        <div class="rc-opp-stat-head">
-          <span>능력</span>
-          <span>종족값</span>
-          <span>랭크</span>
+      <div class="rc-opp-stat-panel tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
+        <div class="tool-stat-panel-head ui-section-head">
+          <div class="tool-stat-panel-title ui-section-title">능력 상태</div>
         </div>
-        ${statRows}
+        <div class="tool-stat-panel-body">
+          <div class="rc-opp-stat-table tool-stat-grid ui-stat-grid ui-stat-table">
+            <div class="rc-opp-stat-head">
+              <span>능력</span>
+              <span>종족값</span>
+              <span>랭크</span>
+            </div>
+            ${statRows}
+          </div>
+        </div>
       </div>
     ` : ''}
   `;
@@ -219,10 +233,10 @@ function renderRevCalcInputs() {
 
   container.innerHTML = `
     <div class="rc-input-grid ui-control-grid">
-      <div class="rc-input-block rc-action-block ui-control-frame ui-subframe">
+      <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
         <div class="ft-section-title">내 행동</div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row ui-control-row">
+        <div class="ft-controls-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
           <label class="field rc-field-wide ui-field">
             <span class="field-label ui-field-label">사용 기술</span>
             ${rcRenderMoveCombobox('myMove', revCalcState.myMove, { placeholder: '사용 기술 선택' })}
@@ -233,17 +247,17 @@ function renderRevCalcInputs() {
           </label>
         </div>
         <div class="rc-input-divider"></div>
-        <div class="rc-side-condition-row">
+        <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defReflect" ${revCalcState.observedFields.dealt.defReflect ? 'checked' : ''}> 상대 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.dealt.defLightScreen ? 'checked' : ''}> 상대 빛의장막</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="isCritical" ${revCalcState.observedFields.dealt.isCritical ? 'checked' : ''}> 내 공격 급소</label>
         </div>
       </div>
 
-      <div class="rc-input-block rc-action-block ui-control-frame ui-subframe">
+      <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
         <div class="ft-section-title">상대 행동</div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row ui-control-row">
+        <div class="ft-controls-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
           <label class="field rc-field-wide ui-field">
             <span class="field-label ui-field-label">사용 기술</span>
             ${rcRenderMoveCombobox('oppMove', revCalcState.oppMove, { placeholder: '상대 기술 선택' })}
@@ -254,24 +268,24 @@ function renderRevCalcInputs() {
           </label>
         </div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row rc-opp-item-row ui-control-row">
+        <div class="ft-controls-row rc-observed-row rc-opp-item-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
           <label class="field rc-field-wide ui-field">
             <span class="field-label ui-field-label">상대 도구</span>
             ${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}
           </label>
         </div>
         <div class="rc-input-divider"></div>
-        <div class="rc-side-condition-row">
+        <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defReflect" ${revCalcState.observedFields.received.defReflect ? 'checked' : ''}> 내 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.received.defLightScreen ? 'checked' : ''}> 내 빛의장막</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="isCritical" ${revCalcState.observedFields.received.isCritical ? 'checked' : ''}> 상대 공격 급소</label>
         </div>
       </div>
 
-      <div class="rc-input-block rc-speed-block ui-control-frame ui-subframe">
+      <div class="rc-input-block rc-speed-block ui-control-frame ui-subframe ui-subframe-stack">
         <div class="ft-section-title">선후공 | 필드 상태</div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-speed-field-row ui-control-row">
+        <div class="ft-controls-row rc-speed-field-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
           <label class="field rc-field-compact ui-field">
             <span class="field-label ui-field-label">이번 턴 행동 순서</span>
             ${rcRenderTurnOrderCombobox(revCalcState.turnOrder)}
@@ -285,14 +299,14 @@ function renderRevCalcInputs() {
         </div>
       </div>
 
-      <div class="rc-input-block rc-item-candidates-block ui-control-frame ui-subframe ${itemPanelOpen ? 'open' : 'collapsed'}">
+      <div class="rc-input-block rc-item-candidates-block ui-control-frame ui-subframe ui-subframe-stack ${itemPanelOpen ? 'open' : 'collapsed'}">
         <button type="button" class="ft-section-title rc-title-with-badge rc-collapse-head" data-rc-toggle-item-candidates aria-expanded="${itemPanelOpen ? 'true' : 'false'}">
           <span>도구 후보</span>
           <span class="rc-count-badge rc-item-candidate-count">${knownOppItem === null ? `${itemCandidates.length}개` : '고정됨'}</span>
         </button>
         <div class="rc-input-divider rc-collapse-divider"></div>
         <div class="rc-item-candidates-body" ${itemPanelOpen ? '' : 'hidden'}>
-          <div class="rc-item-grid">${itemBoxes}</div>
+          <div class="rc-item-grid rc-observed-subframe ui-control-frame ui-subframe">${itemBoxes}</div>
         </div>
       </div>
     </div>

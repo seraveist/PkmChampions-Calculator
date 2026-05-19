@@ -144,7 +144,7 @@ function renderMatchupSlots() {
   container.innerHTML = matchupSlots.map((id, i) => {
     const p = id ? PokemonById[id] : null;
     return `
-      <div class="matchup-slot ui-control-frame ui-subframe ${p ? 'filled' : ''}" data-slot="${i}">
+      <div class="matchup-slot ui-control-frame ui-subframe ui-control-grid ${p ? 'filled' : ''}" data-slot="${i}">
         <div class="matchup-slot-num">${i + 1}</div>
         <div class="combobox">
           <input type="text" class="cb-input matchup-cb-input" data-slot="${i}"
@@ -298,12 +298,12 @@ function renderMatchupCoverageInputs() {
       `;
     }).join('') : '';
     return `
-      <div class="matchup-coverage-card ui-control-frame ui-subframe ${p ? 'filled' : ''}">
-        <div class="matchup-coverage-head">
+      <div class="matchup-coverage-card ui-control-frame ui-subframe ui-subframe-stack ${p ? 'filled' : ''}">
+        <div class="matchup-coverage-head ui-chip-row">
           <span>${escapeHTML(title)}</span>
           ${p ? p.types.map(t => `<span class="type-pill matchup-type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('') : ''}
         </div>
-        ${p ? `<div class="matchup-move-grid">${rows}</div>` : '<div class="matchup-coverage-empty">포켓몬 선택 후 기술 입력</div>'}
+        ${p ? `<div class="matchup-move-grid ui-control-grid">${rows}</div>` : '<div class="matchup-coverage-empty">포켓몬 선택 후 기술 입력</div>'}
       </div>
     `;
   }).join('');

@@ -126,25 +126,36 @@
   --ui-control-grid-gap: 8px;
   --ui-frame-row-gap: 14px;
   --ui-frame-border: 1px solid var(--border);
-  --ui-frame-bg: var(--bg-panel);
+  --ui-debug-panel-bg: #ffe08a;
+  --ui-debug-subframe-bg: #8ee5ff;
+  --ui-frame-bg: var(--ui-debug-panel-bg);
   --ui-frame-radius: var(--radius-md);
   --ui-frame-shadow: var(--surface-shadow-soft);
-  --ui-frame-body-padding: 14px;
+  --ui-frame-body-padding: 16px;
+  --ui-panel-body-stack-gap: 12px;
   --ui-action-gap: 8px;
   --ui-control-frame-gap: 8px;
   --ui-type-chip-width: 44px;
   --ui-type-chip-height: 22px;
   --ui-type-strip-gap: 4px;
   --ui-subframe-padding: 12px;
+  --ui-subframe-content-padding: var(--ui-subframe-padding);
+  --ui-subframe-edge-padding-inline: 0;
   --ui-subframe-radius: 10px;
-  --ui-subframe-bg: linear-gradient(180deg, #ffffff, #f8fafc);
+  --ui-subframe-bg: var(--ui-debug-subframe-bg);
   --ui-divider-height: 1px;
   --ui-divider-margin: 6px 0;
   --ui-divider-color: var(--border);
   --ui-panel-head-min-height: 50px;
-  --ui-panel-head-padding: 13px 16px;
+  --ui-panel-head-padding: 8px 16px;
   --ui-panel-head-padding-compact: 10px 12px;
   --ui-panel-head-gap: 12px;
+  --ui-panel-point-height: 3px;
+  --ui-panel-actions-gap: var(--ui-action-gap);
+  --ui-panel-action-height: 34px;
+  --ui-panel-action-padding: var(--ui-action-padding-sm);
+  --ui-panel-action-font-size: 12px;
+  --ui-panel-action-font-weight: 900;
   --ui-panel-head-bg: linear-gradient(180deg, var(--bg-elev), var(--bg-input));
   --ui-panel-title-size: 15px;
   --ui-panel-title-weight: 900;
@@ -238,10 +249,14 @@
     linear-gradient(90deg, rgba(75, 179, 215, 0.16), transparent 56%),
     var(--bg-input);
   --ui-control-bg: #111a26;
+  --ui-debug-panel-bg: #7c2d12;
+  --ui-debug-subframe-bg: #0f766e;
+  --ui-debug-pokemon-select-bg: #064e3b;
+  --ui-debug-settings-select-bg: #5b21b6;
   --ui-control-hover-border: var(--border-bright);
   --ui-control-focus-border: var(--warn);
   --ui-control-focus-ring: 0 0 0 3px rgba(223, 178, 95, 0.22);
-  --ui-subframe-bg: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
+  --ui-subframe-bg: var(--ui-debug-subframe-bg);
   --ui-panel-head-bg: linear-gradient(180deg, var(--bg-elev), var(--bg-input));
   --ui-action-border: rgba(148, 163, 184, 0.26);
   --ui-action-hover-border: rgba(223, 178, 95, 0.42);
@@ -503,6 +518,8 @@ header {
 .ui-control-row,
 .ui-control-grid,
 .ui-action-row,
+.ui-panel-actions,
+.ui-panel-tag,
 .ui-stat-grid,
 .ui-metric-row,
 .ui-subframe,
@@ -534,7 +551,30 @@ header {
 .ui-status-badge,
 .ui-popover-trigger,
 .ui-index,
-.ui-popover {
+.ui-popover,
+.tool-settings-layout,
+.tool-settings-subframe,
+.tool-settings-grid,
+.tool-settings-cell,
+.tool-settings-label,
+.tool-settings-control,
+.tool-settings-compound,
+.tool-settings-combobox,
+.tool-settings-choice-cell,
+.tool-settings-choice-label,
+.tool-settings-choice-control,
+.tool-settings-choice-combobox,
+.tool-settings-choice-surface,
+.tool-settings-choice-input,
+.tool-settings-select-cell,
+.tool-settings-select-label,
+.tool-settings-select-control,
+.tool-settings-select-combobox,
+.tool-settings-select-input,
+.tool-settings-condition-cell,
+.tool-settings-condition-control,
+.tool-settings-hp-control,
+.tool-settings-hp-input {
   box-sizing: border-box;
   min-width: 0;
 }
@@ -545,6 +585,17 @@ header {
 
 .ui-frame-row {
   width: 100%;
+  gap: var(--ui-frame-row-gap);
+}
+
+.ui-frame-row > * {
+  min-width: 0;
+}
+
+.page-frame
+  > :where(.ui-frame-row, .ui-frame, .ui-panel)
+  + :where(.ui-frame-row, .ui-frame, .ui-panel) {
+  margin-top: var(--ui-frame-row-gap);
 }
 
 .ui-control-frame {
@@ -625,6 +676,125 @@ header {
   min-width: 0;
 }
 
+.tool-settings-subframe {
+  padding-block: var(--ui-subframe-content-padding);
+  padding-inline: var(--ui-subframe-edge-padding-inline);
+}
+
+.tool-settings-grid {
+  grid-template-columns: repeat(auto-fit, minmax(152px, 1fr));
+  align-items: end;
+  gap: var(--ui-control-grid-gap);
+}
+
+.tool-settings-cell {
+  display: grid;
+  align-content: start;
+  gap: var(--ui-field-stack-gap);
+}
+
+.tool-settings-label {
+  display: block;
+  margin: 0;
+}
+
+.tool-settings-control,
+.tool-settings-compound,
+.tool-settings-combobox,
+.tool-settings-choice-control,
+.tool-settings-choice-combobox,
+.tool-settings-select-control,
+.tool-settings-select-combobox,
+.tool-settings-condition-control,
+.tool-settings-hp-control {
+  width: 100%;
+  min-width: 0;
+}
+
+.tool-settings-compound {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ui-control-grid-gap);
+}
+
+.tool-settings-choice-label {
+  display: flex;
+  align-items: center;
+  min-height: var(--ui-field-head-height);
+  margin-bottom: 0;
+  color: var(--ui-pokemon-label-color, var(--text-dim));
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-pokemon-label-font-size);
+  font-weight: var(--ui-pokemon-label-font-weight);
+  line-height: var(--ui-label-line-height);
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.tool-settings-choice-surface,
+.tool-settings-choice-combobox .cb-input {
+  height: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+  overflow: hidden;
+  border: var(--ui-control-border);
+  border-radius: var(--ui-control-radius);
+  background: var(--ui-control-bg);
+  color: var(--text);
+  box-shadow: none;
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-control-font-size);
+  font-weight: var(--ui-control-font-weight);
+  line-height: normal;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-settings-choice-combobox .tool-settings-choice-surface {
+  padding-right: 28px;
+}
+
+.tool-settings-hp-control.tool-settings-choice-surface {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.tool-settings-hp-status-control {
+  grid-template-columns: 96px minmax(0, 1fr);
+}
+
+.tool-settings-choice-input,
+.tool-settings-select-input,
+.tool-settings-select-combobox .cb-input,
+.tool-settings-condition-control,
+.tool-settings-condition-control .cb-input,
+.tool-settings-hp-input {
+  font-family: inherit;
+  font-size: var(--ui-control-font-size);
+  font-weight: var(--ui-control-font-weight);
+  line-height: 1;
+}
+
+.tool-settings-condition-control {
+  height: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+}
+
+.tool-settings-condition-control .cb-input {
+  height: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+}
+
+.tool-settings-status-combobox .cb-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
 .ui-card-grid {
   display: grid;
   min-width: 0;
@@ -678,6 +848,55 @@ header {
   min-width: 0;
 }
 
+.tool-stat-panel,
+.tool-stat-panel-head,
+.tool-move-panel,
+.tool-move-panel-head,
+.tool-stat-panel-body,
+.tool-stat-grid,
+.tool-stat-total,
+.tool-move-panel-body,
+.tool-move-list,
+.tool-move-head-row,
+.tool-move-row,
+.tool-move-combobox,
+.tool-move-input,
+.tool-move-type-control,
+.tool-move-power-control,
+.tool-move-power-input,
+.tool-move-power-readout {
+  min-width: 0;
+}
+
+.tool-stat-panel.ui-control-frame.ui-subframe,
+.tool-move-panel.ui-control-frame.ui-subframe {
+  padding: var(--ui-subframe-content-padding);
+}
+
+.tool-stat-panel-title,
+.tool-move-panel-title {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ui-field-head-height);
+  color: var(--ui-pokemon-label-color, var(--text-dim));
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-pokemon-label-font-size);
+  font-weight: var(--ui-pokemon-label-font-weight);
+  line-height: var(--ui-label-line-height);
+  letter-spacing: 0;
+  margin: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.tool-stat-panel-title {
+  gap: var(--ui-field-label-gap);
+}
+
+.tool-move-list {
+  width: 100%;
+}
+
 .ui-summary-row {
   justify-content: space-between;
   gap: var(--ui-control-grid-gap);
@@ -710,7 +929,11 @@ header {
 }
 
 .ui-frame-head {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+.ui-frame.ui-panel {
+  --panel-point-height: var(--ui-panel-point-height);
 }
 
 .ui-panel,
@@ -718,16 +941,19 @@ header {
 .ui-frame {
   background: var(--ui-frame-bg);
   border: var(--ui-frame-border);
+  border-color: var(--panel-border-color, var(--border));
+  border-top-color: var(--panel-point-color, var(--panel-border-color, var(--border)));
+  border-top-width: var(--panel-point-height, 1px);
   border-radius: var(--ui-frame-radius);
   box-shadow: var(--ui-frame-shadow);
 }
 
 .ui-panel.atk {
-  border-color: rgba(214, 76, 86, 0.32);
+  --panel-border-color: var(--ui-atk-border);
 }
 
 .ui-panel.def {
-  border-color: rgba(22, 127, 165, 0.32);
+  --panel-border-color: var(--ui-def-border);
 }
 
 .ui-panel-head,
@@ -736,8 +962,10 @@ header {
   position: relative;
   display: flex;
   align-items: center;
+  align-content: center;
   justify-content: space-between;
   gap: var(--ui-panel-head-gap);
+  height: var(--ui-panel-head-min-height);
   min-height: var(--ui-panel-head-min-height);
   padding: var(--ui-panel-head-padding);
   background: var(--ui-panel-head-bg);
@@ -746,9 +974,35 @@ header {
 }
 
 .ui-panel-actions {
-  display: flex;
+  display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 10px;
+  align-content: center;
+  align-self: stretch;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: var(--ui-panel-actions-gap);
+  min-height: 0;
+  margin-left: auto;
+}
+
+.ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .ft-action-btn, .rc-analyze-btn, .dex-modal-btn, .field-auto-toggle) {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  height: var(--ui-panel-action-height);
+  min-height: var(--ui-panel-action-height);
+  max-height: var(--ui-panel-action-height);
+  padding: var(--ui-panel-action-padding);
+  font-size: var(--ui-panel-action-font-size);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ui-panel-head > :not(.ui-panel-actions) {
+  min-width: 0;
 }
 
 .ui-panel.atk .ui-panel-head {
@@ -764,6 +1018,13 @@ header {
 }
 
 .ui-panel-title,
+.ui-panel-tag,
+.dex-modal-title {
+  display: flex;
+  align-items: center;
+}
+
+.ui-panel-title,
 .dex-modal-title {
   font-family: 'Noto Sans KR', sans-serif;
   font-size: var(--ui-panel-title-size);
@@ -774,15 +1035,30 @@ header {
 }
 
 .ui-panel-tag {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  justify-content: center;
+  height: var(--ui-panel-action-height);
+  min-height: var(--ui-panel-action-height);
+  max-height: var(--ui-panel-action-height);
   border-radius: var(--radius-sm);
-  padding: 3px 7px;
+  padding: var(--ui-panel-action-padding);
+  font-size: var(--ui-panel-action-font-size);
+  font-weight: var(--ui-panel-action-font-weight);
+  line-height: 1;
   letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
 .ui-panel-body,
 .dex-modal-body,
 .ui-frame-body {
   padding: var(--ui-frame-body-padding);
+}
+
+.ui-panel-body.ui-subframe-stack,
+.ui-frame-body.ui-subframe-stack {
+  gap: var(--ui-panel-body-stack-gap);
 }
 
 .ui-field-label,
@@ -1434,6 +1710,7 @@ input[type="radio"]:focus-visible {
 .ui-field,
 .field {
   min-width: 0;
+  margin: 0;
 }
 
 .types-display {
@@ -2957,6 +3234,22 @@ body.party-preset-open {
   .party-preset-ev-head,
   .party-preset-ev-total {
     font-size: 10px;
+  }
+}
+
+@media (max-width: 560px) {
+  .ui-panel-head,
+  .dex-modal-head,
+  .ui-frame-head {
+    --ui-panel-action-height: 30px;
+    --ui-panel-action-padding: 0 10px;
+    --ui-panel-action-font-size: 11px;
+    gap: 8px;
+    padding: var(--ui-panel-head-padding-compact);
+  }
+
+  .ui-panel-actions {
+    gap: 5px;
   }
 }
 

@@ -97,8 +97,8 @@
       <div class="field-row ui-frame-row">
         <section class="panel ui-frame collapsible collapsed ui-panel" id="field-panel">
           <div class="panel-head ui-frame-head ui-panel-head" id="field-head">
-            <div class="field-head-main">
-              <div class="panel-title ui-panel-title" role="heading" aria-level="2">필드 · 부가 효과</div>
+            <div class="panel-title ui-panel-title" role="heading" aria-level="2">필드 · 부가 효과</div>
+            <div class="panel-head-actions ui-action-row ui-panel-actions">
               <label class="field-auto-toggle">
                 <input type="checkbox" id="autoEntry" checked>
                 <span>자동진입효과</span>
@@ -130,7 +130,7 @@
               </div>
             </div>
 
-            <div class="field-checkbox-grid field-effects-frame ui-control-frame ui-subframe">
+            <div class="field-checkbox-grid field-effects-frame ui-control-frame ui-subframe ui-control-row">
               <label class="checkbox-label ui-check"><input type="checkbox" id="critHit"><span>급소</span></label>
               <label class="checkbox-label ui-check"><input type="checkbox" id="defReflect"><span>리플렉터</span></label>
               <label class="checkbox-label ui-check"><input type="checkbox" id="defLightScreen"><span>빛의장막</span></label>
@@ -173,14 +173,14 @@
           <div class="panel-head ui-frame-head ui-panel-head">
             <div class="panel-title ui-panel-title" role="heading" aria-level="2">내 포켓몬</div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body" id="rc-my-body"></div>
+          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-my-body"></div>
         </section>
 
         <section class="panel ui-frame rc-opp ui-panel">
           <div class="panel-head ui-frame-head ui-panel-head">
             <div class="panel-title ui-panel-title" role="heading" aria-level="2">상대 포켓몬</div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body" id="rc-opp-body"></div>
+          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-opp-body"></div>
         </section>
       </div>
 
@@ -188,7 +188,7 @@
         <div class="panel-head ui-frame-head ui-panel-head">
           <div class="panel-title ui-panel-title" role="heading" aria-level="2">관측 데이터</div>
         </div>
-        <div class="panel-body ui-frame-body ui-panel-body" id="rc-input-body"></div>
+        <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-input-body"></div>
       </section>
 
       <section class="panel ui-frame ui-panel">
@@ -217,7 +217,7 @@
               <button type="button" class="ft-action-btn def" id="ftApplyDef" title="현재 세팅을 계산기 방어측으로 적용 (상대는 공격측으로)">방어측</button>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body" id="ft-my-body"></div>
+          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="ft-my-body"></div>
         </section>
 
         <aside class="panel ui-frame ft-hp-panel ui-panel">
@@ -227,7 +227,7 @@
               <div class="ft-panel-subtitle">HP 기준점 · 조정 포인트</div>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body" id="ft-hp-body"></div>
+          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="ft-hp-body"></div>
         </aside>
 
         <section class="panel ui-frame ft-speed-panel ui-panel">
@@ -236,10 +236,10 @@
               <div class="panel-title ui-panel-title" role="heading" aria-level="2">상대 / 스피드</div>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ft-speed-panel-body ui-panel-body">
+          <div class="panel-body ui-frame-body ft-speed-panel-body ui-panel-body ui-control-grid">
             <div id="ft-opp-body"></div>
-            <div class="ft-speed-embedded">
-              <div class="ft-speed-head">
+            <div class="ft-speed-embedded ui-control-frame ui-subframe ui-subframe-stack">
+              <div class="ft-speed-head ui-section-head">
                 <div>
                   <span class="ft-section-title">스피드 비교</span>
                 </div>
@@ -249,7 +249,7 @@
                   <span>추월</span>
                 </label>
               </div>
-              <div id="ft-speed-body"></div>
+              <div id="ft-speed-body" class="ui-control-grid"></div>
             </div>
           </div>
         </section>
@@ -262,16 +262,16 @@
         <div class="panel-head ui-frame-head ui-panel-head">
           <div class="panel-title ui-panel-title" role="heading" aria-level="2">상성표</div>
         </div>
-        <div class="panel-body ui-frame-body ui-panel-body">
-          <div class="matchup-control-row ui-action-row">
+        <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack">
+          <div class="matchup-control-row ui-action-row ui-control-frame ui-subframe">
             <div class="matchup-mode-tabs" id="matchupModeTabs" aria-label="상성표 모드" role="tablist">
               <button type="button" class="matchup-mode-btn active" data-matchup-mode="defense" role="tab" aria-selected="true" tabindex="0">방어 상성</button>
               <button type="button" class="matchup-mode-btn" data-matchup-mode="coverage" role="tab" aria-selected="false" tabindex="-1">타점 체크</button>
             </div>
             <button type="button" class="party-load-button ui-label-action" data-party-import-target="matchup">불러오기</button>
           </div>
-          <div class="matchup-slots" id="matchupSlots"></div>
-          <div class="matchup-coverage-inputs" id="matchupCoverageInputs"></div>
+          <div class="matchup-slots ui-control-frame ui-subframe ui-control-grid" id="matchupSlots"></div>
+          <div class="matchup-coverage-inputs ui-control-frame ui-subframe ui-control-grid" id="matchupCoverageInputs"></div>
         </div>
       </section>
 
@@ -280,7 +280,7 @@
           <div class="panel-title ui-panel-title" role="heading" aria-level="2">결과</div>
         </div>
         <div class="panel-body ui-frame-body ui-panel-body">
-          <div class="matchup-result-layout">
+          <div class="matchup-result-layout ui-control-grid">
             <div class="matchup-main">
               <div class="matchup-table-wrap">
                 <table class="matchup-table" id="matchupTable">
@@ -288,7 +288,7 @@
                   <tbody id="matchupBody"></tbody>
                 </table>
               </div>
-              <div class="matchup-legend">
+              <div class="matchup-legend ui-control-frame ui-subframe">
                 <span><span class="cell-demo eff-4">◎</span> 4배</span>
                 <span><span class="cell-demo eff-2">○</span> 2배</span>
                 <span><span class="cell-demo eff-1">—</span> 1배</span>
@@ -297,7 +297,7 @@
                 <span><span class="cell-demo eff-0">✕</span> 무효</span>
               </div>
             </div>
-            <aside class="matchup-meta" id="matchupMeta"></aside>
+            <aside class="matchup-meta ui-control-frame ui-subframe" id="matchupMeta"></aside>
           </div>
         </div>
       </section>

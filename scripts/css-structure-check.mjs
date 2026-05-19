@@ -38,6 +38,8 @@ const allCss = [...cssByFile.values()].join('\n');
   '.ui-panel-head',
   '.ui-panel-body',
   '.ui-panel-title',
+  '.ui-panel-tag',
+  '.ui-panel-actions',
   '.ui-frame-row',
   '.ui-field',
   '.ui-field-label',
@@ -85,6 +87,49 @@ const allCss = [...cssByFile.values()].join('\n');
   '.tool-pokemon-combobox',
   '.tool-pokemon-input',
   '.tool-pokemon-type-strip',
+  '.tool-settings-layout',
+  '.tool-settings-subframe',
+  '.tool-settings-grid',
+  '.tool-settings-cell',
+  '.tool-settings-label',
+  '.tool-settings-control',
+  '.tool-settings-compound',
+  '.tool-settings-combobox',
+  '.tool-settings-choice-cell',
+  '.tool-settings-choice-label',
+  '.tool-settings-choice-control',
+  '.tool-settings-choice-combobox',
+  '.tool-settings-choice-surface',
+  '.tool-settings-choice-input',
+  '.tool-settings-select-cell',
+  '.tool-settings-select-label',
+  '.tool-settings-select-control',
+  '.tool-settings-select-combobox',
+  '.tool-settings-select-input',
+  '.tool-settings-condition-cell',
+  '.tool-settings-condition-control',
+  '.tool-settings-status-combobox',
+  '.tool-settings-hp-control',
+  '.tool-settings-hp-input',
+  '.tool-stat-panel',
+  '.tool-stat-panel-head',
+  '.tool-stat-panel-title',
+  '.tool-stat-panel-body',
+  '.tool-stat-grid',
+  '.tool-stat-total',
+  '.tool-move-panel',
+  '.tool-move-panel-head',
+  '.tool-move-panel-title',
+  '.tool-move-panel-body',
+  '.tool-move-list',
+  '.tool-move-head-row',
+  '.tool-move-row',
+  '.tool-move-combobox',
+  '.tool-move-input',
+  '.tool-move-type-control',
+  '.tool-move-power-control',
+  '.tool-move-power-input',
+  '.tool-move-power-readout',
 ].forEach(selector => {
   check(allCss.includes(selector), `${selector} has CSS ownership`);
 });
@@ -95,7 +140,11 @@ const allCss = [...cssByFile.values()].join('\n');
   '--ui-frame-radius',
   '--ui-frame-shadow',
   '--ui-frame-body-padding',
+  '--ui-panel-body-stack-gap',
+  '--ui-panel-point-height',
   '--ui-action-gap',
+  '--ui-panel-actions-gap',
+  '--ui-panel-action-height',
   '--ui-control-frame-gap',
   '--ui-surface',
   '--ui-header-bg',
@@ -107,16 +156,56 @@ const allCss = [...cssByFile.values()].join('\n');
 
 check(allCss.includes('#page-calc .battle-grid > .ui-panel'), 'calculator page styles target ui-panel panels');
 check(allCss.includes('#page-dex .dex-control-panel.ui-frame'), 'dex page styles target ui-frame control panel');
-check(allCss.includes('.tool-page .ui-frame'), 'tool pages style ui-frame panels');
-check(allCss.includes('.tool-page .ui-frame-head'), 'tool pages style ui-frame heads');
-check(allCss.includes('.tool-page .ui-frame-body'), 'tool pages style ui-frame bodies');
-check(allCss.includes('.tool-page :where(.matchup-slot'), 'tool pages centralize repeated subframes');
+check(!allCss.includes('.tool-page .ui-frame'), 'tool pages rely on shared ui-frame styles');
+check(allCss.includes('.ui-frame.ui-panel'), 'shared ui-frame ui-panel selector owns panel point sizing');
+check(!allCss.includes('.tool-page .ui-frame-head'), 'tool pages rely on shared ui-frame-head styles');
+check(!allCss.includes('.tool-page .ui-frame-body'), 'tool pages rely on shared ui-frame-body styles');
+const toolRepeatedSubframes = [
+  '.matchup-control-row',
+  '.matchup-slots',
+  '.matchup-coverage-inputs',
+  '.matchup-slot',
+  '.matchup-coverage-card',
+].every(selector => allCss.includes(selector));
+check(
+  allCss.includes('.tool-page :where(') && toolRepeatedSubframes,
+  'tool pages centralize repeated subframes'
+);
 check(allCss.includes('#page-calc .ui-metric-chip'), 'calculator metrics target shared chips');
 check(allCss.includes('#page-calc .ui-stat-readout'), 'calculator stat readouts target shared typography');
+check(!allCss.includes('--calc-radius'), 'calculator panels do not define a legacy radius token');
+check(!allCss.includes('--calc-shadow'), 'calculator panels do not define a legacy shadow token');
 
 const pageCss = ['03-calc-redesign.css', '05-calc-sample-layout.css', '06-dex-redesign.css', '07-tools-redesign.css']
   .map(file => cssByFile.get(file) || '')
   .join('\n');
+check(!pageCss.includes('--panel-point-height'), 'page CSS does not override panel point height');
+check(!pageCss.includes('#page-calc .ui-panel > .ui-panel-body'), 'calculator panel bodies use shared frame padding');
+check(allCss.includes('.ui-panel-body.ui-subframe-stack'), 'shared panel body subframe stack spacing exists');
+check(/\.ui-frame-row\s*\{[^}]*gap:\s*var\(--ui-frame-row-gap\)/s.test(allCss), 'shared frame rows own row gap');
+check(/\.page-frame\s*>[\s\S]*\+\s*:where\(\.ui-frame-row,\s*\.ui-frame,\s*\.ui-panel\)\s*\{[^}]*margin-top:\s*var\(--ui-frame-row-gap\)/s.test(allCss), 'shared page frame owns panel row spacing');
+check(!pageCss.includes('#page-calc .results-body.ui-subframe-stack'), 'calculator results body uses shared stack spacing');
+check(!pageCss.includes('#page-calc .battle-grid > .ui-panel > .ui-subframe-stack'), 'calculator side panels use shared stack spacing');
+check(!pageCss.includes('#page-calc #field-panel > .ui-subframe-stack'), 'calculator field panel uses shared stack spacing');
+const structuralSpacingSelectorRe = /(battle-grid|field-row|results-body|field-grid|field-checkbox-grid|matchup-results-panel|matchup-control-row|matchup-slots|matchup-coverage-inputs|matchup-coverage-card|matchup-result-layout|ft-layout|ft-speed-panel-body|ft-speed-embedded|ft-speed-body|rc-grid|rc-my-build-row|rc-input-grid|rc-setup-grid|rc-my-moves-panel|rc-move-set-grid|rc-input-block|rc-side-condition-row|rc-speed-field-row|tool-stat-panel-head|tool-stat-panel-title|tool-stat-panel\b|tool-move-panel-head|tool-move-panel-title|tool-move-panel-body|tool-move-panel\b)/;
+const structuralSpacingPropRe = /(?:^|\n)\s*(margin(?:-top|-bottom|-left|-right)?|gap|row-gap|column-gap)\s*:/;
+const structuralSpacingHits = [];
+for (const [file, css] of cssByFile) {
+  if (!['03-calc-redesign.css', '05-calc-sample-layout.css', '07-tools-redesign.css'].includes(file)) continue;
+  const blockRe = /([^{}]+)\{([^{}]*)\}/g;
+  let match;
+  while ((match = blockRe.exec(css))) {
+    const selector = match[1].trim().replace(/\s+/g, ' ');
+    const body = match[2];
+    if (structuralSpacingSelectorRe.test(selector) && structuralSpacingPropRe.test(body)) {
+      structuralSpacingHits.push(`${file}: ${selector}`);
+    }
+  }
+}
+check(
+  structuralSpacingHits.length === 0,
+  `structural panel layouts use shared margin/gap${structuralSpacingHits.length ? ` (${structuralSpacingHits.join('; ')})` : ''}`
+);
 const legacyFrameSelectors = pageCss.match(/\.panel-head(?!-actions)|\.panel-body|\.dex-modal-head|\.dex-modal-body/g) || [];
 check(
   legacyFrameSelectors.length === 0,

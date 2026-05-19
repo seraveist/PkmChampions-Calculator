@@ -166,6 +166,12 @@ function rcWireMyComboboxes() {
       if (isButtonTrigger) {
         return;
       }
+      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+        calcHideOptionTooltip();
+        combo?.close();
+        restoreInput();
+        return;
+      }
       if (!String(input.value || '').trim()) {
         if (clearOptionalInput()) return;
         calcHideOptionTooltip();
@@ -297,6 +303,13 @@ function rcWireOppComboboxes() {
     input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
     input.addEventListener('blur', () => setTimeout(() => {
       if (isButtonTrigger) {
+        return;
+      }
+      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+        combo?.close();
+        input.value = target === 'oppForm'
+          ? calcPokemonFormLabel(PokemonById[revCalcState.opp.pokemonIdx])
+          : pkName(PokemonById[revCalcState.opp.pokemonIdx] || { name: '' });
         return;
       }
       if (!String(input.value || '').trim()) {
@@ -586,6 +599,14 @@ function rcWireMoveComboboxes(scope) {
     input.addEventListener('blur', () => {
       setTimeout(() => combo?.close(), 180);
       setTimeout(() => {
+        if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+          selectingMoveOption = false;
+          const currentId = target === 'moveslot'
+            ? rcMoveSet()[parseInt(slot, 10)] || ''
+            : (revCalcState[target] || '');
+          input.value = rcMoveLabel(currentId);
+          return;
+        }
         if (selectingMoveOption) {
           selectingMoveOption = false;
           return;
@@ -693,6 +714,11 @@ function rcWireOppItemComboboxes(scope) {
     input.addEventListener('blur', () => {
       setTimeout(() => combo?.close(), 180);
       setTimeout(() => {
+        if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+          selectingItemOption = false;
+          restore();
+          return;
+        }
         if (selectingItemOption) {
           selectingItemOption = false;
           return;

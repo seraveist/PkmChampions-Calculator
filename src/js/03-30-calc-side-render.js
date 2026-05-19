@@ -24,8 +24,8 @@ function renderDurabilityStrip(side) {
 
 function renderMoveList(sideKey, side) {
   return `
-    <div class="moves-list ui-control-grid">
-      <div class="move-list-header ui-table-head-row" aria-hidden="true">
+    <div class="moves-list tool-move-list ui-control-grid">
+      <div class="move-list-header tool-move-head-row ui-table-head-row" aria-hidden="true">
         <span></span><span></span><span></span><span></span><span>\uACB0\uC815\uB825</span>
       </div>
       ${[0,1,2,3].map(i => {
@@ -39,20 +39,20 @@ function renderMoveList(sideKey, side) {
         const moveForCalc = move ? moveWithManualBp(move, manualBp, manualType) : null;
         const power = moveForCalc ? estimateMovePower(side, moveForCalc, targetSide) : null;
         return `
-          <div class="move-slot ui-control-row" data-move-slot="${i}">
-            <span class="move-slot-num ui-index">${i+1}</span>
-            <div class="move-select combobox" data-cb="${sideKey}-move-${i}">
-              <input type="text" class="cb-input" value="${move ? escapeHTML(mvName(move)) : ''}" data-cb-type="move" data-side="${sideKey}" data-field="moves.${i}" placeholder="\uC5C6\uC74C" autocomplete="off" aria-label="${sideKey} move ${i+1} select" aria-expanded="false">
+          <div class="move-slot tool-move-row ui-control-row" data-move-slot="${i}">
+            <span class="move-slot-num tool-move-index ui-index">${i+1}</span>
+            <div class="move-select tool-move-combobox combobox" data-cb="${sideKey}-move-${i}">
+              <input type="text" class="cb-input tool-move-input" value="${move ? escapeHTML(mvName(move)) : ''}" data-cb-type="move" data-side="${sideKey}" data-field="moves.${i}" placeholder="\uC5C6\uC74C" autocomplete="off" aria-label="${sideKey} move ${i+1} select" aria-expanded="false">
               <div class="combobox-options" role="listbox"></div>
             </div>
-            <div class="move-type-control combobox type-pill-combobox ${slotType ? `t-${slotType}` : 'type-none'}" data-cb="${sideKey}-move-type-${i}">
-              <button type="button" class="cb-input cb-trigger" data-cb-type="moveType" data-side="${sideKey}" data-field="moveTypes.${i}" aria-label="${sideKey} move ${i+1} type" aria-expanded="false" ${move ? '' : 'disabled'}>${slotType ? escapeHTML(TYPE_KO[slotType] || slotType) : ''}</button>
+            <div class="move-type-control tool-move-type-control combobox type-pill-combobox ${slotType ? `t-${slotType}` : 'type-none'}" data-cb="${sideKey}-move-type-${i}">
+              <button type="button" class="cb-input cb-trigger tool-move-type-input" data-cb-type="moveType" data-side="${sideKey}" data-field="moveTypes.${i}" aria-label="${sideKey} move ${i+1} type" aria-expanded="false" ${move ? '' : 'disabled'}>${slotType ? escapeHTML(TYPE_KO[slotType] || slotType) : ''}</button>
               <div class="combobox-options" role="listbox"></div>
             </div>
-            <label class="hp-inline-control move-bp-control ui-inline-number is-plain" title="power">
-              <input type="text" class="hp-percent-input move-bp-input ui-inline-number-input" data-action="moveBp" data-side="${sideKey}" data-slot="${i}" value="${move ? slotBp : ''}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} move ${i+1} power" ${move ? '' : 'disabled'}>
+            <label class="hp-inline-control move-bp-control tool-move-power-control ui-inline-number is-plain" title="power">
+              <input type="text" class="hp-percent-input move-bp-input tool-move-power-input ui-inline-number-input" data-action="moveBp" data-side="${sideKey}" data-slot="${i}" value="${move ? slotBp : ''}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} move ${i+1} power" ${move ? '' : 'disabled'}>
             </label>
-            ${move ? `<span class="move-stat-info ui-stat-readout"><b>${typeof power.eff === 'number' ? power.eff.toLocaleString() : power.eff}</b></span>` : '<span class="move-stat-info empty ui-stat-readout">-</span>'}
+            ${move ? `<span class="move-stat-info tool-move-power-readout ui-stat-readout"><b>${typeof power.eff === 'number' ? power.eff.toLocaleString() : power.eff}</b></span>` : '<span class="move-stat-info tool-move-power-readout empty ui-stat-readout">-</span>'}
           </div>
         `;
       }).join('')}
@@ -138,44 +138,44 @@ function renderSide(sideKey) {
     ${pokemonPicker}
 
     <!-- ?뱀꽦/?꾧뎄 + ?깃꺽/HP/?곹깭 -->
-    <div class="field calc-settings-field ui-control-frame ui-subframe ui-field">
-      <div class="calc-pair-grid ui-control-grid">
-        <div class="calc-control-cell ui-control-cell">
-          <span class="calc-control-label ui-control-label">\uD2B9\uC131</span>
-          <div class="compound-control ability-toggle-cell">
-            <div class="combobox" data-cb="${sideKey}-ability">
-              <input type="text" class="cb-input" value="${escapeHTML(calcAbilityDisplayLabel(sideKey))}" data-cb-type="ability" data-side="${sideKey}" data-field="ability" placeholder="Ability" autocomplete="off" aria-label="${sideKey} ability select" aria-expanded="false">
+    <div class="field calc-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+      <div class="calc-pair-grid tool-settings-grid ui-control-grid">
+        <div class="calc-control-cell tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell" data-tool-setting="ability">
+          <span class="calc-control-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-control-label">\uD2B9\uC131</span>
+          <div class="compound-control ability-toggle-cell tool-settings-control tool-settings-choice-control tool-settings-compound tool-settings-select-control">
+            <div class="combobox tool-settings-combobox tool-settings-choice-combobox tool-settings-select-combobox" data-cb="${sideKey}-ability">
+              <input type="text" class="cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" value="${escapeHTML(calcAbilityDisplayLabel(sideKey))}" data-cb-type="ability" data-side="${sideKey}" data-field="ability" placeholder="Ability" autocomplete="off" aria-label="${sideKey} ability select" aria-expanded="false">
               <div class="combobox-options" role="listbox"></div>
             </div>
             ${manualDamageBlockToggle || '<span class="manual-ability-spacer" aria-hidden="true"></span>'}
           </div>
         </div>
-        <div class="calc-control-cell ui-control-cell">
-          <span class="calc-control-label ui-control-label">\uB3C4\uAD6C</span>
-          <div class="combobox" data-cb="${sideKey}-item">
-            <input type="text" class="cb-input" value="${side.item ? (ItemById[side.item] ? escapeHTML(itName(ItemById[side.item])) : '') : '없음'}" data-cb-type="item" data-side="${sideKey}" data-field="item" placeholder="Item" autocomplete="off" aria-label="${sideKey} item select" aria-expanded="false">
+        <div class="calc-control-cell tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell" data-tool-setting="item">
+          <span class="calc-control-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-control-label">\uB3C4\uAD6C</span>
+          <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox" data-cb="${sideKey}-item">
+            <input type="text" class="cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" value="${side.item ? (ItemById[side.item] ? escapeHTML(itName(ItemById[side.item])) : '') : '없음'}" data-cb-type="item" data-side="${sideKey}" data-field="item" placeholder="Item" autocomplete="off" aria-label="${sideKey} item select" aria-expanded="false">
             <div class="combobox-options" role="listbox"></div>
           </div>
         </div>
-        <div class="calc-control-cell ui-control-cell">
-          <span class="calc-control-label ui-control-label">\uC131\uACA9</span>
-          <div class="compound-control nature-spacer-cell">
-            <div class="combobox" data-cb="${sideKey}-nature">
-              <input type="text" class="cb-input" value="${escapeHTML(calcNatureLabel(NATURE_BY_ID[side.nature]))}" data-cb-type="nature" data-side="${sideKey}" data-field="nature" placeholder="Nature" autocomplete="off" aria-label="${sideKey} nature select" aria-expanded="false">
+        <div class="calc-control-cell tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell" data-tool-setting="nature">
+          <span class="calc-control-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-control-label">\uC131\uACA9</span>
+          <div class="compound-control nature-spacer-cell tool-settings-control tool-settings-choice-control tool-settings-compound tool-settings-select-control">
+            <div class="combobox tool-settings-combobox tool-settings-choice-combobox tool-settings-select-combobox" data-cb="${sideKey}-nature">
+              <input type="text" class="cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" value="${escapeHTML(calcNatureLabel(NATURE_BY_ID[side.nature]))}" data-cb-type="nature" data-side="${sideKey}" data-field="nature" placeholder="Nature" autocomplete="off" aria-label="${sideKey} nature select" aria-expanded="false">
               <div class="combobox-options" role="listbox"></div>
             </div>
             <span class="manual-ability-spacer" aria-hidden="true"></span>
           </div>
         </div>
-        <div class="calc-control-cell ui-control-cell">
-          <span class="calc-control-label ui-control-label">\uC0C1\uD0DC</span>
-          <div class="compound-control hp-status-cell">
-            <label class="hp-inline-control ui-inline-number">
-              <input type="text" class="hp-percent-input ui-inline-number-input" data-action="hpPct" data-side="${sideKey}" value="${hpPercentInputValue(side)}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} current HP percent">
+        <div class="calc-control-cell tool-settings-cell tool-settings-choice-cell tool-settings-condition-cell ui-control-cell" data-tool-setting="condition">
+          <span class="calc-control-label tool-settings-label tool-settings-choice-label ui-control-label">\uC0C1\uD0DC</span>
+          <div class="compound-control hp-status-cell tool-settings-control tool-settings-choice-control tool-settings-compound tool-settings-hp-status-control">
+            <label class="hp-inline-control tool-settings-choice-surface tool-settings-condition-control tool-settings-hp-control ui-inline-number">
+              <input type="text" class="hp-percent-input tool-settings-choice-input tool-settings-hp-input ui-inline-number-input" data-action="hpPct" data-side="${sideKey}" value="${hpPercentInputValue(side)}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} current HP percent">
               <span class="ui-inline-number-unit">%</span>
             </label>
-            <div class="combobox" data-cb="${sideKey}-status">
-              <button type="button" class="cb-input cb-trigger" data-cb-type="status" data-side="${sideKey}" data-field="status" aria-label="${sideKey} status select" aria-expanded="false">${escapeHTML(calcStatusDisplayLabel(side.status))}</button>
+            <div class="combobox tool-settings-combobox tool-settings-choice-combobox tool-settings-condition-control tool-settings-status-combobox" data-cb="${sideKey}-status">
+              <button type="button" class="cb-input cb-trigger tool-settings-choice-surface tool-settings-choice-input" data-cb-type="status" data-side="${sideKey}" data-field="status" aria-label="${sideKey} status select" aria-expanded="false">${escapeHTML(calcStatusDisplayLabel(side.status))}</button>
               <div class="combobox-options" role="listbox"></div>
             </div>
           </div>
@@ -184,19 +184,19 @@ function renderSide(sideKey) {
     </div>
 
     <!-- ?ㅽ꺈 (?λ젰?ъ씤??+ ??겕 + ?ㅼ닔移? -->
-    <div class="field ev-field ev-preset-shell ui-control-frame ui-subframe ui-field" data-ev-preset-side="${sideKey}">
-      <div class="ev-field-head ui-section-head">
-        <div class="field-label ev-title-label ui-field-label ui-section-title">
+    <div class="field ev-field ev-preset-shell tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field" data-ev-preset-side="${sideKey}">
+      <div class="ev-field-head tool-stat-panel-head ui-section-head">
+        <div class="tool-stat-panel-title ui-section-title">
           <span>\uB2A5\uB825 \uD3EC\uC778\uD2B8 \u00B7 \uB7AD\uD06C</span>
           <button type="button" class="ev-preset-toggle calc-ev-preset-button ui-popover-trigger" data-action="evPresetMenu" data-side="${sideKey}" aria-expanded="false" aria-controls="ev-presets-${sideKey}">\uD504\uB9AC\uC14B</button>
         </div>
-        <div class="ev-total ui-label-action ui-metric-chip is-static ${overEV ? 'over' : ''}">
+        <div class="ev-total tool-stat-total ui-label-action ui-metric-chip is-static ${overEV ? 'over' : ''}">
           <span>\uCD1D\uD569</span>
           <span><b>${totalEV}</b>/66</span>
         </div>
       </div>
-      <div class="ev-control-layout">
-        <div class="stat-grid ui-stat-grid ui-stat-table">
+      <div class="ev-control-layout tool-stat-panel-body">
+        <div class="stat-grid tool-stat-grid ui-stat-grid ui-stat-table">
           <div class="stat-table-head ui-stat-head">\uB2A5\uB825</div>
           <div class="stat-table-head ui-stat-head">\uC885\uC871\uAC12</div>
           <div class="stat-table-head ui-stat-head">\uB178\uB825\uCE58</div>
@@ -252,13 +252,13 @@ function renderSide(sideKey) {
     </div>
 
     <!-- 湲곗닠 -->
-    <div class="field move-field ui-control-frame ui-subframe ui-field">
-      <div class="ev-field-head move-field-head ui-section-head">
-        <div class="field-label move-title-label ui-field-label ui-section-title">
+    <div class="field move-field tool-move-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
+      <div class="ev-field-head move-field-head tool-move-panel-head ui-section-head">
+        <div class="field-label move-title-label tool-move-panel-title ui-field-label ui-section-title">
           <span>\uAE30\uC220 \uBC30\uCE58</span>
         </div>
       </div>
-      <div class="move-control-layout move-section">
+      <div class="move-control-layout move-section tool-move-panel-body">
         ${renderMoveList(sideKey, side)}
       </div>
     </div>

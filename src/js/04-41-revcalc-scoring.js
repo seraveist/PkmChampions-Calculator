@@ -600,7 +600,7 @@ function rcRenderNextRankPanel() {
   const oppRanks = rcNextOpponentRanks();
   const isOpen = !!revCalcState.nextRankOpen;
   return `
-    <div class="rc-next-rank-panel ${isOpen ? 'open' : 'collapsed'}">
+    <div class="rc-next-rank-panel ui-control-frame ui-subframe ${isOpen ? 'open' : 'collapsed'}">
       <button type="button" class="rc-next-rank-title" data-rc-toggle-next-ranks aria-expanded="${isOpen ? 'true' : 'false'}">
         <b>다음 행동 랭크</b>
         <span>${isOpen ? '접기' : '펼치기'}</span>

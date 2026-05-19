@@ -194,85 +194,20 @@ main {
   --calc-surface: #ffffff;
   --calc-surface-2: #f7fafc;
   --calc-surface-3: #f2f6fa;
-  --calc-gap: 14px;
-}
-
-#page-calc .battle-grid {
-  margin-bottom: var(--calc-gap);
-}
-
-#page-calc .field-row {
-  margin-bottom: var(--calc-gap);
-}
-
-#page-calc .ui-panel {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.75), transparent 70%),
-    var(--calc-surface);
-  border: 1px solid var(--calc-line);
-  border-radius: var(--calc-radius);
-  box-shadow: var(--calc-shadow);
-}
-
-#page-calc .ui-panel.atk {
-  border-color: rgba(240, 93, 94, 0.36);
-}
-
-#page-calc .ui-panel.def {
-  border-color: rgba(58, 174, 216, 0.36);
-}
-
-#page-calc .ui-panel > .ui-panel-head {
-  min-height: var(--ui-panel-head-min-height);
-  padding: var(--ui-panel-head-padding);
-  background: var(--calc-surface-2);
-  border-bottom: 1px solid var(--calc-line);
-  border-radius: var(--calc-radius) var(--calc-radius) 0 0;
-}
-
-#page-calc .results-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-#page-calc .results-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-left: auto;
-}
-
-#page-calc #field-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-}
-
-#page-calc .field-head-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  white-space: nowrap;
 }
 
 #page-calc .field-auto-toggle {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 28px;
-  padding: 0 9px;
+  min-height: var(--ui-panel-action-height);
+  padding: var(--ui-panel-action-padding);
   border: 1px solid var(--calc-line);
   border-radius: 999px;
   background: var(--calc-surface-3);
   color: var(--text-dim);
   font-family: 'Noto Sans KR', sans-serif;
-  font-size: 12px;
+  font-size: var(--ui-panel-action-font-size);
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;
@@ -319,44 +254,6 @@ main {
 
 #page-calc .field-auto-toggle input:checked::after {
   transform: translateX(11px);
-}
-
-#page-calc .ui-panel.atk > .ui-panel-head {
-  background:
-    linear-gradient(90deg, rgba(240, 93, 94, 0.16), transparent 48%),
-    var(--calc-surface-2);
-}
-
-#page-calc .ui-panel.def > .ui-panel-head {
-  background:
-    linear-gradient(90deg, rgba(58, 174, 216, 0.16), transparent 48%),
-    var(--calc-surface-2);
-}
-
-#page-calc .ui-panel-title {
-  font-family: 'Noto Sans KR', sans-serif;
-  font-size: var(--ui-panel-title-size);
-  font-weight: var(--ui-panel-title-weight);
-  line-height: var(--ui-panel-title-line-height);
-  letter-spacing: 0;
-}
-
-#page-calc .ui-panel-tag {
-  border-radius: 4px;
-  padding: 3px 7px;
-  letter-spacing: 0.08em;
-}
-
-#page-calc .ui-panel > .ui-panel-body {
-  padding: 14px;
-}
-
-#page-calc .ui-field {
-  margin-bottom: 12px;
-}
-
-#page-calc .ui-field:last-child {
-  margin-bottom: 0;
 }
 
 #page-calc .ui-field-label .hint {
@@ -580,12 +477,10 @@ main {
 
 #page-calc .field-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
 }
 
 #page-calc .field-row .ui-field {
   min-width: 0;
-  margin-bottom: 0;
 }
 
 #page-calc .field-row .cb-input {
@@ -600,7 +495,6 @@ main {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
   padding-top: 10px;
   border-top-color: var(--calc-line-soft);
 }
@@ -707,11 +601,6 @@ main {
 
 #page-calc .results-actions .ui-btn-primary,
 #page-calc .results-actions .ui-btn-secondary {
-  min-height: 34px;
-  padding: 0 13px;
-  font-size: 12px;
-  line-height: 1;
-  white-space: nowrap;
   box-shadow: none;
 }
 
@@ -726,17 +615,8 @@ main {
   font-weight: 800;
 }
 
-#page-calc .results {
-  overflow: visible;
-  border-width: 1px;
-}
-
 #page-calc .mold-breaker-info {
   gap: 8px;
-  padding: 8px 10px;
-  border-color: var(--calc-line-soft);
-  border-radius: 8px;
-  background: #f8fafc;
   color: var(--calc-muted);
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 12px;
@@ -765,10 +645,6 @@ main {
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 10px;
-  padding: 10px;
-  border: 1px solid rgb(165 138 104 / 0.20);
-  border-radius: 8px;
-  background: #faf8f5;
 }
 
 #page-calc .speed-center {
@@ -1339,10 +1215,6 @@ main {
 }
 
 @media (max-width: 860px) {
-  #page-calc .ui-panel > .ui-panel-body {
-    padding: 12px;
-  }
-
   #page-calc .move-card {
     grid-template-columns: 1fr;
   }
@@ -1375,27 +1247,11 @@ main {
 }
 
 @media (max-width: 560px) {
-  #page-calc .ui-panel > .ui-panel-head {
-    padding: var(--ui-panel-head-padding-compact);
-  }
-
-  #page-calc .field-head-main {
-    gap: 7px;
-  }
-
-  #page-calc .field-auto-toggle {
-    min-height: 26px;
-    padding: 0 8px;
-    font-size: 11px;
-  }
-
   #page-calc .field-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
   }
 
   #page-calc .field-row .ui-field-label {
-    margin-bottom: 5px;
     font-size: 11px;
   }
 
@@ -1417,7 +1273,7 @@ main {
   #page-calc .speed-row {
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     gap: 6px;
-    padding: 8px;
+    padding: var(--ui-subframe-content-padding);
   }
 
   #page-calc .speed-side {
@@ -1599,25 +1455,36 @@ main {
   --ui-control-grid-gap: 8px;
   --ui-frame-row-gap: 14px;
   --ui-frame-border: 1px solid var(--border);
-  --ui-frame-bg: var(--bg-panel);
+  --ui-debug-panel-bg: #ffe08a;
+  --ui-debug-subframe-bg: #8ee5ff;
+  --ui-frame-bg: var(--ui-debug-panel-bg);
   --ui-frame-radius: var(--radius-md);
   --ui-frame-shadow: var(--surface-shadow-soft);
-  --ui-frame-body-padding: 14px;
+  --ui-frame-body-padding: 16px;
+  --ui-panel-body-stack-gap: 12px;
   --ui-action-gap: 8px;
   --ui-control-frame-gap: 8px;
   --ui-type-chip-width: 44px;
   --ui-type-chip-height: 22px;
   --ui-type-strip-gap: 4px;
   --ui-subframe-padding: 12px;
+  --ui-subframe-content-padding: var(--ui-subframe-padding);
+  --ui-subframe-edge-padding-inline: 0;
   --ui-subframe-radius: 10px;
-  --ui-subframe-bg: linear-gradient(180deg, #ffffff, #f8fafc);
+  --ui-subframe-bg: var(--ui-debug-subframe-bg);
   --ui-divider-height: 1px;
   --ui-divider-margin: 6px 0;
   --ui-divider-color: var(--border);
   --ui-panel-head-min-height: 50px;
-  --ui-panel-head-padding: 13px 16px;
+  --ui-panel-head-padding: 8px 16px;
   --ui-panel-head-padding-compact: 10px 12px;
   --ui-panel-head-gap: 12px;
+  --ui-panel-point-height: 3px;
+  --ui-panel-actions-gap: var(--ui-action-gap);
+  --ui-panel-action-height: 34px;
+  --ui-panel-action-padding: var(--ui-action-padding-sm);
+  --ui-panel-action-font-size: 12px;
+  --ui-panel-action-font-weight: 900;
   --ui-panel-head-bg: linear-gradient(180deg, var(--bg-elev), var(--bg-input));
   --ui-panel-title-size: 15px;
   --ui-panel-title-weight: 900;
@@ -1711,10 +1578,14 @@ main {
     linear-gradient(90deg, rgba(75, 179, 215, 0.16), transparent 56%),
     var(--bg-input);
   --ui-control-bg: #111a26;
+  --ui-debug-panel-bg: #7c2d12;
+  --ui-debug-subframe-bg: #0f766e;
+  --ui-debug-pokemon-select-bg: #064e3b;
+  --ui-debug-settings-select-bg: #5b21b6;
   --ui-control-hover-border: var(--border-bright);
   --ui-control-focus-border: var(--warn);
   --ui-control-focus-ring: 0 0 0 3px rgba(223, 178, 95, 0.22);
-  --ui-subframe-bg: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
+  --ui-subframe-bg: var(--ui-debug-subframe-bg);
   --ui-panel-head-bg: linear-gradient(180deg, var(--bg-elev), var(--bg-input));
   --ui-action-border: rgba(148, 163, 184, 0.26);
   --ui-action-hover-border: rgba(223, 178, 95, 0.42);
@@ -1976,6 +1847,8 @@ header {
 .ui-control-row,
 .ui-control-grid,
 .ui-action-row,
+.ui-panel-actions,
+.ui-panel-tag,
 .ui-stat-grid,
 .ui-metric-row,
 .ui-subframe,
@@ -2007,7 +1880,30 @@ header {
 .ui-status-badge,
 .ui-popover-trigger,
 .ui-index,
-.ui-popover {
+.ui-popover,
+.tool-settings-layout,
+.tool-settings-subframe,
+.tool-settings-grid,
+.tool-settings-cell,
+.tool-settings-label,
+.tool-settings-control,
+.tool-settings-compound,
+.tool-settings-combobox,
+.tool-settings-choice-cell,
+.tool-settings-choice-label,
+.tool-settings-choice-control,
+.tool-settings-choice-combobox,
+.tool-settings-choice-surface,
+.tool-settings-choice-input,
+.tool-settings-select-cell,
+.tool-settings-select-label,
+.tool-settings-select-control,
+.tool-settings-select-combobox,
+.tool-settings-select-input,
+.tool-settings-condition-cell,
+.tool-settings-condition-control,
+.tool-settings-hp-control,
+.tool-settings-hp-input {
   box-sizing: border-box;
   min-width: 0;
 }
@@ -2018,6 +1914,17 @@ header {
 
 .ui-frame-row {
   width: 100%;
+  gap: var(--ui-frame-row-gap);
+}
+
+.ui-frame-row > * {
+  min-width: 0;
+}
+
+.page-frame
+  > :where(.ui-frame-row, .ui-frame, .ui-panel)
+  + :where(.ui-frame-row, .ui-frame, .ui-panel) {
+  margin-top: var(--ui-frame-row-gap);
 }
 
 .ui-control-frame {
@@ -2098,6 +2005,125 @@ header {
   min-width: 0;
 }
 
+.tool-settings-subframe {
+  padding-block: var(--ui-subframe-content-padding);
+  padding-inline: var(--ui-subframe-edge-padding-inline);
+}
+
+.tool-settings-grid {
+  grid-template-columns: repeat(auto-fit, minmax(152px, 1fr));
+  align-items: end;
+  gap: var(--ui-control-grid-gap);
+}
+
+.tool-settings-cell {
+  display: grid;
+  align-content: start;
+  gap: var(--ui-field-stack-gap);
+}
+
+.tool-settings-label {
+  display: block;
+  margin: 0;
+}
+
+.tool-settings-control,
+.tool-settings-compound,
+.tool-settings-combobox,
+.tool-settings-choice-control,
+.tool-settings-choice-combobox,
+.tool-settings-select-control,
+.tool-settings-select-combobox,
+.tool-settings-condition-control,
+.tool-settings-hp-control {
+  width: 100%;
+  min-width: 0;
+}
+
+.tool-settings-compound {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ui-control-grid-gap);
+}
+
+.tool-settings-choice-label {
+  display: flex;
+  align-items: center;
+  min-height: var(--ui-field-head-height);
+  margin-bottom: 0;
+  color: var(--ui-pokemon-label-color, var(--text-dim));
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-pokemon-label-font-size);
+  font-weight: var(--ui-pokemon-label-font-weight);
+  line-height: var(--ui-label-line-height);
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.tool-settings-choice-surface,
+.tool-settings-choice-combobox .cb-input {
+  height: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+  overflow: hidden;
+  border: var(--ui-control-border);
+  border-radius: var(--ui-control-radius);
+  background: var(--ui-control-bg);
+  color: var(--text);
+  box-shadow: none;
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-control-font-size);
+  font-weight: var(--ui-control-font-weight);
+  line-height: normal;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-settings-choice-combobox .tool-settings-choice-surface {
+  padding-right: 28px;
+}
+
+.tool-settings-hp-control.tool-settings-choice-surface {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.tool-settings-hp-status-control {
+  grid-template-columns: 96px minmax(0, 1fr);
+}
+
+.tool-settings-choice-input,
+.tool-settings-select-input,
+.tool-settings-select-combobox .cb-input,
+.tool-settings-condition-control,
+.tool-settings-condition-control .cb-input,
+.tool-settings-hp-input {
+  font-family: inherit;
+  font-size: var(--ui-control-font-size);
+  font-weight: var(--ui-control-font-weight);
+  line-height: 1;
+}
+
+.tool-settings-condition-control {
+  height: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+}
+
+.tool-settings-condition-control .cb-input {
+  height: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+}
+
+.tool-settings-status-combobox .cb-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
 .ui-card-grid {
   display: grid;
   min-width: 0;
@@ -2151,6 +2177,55 @@ header {
   min-width: 0;
 }
 
+.tool-stat-panel,
+.tool-stat-panel-head,
+.tool-move-panel,
+.tool-move-panel-head,
+.tool-stat-panel-body,
+.tool-stat-grid,
+.tool-stat-total,
+.tool-move-panel-body,
+.tool-move-list,
+.tool-move-head-row,
+.tool-move-row,
+.tool-move-combobox,
+.tool-move-input,
+.tool-move-type-control,
+.tool-move-power-control,
+.tool-move-power-input,
+.tool-move-power-readout {
+  min-width: 0;
+}
+
+.tool-stat-panel.ui-control-frame.ui-subframe,
+.tool-move-panel.ui-control-frame.ui-subframe {
+  padding: var(--ui-subframe-content-padding);
+}
+
+.tool-stat-panel-title,
+.tool-move-panel-title {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ui-field-head-height);
+  color: var(--ui-pokemon-label-color, var(--text-dim));
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-pokemon-label-font-size);
+  font-weight: var(--ui-pokemon-label-font-weight);
+  line-height: var(--ui-label-line-height);
+  letter-spacing: 0;
+  margin: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.tool-stat-panel-title {
+  gap: var(--ui-field-label-gap);
+}
+
+.tool-move-list {
+  width: 100%;
+}
+
 .ui-summary-row {
   justify-content: space-between;
   gap: var(--ui-control-grid-gap);
@@ -2183,7 +2258,11 @@ header {
 }
 
 .ui-frame-head {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+.ui-frame.ui-panel {
+  --panel-point-height: var(--ui-panel-point-height);
 }
 
 .ui-panel,
@@ -2191,16 +2270,19 @@ header {
 .ui-frame {
   background: var(--ui-frame-bg);
   border: var(--ui-frame-border);
+  border-color: var(--panel-border-color, var(--border));
+  border-top-color: var(--panel-point-color, var(--panel-border-color, var(--border)));
+  border-top-width: var(--panel-point-height, 1px);
   border-radius: var(--ui-frame-radius);
   box-shadow: var(--ui-frame-shadow);
 }
 
 .ui-panel.atk {
-  border-color: rgba(214, 76, 86, 0.32);
+  --panel-border-color: var(--ui-atk-border);
 }
 
 .ui-panel.def {
-  border-color: rgba(22, 127, 165, 0.32);
+  --panel-border-color: var(--ui-def-border);
 }
 
 .ui-panel-head,
@@ -2209,8 +2291,10 @@ header {
   position: relative;
   display: flex;
   align-items: center;
+  align-content: center;
   justify-content: space-between;
   gap: var(--ui-panel-head-gap);
+  height: var(--ui-panel-head-min-height);
   min-height: var(--ui-panel-head-min-height);
   padding: var(--ui-panel-head-padding);
   background: var(--ui-panel-head-bg);
@@ -2219,9 +2303,35 @@ header {
 }
 
 .ui-panel-actions {
-  display: flex;
+  display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 10px;
+  align-content: center;
+  align-self: stretch;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: var(--ui-panel-actions-gap);
+  min-height: 0;
+  margin-left: auto;
+}
+
+.ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .ft-action-btn, .rc-analyze-btn, .dex-modal-btn, .field-auto-toggle) {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  height: var(--ui-panel-action-height);
+  min-height: var(--ui-panel-action-height);
+  max-height: var(--ui-panel-action-height);
+  padding: var(--ui-panel-action-padding);
+  font-size: var(--ui-panel-action-font-size);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ui-panel-head > :not(.ui-panel-actions) {
+  min-width: 0;
 }
 
 .ui-panel.atk .ui-panel-head {
@@ -2237,6 +2347,13 @@ header {
 }
 
 .ui-panel-title,
+.ui-panel-tag,
+.dex-modal-title {
+  display: flex;
+  align-items: center;
+}
+
+.ui-panel-title,
 .dex-modal-title {
   font-family: 'Noto Sans KR', sans-serif;
   font-size: var(--ui-panel-title-size);
@@ -2247,15 +2364,30 @@ header {
 }
 
 .ui-panel-tag {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  justify-content: center;
+  height: var(--ui-panel-action-height);
+  min-height: var(--ui-panel-action-height);
+  max-height: var(--ui-panel-action-height);
   border-radius: var(--radius-sm);
-  padding: 3px 7px;
+  padding: var(--ui-panel-action-padding);
+  font-size: var(--ui-panel-action-font-size);
+  font-weight: var(--ui-panel-action-font-weight);
+  line-height: 1;
   letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
 .ui-panel-body,
 .dex-modal-body,
 .ui-frame-body {
   padding: var(--ui-frame-body-padding);
+}
+
+.ui-panel-body.ui-subframe-stack,
+.ui-frame-body.ui-subframe-stack {
+  gap: var(--ui-panel-body-stack-gap);
 }
 
 .ui-field-label,
@@ -2907,6 +3039,7 @@ input[type="radio"]:focus-visible {
 .ui-field,
 .field {
   min-width: 0;
+  margin: 0;
 }
 
 .types-display {
@@ -4433,6 +4566,22 @@ body.party-preset-open {
   }
 }
 
+@media (max-width: 560px) {
+  .ui-panel-head,
+  .dex-modal-head,
+  .ui-frame-head {
+    --ui-panel-action-height: 30px;
+    --ui-panel-action-padding: 0 10px;
+    --ui-panel-action-font-size: 11px;
+    gap: 8px;
+    padding: var(--ui-panel-head-padding-compact);
+  }
+
+  .ui-panel-actions {
+    gap: 5px;
+  }
+}
+
 @media (max-width: 380px) {
   .main-nav {
     gap: 2px;
@@ -4471,7 +4620,6 @@ body.party-preset-open {
 
 #page-calc {
   --calc-bg: #e5e7eb;
-  --calc-panel: #ffffff;
   --calc-line: #d1d5db;
   --calc-line-soft: #e5e7eb;
   --calc-text: #1f2937;
@@ -4491,8 +4639,6 @@ body.party-preset-open {
   --calc-accent: #111827;
   --calc-control-bg: #f9fafb;
   --calc-control-hover: #f3f4f6;
-  --calc-radius: 12px;
-  --calc-shadow: 0 10px 15px -3px rgb(15 23 42 / 0.08);
   --calc-stat-control-h: clamp(32px, 2.4vw, 34px);
   --calc-rank-btn: clamp(24px, 2vw, 28px);
   --calc-rank-val: clamp(22px, 2vw, 28px);
@@ -4529,63 +4675,31 @@ body.party-preset-open {
   font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
-#page-calc .battle-grid > .ui-panel {
-  background: var(--calc-panel);
-  border: 1px solid var(--calc-line);
-  border-radius: var(--calc-radius);
-  box-shadow: var(--calc-shadow);
-}
-
 #page-calc .battle-grid {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px;
   align-items: stretch;
-  margin-top: 20px;
-}
-
-#page-calc .battle-grid > .ui-panel {
-  overflow: visible;
-}
-
-#page-calc .battle-grid > .ui-panel > .ui-panel-head {
-  position: relative;
-  min-height: var(--ui-panel-head-min-height);
-  padding: var(--ui-panel-head-padding);
-  border-bottom: 1px solid var(--calc-line);
-  border-radius: var(--calc-radius) var(--calc-radius) 0 0;
-  box-shadow: inset 0 var(--panel-point-height, 4px) 0 var(--panel-point-color, transparent);
-}
-
-#page-calc .battle-grid > .ui-panel.atk > .ui-panel-head,
-#page-calc.sides-swapped .battle-grid > .ui-panel.def > .ui-panel-head {
-  --panel-point-color: var(--calc-attacker);
-  background: linear-gradient(135deg, var(--calc-attacker-soft) 0%, #ffffff 100%);
-}
-
-#page-calc .battle-grid > .ui-panel.def > .ui-panel-head,
-#page-calc.sides-swapped .battle-grid > .ui-panel.atk > .ui-panel-head {
-  --panel-point-color: var(--calc-defender);
-  background: linear-gradient(135deg, var(--calc-defender-soft) 0%, #ffffff 100%);
 }
 
 #page-calc .battle-grid > .ui-panel.atk,
 #page-calc.sides-swapped .battle-grid > .ui-panel.def {
-  border-color: rgb(220 38 38 / 0.22);
+  --panel-point-color: var(--calc-attacker);
 }
 
 #page-calc .battle-grid > .ui-panel.def,
 #page-calc.sides-swapped .battle-grid > .ui-panel.atk {
-  border-color: rgb(37 99 235 / 0.22);
+  --panel-point-color: var(--calc-defender);
 }
 
 #page-calc #field-panel {
-  border-color: rgb(122 154 140 / 0.22);
+  --panel-point-color: var(--calc-field);
+  --panel-border-color: rgb(122 154 140 / 0.22);
 }
 
 #page-calc .results {
-  border-color: rgb(165 138 104 / 0.22);
+  --panel-point-color: var(--calc-result);
+  --panel-border-color: var(--calc-result-outline);
 }
 
 #page-calc .ui-panel.collapsible > .ui-panel-head {
@@ -4595,12 +4709,21 @@ body.party-preset-open {
 
 #page-calc .ui-panel.collapsible > .ui-panel-head::after {
   content: '▼';
-  margin-left: auto;
+  flex: 0 0 auto;
+  margin-left: 0;
   color: var(--calc-muted);
   font-size: 0.68rem;
   line-height: 1;
   transform: rotate(0deg);
   transition: transform 160ms ease;
+}
+
+#page-calc #field-head::after {
+  margin-left: auto;
+}
+
+#page-calc #field-head .ui-panel-actions {
+  margin-left: 0;
 }
 
 #page-calc .ui-panel.collapsible.collapsed > .ui-panel-head::after {
@@ -4612,47 +4735,15 @@ body.party-preset-open {
 }
 
 #page-calc #field-panel > .ui-panel-head {
-  --panel-point-color: var(--calc-field);
-  --panel-point-height: 3px;
-  position: relative;
   background: linear-gradient(135deg, var(--calc-field-soft) 0%, #ffffff 100%);
-  box-shadow: inset 0 var(--panel-point-height) 0 var(--panel-point-color);
 }
 
 #page-calc .results > .ui-panel-head {
-  --panel-point-color: var(--calc-result);
-  --panel-point-height: 3px;
-  position: relative;
   background: linear-gradient(135deg, var(--calc-result-soft) 0%, #ffffff 100%);
-  box-shadow: inset 0 var(--panel-point-height) 0 var(--panel-point-color);
-}
-
-#page-calc .results {
-  border-color: var(--calc-result-outline);
-}
-
-#page-calc .results-body.ui-subframe-stack {
-  gap: 12px;
-}
-
-#page-calc .battle-grid > .ui-panel .ui-panel-title {
-  margin: 0;
-  color: var(--calc-text);
-  font-size: var(--ui-panel-title-size);
-  font-weight: var(--ui-panel-title-weight);
-  line-height: var(--ui-panel-title-line-height);
-  letter-spacing: 0;
 }
 
 #page-calc .battle-grid > .ui-panel .ui-panel-tag {
-  padding: 4px 10px;
-  border-radius: 4px;
   color: #ffffff;
-  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.15;
 }
 
 #page-calc .battle-grid > .ui-panel.atk .ui-panel-tag,
@@ -4663,11 +4754,6 @@ body.party-preset-open {
 #page-calc .battle-grid > .ui-panel.def .ui-panel-tag,
 #page-calc.sides-swapped .battle-grid > .ui-panel.atk .ui-panel-tag {
   background: var(--calc-defender);
-}
-
-#page-calc .battle-grid > .ui-panel > .ui-subframe-stack {
-  gap: 18px;
-  padding: 24px;
 }
 
 #page-calc .calc-side-swap-button {
@@ -4713,12 +4799,8 @@ body.party-preset-open {
   min-width: 0;
 }
 
-#page-calc .ui-field {
-  margin-bottom: 0;
-}
-
-#page-calc .ui-field:not(.tool-pokemon-field) label,
-#page-calc .ui-field:not(.tool-pokemon-field) .ui-field-label,
+#page-calc .ui-field:not(.tool-pokemon-field) > label,
+#page-calc .ui-field:not(.tool-pokemon-field) > .ui-field-label,
 #page-calc .calc-control-label {
   display: block;
   margin-bottom: var(--ui-field-stack-gap);
@@ -4749,25 +4831,31 @@ body.party-preset-open {
 #page-calc .calc-pair-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--ui-field-row-gap);
 }
 
 #page-calc .calc-pair-grid > * {
   min-width: 0;
 }
 
-#page-calc #field-panel > .ui-subframe-stack {
-  gap: var(--ui-control-frame-gap);
+#page-calc :where(
+  .field-select-frame,
+  .field-effects-frame,
+  .mold-breaker-info,
+  .speed-row,
+  .move-results
+).ui-control-frame.ui-subframe {
+  padding: var(--ui-subframe-content-padding);
+  border-color: var(--border);
+  background: var(--ui-subframe-bg);
+  box-shadow: var(--ui-frame-shadow);
 }
 
 #page-calc .field-row .field-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--ui-control-grid-gap);
   align-items: end;
   width: 100%;
   min-width: 0;
-  padding: var(--ui-subframe-padding);
 }
 
 #page-calc .field-row .field-grid > .ui-field,
@@ -4790,8 +4878,6 @@ body.party-preset-open {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--ui-control-grid-gap);
-  padding: var(--ui-subframe-padding);
 }
 
 #page-calc .ui-check {
@@ -4806,7 +4892,6 @@ body.party-preset-open {
 
 #page-calc .ui-check input {
   flex: 0 0 auto;
-  margin: 0;
 }
 
 #page-calc .ui-check span {
@@ -4856,8 +4941,8 @@ body.party-preset-open {
 #page-calc input[type="text"]:focus,
 #page-calc input[type="number"]:focus,
 #page-calc select:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.16);
+  border-color: var(--ui-control-focus-border);
+  box-shadow: var(--ui-control-focus-ring);
 }
 
 #page-calc .calc-control-cell {
@@ -4888,18 +4973,15 @@ body.party-preset-open {
   display: grid;
   width: 100%;
   min-width: 0;
-  gap: var(--ui-control-grid-gap);
   align-items: center;
 }
 
 #page-calc .ability-toggle-cell {
   grid-template-columns: minmax(0, 1fr);
-  gap: 0;
 }
 
 #page-calc .ability-toggle-cell:has(.manual-ability-toggle) {
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--ui-control-grid-gap);
 }
 
 #page-calc .ability-toggle-cell .manual-ability-spacer,
@@ -4921,6 +5003,7 @@ body.party-preset-open {
 
 #page-calc .hp-status-cell {
   grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
 }
 
 #page-calc .calc-control-cell .combobox-options {
@@ -4945,6 +5028,7 @@ body.party-preset-open {
   line-height: 1;
 }
 
+#page-calc .ui-field:not(.tool-pokemon-field) label.hp-inline-control,
 #page-calc .hp-status-cell .hp-inline-control {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -4959,9 +5043,9 @@ body.party-preset-open {
   color: var(--calc-text);
 }
 
-#page-calc .hp-status-cell .hp-inline-control:focus-within {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.16);
+#page-calc .hp-status-cell .tool-settings-hp-control:focus-within {
+  border-color: var(--ui-control-focus-border) !important;
+  box-shadow: var(--ui-control-focus-ring);
 }
 
 #page-calc .hp-status-cell .hp-inline-control .hp-percent-input {
@@ -4973,8 +5057,9 @@ body.party-preset-open {
   background: transparent !important;
   box-shadow: none !important;
   color: var(--calc-text);
-  font-family: "Fira Code", "Noto Sans KR", monospace;
-  font-weight: 700;
+  font-family: inherit;
+  font-size: var(--ui-control-font-size);
+  font-weight: var(--ui-control-font-weight);
   text-align: center;
 }
 
@@ -4992,13 +5077,16 @@ body.party-preset-open {
   box-shadow: none !important;
 }
 
-#page-calc .hp-status-cell .hp-inline-control span {
-  display: block;
+#page-calc .hp-status-cell .hp-inline-control .ui-inline-number-unit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-left: 4px;
   color: var(--calc-muted);
   font-size: 0.8rem;
   font-weight: 800;
   line-height: 1;
+  white-space: nowrap;
 }
 
 #page-calc .combobox-option {
@@ -5126,23 +5214,11 @@ body.party-preset-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
   width: 100%;
-  margin-bottom: 10px;
-}
-
-#page-calc .ev-field-head .ui-field-label {
-  margin-bottom: 0;
 }
 
 #page-calc .ev-field {
   position: relative;
-}
-
-#page-calc .ev-title-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
 }
 
 #page-calc .ev-preset-toggle {
@@ -5201,10 +5277,6 @@ body.party-preset-open {
   align-items: center;
   align-content: start;
   width: 100%;
-  padding: 9px;
-  border: 1px solid var(--calc-line-soft);
-  border-radius: 10px;
-  background: #fbfdff;
 }
 
 #page-calc .stat-table-head {
@@ -5627,17 +5699,8 @@ body.party-preset-open {
 #page-calc .moves-list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
   width: 100%;
   min-width: 0;
-}
-
-#page-calc .move-section {
-  margin-top: 0;
-  padding: 9px;
-  border: 1px solid var(--calc-line-soft);
-  border-radius: 10px;
-  background: #fbfdff;
 }
 
 #page-calc .move-list-header {
@@ -5804,11 +5867,6 @@ body.party-preset-open {
   line-height: 1;
 }
 
-#page-calc .move-bp-control:focus-within {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.16);
-}
-
 #page-calc .move-bp-control span {
   display: flex;
   align-items: center;
@@ -5880,9 +5938,6 @@ body.party-preset-open {
 
 #page-calc .move-results {
   gap: 7px;
-  padding: 10px;
-  border-color: var(--calc-line-soft);
-  background: #fbfdff;
 }
 
 #page-calc .move-card {
@@ -6258,10 +6313,6 @@ body.party-preset-open {
     --calc-control-gap: var(--ui-field-label-gap-compact);
   }
 
-  #page-calc .battle-grid > .ui-panel > .ui-subframe-stack {
-    padding: 16px;
-  }
-
   #page-calc .ev-presets {
     grid-template-columns: 1fr;
   }
@@ -6288,7 +6339,6 @@ body.party-preset-open {
 
   #page-calc .calc-pair-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--ui-control-grid-gap);
   }
 
   #page-calc .calc-control-label {
@@ -6310,7 +6360,6 @@ body.party-preset-open {
 
   #page-calc .field-row .field-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 5px;
   }
 
   #page-calc .field-row .field-grid .cb-trigger {
@@ -6340,7 +6389,7 @@ body.party-preset-open {
     font-size: 0.78rem;
   }
 
-  #page-calc .hp-status-cell .hp-inline-control span {
+  #page-calc .hp-status-cell .hp-inline-control .ui-inline-number-unit {
     margin-left: 2px;
     font-size: 0.7rem;
   }
@@ -6567,7 +6616,7 @@ body.party-preset-open {
     font-size: 12px !important;
   }
 
-  #page-calc .hp-status-cell .hp-inline-control span {
+  #page-calc .hp-status-cell .hp-inline-control .ui-inline-number-unit {
     margin-left: 1px;
   }
 
@@ -6807,6 +6856,7 @@ body.party-preset-open {
 }
 
 #page-dex .dex-control-panel.ui-frame {
+  --panel-point-color: var(--dex-accent);
   position: relative;
   display: grid;
   overflow: hidden;
@@ -6814,10 +6864,6 @@ body.party-preset-open {
 
 #page-dex .dex-control-head.ui-frame-head {
   display: block;
-  align-items: center;
-  padding: var(--ui-panel-head-padding);
-  background: var(--ui-panel-head-bg);
-  box-shadow: inset 0 4px 0 var(--dex-accent);
 }
 
 #page-dex .dex-control-body.ui-frame-body {
@@ -8296,47 +8342,6 @@ body.party-preset-open {
   box-sizing: border-box;
 }
 
-.tool-page .ui-frame {
-  overflow: visible;
-  border-color: var(--tool-line);
-  background: var(--tool-surface);
-  box-shadow: var(--tool-shadow);
-}
-
-.tool-page .ui-frame-head {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ui-panel-head-gap);
-  min-height: var(--ui-panel-head-min-height);
-  padding: var(--ui-panel-head-padding);
-  border-bottom-color: var(--tool-line);
-  background: var(--ui-panel-head-bg);
-  box-shadow: inset 0 3px 0 var(--panel-point-color, transparent);
-}
-
-.tool-page .ui-panel-title {
-  color: var(--tool-text);
-  font-size: var(--ui-panel-title-size);
-  font-weight: var(--ui-panel-title-weight);
-  line-height: var(--ui-panel-title-line-height);
-}
-
-.tool-page .ui-panel-tag {
-  border-radius: 6px;
-  padding: 4px 9px;
-  color: #ffffff;
-  font-family: "Noto Sans KR", sans-serif;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0;
-}
-
-.tool-page .ui-frame-body {
-  padding: 16px;
-}
-
 .tool-page .ui-field:not(.tool-pokemon-field) .ui-field-label,
 .tool-page .ft-section-title {
   color: var(--tool-muted);
@@ -8349,7 +8354,6 @@ body.party-preset-open {
 
 .tool-page .ui-field {
   min-width: 0;
-  margin: 0;
 }
 
 .tool-page .combobox-option.pokemon-option.selected,
@@ -8362,8 +8366,8 @@ body.party-preset-open {
   box-shadow: none;
 }
 
-#page-finetune .ft-nature-field .combobox-options,
-#page-revcalc .rc-nature-field .combobox-options {
+#page-finetune .tool-settings-select-cell[data-tool-setting="nature"] .combobox-options,
+#page-revcalc .tool-settings-select-cell[data-tool-setting="nature"] .combobox-options {
   left: 0;
   right: 0;
   width: max(100%, min(220px, calc(100vw - 24px)));
@@ -8454,31 +8458,46 @@ body.party-preset-open {
   text-align: center;
 }
 
-.tool-page :where(.matchup-slot, .matchup-coverage-card, .ft-analysis-section, .rc-my-moves-panel, .rc-input-block) {
-  min-width: 0;
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
-}
-
-.tool-page .tool-stat-panel {
-  min-width: 0;
-  padding: var(--ui-subframe-padding);
+.tool-page .ui-control-frame.ui-subframe {
   border-color: var(--tool-line);
   background: var(--ui-subframe-bg);
 }
 
-.tool-page .tool-stat-panel-head {
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.tool-page .tool-stat-panel-title {
-  margin: 0;
-}
-
-.tool-page .tool-stat-panel-body,
-.tool-page .tool-stat-grid {
+.tool-page :where(
+  .matchup-control-row,
+  .matchup-slots,
+  .matchup-coverage-inputs,
+  .matchup-slot,
+  .matchup-coverage-card,
+  .ft-analysis-section,
+  .rc-my-moves-panel,
+  .rc-input-block
+) {
   min-width: 0;
+}
+
+.tool-page :where(
+  .matchup-control-row,
+  .matchup-slots,
+  .matchup-coverage-inputs,
+  .matchup-coverage-card,
+  .ft-analysis-section,
+  .ft-opp-speed-controls,
+  .ft-opp-speed-detail,
+  .ft-speed-embedded,
+  .ft-speed-summary,
+  .ft-speed-case,
+  .rc-my-moves-panel,
+  .rc-input-block,
+  .rc-observed-subframe,
+  .rc-item-grid,
+  .rc-result-info-panel,
+  .rc-prediction-panel,
+  .rc-followup-panel,
+  .rc-result-row,
+  .rc-briefing
+).ui-control-frame.ui-subframe {
+  padding: var(--ui-subframe-content-padding);
 }
 
 .tool-page .tool-stat-total {
@@ -8500,19 +8519,14 @@ body.party-preset-open {
   display: block;
 }
 
-#page-matchup .ui-frame-head {
+#page-matchup .ui-frame.ui-panel {
   --panel-point-color: #789b86;
-}
-
-#page-matchup .matchup-results-panel {
-  margin-top: 14px;
 }
 
 #page-matchup .matchup-control-row {
   align-items: center;
   justify-content: flex-start;
   min-width: 0;
-  margin-bottom: 14px;
 }
 
 #page-matchup .matchup-mode-tabs {
@@ -8552,18 +8566,14 @@ body.party-preset-open {
 #page-matchup .matchup-slots {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
 }
 
 #page-matchup .matchup-slot {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr) calc((var(--ui-type-chip-width) * 2) + var(--ui-type-strip-gap)) 28px;
   align-items: center;
-  gap: var(--ui-control-grid-gap);
   min-height: 46px;
   padding: 7px 8px;
-  border-radius: 9px;
-  background: #ffffff;
 }
 
 #page-matchup .matchup-slot.filled {
@@ -8669,13 +8679,10 @@ body.party-preset-open {
 #page-matchup .matchup-coverage-inputs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--ui-control-grid-gap);
-  margin-top: 12px;
 }
 
-#page-matchup .matchup-coverage-card {
-  padding: var(--ui-subframe-padding);
-  background: var(--tool-surface-soft);
+#page-matchup .matchup-coverage-inputs:empty {
+  display: none;
 }
 
 #page-matchup .matchup-coverage-card.filled {
@@ -8686,9 +8693,7 @@ body.party-preset-open {
 #page-matchup .matchup-coverage-head {
   display: flex;
   align-items: center;
-  gap: var(--ui-type-strip-gap);
   min-height: 22px;
-  margin-bottom: 8px;
   color: var(--tool-text);
   font-size: 12px;
   font-weight: 900;
@@ -8707,14 +8712,12 @@ body.party-preset-open {
 
 #page-matchup .matchup-move-grid {
   display: grid;
-  gap: 6px;
 }
 
 #page-matchup .matchup-move-field {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr) var(--ui-type-chip-width) 28px;
   align-items: center;
-  gap: 6px;
 }
 
 #page-matchup .matchup-move-type-slot {
@@ -8764,7 +8767,6 @@ body.party-preset-open {
 #page-matchup .matchup-result-layout {
   display: grid;
   grid-template-columns: minmax(760px, 1fr) minmax(300px, 380px);
-  gap: 14px;
   align-items: stretch;
 }
 
@@ -8779,9 +8781,6 @@ body.party-preset-open {
   align-content: start;
   gap: 0;
   padding: 0;
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
-  background: #ffffff;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -8810,7 +8809,7 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-side-list {
-  padding: var(--ui-subframe-padding);
+  padding: var(--ui-subframe-content-padding);
 }
 
 #page-matchup .matchup-side-list > .matchup-side-empty {
@@ -9071,9 +9070,6 @@ body.party-preset-open {
   gap: 8px 14px;
   margin-top: 10px;
   padding: 10px 12px;
-  border: 1px solid var(--tool-line);
-  border-radius: 9px;
-  background: #ffffff;
   color: var(--tool-muted);
   font-size: 12px;
   font-weight: 800;
@@ -9145,7 +9141,6 @@ body.party-preset-open {
   display: block;
 }
 
-#page-finetune .ui-frame,
 #page-finetune .ft-layout,
 #page-finetune .ft-editor,
 #page-finetune .ft-hp-panel,
@@ -9160,7 +9155,6 @@ body.party-preset-open {
   grid-template-areas:
     "editor hp"
     "speed speed";
-  gap: 12px;
 }
 
 #page-finetune .ft-editor {
@@ -9175,40 +9169,35 @@ body.party-preset-open {
   grid-area: speed;
 }
 
-#page-finetune .ft-editor .ui-frame-head {
+#page-finetune .ft-editor {
   --panel-point-color: var(--ft-accent);
 }
 
-#page-finetune .ft-hp-panel .ui-frame-head {
-  --panel-point-color: transparent;
+#page-finetune .ft-hp-panel {
+  --panel-point-color: var(--tool-line);
 }
 
-#page-finetune .ft-speed-panel .ui-frame-head {
+#page-finetune .ft-speed-panel {
   --panel-point-color: var(--ft-speed);
 }
 
 #page-finetune .ft-panel-subtitle {
-  margin-top: 2px;
+  margin-top: 1px;
   color: var(--tool-faint);
   font-size: 12px;
   font-weight: 700;
+  line-height: 1.1;
 }
 
 #page-finetune .ui-panel-actions,
 #page-revcalc .ui-panel-actions {
-  display: inline-flex;
-  align-items: center;
   min-width: 0;
-  gap: 8px;
 }
 
 #page-revcalc .rc-analyze-btn {
-  min-height: 34px;
-  padding: 0 13px;
   border-color: rgba(159, 40, 52, 0.28);
   background: linear-gradient(135deg, #df4f55, #eab85e);
   color: #ffffff;
-  font-size: 12px;
   font-weight: 900;
   box-shadow: none;
 }
@@ -9224,12 +9213,12 @@ body.party-preset-open {
 
 #page-finetune .ft-setup-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "main main main"
-    "ability nature item";
+    "main"
+    "settings";
   gap: 9px 8px;
-  align-items: end;
+  align-items: stretch;
 }
 
 #page-finetune .ft-pokemon-main-row {
@@ -9247,15 +9236,25 @@ body.party-preset-open {
   grid-area: pokemon;
 }
 
-#page-finetune .ft-ability-field {
+#page-finetune .ft-settings-field {
+  grid-area: settings;
+}
+
+#page-finetune .ft-settings-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas: "ability nature item";
+  align-items: end;
+}
+
+#page-finetune .tool-settings-select-cell[data-tool-setting="ability"] {
   grid-area: ability;
 }
 
-#page-finetune .ft-nature-field {
+#page-finetune .tool-settings-select-cell[data-tool-setting="nature"] {
   grid-area: nature;
 }
 
-#page-finetune .ft-item-field {
+#page-finetune .tool-settings-select-cell[data-tool-setting="item"] {
   grid-area: item;
 }
 
@@ -9275,7 +9274,6 @@ body.party-preset-open {
 #page-finetune .ft-ability-control {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
   min-width: 0;
 }
 
@@ -9292,17 +9290,6 @@ body.party-preset-open {
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-#page-finetune .tool-stat-panel {
-  margin-top: 14px;
-}
-
-#page-finetune .tool-stat-panel-title {
-  margin-bottom: 7px;
-  color: var(--tool-text);
-  font-size: 13px;
-  font-weight: 900;
 }
 
 #page-finetune .ft-stats-column {
@@ -9710,8 +9697,6 @@ body.party-preset-open {
 #page-finetune .ft-summary-section,
 #page-finetune .ft-analysis-section {
   min-width: 0;
-  padding: var(--ui-subframe-padding);
-  background: var(--ui-subframe-bg);
 }
 
 #page-finetune .ft-summary-section {
@@ -9871,7 +9856,6 @@ body.party-preset-open {
 #page-finetune .ft-speed-panel-body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
   align-items: stretch;
 }
 
@@ -9883,14 +9867,9 @@ body.party-preset-open {
 
 #page-finetune .ft-speed-embedded {
   display: grid;
-  gap: 10px;
   align-content: start;
   height: 100%;
   min-width: 0;
-  padding: var(--ui-subframe-padding);
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
-  background: var(--ui-subframe-bg);
 }
 
 #page-finetune .ft-opp-card-head {
@@ -9970,7 +9949,6 @@ body.party-preset-open {
   display: grid;
   gap: 7px;
   min-width: 0;
-  padding-top: 2px;
 }
 
 #page-finetune .ft-opp-speed-detail-head {
@@ -10042,7 +10020,6 @@ body.party-preset-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--tool-line);
 }
@@ -10062,7 +10039,6 @@ body.party-preset-open {
 
 #page-finetune #ft-speed-body {
   display: grid;
-  gap: 10px;
   min-width: 0;
 }
 
@@ -10132,10 +10108,6 @@ body.party-preset-open {
   gap: 8px;
   min-width: 0;
   min-height: 132px;
-  padding: var(--ui-subframe-padding);
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
-  background: #ffffff;
 }
 
 #page-finetune .ft-speed-case-head {
@@ -10231,13 +10203,9 @@ body.party-preset-open {
   display: grid;
   grid-template-columns: minmax(56px, 0.8fr) minmax(58px, 0.75fr) minmax(112px, 1fr);
   gap: 6px 8px;
-  margin-top: 8px;
-  padding: 12px;
-  border: 1px solid var(--tool-line);
-  border-radius: 10px;
-  background: var(--tool-surface-soft);
 }
 
+#page-revcalc .rc-opp-stat-panel,
 #page-revcalc .rc-opp-stat-title {
   margin-top: 12px;
 }
@@ -10304,22 +10272,16 @@ body.party-preset-open {
   display: block;
 }
 
-#page-revcalc > .ui-frame + .ui-frame,
-#page-revcalc .rc-grid + .ui-frame {
-  margin-top: 14px;
-}
-
 #page-revcalc .rc-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.22fr) minmax(340px, 0.78fr);
-  gap: 14px;
 }
 
-#page-revcalc .rc-my .ui-frame-head {
+#page-revcalc .rc-my {
   --panel-point-color: #8f7cc8;
 }
 
-#page-revcalc .rc-opp .ui-frame-head {
+#page-revcalc .rc-opp {
   --panel-point-color: #6aa4c5;
 }
 
@@ -10330,18 +10292,31 @@ body.party-preset-open {
 
 #page-revcalc .rc-setup-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "main main main main main main"
-    "ability ability nature nature item item";
-  gap: 9px 8px;
-  align-items: end;
+    "main"
+    "settings";
+  align-items: stretch;
 }
 
 #page-revcalc .rc-opp-setup {
   grid-template-areas:
-    "main main main main main main"
-    "status status status . . .";
+    "main"
+    "settings";
+}
+
+#page-revcalc .rc-settings-field {
+  grid-area: settings;
+}
+
+#page-revcalc .rc-settings-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-areas: "ability ability nature nature item item";
+  align-items: end;
+}
+
+#page-revcalc .rc-opp-settings-grid {
+  grid-template-areas: "status status status . . .";
 }
 
 #page-revcalc .rc-opp-status-field {
@@ -10392,15 +10367,15 @@ body.party-preset-open {
   cursor: pointer;
 }
 
-#page-revcalc .rc-nature-field {
+#page-revcalc .tool-settings-select-cell[data-tool-setting="nature"] {
   grid-area: nature;
 }
 
-#page-revcalc .rc-ability-field {
+#page-revcalc .tool-settings-select-cell[data-tool-setting="ability"] {
   grid-area: ability;
 }
 
-#page-revcalc .rc-item-field {
+#page-revcalc .tool-settings-select-cell[data-tool-setting="item"] {
   grid-area: item;
 }
 
@@ -10413,9 +10388,7 @@ body.party-preset-open {
 #page-revcalc .rc-my-build-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(210px, 0.38fr);
-  gap: 12px;
   align-items: start;
-  margin-top: 14px;
   overflow: visible;
 }
 
@@ -10423,18 +10396,6 @@ body.party-preset-open {
   position: relative;
   z-index: 4;
   display: grid;
-  gap: 8px;
-  padding: var(--ui-subframe-padding);
-  background: var(--ui-subframe-bg);
-}
-
-#page-revcalc .tool-stat-panel-title {
-  margin: 0;
-  color: var(--tool-muted);
-  font-family: "Noto Sans KR", sans-serif;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0;
 }
 
 #page-revcalc .rc-stats-grid {
@@ -10520,12 +10481,10 @@ body.party-preset-open {
 #page-revcalc .rc-move-set-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
 }
 
 #page-revcalc .rc-move-set-grid.compact {
   grid-template-columns: 1fr;
-  gap: 6px;
 }
 
 #page-revcalc .rc-move-slot-field,
@@ -10540,17 +10499,14 @@ body.party-preset-open {
 }
 
 #page-revcalc .ft-controls-row {
-  margin-bottom: 10px;
   display: flex;
   flex-wrap: wrap;
   align-items: end;
-  gap: 10px;
 }
 
 #page-revcalc .ft-controls-row.rc-observed-row {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(132px, 1fr);
-  gap: 10px;
 }
 
 #page-revcalc .rc-opp-item-row .ui-field {
@@ -10613,12 +10569,6 @@ body.party-preset-open {
 
 #page-revcalc .rc-input-grid {
   display: grid;
-  gap: 12px;
-}
-
-#page-revcalc .rc-input-block {
-  padding: var(--ui-subframe-padding);
-  background: var(--tool-surface-soft);
 }
 
 #page-revcalc .rc-action-block {
@@ -10627,24 +10577,6 @@ body.party-preset-open {
 
 #page-revcalc .rc-input-block .ft-section-title {
   display: block;
-  margin-bottom: 8px;
-}
-
-#page-revcalc .rc-input-divider {
-  margin: var(--ui-divider-margin);
-  background: var(--ui-divider-color);
-}
-
-#page-revcalc .rc-action-block .rc-input-divider {
-  margin: 6px 0;
-}
-
-#page-revcalc .rc-input-block .rc-observed-row {
-  margin-bottom: 0;
-}
-
-#page-revcalc .rc-action-block .ui-field-label {
-  margin-bottom: 5px;
 }
 
 #page-revcalc .rc-action-block .cb-input,
@@ -10657,8 +10589,6 @@ body.party-preset-open {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
-  gap: 6px;
-  margin-top: 0;
   padding-top: 0;
 }
 
@@ -10669,7 +10599,6 @@ body.party-preset-open {
   min-width: 0 !important;
   min-height: 19px !important;
   padding: 2px 6px !important;
-  gap: 5px;
   border-radius: 6px;
   font-size: 10px !important;
   font-weight: 800;
@@ -10685,7 +10614,6 @@ body.party-preset-open {
   height: 24px !important;
   min-height: 24px !important;
   max-height: 24px !important;
-  margin: 0 !important;
   padding: 0 8px !important;
   overflow: hidden;
 }
@@ -10693,7 +10621,6 @@ body.party-preset-open {
 #page-revcalc .rc-action-block .rc-side-condition-row > .ui-check input[type="checkbox"] {
   width: 10px;
   height: 10px;
-  margin: 0;
 }
 
 #page-revcalc .rc-opp-item-row {
@@ -10715,14 +10642,9 @@ body.party-preset-open {
   letter-spacing: 0;
 }
 
-#page-revcalc .rc-speed-block {
-  background: linear-gradient(135deg, rgba(183, 121, 31, 0.08), #f8fafc 48%);
-}
-
 #page-revcalc .rc-speed-field-row {
   display: grid;
   grid-template-columns: minmax(108px, 0.68fr) minmax(0, 1fr) minmax(0, 1fr);
-  gap: 10px;
   align-items: end;
 }
 
@@ -10808,7 +10730,7 @@ body.party-preset-open {
 
 #page-revcalc .rc-hint {
   margin-top: 10px;
-  padding: var(--ui-subframe-padding);
+  padding: var(--ui-subframe-content-padding);
   border-left: 3px solid var(--tool-line);
   border-radius: var(--ui-subframe-radius);
   background: #ffffff;
@@ -10820,10 +10742,6 @@ body.party-preset-open {
   gap: 6px;
   max-height: 188px;
   overflow: auto;
-  padding: 8px;
-  border: 1px solid var(--tool-line);
-  border-radius: 9px;
-  background: #ffffff;
 }
 
 #page-revcalc .rc-collapse-head {
@@ -10904,9 +10822,7 @@ body.party-preset-open {
 
 #page-revcalc .rc-briefing {
   margin-bottom: 12px;
-  padding: var(--ui-subframe-padding);
   border: 1px solid rgba(183, 121, 31, 0.24);
-  border-radius: var(--ui-subframe-radius);
   background: #fffaf0;
   color: var(--tool-text);
   font-size: 13px;
@@ -10931,10 +10847,6 @@ body.party-preset-open {
   grid-template-columns: 44px minmax(0, 1fr);
   gap: 10px;
   align-items: stretch;
-  padding: var(--ui-subframe-padding);
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
-  background: #ffffff;
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
@@ -10973,10 +10885,6 @@ body.party-preset-open {
   align-content: center;
   gap: 8px;
   min-width: 0;
-  padding: var(--ui-subframe-padding);
-  border: 1px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
-  background: var(--tool-surface-soft);
 }
 
 #page-revcalc .rc-result-panel-label {
@@ -11071,9 +10979,6 @@ body.party-preset-open {
   gap: 6px;
   margin-bottom: 10px;
   padding: 8px 10px;
-  border: 1px solid var(--tool-line);
-  border-radius: 10px;
-  background: var(--tool-surface-soft);
 }
 
 #page-revcalc .rc-next-rank-title {
@@ -11346,7 +11251,6 @@ body.party-preset-open {
   #page-matchup .matchup-control-row {
     align-items: stretch;
     flex-wrap: nowrap;
-    gap: 6px;
   }
 
   #page-matchup .matchup-mode-tabs {
@@ -11369,25 +11273,37 @@ body.party-preset-open {
   }
 
   #page-finetune .ft-setup-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      "main main main"
-      "ability nature item";
-    gap: 8px 7px;
+      "main"
+      "settings";
+  }
+
+  #page-finetune .ft-settings-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas: "ability nature item";
   }
 
   #page-revcalc .rc-setup-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      "main main main main main main"
-      "ability ability nature nature item item";
-    gap: 8px 7px;
+      "main"
+      "settings";
+  }
+
+  #page-revcalc .rc-settings-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-areas: "ability ability nature nature item item";
   }
 
   #page-revcalc .rc-opp-setup {
     grid-template-areas:
-      "main main main main main main"
-      "status status status . . .";
+      "main"
+      "settings";
+  }
+
+  #page-revcalc .rc-opp-settings-grid {
+    grid-template-areas: "status status status . . .";
   }
 
   #page-revcalc .ft-stats-grid,
@@ -11443,11 +11359,16 @@ body.party-preset-open {
 
 @media (max-width: 520px) {
   #page-finetune .ft-setup-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      "main main main"
-      "ability nature item";
+      "main"
+      "settings";
     gap: 8px 6px;
+  }
+
+  #page-finetune .ft-settings-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas: "ability nature item";
   }
 
   #page-finetune .ft-pokemon-main-row {
@@ -11466,31 +11387,15 @@ body.party-preset-open {
     font-size: var(--ui-type-pill-font-size);
   }
 
-  #page-finetune .ui-frame-head {
-    gap: 8px;
-    padding: var(--ui-panel-head-padding-compact);
-  }
-
   #page-finetune .ui-panel-actions {
     flex: 0 1 auto;
-    gap: 5px;
   }
 
-  #page-finetune .ft-action-btn {
-    min-height: 30px;
-    padding: 0 10px;
+  #page-finetune .tool-settings-select-cell .ui-field-label {
     font-size: 11px;
   }
 
-  #page-finetune .ft-ability-field .ui-field-label,
-  #page-finetune .ft-nature-field .ui-field-label,
-  #page-finetune .ft-item-field .ui-field-label {
-    font-size: 11px;
-  }
-
-  #page-finetune .ft-ability-field .cb-input,
-  #page-finetune .ft-nature-field .cb-input,
-  #page-finetune .ft-item-field .cb-input {
+  #page-finetune .tool-settings-select-cell .cb-input {
     padding-right: 24px;
     padding-left: 9px;
     font-size: 12px;
@@ -11531,10 +11436,6 @@ body.party-preset-open {
   #page-revcalc .rc-stats-grid .tool-stat-rank-button {
     width: 18px;
     height: 28px;
-  }
-
-  #page-finetune .tool-stat-panel {
-    padding: 10px 8px;
   }
 
   #page-finetune .ft-opp-pick-row {
@@ -11803,7 +11704,6 @@ body.party-preset-open {
 
 #page-calc {
   --calc-bg: var(--bg);
-  --calc-panel: var(--bg-panel);
   --calc-line: var(--border);
   --calc-line-soft: var(--border-soft);
   --calc-text: var(--text);
@@ -11820,7 +11720,6 @@ body.party-preset-open {
   --calc-surface: var(--bg-panel);
   --calc-surface-2: var(--bg-input);
   --calc-surface-3: var(--bg-muted);
-  --calc-shadow: var(--surface-shadow-soft);
 }
 
 .tool-page {
@@ -11852,14 +11751,26 @@ body.party-preset-open {
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  :where(.ui-frame, .ui-panel, .ui-subframe, .ui-card, .ui-summary-card, .ui-meter-card, .dex-modal) {
+  :where(.ui-card, .ui-summary-card, .ui-meter-card) {
   background: var(--ui-frame-bg);
   border-color: var(--border);
   box-shadow: var(--ui-frame-shadow);
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-subframe) {
+  background: var(--ui-subframe-bg);
+  border-color: var(--border);
+  box-shadow: var(--ui-frame-shadow);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
   :where(.ui-frame-head, .ui-panel-head, .dex-modal-head) {
+  align-items: center;
+  align-content: center;
+  flex-wrap: nowrap;
+  height: var(--ui-panel-head-min-height);
+  min-height: var(--ui-panel-head-min-height);
   background: var(--ui-panel-head-bg);
   border-bottom-color: var(--border);
 }
@@ -11909,16 +11820,6 @@ body.party-preset-open {
   background: var(--bg-panel);
   color: var(--text);
   box-shadow: var(--surface-shadow-soft);
-}
-
-:root[data-theme="dark"] #page-calc .move-section {
-  border-color: var(--border);
-  background: var(--bg-input);
-}
-
-:root[data-theme="dark"] #page-calc .stat-grid.ui-stat-table {
-  border-color: var(--border);
-  background: var(--bg-input);
 }
 
 :root[data-theme="dark"] #page-calc .calc-ev-preset-button.ui-popover-trigger,
@@ -11977,17 +11878,6 @@ body.party-preset-open {
   color: var(--bg);
 }
 
-:root[data-theme="dark"] #page-calc .ui-panel {
-  background: var(--bg-panel);
-  border-color: var(--border);
-  box-shadow: var(--surface-shadow-soft);
-}
-
-:root[data-theme="dark"] #page-calc .ui-panel > .ui-panel-head {
-  background: var(--ui-panel-head-bg);
-  border-bottom-color: var(--border);
-}
-
 :root[data-theme="dark"] #page-calc .move-card.none.compact.ui-card {
   background: var(--bg-input);
 }
@@ -12006,16 +11896,6 @@ body.party-preset-open {
   border-color: var(--border);
   background: var(--bg-input);
   color: var(--text);
-}
-
-:root[data-theme="dark"] #page-calc .speed-row.ui-summary-row {
-  border-color: var(--border);
-  background: var(--bg-input);
-}
-
-:root[data-theme="dark"] #page-calc :is(.field-select-frame, .field-effects-frame, .mold-breaker-info, .move-results).ui-subframe {
-  border-color: var(--border);
-  background: var(--bg-input);
 }
 
 :root[data-theme="dark"] #page-calc .move-type-control.type-none {
@@ -12059,13 +11939,13 @@ body.party-preset-open {
 #page-calc .battle-grid > .ui-panel.atk,
 #page-calc.sides-swapped .battle-grid > .ui-panel.def,
 .ui-panel.atk {
-  border-color: var(--ui-atk-border);
+  --panel-border-color: var(--ui-atk-border);
 }
 
 #page-calc .battle-grid > .ui-panel.def,
 #page-calc.sides-swapped .battle-grid > .ui-panel.atk,
 .ui-panel.def {
-  border-color: var(--ui-def-border);
+  --panel-border-color: var(--ui-def-border);
 }
 
 #page-calc .battle-grid > .ui-panel.atk > .ui-panel-head,
@@ -12107,6 +11987,90 @@ body.party-preset-open {
   box-shadow: var(--ui-pokemon-focus-ring);
 }
 
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: var(--ui-field-head-height);
+  color: var(--ui-pokemon-label-color, var(--text-dim));
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-pokemon-label-font-size);
+  font-weight: var(--ui-pokemon-label-font-weight);
+  line-height: var(--ui-label-line-height);
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+#page-calc .tool-settings-choice-cell {
+  --calc-control-label-width: 40px;
+  --calc-control-gap: var(--ui-control-grid-gap);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input {
+  height: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+  border: var(--ui-control-border);
+  border-radius: var(--ui-control-radius);
+  background: var(--ui-control-bg);
+  color: var(--text);
+  box-shadow: none;
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-control-font-size);
+  font-weight: var(--ui-control-font-weight);
+  line-height: normal;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .tool-settings-choice-surface {
+  padding-right: 28px;
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-hp-control.tool-settings-choice-surface {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 0 10px;
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-hp-control .tool-settings-hp-input {
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-control-font-size);
+  font-weight: var(--ui-control-font-weight);
+  line-height: normal;
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:hover,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:hover {
+  border-color: var(--ui-control-hover-border);
+  background: var(--bg-input);
+  color: var(--text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus-visible,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus-within,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:focus,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:focus-visible,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input[aria-expanded="true"] {
+  outline: 0;
+  border-color: var(--ui-control-focus-border);
+  box-shadow: var(--ui-pokemon-focus-ring);
+}
+
+:root[data-theme="dark"] :is(#page-calc, #page-revcalc, #page-finetune) .tool-pokemon-combobox .tool-pokemon-input {
+  background: var(--ui-debug-pokemon-select-bg);
+}
+
+:root[data-theme="dark"] :is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface,
+:root[data-theme="dark"] :is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input {
+  background: var(--ui-debug-settings-select-bg);
+}
+
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
   :where(.combobox-options) {
   border-color: var(--border-bright);
@@ -12136,6 +12100,46 @@ body.party-preset-open {
   border-color: var(--ui-action-border);
   background: var(--ui-action-bg);
   color: var(--text-dim);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  .ui-panel-actions.ui-panel-actions {
+  align-items: center;
+  align-content: center;
+  align-self: stretch;
+  flex-wrap: nowrap;
+  min-height: 0;
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  .ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .ft-action-btn, .rc-analyze-btn, .dex-modal-btn, .field-auto-toggle) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--ui-panel-action-height);
+  min-height: var(--ui-panel-action-height);
+  max-height: var(--ui-panel-action-height);
+  padding: var(--ui-panel-action-padding);
+  font-size: var(--ui-panel-action-font-size);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-panel-tag) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--ui-panel-action-height);
+  min-height: var(--ui-panel-action-height);
+  max-height: var(--ui-panel-action-height);
+  padding: var(--ui-panel-action-padding);
+  font-size: var(--ui-panel-action-font-size);
+  font-weight: var(--ui-panel-action-font-weight);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
@@ -12192,7 +12196,7 @@ body.party-preset-open {
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  :where(.dex-table-wrap, .matchup-table-wrap, .ft-analysis-section, .ft-speed-embedded, .rc-input-block, .rc-result-row, .rc-briefing, .rc-prediction-panel) {
+  :where(.dex-table-wrap, .matchup-table-wrap) {
   border-color: var(--border);
   background: var(--bg-panel);
   box-shadow: var(--surface-shadow-soft);
@@ -12279,8 +12283,8 @@ body.party-preset-open {
       <div class="field-row ui-frame-row">
         <section class="panel ui-frame collapsible collapsed ui-panel" id="field-panel">
           <div class="panel-head ui-frame-head ui-panel-head" id="field-head">
-            <div class="field-head-main">
-              <div class="panel-title ui-panel-title" role="heading" aria-level="2">필드 · 부가 효과</div>
+            <div class="panel-title ui-panel-title" role="heading" aria-level="2">필드 · 부가 효과</div>
+            <div class="panel-head-actions ui-action-row ui-panel-actions">
               <label class="field-auto-toggle">
                 <input type="checkbox" id="autoEntry" checked>
                 <span>자동진입효과</span>
@@ -12312,7 +12316,7 @@ body.party-preset-open {
               </div>
             </div>
 
-            <div class="field-checkbox-grid field-effects-frame ui-control-frame ui-subframe">
+            <div class="field-checkbox-grid field-effects-frame ui-control-frame ui-subframe ui-control-row">
               <label class="checkbox-label ui-check"><input type="checkbox" id="critHit"><span>급소</span></label>
               <label class="checkbox-label ui-check"><input type="checkbox" id="defReflect"><span>리플렉터</span></label>
               <label class="checkbox-label ui-check"><input type="checkbox" id="defLightScreen"><span>빛의장막</span></label>
@@ -12355,14 +12359,14 @@ body.party-preset-open {
           <div class="panel-head ui-frame-head ui-panel-head">
             <div class="panel-title ui-panel-title" role="heading" aria-level="2">내 포켓몬</div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body" id="rc-my-body"></div>
+          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-my-body"></div>
         </section>
 
         <section class="panel ui-frame rc-opp ui-panel">
           <div class="panel-head ui-frame-head ui-panel-head">
             <div class="panel-title ui-panel-title" role="heading" aria-level="2">상대 포켓몬</div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body" id="rc-opp-body"></div>
+          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-opp-body"></div>
         </section>
       </div>
 
@@ -12370,7 +12374,7 @@ body.party-preset-open {
         <div class="panel-head ui-frame-head ui-panel-head">
           <div class="panel-title ui-panel-title" role="heading" aria-level="2">관측 데이터</div>
         </div>
-        <div class="panel-body ui-frame-body ui-panel-body" id="rc-input-body"></div>
+        <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-input-body"></div>
       </section>
 
       <section class="panel ui-frame ui-panel">
@@ -12399,7 +12403,7 @@ body.party-preset-open {
               <button type="button" class="ft-action-btn def" id="ftApplyDef" title="현재 세팅을 계산기 방어측으로 적용 (상대는 공격측으로)">방어측</button>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body" id="ft-my-body"></div>
+          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="ft-my-body"></div>
         </section>
 
         <aside class="panel ui-frame ft-hp-panel ui-panel">
@@ -12409,7 +12413,7 @@ body.party-preset-open {
               <div class="ft-panel-subtitle">HP 기준점 · 조정 포인트</div>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body" id="ft-hp-body"></div>
+          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="ft-hp-body"></div>
         </aside>
 
         <section class="panel ui-frame ft-speed-panel ui-panel">
@@ -12418,10 +12422,10 @@ body.party-preset-open {
               <div class="panel-title ui-panel-title" role="heading" aria-level="2">상대 / 스피드</div>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ft-speed-panel-body ui-panel-body">
+          <div class="panel-body ui-frame-body ft-speed-panel-body ui-panel-body ui-control-grid">
             <div id="ft-opp-body"></div>
-            <div class="ft-speed-embedded">
-              <div class="ft-speed-head">
+            <div class="ft-speed-embedded ui-control-frame ui-subframe ui-subframe-stack">
+              <div class="ft-speed-head ui-section-head">
                 <div>
                   <span class="ft-section-title">스피드 비교</span>
                 </div>
@@ -12431,7 +12435,7 @@ body.party-preset-open {
                   <span>추월</span>
                 </label>
               </div>
-              <div id="ft-speed-body"></div>
+              <div id="ft-speed-body" class="ui-control-grid"></div>
             </div>
           </div>
         </section>
@@ -12444,16 +12448,16 @@ body.party-preset-open {
         <div class="panel-head ui-frame-head ui-panel-head">
           <div class="panel-title ui-panel-title" role="heading" aria-level="2">상성표</div>
         </div>
-        <div class="panel-body ui-frame-body ui-panel-body">
-          <div class="matchup-control-row ui-action-row">
+        <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack">
+          <div class="matchup-control-row ui-action-row ui-control-frame ui-subframe">
             <div class="matchup-mode-tabs" id="matchupModeTabs" aria-label="상성표 모드" role="tablist">
               <button type="button" class="matchup-mode-btn active" data-matchup-mode="defense" role="tab" aria-selected="true" tabindex="0">방어 상성</button>
               <button type="button" class="matchup-mode-btn" data-matchup-mode="coverage" role="tab" aria-selected="false" tabindex="-1">타점 체크</button>
             </div>
             <button type="button" class="party-load-button ui-label-action" data-party-import-target="matchup">불러오기</button>
           </div>
-          <div class="matchup-slots" id="matchupSlots"></div>
-          <div class="matchup-coverage-inputs" id="matchupCoverageInputs"></div>
+          <div class="matchup-slots ui-control-frame ui-subframe ui-control-grid" id="matchupSlots"></div>
+          <div class="matchup-coverage-inputs ui-control-frame ui-subframe ui-control-grid" id="matchupCoverageInputs"></div>
         </div>
       </section>
 
@@ -12462,7 +12466,7 @@ body.party-preset-open {
           <div class="panel-title ui-panel-title" role="heading" aria-level="2">결과</div>
         </div>
         <div class="panel-body ui-frame-body ui-panel-body">
-          <div class="matchup-result-layout">
+          <div class="matchup-result-layout ui-control-grid">
             <div class="matchup-main">
               <div class="matchup-table-wrap">
                 <table class="matchup-table" id="matchupTable">
@@ -12470,7 +12474,7 @@ body.party-preset-open {
                   <tbody id="matchupBody"></tbody>
                 </table>
               </div>
-              <div class="matchup-legend">
+              <div class="matchup-legend ui-control-frame ui-subframe">
                 <span><span class="cell-demo eff-4">◎</span> 4배</span>
                 <span><span class="cell-demo eff-2">○</span> 2배</span>
                 <span><span class="cell-demo eff-1">—</span> 1배</span>
@@ -12479,7 +12483,7 @@ body.party-preset-open {
                 <span><span class="cell-demo eff-0">✕</span> 무효</span>
               </div>
             </div>
-            <aside class="matchup-meta" id="matchupMeta"></aside>
+            <aside class="matchup-meta ui-control-frame ui-subframe" id="matchupMeta"></aside>
           </div>
         </div>
       </section>
@@ -15586,6 +15590,26 @@ function makeCombobox(sideKey, type) {
 
 let calcComboboxUid = 0;
 let calcSharedComboboxUid = 0;
+let calcComboboxLastPointerTarget = null;
+let calcComboboxLastPointerAt = 0;
+let calcComboboxLastOpenedControl = null;
+let calcComboboxLastOpenedAt = 0;
+
+function calcComboboxTrackPointerTarget(event) {
+  calcComboboxLastPointerTarget = event.target?.closest?.('.combobox') || null;
+  calcComboboxLastPointerAt = Date.now();
+}
+
+function calcComboboxMarkOpened(control) {
+  calcComboboxLastOpenedControl = control || null;
+  calcComboboxLastOpenedAt = Date.now();
+}
+
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+  document.addEventListener('pointerdown', calcComboboxTrackPointerTarget, true);
+  document.addEventListener('mousedown', calcComboboxTrackPointerTarget, true);
+  document.addEventListener('touchstart', calcComboboxTrackPointerTarget, true);
+}
 
 function closeSiblingComboboxOptions(optsEl, control) {
   if (typeof document?.querySelectorAll !== 'function') return;
@@ -15595,6 +15619,30 @@ function closeSiblingComboboxOptions(optsEl, control) {
   document.querySelectorAll('.cb-input[aria-expanded="true"]').forEach(el => {
     if (el !== control) el.setAttribute('aria-expanded', 'false');
   });
+}
+
+function calcComboboxFocusMovedToAnother(control, optsEl) {
+  const currentCombobox = control?.closest?.('.combobox') || null;
+  if (
+    calcComboboxLastOpenedControl
+    && calcComboboxLastOpenedControl !== control
+    && Date.now() - calcComboboxLastOpenedAt < 700
+  ) {
+    return true;
+  }
+  if (
+    calcComboboxLastPointerTarget
+    && calcComboboxLastPointerTarget !== currentCombobox
+    && Date.now() - calcComboboxLastPointerAt < 700
+  ) {
+    return true;
+  }
+
+  const active = document.activeElement;
+  if (!active || active === document.body || active === document.documentElement) return false;
+  if (active === control || control?.contains?.(active) || optsEl?.contains?.(active)) return false;
+  const activeCombobox = active.closest?.('.combobox');
+  return !!activeCombobox && activeCombobox !== currentCombobox;
 }
 
 function calcComboboxOptionMatchesExactText(option, query) {
@@ -15646,6 +15694,7 @@ function wireSharedComboboxKeyboard(control, optsEl, { showOptions, onSelect, ge
     showOptions(query);
     optsEl.classList.add('open');
     control.setAttribute('aria-expanded', 'true');
+    calcComboboxMarkOpened(control);
     const options = optionEls();
     options.forEach((option, index) => {
       if (!option.id) option.id = `${optsEl.id}-opt-${index}`;
@@ -15848,6 +15897,12 @@ function wirePokemonSelectCombobox(input, {
   input.addEventListener('blur', () => {
     setTimeout(() => {
       if (isButtonTrigger) return;
+      if (calcComboboxFocusMovedToAnother(input, optsEl)) {
+        calcHideOptionTooltip();
+        combo?.close();
+        restoreInput();
+        return;
+      }
       if (!String(input.value || '').trim()) {
         calcHideOptionTooltip();
         combo?.close();
@@ -16290,6 +16345,7 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
 
     optsEl.classList.add('open');
     input.setAttribute('aria-expanded', 'true');
+    calcComboboxMarkOpened(input);
     const selectedIndex = optionData.findIndex(option => String(option?.id || '') === String(currentId));
     setActiveOption(activateFirst ? 0 : selectedIndex);
 
@@ -16347,7 +16403,10 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
     if (input.readOnly || isButtonTrigger) e.stopPropagation();
   });
   input.addEventListener('click', e => {
-    if (!input.readOnly && !isButtonTrigger) return;
+    if (!input.readOnly && !isButtonTrigger) {
+      showOptions('');
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
     if (document.activeElement !== input && typeof input.focus === 'function') {
@@ -16387,6 +16446,11 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
   });
   input.addEventListener('blur', () => {
     setTimeout(() => {
+      if (calcComboboxFocusMovedToAnother(input, optsEl)) {
+        closeOptions();
+        restoreDisplayLabel();
+        return;
+      }
       if (justSelected) {
         justSelected = false;
         closeOptions();
@@ -16459,8 +16523,8 @@ function renderDurabilityStrip(side) {
 
 function renderMoveList(sideKey, side) {
   return `
-    <div class="moves-list ui-control-grid">
-      <div class="move-list-header ui-table-head-row" aria-hidden="true">
+    <div class="moves-list tool-move-list ui-control-grid">
+      <div class="move-list-header tool-move-head-row ui-table-head-row" aria-hidden="true">
         <span></span><span></span><span></span><span></span><span>\uACB0\uC815\uB825</span>
       </div>
       ${[0,1,2,3].map(i => {
@@ -16474,20 +16538,20 @@ function renderMoveList(sideKey, side) {
         const moveForCalc = move ? moveWithManualBp(move, manualBp, manualType) : null;
         const power = moveForCalc ? estimateMovePower(side, moveForCalc, targetSide) : null;
         return `
-          <div class="move-slot ui-control-row" data-move-slot="${i}">
-            <span class="move-slot-num ui-index">${i+1}</span>
-            <div class="move-select combobox" data-cb="${sideKey}-move-${i}">
-              <input type="text" class="cb-input" value="${move ? escapeHTML(mvName(move)) : ''}" data-cb-type="move" data-side="${sideKey}" data-field="moves.${i}" placeholder="\uC5C6\uC74C" autocomplete="off" aria-label="${sideKey} move ${i+1} select" aria-expanded="false">
+          <div class="move-slot tool-move-row ui-control-row" data-move-slot="${i}">
+            <span class="move-slot-num tool-move-index ui-index">${i+1}</span>
+            <div class="move-select tool-move-combobox combobox" data-cb="${sideKey}-move-${i}">
+              <input type="text" class="cb-input tool-move-input" value="${move ? escapeHTML(mvName(move)) : ''}" data-cb-type="move" data-side="${sideKey}" data-field="moves.${i}" placeholder="\uC5C6\uC74C" autocomplete="off" aria-label="${sideKey} move ${i+1} select" aria-expanded="false">
               <div class="combobox-options" role="listbox"></div>
             </div>
-            <div class="move-type-control combobox type-pill-combobox ${slotType ? `t-${slotType}` : 'type-none'}" data-cb="${sideKey}-move-type-${i}">
-              <button type="button" class="cb-input cb-trigger" data-cb-type="moveType" data-side="${sideKey}" data-field="moveTypes.${i}" aria-label="${sideKey} move ${i+1} type" aria-expanded="false" ${move ? '' : 'disabled'}>${slotType ? escapeHTML(TYPE_KO[slotType] || slotType) : ''}</button>
+            <div class="move-type-control tool-move-type-control combobox type-pill-combobox ${slotType ? `t-${slotType}` : 'type-none'}" data-cb="${sideKey}-move-type-${i}">
+              <button type="button" class="cb-input cb-trigger tool-move-type-input" data-cb-type="moveType" data-side="${sideKey}" data-field="moveTypes.${i}" aria-label="${sideKey} move ${i+1} type" aria-expanded="false" ${move ? '' : 'disabled'}>${slotType ? escapeHTML(TYPE_KO[slotType] || slotType) : ''}</button>
               <div class="combobox-options" role="listbox"></div>
             </div>
-            <label class="hp-inline-control move-bp-control ui-inline-number is-plain" title="power">
-              <input type="text" class="hp-percent-input move-bp-input ui-inline-number-input" data-action="moveBp" data-side="${sideKey}" data-slot="${i}" value="${move ? slotBp : ''}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} move ${i+1} power" ${move ? '' : 'disabled'}>
+            <label class="hp-inline-control move-bp-control tool-move-power-control ui-inline-number is-plain" title="power">
+              <input type="text" class="hp-percent-input move-bp-input tool-move-power-input ui-inline-number-input" data-action="moveBp" data-side="${sideKey}" data-slot="${i}" value="${move ? slotBp : ''}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} move ${i+1} power" ${move ? '' : 'disabled'}>
             </label>
-            ${move ? `<span class="move-stat-info ui-stat-readout"><b>${typeof power.eff === 'number' ? power.eff.toLocaleString() : power.eff}</b></span>` : '<span class="move-stat-info empty ui-stat-readout">-</span>'}
+            ${move ? `<span class="move-stat-info tool-move-power-readout ui-stat-readout"><b>${typeof power.eff === 'number' ? power.eff.toLocaleString() : power.eff}</b></span>` : '<span class="move-stat-info tool-move-power-readout empty ui-stat-readout">-</span>'}
           </div>
         `;
       }).join('')}
@@ -16573,44 +16637,44 @@ function renderSide(sideKey) {
     ${pokemonPicker}
 
     <!-- ?뱀꽦/?꾧뎄 + ?깃꺽/HP/?곹깭 -->
-    <div class="field calc-settings-field ui-control-frame ui-subframe ui-field">
-      <div class="calc-pair-grid ui-control-grid">
-        <div class="calc-control-cell ui-control-cell">
-          <span class="calc-control-label ui-control-label">\uD2B9\uC131</span>
-          <div class="compound-control ability-toggle-cell">
-            <div class="combobox" data-cb="${sideKey}-ability">
-              <input type="text" class="cb-input" value="${escapeHTML(calcAbilityDisplayLabel(sideKey))}" data-cb-type="ability" data-side="${sideKey}" data-field="ability" placeholder="Ability" autocomplete="off" aria-label="${sideKey} ability select" aria-expanded="false">
+    <div class="field calc-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+      <div class="calc-pair-grid tool-settings-grid ui-control-grid">
+        <div class="calc-control-cell tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell" data-tool-setting="ability">
+          <span class="calc-control-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-control-label">\uD2B9\uC131</span>
+          <div class="compound-control ability-toggle-cell tool-settings-control tool-settings-choice-control tool-settings-compound tool-settings-select-control">
+            <div class="combobox tool-settings-combobox tool-settings-choice-combobox tool-settings-select-combobox" data-cb="${sideKey}-ability">
+              <input type="text" class="cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" value="${escapeHTML(calcAbilityDisplayLabel(sideKey))}" data-cb-type="ability" data-side="${sideKey}" data-field="ability" placeholder="Ability" autocomplete="off" aria-label="${sideKey} ability select" aria-expanded="false">
               <div class="combobox-options" role="listbox"></div>
             </div>
             ${manualDamageBlockToggle || '<span class="manual-ability-spacer" aria-hidden="true"></span>'}
           </div>
         </div>
-        <div class="calc-control-cell ui-control-cell">
-          <span class="calc-control-label ui-control-label">\uB3C4\uAD6C</span>
-          <div class="combobox" data-cb="${sideKey}-item">
-            <input type="text" class="cb-input" value="${side.item ? (ItemById[side.item] ? escapeHTML(itName(ItemById[side.item])) : '') : '없음'}" data-cb-type="item" data-side="${sideKey}" data-field="item" placeholder="Item" autocomplete="off" aria-label="${sideKey} item select" aria-expanded="false">
+        <div class="calc-control-cell tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell" data-tool-setting="item">
+          <span class="calc-control-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-control-label">\uB3C4\uAD6C</span>
+          <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox" data-cb="${sideKey}-item">
+            <input type="text" class="cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" value="${side.item ? (ItemById[side.item] ? escapeHTML(itName(ItemById[side.item])) : '') : '없음'}" data-cb-type="item" data-side="${sideKey}" data-field="item" placeholder="Item" autocomplete="off" aria-label="${sideKey} item select" aria-expanded="false">
             <div class="combobox-options" role="listbox"></div>
           </div>
         </div>
-        <div class="calc-control-cell ui-control-cell">
-          <span class="calc-control-label ui-control-label">\uC131\uACA9</span>
-          <div class="compound-control nature-spacer-cell">
-            <div class="combobox" data-cb="${sideKey}-nature">
-              <input type="text" class="cb-input" value="${escapeHTML(calcNatureLabel(NATURE_BY_ID[side.nature]))}" data-cb-type="nature" data-side="${sideKey}" data-field="nature" placeholder="Nature" autocomplete="off" aria-label="${sideKey} nature select" aria-expanded="false">
+        <div class="calc-control-cell tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell" data-tool-setting="nature">
+          <span class="calc-control-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-control-label">\uC131\uACA9</span>
+          <div class="compound-control nature-spacer-cell tool-settings-control tool-settings-choice-control tool-settings-compound tool-settings-select-control">
+            <div class="combobox tool-settings-combobox tool-settings-choice-combobox tool-settings-select-combobox" data-cb="${sideKey}-nature">
+              <input type="text" class="cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" value="${escapeHTML(calcNatureLabel(NATURE_BY_ID[side.nature]))}" data-cb-type="nature" data-side="${sideKey}" data-field="nature" placeholder="Nature" autocomplete="off" aria-label="${sideKey} nature select" aria-expanded="false">
               <div class="combobox-options" role="listbox"></div>
             </div>
             <span class="manual-ability-spacer" aria-hidden="true"></span>
           </div>
         </div>
-        <div class="calc-control-cell ui-control-cell">
-          <span class="calc-control-label ui-control-label">\uC0C1\uD0DC</span>
-          <div class="compound-control hp-status-cell">
-            <label class="hp-inline-control ui-inline-number">
-              <input type="text" class="hp-percent-input ui-inline-number-input" data-action="hpPct" data-side="${sideKey}" value="${hpPercentInputValue(side)}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} current HP percent">
+        <div class="calc-control-cell tool-settings-cell tool-settings-choice-cell tool-settings-condition-cell ui-control-cell" data-tool-setting="condition">
+          <span class="calc-control-label tool-settings-label tool-settings-choice-label ui-control-label">\uC0C1\uD0DC</span>
+          <div class="compound-control hp-status-cell tool-settings-control tool-settings-choice-control tool-settings-compound tool-settings-hp-status-control">
+            <label class="hp-inline-control tool-settings-choice-surface tool-settings-condition-control tool-settings-hp-control ui-inline-number">
+              <input type="text" class="hp-percent-input tool-settings-choice-input tool-settings-hp-input ui-inline-number-input" data-action="hpPct" data-side="${sideKey}" value="${hpPercentInputValue(side)}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} current HP percent">
               <span class="ui-inline-number-unit">%</span>
             </label>
-            <div class="combobox" data-cb="${sideKey}-status">
-              <button type="button" class="cb-input cb-trigger" data-cb-type="status" data-side="${sideKey}" data-field="status" aria-label="${sideKey} status select" aria-expanded="false">${escapeHTML(calcStatusDisplayLabel(side.status))}</button>
+            <div class="combobox tool-settings-combobox tool-settings-choice-combobox tool-settings-condition-control tool-settings-status-combobox" data-cb="${sideKey}-status">
+              <button type="button" class="cb-input cb-trigger tool-settings-choice-surface tool-settings-choice-input" data-cb-type="status" data-side="${sideKey}" data-field="status" aria-label="${sideKey} status select" aria-expanded="false">${escapeHTML(calcStatusDisplayLabel(side.status))}</button>
               <div class="combobox-options" role="listbox"></div>
             </div>
           </div>
@@ -16619,19 +16683,19 @@ function renderSide(sideKey) {
     </div>
 
     <!-- ?ㅽ꺈 (?λ젰?ъ씤??+ ??겕 + ?ㅼ닔移? -->
-    <div class="field ev-field ev-preset-shell ui-control-frame ui-subframe ui-field" data-ev-preset-side="${sideKey}">
-      <div class="ev-field-head ui-section-head">
-        <div class="field-label ev-title-label ui-field-label ui-section-title">
+    <div class="field ev-field ev-preset-shell tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field" data-ev-preset-side="${sideKey}">
+      <div class="ev-field-head tool-stat-panel-head ui-section-head">
+        <div class="tool-stat-panel-title ui-section-title">
           <span>\uB2A5\uB825 \uD3EC\uC778\uD2B8 \u00B7 \uB7AD\uD06C</span>
           <button type="button" class="ev-preset-toggle calc-ev-preset-button ui-popover-trigger" data-action="evPresetMenu" data-side="${sideKey}" aria-expanded="false" aria-controls="ev-presets-${sideKey}">\uD504\uB9AC\uC14B</button>
         </div>
-        <div class="ev-total ui-label-action ui-metric-chip is-static ${overEV ? 'over' : ''}">
+        <div class="ev-total tool-stat-total ui-label-action ui-metric-chip is-static ${overEV ? 'over' : ''}">
           <span>\uCD1D\uD569</span>
           <span><b>${totalEV}</b>/66</span>
         </div>
       </div>
-      <div class="ev-control-layout">
-        <div class="stat-grid ui-stat-grid ui-stat-table">
+      <div class="ev-control-layout tool-stat-panel-body">
+        <div class="stat-grid tool-stat-grid ui-stat-grid ui-stat-table">
           <div class="stat-table-head ui-stat-head">\uB2A5\uB825</div>
           <div class="stat-table-head ui-stat-head">\uC885\uC871\uAC12</div>
           <div class="stat-table-head ui-stat-head">\uB178\uB825\uCE58</div>
@@ -16687,13 +16751,13 @@ function renderSide(sideKey) {
     </div>
 
     <!-- 湲곗닠 -->
-    <div class="field move-field ui-control-frame ui-subframe ui-field">
-      <div class="ev-field-head move-field-head ui-section-head">
-        <div class="field-label move-title-label ui-field-label ui-section-title">
+    <div class="field move-field tool-move-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
+      <div class="ev-field-head move-field-head tool-move-panel-head ui-section-head">
+        <div class="field-label move-title-label tool-move-panel-title ui-field-label ui-section-title">
           <span>\uAE30\uC220 \uBC30\uCE58</span>
         </div>
       </div>
-      <div class="move-control-layout move-section">
+      <div class="move-control-layout move-section tool-move-panel-body">
         ${renderMoveList(sideKey, side)}
       </div>
     </div>
@@ -19889,7 +19953,7 @@ function renderMatchupSlots() {
   container.innerHTML = matchupSlots.map((id, i) => {
     const p = id ? PokemonById[id] : null;
     return `
-      <div class="matchup-slot ui-control-frame ui-subframe ${p ? 'filled' : ''}" data-slot="${i}">
+      <div class="matchup-slot ui-control-frame ui-subframe ui-control-grid ${p ? 'filled' : ''}" data-slot="${i}">
         <div class="matchup-slot-num">${i + 1}</div>
         <div class="combobox">
           <input type="text" class="cb-input matchup-cb-input" data-slot="${i}"
@@ -20043,12 +20107,12 @@ function renderMatchupCoverageInputs() {
       `;
     }).join('') : '';
     return `
-      <div class="matchup-coverage-card ui-control-frame ui-subframe ${p ? 'filled' : ''}">
-        <div class="matchup-coverage-head">
+      <div class="matchup-coverage-card ui-control-frame ui-subframe ui-subframe-stack ${p ? 'filled' : ''}">
+        <div class="matchup-coverage-head ui-chip-row">
           <span>${escapeHTML(title)}</span>
           ${p ? p.types.map(t => `<span class="type-pill matchup-type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('') : ''}
         </div>
-        ${p ? `<div class="matchup-move-grid">${rows}</div>` : '<div class="matchup-coverage-empty">포켓몬 선택 후 기술 입력</div>'}
+        ${p ? `<div class="matchup-move-grid ui-control-grid">${rows}</div>` : '<div class="matchup-coverage-empty">포켓몬 선택 후 기술 입력</div>'}
       </div>
     `;
   }).join('');
@@ -20749,6 +20813,12 @@ function ftWireComboboxes(rootId) {
       if (isButtonTrigger) {
         return;
       }
+      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+        calcHideOptionTooltip();
+        combo?.close();
+        restoreInput();
+        return;
+      }
       if (!String(input.value || '').trim()) {
         if (clearOptionalInput()) return;
         calcHideOptionTooltip();
@@ -21109,34 +21179,38 @@ function renderFineTuneMy() {
   }).join('');
 
   container.innerHTML = `
-    <div class="ft-setup-grid ui-control-grid">
+    <div class="ft-setup-grid tool-settings-layout ui-control-grid">
       <div class="ft-pokemon-main-row ui-control-row">
         ${pokemonPicker}
       </div>
-      <div class="field ft-cb-field ft-ability-field ui-field"><span class="field-label ui-field-label">특성</span>
-        <div class="ft-ability-control">
-          <div class="combobox">
-            <input type="text" class="cb-input ft-cb-input" data-ft-pick="ability" value="${escapeHTML(ftComboLabel('ability', my.ability))}" placeholder="특성 검색...">
-            <div class="combobox-options"></div>
+      <div class="field ft-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+        <div class="ft-settings-grid tool-settings-grid ui-control-grid">
+          <div class="field ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="ability"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">특성</span>
+            <div class="ft-ability-control tool-settings-control tool-settings-choice-control tool-settings-compound tool-settings-select-control">
+              <div class="combobox tool-settings-combobox tool-settings-choice-combobox tool-settings-select-combobox">
+                <input type="text" class="cb-input ft-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-ft-pick="ability" value="${escapeHTML(ftComboLabel('ability', my.ability))}" placeholder="특성 검색...">
+                <div class="combobox-options"></div>
+              </div>
+              ${speedActivation ? `<label class="checkbox-label ft-speed-toggle ui-check" title="${escapeHTML(speedActivation.label)}"><input type="checkbox" id="ftWeatherAbility" ${fineTuneState.weatherAbilityActive ? 'checked' : ''}>${escapeHTML(speedActivation.label)}</label>` : ''}
+            </div>
           </div>
-          ${speedActivation ? `<label class="checkbox-label ft-speed-toggle ui-check" title="${escapeHTML(speedActivation.label)}"><input type="checkbox" id="ftWeatherAbility" ${fineTuneState.weatherAbilityActive ? 'checked' : ''}>${escapeHTML(speedActivation.label)}</label>` : ''}
+          <label class="field ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="nature"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">성격</span>
+            <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
+              <input type="text" class="cb-input ft-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-ft-pick="nature" value="${escapeHTML(ftComboLabel('nature', my.nature))}" placeholder="성격 검색...">
+              <div class="combobox-options"></div>
+            </div>
+          </label>
+          <label class="field ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="item"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">도구</span>
+            <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
+              <input type="text" class="cb-input ft-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-ft-pick="item" value="${escapeHTML(ftComboLabel('item', my.item))}" placeholder="도구 검색...">
+              <div class="combobox-options"></div>
+            </div>
+          </label>
         </div>
       </div>
-      <label class="field ft-cb-field ft-nature-field ui-field"><span class="field-label ui-field-label">성격</span>
-        <div class="combobox pokemon-select">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="nature" value="${escapeHTML(ftComboLabel('nature', my.nature))}" placeholder="성격 검색...">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
-      <label class="field ft-cb-field ft-item-field ui-field"><span class="field-label ui-field-label">도구</span>
-        <div class="combobox">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="item" value="${escapeHTML(ftComboLabel('item', my.item))}" placeholder="도구 검색...">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
     </div>
 
-    <div class="tool-stat-panel ui-control-frame ui-subframe ui-field">
+    <div class="tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
       <div class="tool-stat-panel-head ui-section-head">
         <div class="tool-stat-panel-title ui-section-title">능력 포인트</div>
       </div>
@@ -21209,7 +21283,7 @@ function renderFineTuneOpp() {
       <div class="ft-opp-pick-row ui-control-row">
         ${pokemonPicker}
       </div>
-      <div class="ft-opp-speed-controls ui-control-row">
+      <div class="ft-opp-speed-controls ui-control-row ui-control-frame ui-subframe">
         <label class="field ft-base-speed-field ui-field"><span class="field-label ui-field-label">속도 종족값</span>
           <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftOppBaseSpe" value="${escapeHTML(baseSpe)}" placeholder="속도">
         </label>
@@ -21225,7 +21299,7 @@ function renderFineTuneOpp() {
           구애스카프
         </label>
       </div>
-      <div class="ft-opp-speed-detail">
+      <div class="ft-opp-speed-detail ui-control-frame ui-subframe">
         <div class="ft-opp-speed-detail-head">
           <span>속도 실수치</span>
           <i aria-hidden="true"></i>
@@ -21264,7 +21338,7 @@ function renderFineTuneSpeed() {
   ].filter(Boolean).join('');
 
   container.innerHTML = `
-    <div class="ft-speed-summary">
+    <div class="ft-speed-summary ui-control-frame ui-subframe">
       <div class="ft-current-speed-inline">
         <span>내 현재 속도</span>
         <b>${myCurrentSpe}</b>
@@ -21279,7 +21353,7 @@ function renderFineTuneSpeed() {
           ? `<span class="ft-speed-need-value"><b>${row.need}</b><span>포인트</span></span>`
           : '<span class="ft-speed-need-value impossible"><b>불가</b></span>';
         return `
-          <article class="ft-speed-case ${possible ? 'possible' : 'impossible'}" title="필요 속도 ${row.target} 이상 (상대 ${row.oppSpe} + ${margin})">
+          <article class="ft-speed-case ui-control-frame ui-subframe ${possible ? 'possible' : 'impossible'}" title="필요 속도 ${row.target} 이상 (상대 ${row.oppSpe} + ${margin})">
             <div class="ft-speed-case-head">
               <b>${escapeHTML(row.label)}</b>
               <small>${escapeHTML(row.sub || '')}</small>
@@ -22477,7 +22551,7 @@ function rcRenderNextRankPanel() {
   const oppRanks = rcNextOpponentRanks();
   const isOpen = !!revCalcState.nextRankOpen;
   return `
-    <div class="rc-next-rank-panel ${isOpen ? 'open' : 'collapsed'}">
+    <div class="rc-next-rank-panel ui-control-frame ui-subframe ${isOpen ? 'open' : 'collapsed'}">
       <button type="button" class="rc-next-rank-title" data-rc-toggle-next-ranks aria-expanded="${isOpen ? 'true' : 'false'}">
         <b>다음 행동 랭크</b>
         <span>${isOpen ? '접기' : '펼치기'}</span>
@@ -23192,31 +23266,35 @@ function renderRevCalcMy() {
   }).join('');
 
   container.innerHTML = `
-    <div class="rc-setup-grid ui-control-grid">
+    <div class="rc-setup-grid tool-settings-layout ui-control-grid">
       <div class="rc-pokemon-main-row ui-control-row">
         ${pokemonPicker}
       </div>
-      <label class="field rc-cb-field rc-field rc-ability-field ui-field"><span class="field-label ui-field-label">특성</span>
-        <div class="combobox">
-          <input type="text" class="cb-input rc-cb-input" data-rc-pick="myability" value="${escapeHTML(rcComboLabel('ability', my.ability))}" placeholder="특성 검색..." autocomplete="off">
-          <div class="combobox-options"></div>
+      <div class="field rc-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+        <div class="rc-settings-grid tool-settings-grid ui-control-grid">
+          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="ability"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">특성</span>
+            <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
+              <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="myability" value="${escapeHTML(rcComboLabel('ability', my.ability))}" placeholder="특성 검색..." autocomplete="off">
+              <div class="combobox-options"></div>
+            </div>
+          </label>
+          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="nature"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">성격</span>
+            <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
+              <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="mynature" value="${escapeHTML(rcComboLabel('nature', my.nature))}" placeholder="성격 검색..." autocomplete="off">
+              <div class="combobox-options"></div>
+            </div>
+          </label>
+          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="item"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">도구</span>
+            <div class="combobox rc-flex-combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
+              <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="myitem" value="${my.item ? escapeHTML(itName(ItemById[my.item] || { name: my.item })) : '없음'}" autocomplete="off">
+              <div class="combobox-options"></div>
+            </div>
+          </label>
         </div>
-      </label>
-      <label class="field rc-cb-field rc-field rc-nature-field ui-field"><span class="field-label ui-field-label">성격</span>
-        <div class="combobox pokemon-select">
-          <input type="text" class="cb-input rc-cb-input" data-rc-pick="mynature" value="${escapeHTML(rcComboLabel('nature', my.nature))}" placeholder="성격 검색..." autocomplete="off">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
-      <label class="field rc-cb-field rc-field rc-item-field ui-field"><span class="field-label ui-field-label">도구</span>
-        <div class="combobox rc-flex-combobox">
-          <input type="text" class="cb-input rc-cb-input" data-rc-pick="myitem" value="${my.item ? escapeHTML(itName(ItemById[my.item] || { name: my.item })) : '없음'}" autocomplete="off">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
+      </div>
     </div>
       <div class="rc-my-build-row ui-control-row">
-      <div class="tool-stat-panel ui-control-frame ui-subframe ui-field">
+      <div class="tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
         <div class="tool-stat-panel-head ui-section-head">
           <div class="tool-stat-panel-title ui-section-title">능력 포인트</div>
           <div class="ft-ev-total tool-stat-total ui-metric-chip ${overEV ? 'over' : ''}">
@@ -23230,9 +23308,9 @@ function renderRevCalcMy() {
           </div>
         </div>
       </div>
-      <div class="rc-my-moves-panel ui-control-frame ui-subframe">
+      <div class="rc-my-moves-panel ui-control-frame ui-subframe ui-subframe-stack">
         <div class="ft-section-title">기술배치</div>
-        <div class="rc-move-set-grid compact">${moveSetRows}</div>
+        <div class="rc-move-set-grid compact ui-control-grid">${moveSetRows}</div>
       </div>
     </div>
   `;
@@ -23290,28 +23368,38 @@ function renderRevCalcOpp() {
   }).join('');
 
   container.innerHTML = `
-    <div class="rc-setup-grid rc-opp-setup ui-control-grid">
+    <div class="rc-setup-grid rc-opp-setup tool-settings-layout ui-control-grid">
       <div class="rc-pokemon-main-row ui-control-row">
         ${pokemonPicker}
       </div>
       ${p ? `
-        <label class="field rc-field rc-opp-status-field ui-field"><span class="field-label ui-field-label">상태</span>
-          <div class="combobox rc-status-combobox">
-            <button type="button" class="cb-input cb-trigger" data-rc-status="opp" aria-label="상대 상태 선택" aria-expanded="false">${escapeHTML(rcStatusDisplayLabel(opp.status))}</button>
-            <div class="combobox-options" role="listbox"></div>
+        <div class="field rc-settings-field rc-opp-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+          <div class="rc-settings-grid rc-opp-settings-grid tool-settings-grid ui-control-grid">
+            <label class="field rc-field rc-opp-status-field tool-settings-cell tool-settings-choice-cell tool-settings-condition-cell ui-control-cell ui-field" data-tool-setting="condition"><span class="field-label tool-settings-label tool-settings-choice-label ui-field-label ui-control-label">상태</span>
+              <div class="combobox rc-status-combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-condition-control tool-settings-status-combobox">
+                <button type="button" class="cb-input cb-trigger tool-settings-choice-surface tool-settings-choice-input" data-rc-status="opp" aria-label="상대 상태 선택" aria-expanded="false">${escapeHTML(rcStatusDisplayLabel(opp.status))}</button>
+                <div class="combobox-options" role="listbox"></div>
+              </div>
+            </label>
           </div>
-        </label>
+        </div>
       ` : ''}
     </div>
     ${p ? `
-      <div class="ft-section-title rc-opp-stat-title">능력 상태</div>
-      <div class="rc-opp-stat-table">
-        <div class="rc-opp-stat-head">
-          <span>능력</span>
-          <span>종족값</span>
-          <span>랭크</span>
+      <div class="rc-opp-stat-panel tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
+        <div class="tool-stat-panel-head ui-section-head">
+          <div class="tool-stat-panel-title ui-section-title">능력 상태</div>
         </div>
-        ${statRows}
+        <div class="tool-stat-panel-body">
+          <div class="rc-opp-stat-table tool-stat-grid ui-stat-grid ui-stat-table">
+            <div class="rc-opp-stat-head">
+              <span>능력</span>
+              <span>종족값</span>
+              <span>랭크</span>
+            </div>
+            ${statRows}
+          </div>
+        </div>
       </div>
     ` : ''}
   `;
@@ -23342,10 +23430,10 @@ function renderRevCalcInputs() {
 
   container.innerHTML = `
     <div class="rc-input-grid ui-control-grid">
-      <div class="rc-input-block rc-action-block ui-control-frame ui-subframe">
+      <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
         <div class="ft-section-title">내 행동</div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row ui-control-row">
+        <div class="ft-controls-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
           <label class="field rc-field-wide ui-field">
             <span class="field-label ui-field-label">사용 기술</span>
             ${rcRenderMoveCombobox('myMove', revCalcState.myMove, { placeholder: '사용 기술 선택' })}
@@ -23356,17 +23444,17 @@ function renderRevCalcInputs() {
           </label>
         </div>
         <div class="rc-input-divider"></div>
-        <div class="rc-side-condition-row">
+        <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defReflect" ${revCalcState.observedFields.dealt.defReflect ? 'checked' : ''}> 상대 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.dealt.defLightScreen ? 'checked' : ''}> 상대 빛의장막</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="isCritical" ${revCalcState.observedFields.dealt.isCritical ? 'checked' : ''}> 내 공격 급소</label>
         </div>
       </div>
 
-      <div class="rc-input-block rc-action-block ui-control-frame ui-subframe">
+      <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
         <div class="ft-section-title">상대 행동</div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row ui-control-row">
+        <div class="ft-controls-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
           <label class="field rc-field-wide ui-field">
             <span class="field-label ui-field-label">사용 기술</span>
             ${rcRenderMoveCombobox('oppMove', revCalcState.oppMove, { placeholder: '상대 기술 선택' })}
@@ -23377,24 +23465,24 @@ function renderRevCalcInputs() {
           </label>
         </div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row rc-opp-item-row ui-control-row">
+        <div class="ft-controls-row rc-observed-row rc-opp-item-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
           <label class="field rc-field-wide ui-field">
             <span class="field-label ui-field-label">상대 도구</span>
             ${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}
           </label>
         </div>
         <div class="rc-input-divider"></div>
-        <div class="rc-side-condition-row">
+        <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defReflect" ${revCalcState.observedFields.received.defReflect ? 'checked' : ''}> 내 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.received.defLightScreen ? 'checked' : ''}> 내 빛의장막</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="isCritical" ${revCalcState.observedFields.received.isCritical ? 'checked' : ''}> 상대 공격 급소</label>
         </div>
       </div>
 
-      <div class="rc-input-block rc-speed-block ui-control-frame ui-subframe">
+      <div class="rc-input-block rc-speed-block ui-control-frame ui-subframe ui-subframe-stack">
         <div class="ft-section-title">선후공 | 필드 상태</div>
         <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-speed-field-row ui-control-row">
+        <div class="ft-controls-row rc-speed-field-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
           <label class="field rc-field-compact ui-field">
             <span class="field-label ui-field-label">이번 턴 행동 순서</span>
             ${rcRenderTurnOrderCombobox(revCalcState.turnOrder)}
@@ -23408,14 +23496,14 @@ function renderRevCalcInputs() {
         </div>
       </div>
 
-      <div class="rc-input-block rc-item-candidates-block ui-control-frame ui-subframe ${itemPanelOpen ? 'open' : 'collapsed'}">
+      <div class="rc-input-block rc-item-candidates-block ui-control-frame ui-subframe ui-subframe-stack ${itemPanelOpen ? 'open' : 'collapsed'}">
         <button type="button" class="ft-section-title rc-title-with-badge rc-collapse-head" data-rc-toggle-item-candidates aria-expanded="${itemPanelOpen ? 'true' : 'false'}">
           <span>도구 후보</span>
           <span class="rc-count-badge rc-item-candidate-count">${knownOppItem === null ? `${itemCandidates.length}개` : '고정됨'}</span>
         </button>
         <div class="rc-input-divider rc-collapse-divider"></div>
         <div class="rc-item-candidates-body" ${itemPanelOpen ? '' : 'hidden'}>
-          <div class="rc-item-grid">${itemBoxes}</div>
+          <div class="rc-item-grid rc-observed-subframe ui-control-frame ui-subframe">${itemBoxes}</div>
         </div>
       </div>
     </div>
@@ -23731,6 +23819,12 @@ function rcWireMyComboboxes() {
       if (isButtonTrigger) {
         return;
       }
+      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+        calcHideOptionTooltip();
+        combo?.close();
+        restoreInput();
+        return;
+      }
       if (!String(input.value || '').trim()) {
         if (clearOptionalInput()) return;
         calcHideOptionTooltip();
@@ -23862,6 +23956,13 @@ function rcWireOppComboboxes() {
     input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
     input.addEventListener('blur', () => setTimeout(() => {
       if (isButtonTrigger) {
+        return;
+      }
+      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+        combo?.close();
+        input.value = target === 'oppForm'
+          ? calcPokemonFormLabel(PokemonById[revCalcState.opp.pokemonIdx])
+          : pkName(PokemonById[revCalcState.opp.pokemonIdx] || { name: '' });
         return;
       }
       if (!String(input.value || '').trim()) {
@@ -24151,6 +24252,14 @@ function rcWireMoveComboboxes(scope) {
     input.addEventListener('blur', () => {
       setTimeout(() => combo?.close(), 180);
       setTimeout(() => {
+        if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+          selectingMoveOption = false;
+          const currentId = target === 'moveslot'
+            ? rcMoveSet()[parseInt(slot, 10)] || ''
+            : (revCalcState[target] || '');
+          input.value = rcMoveLabel(currentId);
+          return;
+        }
         if (selectingMoveOption) {
           selectingMoveOption = false;
           return;
@@ -24258,6 +24367,11 @@ function rcWireOppItemComboboxes(scope) {
     input.addEventListener('blur', () => {
       setTimeout(() => combo?.close(), 180);
       setTimeout(() => {
+        if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+          selectingItemOption = false;
+          restore();
+          return;
+        }
         if (selectingItemOption) {
           selectingItemOption = false;
           return;

@@ -344,6 +344,12 @@ function ftWireComboboxes(rootId) {
       if (isButtonTrigger) {
         return;
       }
+      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+        calcHideOptionTooltip();
+        combo?.close();
+        restoreInput();
+        return;
+      }
       if (!String(input.value || '').trim()) {
         if (clearOptionalInput()) return;
         calcHideOptionTooltip();
@@ -704,34 +710,38 @@ function renderFineTuneMy() {
   }).join('');
 
   container.innerHTML = `
-    <div class="ft-setup-grid ui-control-grid">
+    <div class="ft-setup-grid tool-settings-layout ui-control-grid">
       <div class="ft-pokemon-main-row ui-control-row">
         ${pokemonPicker}
       </div>
-      <div class="field ft-cb-field ft-ability-field ui-field"><span class="field-label ui-field-label">특성</span>
-        <div class="ft-ability-control">
-          <div class="combobox">
-            <input type="text" class="cb-input ft-cb-input" data-ft-pick="ability" value="${escapeHTML(ftComboLabel('ability', my.ability))}" placeholder="특성 검색...">
-            <div class="combobox-options"></div>
+      <div class="field ft-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+        <div class="ft-settings-grid tool-settings-grid ui-control-grid">
+          <div class="field ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="ability"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">특성</span>
+            <div class="ft-ability-control tool-settings-control tool-settings-choice-control tool-settings-compound tool-settings-select-control">
+              <div class="combobox tool-settings-combobox tool-settings-choice-combobox tool-settings-select-combobox">
+                <input type="text" class="cb-input ft-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-ft-pick="ability" value="${escapeHTML(ftComboLabel('ability', my.ability))}" placeholder="특성 검색...">
+                <div class="combobox-options"></div>
+              </div>
+              ${speedActivation ? `<label class="checkbox-label ft-speed-toggle ui-check" title="${escapeHTML(speedActivation.label)}"><input type="checkbox" id="ftWeatherAbility" ${fineTuneState.weatherAbilityActive ? 'checked' : ''}>${escapeHTML(speedActivation.label)}</label>` : ''}
+            </div>
           </div>
-          ${speedActivation ? `<label class="checkbox-label ft-speed-toggle ui-check" title="${escapeHTML(speedActivation.label)}"><input type="checkbox" id="ftWeatherAbility" ${fineTuneState.weatherAbilityActive ? 'checked' : ''}>${escapeHTML(speedActivation.label)}</label>` : ''}
+          <label class="field ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="nature"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">성격</span>
+            <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
+              <input type="text" class="cb-input ft-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-ft-pick="nature" value="${escapeHTML(ftComboLabel('nature', my.nature))}" placeholder="성격 검색...">
+              <div class="combobox-options"></div>
+            </div>
+          </label>
+          <label class="field ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="item"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">도구</span>
+            <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
+              <input type="text" class="cb-input ft-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-ft-pick="item" value="${escapeHTML(ftComboLabel('item', my.item))}" placeholder="도구 검색...">
+              <div class="combobox-options"></div>
+            </div>
+          </label>
         </div>
       </div>
-      <label class="field ft-cb-field ft-nature-field ui-field"><span class="field-label ui-field-label">성격</span>
-        <div class="combobox pokemon-select">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="nature" value="${escapeHTML(ftComboLabel('nature', my.nature))}" placeholder="성격 검색...">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
-      <label class="field ft-cb-field ft-item-field ui-field"><span class="field-label ui-field-label">도구</span>
-        <div class="combobox">
-          <input type="text" class="cb-input ft-cb-input" data-ft-pick="item" value="${escapeHTML(ftComboLabel('item', my.item))}" placeholder="도구 검색...">
-          <div class="combobox-options"></div>
-        </div>
-      </label>
     </div>
 
-    <div class="tool-stat-panel ui-control-frame ui-subframe ui-field">
+    <div class="tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
       <div class="tool-stat-panel-head ui-section-head">
         <div class="tool-stat-panel-title ui-section-title">능력 포인트</div>
       </div>
@@ -804,7 +814,7 @@ function renderFineTuneOpp() {
       <div class="ft-opp-pick-row ui-control-row">
         ${pokemonPicker}
       </div>
-      <div class="ft-opp-speed-controls ui-control-row">
+      <div class="ft-opp-speed-controls ui-control-row ui-control-frame ui-subframe">
         <label class="field ft-base-speed-field ui-field"><span class="field-label ui-field-label">속도 종족값</span>
           <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftOppBaseSpe" value="${escapeHTML(baseSpe)}" placeholder="속도">
         </label>
@@ -820,7 +830,7 @@ function renderFineTuneOpp() {
           구애스카프
         </label>
       </div>
-      <div class="ft-opp-speed-detail">
+      <div class="ft-opp-speed-detail ui-control-frame ui-subframe">
         <div class="ft-opp-speed-detail-head">
           <span>속도 실수치</span>
           <i aria-hidden="true"></i>
@@ -859,7 +869,7 @@ function renderFineTuneSpeed() {
   ].filter(Boolean).join('');
 
   container.innerHTML = `
-    <div class="ft-speed-summary">
+    <div class="ft-speed-summary ui-control-frame ui-subframe">
       <div class="ft-current-speed-inline">
         <span>내 현재 속도</span>
         <b>${myCurrentSpe}</b>
@@ -874,7 +884,7 @@ function renderFineTuneSpeed() {
           ? `<span class="ft-speed-need-value"><b>${row.need}</b><span>포인트</span></span>`
           : '<span class="ft-speed-need-value impossible"><b>불가</b></span>';
         return `
-          <article class="ft-speed-case ${possible ? 'possible' : 'impossible'}" title="필요 속도 ${row.target} 이상 (상대 ${row.oppSpe} + ${margin})">
+          <article class="ft-speed-case ui-control-frame ui-subframe ${possible ? 'possible' : 'impossible'}" title="필요 속도 ${row.target} 이상 (상대 ${row.oppSpe} + ${margin})">
             <div class="ft-speed-case-head">
               <b>${escapeHTML(row.label)}</b>
               <small>${escapeHTML(row.sub || '')}</small>
