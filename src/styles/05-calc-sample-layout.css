@@ -48,8 +48,8 @@
 #page-calc .hint,
 #page-calc .brand-sub,
 #page-calc .ev-total,
-#page-calc .ev-input,
-#page-calc .stat-rank-val,
+#page-calc .calc-stat-point-input,
+#page-calc .calc-stat-rank-value,
 #page-calc .stat-base,
 #page-calc .stat-final,
 #page-calc .move-bp-input,
@@ -58,7 +58,7 @@
   font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
-#page-calc .battle-grid > .ui-frame {
+#page-calc .battle-grid > .ui-panel {
   background: var(--calc-panel);
   border: 1px solid var(--calc-line);
   border-radius: var(--calc-radius);
@@ -74,11 +74,11 @@
   margin-top: 20px;
 }
 
-#page-calc .battle-grid > .ui-frame {
+#page-calc .battle-grid > .ui-panel {
   overflow: visible;
 }
 
-#page-calc .battle-grid > .ui-frame > .ui-frame-head {
+#page-calc .battle-grid > .ui-panel > .ui-panel-head {
   position: relative;
   min-height: var(--ui-panel-head-min-height);
   padding: var(--ui-panel-head-padding);
@@ -87,25 +87,25 @@
   box-shadow: inset 0 var(--panel-point-height, 4px) 0 var(--panel-point-color, transparent);
 }
 
-#page-calc .battle-grid > .ui-frame.atk > .ui-frame-head,
-#page-calc.sides-swapped .battle-grid > .ui-frame.def > .ui-frame-head {
+#page-calc .battle-grid > .ui-panel.atk > .ui-panel-head,
+#page-calc.sides-swapped .battle-grid > .ui-panel.def > .ui-panel-head {
   --panel-point-color: var(--calc-attacker);
   background: linear-gradient(135deg, var(--calc-attacker-soft) 0%, #ffffff 100%);
 }
 
-#page-calc .battle-grid > .ui-frame.def > .ui-frame-head,
-#page-calc.sides-swapped .battle-grid > .ui-frame.atk > .ui-frame-head {
+#page-calc .battle-grid > .ui-panel.def > .ui-panel-head,
+#page-calc.sides-swapped .battle-grid > .ui-panel.atk > .ui-panel-head {
   --panel-point-color: var(--calc-defender);
   background: linear-gradient(135deg, var(--calc-defender-soft) 0%, #ffffff 100%);
 }
 
-#page-calc .battle-grid > .ui-frame.atk,
-#page-calc.sides-swapped .battle-grid > .ui-frame.def {
+#page-calc .battle-grid > .ui-panel.atk,
+#page-calc.sides-swapped .battle-grid > .ui-panel.def {
   border-color: rgb(220 38 38 / 0.22);
 }
 
-#page-calc .battle-grid > .ui-frame.def,
-#page-calc.sides-swapped .battle-grid > .ui-frame.atk {
+#page-calc .battle-grid > .ui-panel.def,
+#page-calc.sides-swapped .battle-grid > .ui-panel.atk {
   border-color: rgb(37 99 235 / 0.22);
 }
 
@@ -117,12 +117,12 @@
   border-color: rgb(165 138 104 / 0.22);
 }
 
-#page-calc .ui-frame.collapsible > .ui-frame-head {
+#page-calc .ui-panel.collapsible > .ui-panel-head {
   cursor: pointer;
   user-select: none;
 }
 
-#page-calc .ui-frame.collapsible > .ui-frame-head::after {
+#page-calc .ui-panel.collapsible > .ui-panel-head::after {
   content: '▼';
   margin-left: auto;
   color: var(--calc-muted);
@@ -132,15 +132,15 @@
   transition: transform 160ms ease;
 }
 
-#page-calc .ui-frame.collapsible.collapsed > .ui-frame-head::after {
+#page-calc .ui-panel.collapsible.collapsed > .ui-panel-head::after {
   transform: rotate(-90deg);
 }
 
-#page-calc .ui-frame.collapsible.collapsed > .ui-frame-body {
+#page-calc .ui-panel.collapsible.collapsed > .ui-panel-body {
   display: none;
 }
 
-#page-calc #field-panel > .ui-frame-head {
+#page-calc #field-panel > .ui-panel-head {
   --panel-point-color: var(--calc-field);
   --panel-point-height: 3px;
   position: relative;
@@ -148,7 +148,7 @@
   box-shadow: inset 0 var(--panel-point-height) 0 var(--panel-point-color);
 }
 
-#page-calc .results > .results-head {
+#page-calc .results > .ui-panel-head {
   --panel-point-color: var(--calc-result);
   --panel-point-height: 3px;
   position: relative;
@@ -160,7 +160,11 @@
   border-color: var(--calc-result-outline);
 }
 
-#page-calc .battle-grid > .ui-frame .panel-title {
+#page-calc .results-body.ui-subframe-stack {
+  gap: 12px;
+}
+
+#page-calc .battle-grid > .ui-panel .ui-panel-title {
   margin: 0;
   color: var(--calc-text);
   font-size: var(--ui-panel-title-size);
@@ -169,7 +173,7 @@
   letter-spacing: 0;
 }
 
-#page-calc .battle-grid > .ui-frame .panel-tag {
+#page-calc .battle-grid > .ui-panel .ui-panel-tag {
   padding: 4px 10px;
   border-radius: 4px;
   color: #ffffff;
@@ -180,24 +184,22 @@
   line-height: 1.15;
 }
 
-#page-calc .battle-grid > .ui-frame.atk .panel-tag,
-#page-calc.sides-swapped .battle-grid > .ui-frame.def .panel-tag {
+#page-calc .battle-grid > .ui-panel.atk .ui-panel-tag,
+#page-calc.sides-swapped .battle-grid > .ui-panel.def .ui-panel-tag {
   background: var(--calc-attacker);
 }
 
-#page-calc .battle-grid > .ui-frame.def .panel-tag,
-#page-calc.sides-swapped .battle-grid > .ui-frame.atk .panel-tag {
+#page-calc .battle-grid > .ui-panel.def .ui-panel-tag,
+#page-calc.sides-swapped .battle-grid > .ui-panel.atk .ui-panel-tag {
   background: var(--calc-defender);
 }
 
-#page-calc .battle-grid > .ui-frame > .ui-frame-body {
-  display: flex;
-  flex-direction: column;
+#page-calc .battle-grid > .ui-panel > .ui-subframe-stack {
   gap: 18px;
   padding: 24px;
 }
 
-#page-calc .swap-sides {
+#page-calc .calc-side-swap-button {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -216,23 +218,23 @@
   place-items: center;
 }
 
-#page-calc .swap-sides:hover,
-#page-calc .swap-sides:focus-visible {
+#page-calc .calc-side-swap-button:hover,
+#page-calc .calc-side-swap-button:focus-visible {
   background: #374151;
   color: #ffffff;
   transform: translate(-50%, -50%) scale(1.04);
 }
 
-#page-calc .swap-sides .label {
+#page-calc .calc-side-swap-button .label {
   display: none;
 }
 
-#page-calc .swap-sides .icon {
+#page-calc .calc-side-swap-button .icon {
   font-size: 1.15rem;
   line-height: 1;
 }
 
-#page-calc .field,
+#page-calc .ui-field,
 #page-calc .calc-control-cell,
 #page-calc .compound-control,
 #page-calc .ability-toggle-cell,
@@ -240,12 +242,12 @@
   min-width: 0;
 }
 
-#page-calc .field {
+#page-calc .ui-field {
   margin-bottom: 0;
 }
 
-#page-calc .field label,
-#page-calc .field-label,
+#page-calc .ui-field:not(.tool-pokemon-field) label,
+#page-calc .ui-field:not(.tool-pokemon-field) .ui-field-label,
 #page-calc .calc-control-label {
   display: block;
   margin-bottom: var(--ui-field-stack-gap);
@@ -258,69 +260,19 @@
   text-transform: none;
 }
 
-#page-calc .pokemon-field {
-  position: relative;
-}
-
-#page-calc .pokemon-field-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ui-field-label-gap);
-  min-height: var(--ui-field-head-height);
-  margin-bottom: var(--ui-field-stack-gap);
-}
-
-#page-calc .pokemon-field-head .field-label {
-  display: flex;
-  align-items: center;
-  min-height: var(--ui-field-head-height);
-  margin-bottom: 0;
-}
-
-#page-calc .pokemon-actions {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: var(--ui-field-stack-gap);
-}
-
-#page-calc .ft-jump-btn {
+#page-calc .calc-page-jump-button {
   border-color: var(--calc-line);
   border-radius: var(--ui-label-action-radius);
   background: #ffffff;
   color: var(--calc-muted);
 }
 
-#page-calc .ft-jump-btn:hover {
-  background: #eef2ff;
-  border-color: #c7d2fe;
-  color: #4338ca;
-}
-
-#page-calc .pokemon-select .cb-input {
-  height: var(--ui-control-height);
-  min-height: var(--ui-control-height);
-  padding-right: 30px;
-  overflow: hidden;
-  font-size: 13px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#page-calc .pokemon-meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  gap: var(--ui-control-grid-gap) var(--ui-field-label-gap);
-  min-height: var(--ui-field-meta-min-height);
-  margin-top: var(--ui-field-meta-margin-top);
-}
-
-#page-calc .pokemon-meta-row .type-edit-row {
-  min-width: 0;
+#page-calc .calc-page-jump-button:hover,
+#page-calc .calc-page-jump-button:focus-visible {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
+  outline: 0;
 }
 
 #page-calc .calc-pair-grid {
@@ -333,20 +285,8 @@
   min-width: 0;
 }
 
-#page-calc .condition-toggle {
-  height: var(--ui-control-height);
-  min-height: var(--ui-control-height);
-  padding: 0 12px;
-  border: 1px solid var(--calc-line);
-  border-radius: 8px;
-  background: var(--calc-control-bg);
-  color: var(--calc-text);
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-#page-calc .condition-toggle:hover {
-  background: var(--calc-control-hover);
+#page-calc #field-panel > .ui-subframe-stack {
+  gap: var(--ui-control-frame-gap);
 }
 
 #page-calc .field-row .field-grid {
@@ -356,14 +296,15 @@
   align-items: end;
   width: 100%;
   min-width: 0;
+  padding: var(--ui-subframe-padding);
 }
 
-#page-calc .field-row .field-grid > .field,
+#page-calc .field-row .field-grid > .ui-field,
 #page-calc .field-row .field-combobox {
   min-width: 0;
 }
 
-#page-calc .field-row .field-grid .field-label {
+#page-calc .field-row .field-grid .ui-field-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -379,11 +320,10 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--ui-control-grid-gap);
-  padding-top: 8px;
-  border-top: 1px solid var(--ui-divider-color);
+  padding: var(--ui-subframe-padding);
 }
 
-#page-calc .checkbox-label {
+#page-calc .ui-check {
   min-height: var(--ui-check-card-min-height);
   padding: var(--ui-check-card-padding);
   gap: var(--ui-check-card-gap);
@@ -393,31 +333,31 @@
   color: var(--calc-text);
 }
 
-#page-calc .checkbox-label input {
+#page-calc .ui-check input {
   flex: 0 0 auto;
   margin: 0;
 }
 
-#page-calc .checkbox-label span {
+#page-calc .ui-check span {
   min-width: auto;
   overflow: visible;
   text-overflow: clip;
 }
 
-#page-calc .checkbox-label.spikes {
+#page-calc .ui-check.spikes {
   height: var(--ui-check-card-min-height);
   min-height: var(--ui-check-card-min-height);
   padding: 0 8px 0 10px;
   gap: 6px;
 }
 
-#page-calc .checkbox-label.spikes .field-inline-combobox {
+#page-calc .ui-check.spikes .field-inline-combobox {
   width: var(--ui-check-inline-width);
   height: var(--ui-check-inline-height);
   flex: 0 0 var(--ui-check-inline-width);
 }
 
-#page-calc .checkbox-label.spikes .field-inline-input {
+#page-calc .ui-check.spikes .field-inline-input {
   height: var(--ui-check-inline-height) !important;
   min-height: var(--ui-check-inline-height) !important;
   line-height: var(--ui-check-inline-height) !important;
@@ -607,21 +547,22 @@
 
 #page-calc .combobox-option:hover,
 #page-calc .combobox-option.active {
-  background: #eef2ff;
+  background: var(--ui-option-hover-bg);
 }
 
 #page-calc .types-display {
   margin-top: 10px;
 }
 
-#page-calc .pokemon-meta-row .type-edit-row {
+#page-calc .tool-pokemon-meta-actions .type-edit-row {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
+  min-width: 0;
   gap: 6px;
 }
 
-#page-calc .pokemon-meta-row .type-pill-combobox {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox {
   display: inline-flex;
   align-items: center;
   width: 62px;
@@ -631,13 +572,13 @@
   color: #ffffff;
 }
 
-#page-calc .pokemon-meta-row .type-pill-combobox.type-none {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox.type-none {
   border: 1px solid var(--calc-line);
   background: #f1f5f9;
   color: var(--calc-muted);
 }
 
-#page-calc .pokemon-meta-row .type-pill-combobox .cb-input {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox .cb-input {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -651,37 +592,53 @@
   color: inherit !important;
   box-shadow: none !important;
   font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: var(--ui-type-pill-font-size);
+  font-weight: var(--ui-type-pill-font-weight);
   line-height: 1 !important;
   text-align: center;
 }
 
-#page-calc .pokemon-meta-row .type-pill-combobox .cb-trigger {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox .cb-trigger {
   align-items: center;
   justify-content: center;
 }
 
-#page-calc .pokemon-meta-row .type-pill-combobox::after {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox::after {
   top: 13px;
   right: 5px;
   color: currentColor;
   opacity: 0.72;
 }
 
-#page-calc .pokemon-meta-row .type-reset-btn {
+#page-calc .tool-pokemon-meta-actions .type-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 58px;
   height: 26px;
-  padding: 0 9px;
+  padding: 0 10px;
   border: 1px solid var(--calc-line);
   border-radius: 4px;
   background: #ffffff;
   color: var(--calc-muted);
   font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: var(--ui-type-pill-font-size);
+  font-weight: var(--ui-type-pill-font-weight);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-#page-calc .pokemon-meta-row .form-switch-row {
+#page-calc .tool-pokemon-meta-actions .type-reset-btn:hover,
+#page-calc .tool-pokemon-meta-actions .type-reset-btn:focus-visible {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
+  outline: 0;
+}
+
+#page-calc .tool-pokemon-meta-actions .form-switch-row {
   display: inline-flex;
   flex: 0 1 auto;
   align-items: center;
@@ -690,56 +647,7 @@
   margin-left: auto;
 }
 
-#page-calc .pokemon-meta-row .form-switch-combobox {
-  width: 132px;
-  height: 26px;
-}
-
-#page-calc .pokemon-meta-row .form-switch-combobox::after {
-  top: 13px;
-  right: 8px;
-}
-
-#page-calc .pokemon-meta-row .form-switch-combobox .form-switch-btn {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  height: 26px;
-  min-height: 26px !important;
-  padding: 0 22px 0 9px !important;
-  border: 1px solid var(--calc-line);
-  border-radius: 4px;
-  background: #ffffff;
-  color: var(--calc-muted);
-  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1;
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#page-calc .pokemon-meta-row .form-switch-combobox .form-switch-btn:hover {
-  border-color: #c7d2fe;
-  background: #eef2ff;
-  color: #4338ca;
-}
-
-#page-calc .pokemon-meta-row .form-switch-combobox .combobox-options {
-  left: auto;
-  right: 0;
-  width: max-content;
-  min-width: 132px;
-}
-
-#page-calc .pokemon-meta-row .form-switch-combobox .combobox-option {
-  min-width: 132px;
-}
-
-#page-calc .pokemon-meta-row .type-pill-combobox .combobox-options {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox .combobox-options {
   min-width: 92px;
 }
 
@@ -752,7 +660,7 @@
   margin-bottom: 10px;
 }
 
-#page-calc .ev-field-head .field-label {
+#page-calc .ev-field-head .ui-field-label {
   margin-bottom: 0;
 }
 
@@ -895,7 +803,7 @@
   visibility: hidden;
 }
 
-#page-calc .ev-input-group {
+#page-calc .calc-stat-point-stepper {
   display: grid;
   grid-template-columns: var(--calc-ev-btn) var(--calc-ev-input) var(--calc-ev-btn);
   height: var(--calc-stat-control-h);
@@ -908,15 +816,15 @@
   background: transparent;
 }
 
-#page-calc .ev-input-group:focus-within,
-#page-calc .panel.atk .ev-input-group:focus-within,
-#page-calc .panel.def .ev-input-group:focus-within {
+#page-calc .calc-stat-point-stepper:focus-within,
+#page-calc .ui-panel.atk .calc-stat-point-stepper:focus-within,
+#page-calc .ui-panel.def .calc-stat-point-stepper:focus-within {
   border: 0;
   outline: 0;
   box-shadow: none;
 }
 
-#page-calc .ev-input-group .ev-quick {
+#page-calc .calc-stat-point-button {
   display: inline-grid;
   place-items: center;
   box-sizing: border-box;
@@ -927,7 +835,7 @@
   outline: 0;
   border: 1px solid var(--border);
   border-radius: var(--ui-stat-control-radius);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: clamp(0.68rem, 0.85vw, 0.74rem);
@@ -936,24 +844,24 @@
   transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease, color 0.14s ease;
 }
 
-#page-calc .ev-input-group .ev-quick:hover {
+#page-calc .calc-stat-point-button:hover {
   border-color: var(--border-bright);
-  background: #f8fafc;
+  background: var(--ui-action-hover-bg);
   color: var(--text);
   outline: 0;
   box-shadow: none;
 }
 
-#page-calc .ev-input-group .ev-quick:focus,
-#page-calc .ev-input-group .ev-quick:focus-visible,
-#page-calc .ev-input-group .ev-quick:active {
+#page-calc .calc-stat-point-button:focus,
+#page-calc .calc-stat-point-button:focus-visible,
+#page-calc .calc-stat-point-button:active {
   outline: 0;
   border-color: var(--border-bright);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   box-shadow: var(--focus-ring);
 }
 
-#page-calc .ev-input-group .ev-inline-control {
+#page-calc .calc-stat-point-input {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -964,34 +872,9 @@
   padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--ui-stat-control-radius);
-  background: #ffffff;
+  background: var(--ui-control-bg);
   color: var(--calc-text);
   box-sizing: border-box;
-  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
-}
-
-#page-calc .ev-input-group .ev-inline-control:hover {
-  border-color: var(--border-bright);
-  background: #f8fafc;
-}
-
-#page-calc .ev-input-group .ev-inline-control:focus-within {
-  border-color: var(--tool-accent, var(--border-bright));
-  background: #ffffff;
-  box-shadow: var(--focus-ring);
-}
-
-#page-calc .ev-input {
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  padding: 0 2px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--calc-text);
   font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: clamp(0.72rem, 0.86vw, 0.8rem);
   font-weight: 900;
@@ -1000,18 +883,24 @@
   box-shadow: none;
   text-align: center;
   appearance: textfield;
+  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
 }
 
-#page-calc .stat-grid .ev-input:focus,
-#page-calc .stat-grid .ev-input:focus-visible,
-#page-calc .stat-grid .ev-input:active {
+#page-calc .calc-stat-point-input:hover {
+  border-color: var(--border-bright);
+  background: var(--bg-input);
+}
+
+#page-calc .stat-grid .calc-stat-point-input:focus,
+#page-calc .stat-grid .calc-stat-point-input:focus-visible,
+#page-calc .stat-grid .calc-stat-point-input:active {
   outline: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
+  border-color: var(--tool-accent, var(--border-bright));
+  background: var(--ui-control-bg);
+  box-shadow: var(--focus-ring);
 }
 
-#page-calc .stat-rank-btns {
+#page-calc .calc-stat-rank-stepper {
   display: grid;
   grid-template-columns: var(--calc-rank-btn) var(--calc-rank-val) var(--calc-rank-btn);
   height: var(--calc-stat-control-h);
@@ -1024,7 +913,7 @@
   background: transparent;
 }
 
-#page-calc .stat-rank-btns button {
+#page-calc .calc-stat-rank-button {
   display: inline-grid;
   place-items: center;
   box-sizing: border-box;
@@ -1034,7 +923,7 @@
   padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--ui-stat-control-radius);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: clamp(0.68rem, 0.85vw, 0.74rem);
@@ -1044,22 +933,22 @@
   transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease, color 0.14s ease;
 }
 
-#page-calc .stat-rank-btns button:hover {
+#page-calc .calc-stat-rank-button:hover {
   border-color: var(--border-bright);
-  background: #f8fafc;
+  background: var(--ui-action-hover-bg);
   color: var(--text);
 }
 
-#page-calc .stat-rank-btns button:focus,
-#page-calc .stat-rank-btns button:focus-visible,
-#page-calc .stat-rank-btns button:active {
+#page-calc .calc-stat-rank-button:focus,
+#page-calc .calc-stat-rank-button:focus-visible,
+#page-calc .calc-stat-rank-button:active {
   outline: 0;
   border-color: var(--border-bright);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   box-shadow: var(--focus-ring);
 }
 
-#page-calc .stat-rank-val {
+#page-calc .calc-stat-rank-value {
   display: grid;
   box-sizing: border-box;
   width: var(--calc-rank-val);
@@ -1076,7 +965,7 @@
   line-height: 1;
 }
 
-#page-calc .stat-rank-empty {
+#page-calc .calc-stat-rank-empty {
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -1086,11 +975,11 @@
   background: transparent;
 }
 
-#page-calc .stat-rank-val.up {
+#page-calc .calc-stat-rank-value.up {
   color: #dc2626;
 }
 
-#page-calc .stat-rank-val.down {
+#page-calc .calc-stat-rank-value.down {
   color: #2563eb;
 }
 
@@ -1424,7 +1313,7 @@
   min-width: 92px;
 }
 
-#page-calc .field label.move-bp-control,
+#page-calc .ui-field label.move-bp-control,
 #page-calc .move-bp-control {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1520,6 +1409,9 @@
 
 #page-calc .move-results {
   gap: 7px;
+  padding: 10px;
+  border-color: var(--calc-line-soft);
+  background: #fbfdff;
 }
 
 #page-calc .move-card {
@@ -1866,7 +1758,7 @@
     grid-template-columns: 1fr;
   }
 
-  #page-calc .swap-sides {
+  #page-calc .calc-side-swap-button {
     position: relative;
     left: auto;
     top: auto;
@@ -1874,8 +1766,8 @@
     transform: rotate(90deg);
   }
 
-  #page-calc .swap-sides:hover,
-  #page-calc .swap-sides:focus-visible {
+  #page-calc .calc-side-swap-button:hover,
+  #page-calc .calc-side-swap-button:focus-visible {
     transform: rotate(90deg) scale(1.04);
   }
 
@@ -1895,7 +1787,7 @@
     --calc-control-gap: var(--ui-field-label-gap-compact);
   }
 
-  #page-calc .battle-grid > .ui-frame > .ui-frame-body {
+  #page-calc .battle-grid > .ui-panel > .ui-subframe-stack {
     padding: 16px;
   }
 
@@ -2023,55 +1915,49 @@
     padding-bottom: 1px;
   }
 
-  #page-calc .ev-input-group {
+  #page-calc .calc-stat-point-stepper {
     grid-template-columns: var(--calc-ev-btn) var(--calc-ev-input) var(--calc-ev-btn);
     height: var(--calc-stat-control-h);
     gap: var(--calc-ev-gap);
   }
 
-  #page-calc .ev-input-group .ev-quick {
+  #page-calc .calc-stat-point-button {
     width: var(--calc-ev-btn);
     height: calc(var(--calc-stat-control-h) - 2px);
     min-height: calc(var(--calc-stat-control-h) - 2px);
     font-size: 0.66rem;
   }
 
-  #page-calc .ev-input-group .ev-inline-control {
+  #page-calc .calc-stat-point-input {
     width: var(--calc-ev-input);
     height: calc(var(--calc-stat-control-h) - 2px);
     min-height: calc(var(--calc-stat-control-h) - 2px);
     padding: 0;
-  }
-
-  #page-calc .ev-input {
-    height: 100%;
-    min-height: 0;
-    padding: 0 2px;
     font-size: 0.72rem;
     line-height: calc(var(--calc-stat-control-h) - 2px);
   }
 
-  #page-calc .stat-rank-btns {
+  #page-calc .calc-stat-rank-stepper {
     grid-template-columns: var(--calc-rank-btn) var(--calc-rank-val) var(--calc-rank-btn);
     height: var(--calc-stat-control-h);
     gap: var(--calc-rank-gap);
   }
 
-  #page-calc .stat-rank-btns button,
-  #page-calc .stat-rank-val,
-  #page-calc .stat-rank-empty {
+  #page-calc .calc-stat-rank-button,
+  #page-calc .calc-stat-rank-value,
+  #page-calc .calc-stat-rank-empty {
     height: var(--calc-stat-control-h);
     min-height: var(--calc-stat-control-h);
     font-size: 0.72rem;
   }
 
-  #page-calc .stat-rank-btns button {
+  #page-calc .calc-stat-rank-button {
     width: var(--calc-rank-btn);
     height: calc(var(--calc-stat-control-h) - 2px);
     min-height: calc(var(--calc-stat-control-h) - 2px);
   }
 
-  #page-calc .stat-rank-val {
+  #page-calc .calc-stat-rank-value {
     width: var(--calc-rank-val);
   }
 
@@ -2271,11 +2157,11 @@
   box-shadow: none;
 }
 
-#page-calc .panel.atk .pokemon-select .combobox-option.pokemon-option.selected {
+#page-calc .ui-panel.atk .pokemon-select .combobox-option.pokemon-option.selected {
   border-left-color: var(--atk);
 }
 
-#page-calc .panel.def .pokemon-select .combobox-option.pokemon-option.selected {
+#page-calc .ui-panel.def .pokemon-select .combobox-option.pokemon-option.selected {
   border-left-color: var(--def);
 }
 

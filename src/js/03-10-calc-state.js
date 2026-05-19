@@ -275,22 +275,119 @@ function calcFormOptionDataForPokemon(pokemonId) {
     raw: form,
   }));
 }
-function renderToolFormCombobox({ pokemonId, inputClass, pickAttr, pickValue, ariaLabel = '폼 선택' } = {}) {
+function renderToolFormCombobox({
+  pokemonId,
+  inputClass,
+  pickAttr,
+  pickValue,
+  ariaLabel = '폼 선택',
+  comboboxClass = '',
+  comboboxAttrs = {},
+  buttonAttrs = {},
+} = {}) {
   const group = calcFormGroupForPokemon(PokemonById[pokemonId]);
   if (!group || !inputClass || !pickAttr || !pickValue) return '';
   const currentForm = PokemonById[pokemonId];
   const currentLabel = calcPokemonFormLabel(currentForm);
+  const { class: buttonClass = '', ...extraButtonAttrs } = buttonAttrs;
   const attrs = {
-    class: `cb-input cb-trigger form-switch-btn ${inputClass}`,
+    class: toolClassNames('cb-input cb-trigger form-switch-btn', inputClass, buttonClass),
     'data-cb-type': 'form',
     'aria-label': ariaLabel,
     'aria-expanded': 'false',
+    ...extraButtonAttrs,
   };
   attrs[pickAttr] = pickValue;
   return `
-    <div class="combobox tool-form-combobox">
+    <div ${htmlAttrs({
+      class: toolClassNames('combobox tool-form-combobox', comboboxClass),
+      ...comboboxAttrs,
+    })}>
       <button type="button" ${htmlAttrs(attrs)}>${escapeHTML(currentLabel)}</button>
       <div class="combobox-options" role="listbox"></div>
+    </div>
+  `;
+}
+function toolClassNames(...parts) {
+  return parts.flat(Infinity)
+    .map(part => String(part || '').trim())
+    .filter(Boolean)
+    .join(' ');
+}
+function renderToolTypePills(types, extraClass = '') {
+  return (types || [])
+    .filter(Boolean)
+    .map(type => `<span class="${toolClassNames('type-pill tool-pokemon-type-pill', extraClass, `t-${type}`)}">${TYPE_KO[type] || type}</span>`)
+    .join('');
+}
+function renderToolPokemonTypeStrip({ types, html, className = '', ariaLabel = '타입', empty = false } = {}) {
+  const content = html ?? renderToolTypePills(types);
+  const isEmpty = empty || !content;
+  return `<div ${htmlAttrs({
+    class: toolClassNames('tool-pokemon-type-strip', className, isEmpty && 'empty'),
+    'aria-label': isEmpty ? null : ariaLabel,
+    'aria-hidden': isEmpty ? 'true' : null,
+  })}>${isEmpty ? '' : content}</div>`;
+}
+function renderToolPokemonSelectSubframe({
+  fieldClass = '',
+  headClass = '',
+  title = '포켓몬',
+  labelClass = '',
+  primaryActions = '',
+  titleActions = '',
+  metaActions = '',
+  comboboxClass = '',
+  comboboxAttrs = {},
+  inputClass = '',
+  inputAttrs = {},
+  value = '',
+  placeholder = '검색...',
+  autocomplete = 'off',
+  optionsRole = '',
+  toolbarActions = '',
+  toolbarClass = '',
+} = {}) {
+  const primaryHtml = primaryActions
+    ? `<div class="tool-pokemon-primary-actions ui-field-actions">${primaryActions}</div>`
+    : '';
+  const titleExtraHtml = titleActions || '';
+  const metaHtml = metaActions
+    ? `<div class="tool-pokemon-meta-actions tool-pokemon-secondary-actions">${metaActions}</div>`
+    : '';
+  const toolbarHtml = toolbarActions
+    ? `<div class="${toolClassNames('tool-pokemon-meta-actions tool-pokemon-secondary-actions tool-pokemon-row tool-pokemon-toolbar-row', toolbarClass)}">${toolbarActions}</div>`
+    : '';
+  return `
+    <div class="tool-pokemon-subframe ui-control-frame ui-subframe">
+      <div class="${toolClassNames('field tool-pokemon-field ui-field', fieldClass)}">
+        <div class="${toolClassNames('ui-field-head tool-pokemon-head tool-pokemon-row tool-pokemon-head-row', headClass)}">
+          <div class="tool-pokemon-title-actions">
+            <div class="tool-pokemon-label-actions">
+              <span class="${toolClassNames('field-label ui-field-label', labelClass)}">${escapeHTML(title)}</span>
+              ${primaryHtml}
+            </div>
+            ${titleExtraHtml}
+          </div>
+          ${metaHtml}
+        </div>
+        <div ${htmlAttrs({
+          class: toolClassNames('combobox pokemon-select tool-pokemon-combobox tool-pokemon-control-row', comboboxClass),
+          ...comboboxAttrs,
+        })}>
+          <input ${htmlAttrs({
+            type: 'text',
+            class: toolClassNames('cb-input tool-pokemon-input', inputClass),
+            value,
+            placeholder,
+            autocomplete,
+            'aria-expanded': 'false',
+            ...inputAttrs,
+          })}>
+          <div ${htmlAttrs({ class: 'combobox-options', role: optionsRole || null })}></div>
+        </div>
+        ${toolbarHtml}
+      </div>
     </div>
   `;
 }
@@ -573,15 +670,6 @@ function normalizeBoosterEnergyState(value) {
   return ['auto', 'active', 'inactive'].includes(value) ? value : 'auto';
 }
 
-function sideNeedsBoosterEnergyControl(sideKey) {
-  const side = state[sideKey];
-  return !!sideAbilityData(sideKey)?.paradoxBoost || !!ItemById[side?.item]?.paradoxActivation;
-}
-
-function attackerNeedsFallenAllies() {
-  return selectedMoveHasVariableKind('fallenAllies') || !!attackerAbilityData()?.supremeOverlord;
-}
-
 function maxFallenAllies(gameType = state.field.gameType) {
   return gameType === 'Doubles' ? 3 : 2;
 }
@@ -604,138 +692,6 @@ function normalizeBattleConditionState() {
   state.def.damageBlockActive = !!state.def.damageBlockActive;
 }
 
-function speedConditionInfo() {
-  const calcState = makeCalcState();
-  const atkSpe = effectiveSpeed(calcState.atk, calcState.field);
-  const defSpe = effectiveSpeed(calcState.def, calcState.field);
-  const first = atkSpe > defSpe;
-  const second = atkSpe < defSpe;
-  return {
-    atkSpe,
-    defSpe,
-    first,
-    second,
-    verdict: first ? '공격측 선공' : second ? '공격측 후공' : '동속',
-  };
-}
-
-function renderConditionToggle({ sideKey, field, checked, label, detail }) {
-  return `
-    <label class="condition-toggle">
-      <input type="checkbox" data-action="conditionFlag" data-side="${sideKey}" data-field="${field}" ${checked ? 'checked' : ''}>
-      <span>${label}</span>
-      ${detail ? `<em>${detail}</em>` : ''}
-    </label>
-  `;
-}
-
-function renderBattleConditions(sideKey = 'atk') {
-  normalizeBattleConditionState();
-  const side = state[sideKey];
-  const isAttacker = sideKey === 'atk';
-  const needsFirst = isAttacker && selectedMoveHasVariableKind('userMovesFirstDouble');
-  const needsSecond = isAttacker && (selectedMoveHasVariableKind('userMovesSecondDouble') || !!attackerAbilityData()?.bpBoosts?.some(rule => rule.movesSecond));
-  const needsLastMoveFailed = isAttacker && selectedMoveHasVariableKind('lastMoveFailedDouble');
-  const needsAttackerWasHit = isAttacker && selectedMoveHasVariableKind('userWasHitDouble');
-  const needsTargetWasHit = isAttacker && selectedMoveHasVariableKind('targetWasHitDouble');
-  const needsFallenAllies = isAttacker && attackerNeedsFallenAllies();
-  const needsFlashFire = isAttacker && attackerNeedsFlashFireToggle();
-  const needsBoosterEnergy = sideNeedsBoosterEnergyControl(sideKey);
-  const hasConditions = needsFirst || needsSecond || needsLastMoveFailed || needsAttackerWasHit ||
-    needsTargetWasHit || needsFallenAllies || needsFlashFire || needsBoosterEnergy;
-  if (!hasConditions) return '';
-
-  const rows = [];
-  if (needsBoosterEnergy) {
-    const mode = normalizeBoosterEnergyState(side.boosterEnergyState);
-    const ab = sideAbilityData(sideKey);
-    rows.push(`
-      <label class="condition-number condition-select">
-        <span>부스트 에너지</span>
-        <select data-action="conditionMode" data-side="${sideKey}" data-field="boosterEnergyState">
-          <option value="auto" ${mode === 'auto' ? 'selected' : ''}>자동</option>
-          <option value="active" ${mode === 'active' ? 'selected' : ''}>활성</option>
-          <option value="inactive" ${mode === 'inactive' ? 'selected' : ''}>비활성</option>
-        </select>
-        <em>${ab?.koName || ab?.name || 'Paradox'} · 도구 보유/소모 상태</em>
-      </label>
-    `);
-  }
-  if (needsFirst || needsSecond) {
-    const info = speedConditionInfo();
-    const active = (needsFirst && info.first) || (needsSecond && info.second);
-    const reason = [
-      needsFirst ? '선공 시 위력 상승' : '',
-      needsSecond ? '후공 시 위력 상승' : '',
-    ].filter(Boolean).join(' · ');
-    rows.push(`
-      <div class="condition-auto ${active ? 'active' : ''}">
-        <div>
-          <span>실속도 기준 자동 적용</span>
-          <b>${info.verdict}</b>
-        </div>
-        <em>${info.atkSpe} : ${info.defSpe}${reason ? ` · ${reason}` : ''}</em>
-      </div>
-    `);
-  }
-  if (needsLastMoveFailed) {
-    rows.push(renderConditionToggle({
-      sideKey: 'atk',
-      field: 'lastMoveFailed',
-      checked: state.atk.lastMoveFailed,
-      label: '직전 기술 실패',
-      detail: '열불내기/분함의발구르기',
-    }));
-  }
-  if (needsAttackerWasHit) {
-    rows.push(renderConditionToggle({
-      sideKey: 'atk',
-      field: 'wasHit',
-      checked: state.atk.wasHit,
-      label: '공격측이 먼저 피격',
-      detail: '눈사태',
-    }));
-  }
-  if (needsTargetWasHit) {
-    rows.push(renderConditionToggle({
-      sideKey: 'def',
-      field: 'wasHit',
-      checked: state.def.wasHit,
-      label: '방어측이 이미 피격',
-      detail: '승부굳히기',
-    }));
-  }
-  if (needsFlashFire) {
-    rows.push(renderConditionToggle({
-      sideKey: 'atk',
-      field: 'flashFireActive',
-      checked: state.atk.flashFireActive,
-      label: '타오르는불꽃 활성',
-      detail: '불꽃 공격 강화',
-    }));
-  }
-  if (needsFallenAllies) {
-    const max = maxFallenAllies();
-    rows.push(`
-      <label class="condition-number">
-        <span>쓰러진 아군 수</span>
-        <input type="number" data-action="fallenAllies" data-side="atk" value="${clampFallenAllies(state.atk.fallenAllies)}" min="0" max="${max}" step="1">
-        <em>0~${max} · ${state.field.gameType === 'Doubles' ? '64 더블' : '63 싱글'}</em>
-      </label>
-    `);
-  }
-
-  return `
-    <div class="battle-conditions">
-      <div class="field-label">
-        <span>조건</span>
-        <span class="hint">선택 기술/특성에 필요한 값만 표시</span>
-      </div>
-      <div class="condition-grid">${rows.join('')}</div>
-    </div>
-  `;
-}
-
 function renderManualDamageBlockToggle(sideKey, side) {
   const block = sideManualDamageBlock(side);
   if (!block) return '';
@@ -746,7 +702,7 @@ function renderManualDamageBlockToggle(sideKey, side) {
     ? `${label} ON: 이번 공격을 차단`
     : `${label} OFF: 소모된 상태로 계산`;
   return `
-    <button type="button" class="manual-ability-toggle ${active ? 'active' : ''}" data-action="damageBlockToggle" data-side="${sideKey}" title="${escapeHTML(title)}">
+    <button type="button" class="manual-ability-toggle ui-label-action ${active ? 'active' : ''}" data-action="damageBlockToggle" data-side="${sideKey}" title="${escapeHTML(title)}">
       ${escapeHTML(label)} ${active ? 'ON' : 'OFF'}
     </button>
   `;
@@ -756,7 +712,7 @@ function renderTypeControls(sideKey, side) {
   const type1 = sideTypeId(side, 0);
   const type2 = sideTypeId(side, 1);
   return `
-    <div class="type-edit-row">
+    <div class="type-edit-row ui-chip-row">
       <div class="combobox type-combobox type-pill-combobox t-${type1 || 'Normal'}" data-cb="${sideKey}-type-1">
         <button type="button" class="cb-input cb-trigger" data-cb-type="type1" data-side="${sideKey}" data-field="types.0" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 타입1 선택" aria-expanded="false">${escapeHTML(TYPE_KO[type1] || type1)}</button>
         <div class="combobox-options" role="listbox"></div>
@@ -765,7 +721,7 @@ function renderTypeControls(sideKey, side) {
         <button type="button" class="cb-input cb-trigger" data-cb-type="type2" data-side="${sideKey}" data-field="types.1" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 타입2 선택" aria-expanded="false">${escapeHTML(type2 ? (TYPE_KO[type2] || type2) : '없음')}</button>
         <div class="combobox-options" role="listbox"></div>
       </div>
-      <button type="button" class="type-reset-btn" data-action="typeReset" data-side="${sideKey}" title="포켓몬 기본 타입으로 복구">기본</button>
+      <button type="button" class="type-reset-btn" data-action="typeReset" data-side="${sideKey}" title="포켓몬 기본 타입으로 복구">초기화</button>
     </div>
   `;
 }
@@ -773,14 +729,21 @@ function renderFormSwitchControls(sideKey, side) {
   const group = calcFormGroupForSide(side);
   if (!group) return '';
   const trigger = group.trigger ? ` · ${group.trigger}` : '';
-  const currentForm = PokemonById[side?.pokemonIdx];
-  const currentLabel = calcPokemonFormLabel(currentForm);
+  const sideLabel = sideKey === 'atk' ? '공격측' : '방어측';
+  const formControl = renderToolFormCombobox({
+    pokemonId: side?.pokemonIdx,
+    inputClass: 'calc-cb-input',
+    pickAttr: 'data-field',
+    pickValue: 'formIdx',
+    ariaLabel: `${sideLabel} ${group.label} 선택`,
+    comboboxAttrs: { 'data-cb': `${sideKey}-form` },
+    buttonAttrs: {
+      'data-side': sideKey,
+    },
+  });
   return `
-    <div class="form-switch-row" aria-label="${escapeHTML(group.label + trigger)}">
-      <div class="combobox form-switch-combobox" data-cb="${sideKey}-form">
-        <button type="button" class="cb-input cb-trigger form-switch-btn" data-cb-type="form" data-side="${sideKey}" data-field="formIdx" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} ${escapeHTML(group.label)} 선택" aria-expanded="false">${escapeHTML(currentLabel)}</button>
-        <div class="combobox-options" role="listbox"></div>
-      </div>
+    <div class="form-switch-row ui-chip-row" aria-label="${escapeHTML(group.label + trigger)}">
+      ${formControl}
     </div>
   `;
 }

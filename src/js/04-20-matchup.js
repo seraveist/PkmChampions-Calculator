@@ -144,7 +144,7 @@ function renderMatchupSlots() {
   container.innerHTML = matchupSlots.map((id, i) => {
     const p = id ? PokemonById[id] : null;
     return `
-      <div class="matchup-slot ui-control-frame ${p ? 'filled' : ''}" data-slot="${i}">
+      <div class="matchup-slot ui-control-frame ui-subframe ${p ? 'filled' : ''}" data-slot="${i}">
         <div class="matchup-slot-num">${i + 1}</div>
         <div class="combobox">
           <input type="text" class="cb-input matchup-cb-input" data-slot="${i}"
@@ -298,7 +298,7 @@ function renderMatchupCoverageInputs() {
       `;
     }).join('') : '';
     return `
-      <div class="matchup-coverage-card ui-control-frame ${p ? 'filled' : ''}">
+      <div class="matchup-coverage-card ui-control-frame ui-subframe ${p ? 'filled' : ''}">
         <div class="matchup-coverage-head">
           <span>${escapeHTML(title)}</span>
           ${p ? p.types.map(t => `<span class="type-pill matchup-type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('') : ''}

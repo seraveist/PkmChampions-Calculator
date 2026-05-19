@@ -347,6 +347,149 @@ function wireSharedComboboxKeyboard(control, optsEl, { showOptions, onSelect, ge
   return { open, close, select, commitTyped, commitExact: commitTyped, commitActive };
 }
 
+function calcPokemonComboboxMatches(option, query) {
+  const needle = calcSearchText(query).trim();
+  const pokemon = option?.raw || option || {};
+  const types = pokemon.types || option?.types || [];
+  return calcMatches(
+    needle,
+    option?.id,
+    option?.label,
+    option?.sub,
+    pokemon.id,
+    pokemon.name,
+    pokemon.koName,
+    pkName(pokemon),
+    ...types,
+    ...types.map(type => TYPE_KO[type] || type)
+  );
+}
+
+function wirePokemonSelectCombobox(input, {
+  getOptions = () => sortPokemonForCalcSelect(POKEMON),
+  getCurrentId = () => '',
+  getDisplayLabel = null,
+  onSelect = null,
+  searchLimit = null,
+  closeDelay = 200,
+  selectTextOnFocus = false,
+  wiredKey = 'pokemonWired',
+} = {}) {
+  if (!input) return null;
+  if (wiredKey && input.dataset[wiredKey] === '1') return null;
+  const cb = input.closest('.combobox');
+  const optsEl = cb?.querySelector('.combobox-options');
+  if (!optsEl) return null;
+  if (wiredKey) input.dataset[wiredKey] = '1';
+
+  const isButtonTrigger = input.tagName === 'BUTTON';
+  const currentId = () => getCurrentId(input) || '';
+  const displayLabel = () => {
+    if (typeof getDisplayLabel === 'function') return getDisplayLabel(input) || '';
+    const id = currentId();
+    return PokemonById[id] ? pkName(PokemonById[id]) : '';
+  };
+  const setDisplayLabel = label => {
+    if (isButtonTrigger) {
+      input.textContent = label;
+      input.value = label;
+    } else {
+      input.value = label;
+    }
+  };
+  const restoreInput = () => setDisplayLabel(displayLabel());
+
+  const showOptions = query => {
+    calcHideOptionTooltip();
+    const options = (typeof getOptions === 'function' ? getOptions(input) : getOptions) || [];
+    const matches = options.filter(option => calcPokemonComboboxMatches(option, query));
+    const visibleMatches = calcSearchText(query).trim() && searchLimit
+      ? matches.slice(0, searchLimit)
+      : matches;
+    optsEl.innerHTML = visibleMatches.length
+      ? calcComboboxHeaderHtml('pokemon') + visibleMatches.map(option => (
+          calcRenderPokemonOption(option, currentId())
+        )).join('')
+      : '<div class="combobox-option empty" aria-disabled="true"><b>검색 결과 없음</b></div>';
+    closeSiblingComboboxOptions(optsEl, input);
+
+    const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : fn => setTimeout(fn, 0);
+    schedule(() => {
+      if (typeof window === 'undefined' || typeof optsEl.getBoundingClientRect !== 'function') return;
+      const rect = optsEl.getBoundingClientRect();
+      const overflowRight = rect.right > window.innerWidth - 8;
+      optsEl.style.left = overflowRight ? 'auto' : '';
+      optsEl.style.right = overflowRight ? '0' : '';
+    });
+  };
+
+  const combo = wireSharedComboboxKeyboard(input, optsEl, {
+    showOptions,
+    onSelect: opt => {
+      const id = opt.dataset.id || '';
+      setDisplayLabel(opt.querySelector('b')?.textContent || displayLabel());
+      calcHideOptionTooltip();
+      if (typeof onSelect === 'function') onSelect(id, opt);
+    },
+    getQuery: () => isButtonTrigger ? '' : input.value || '',
+    onInvalidInput: restoreInput,
+  });
+
+  input.addEventListener('focus', () => {
+    if (isButtonTrigger) return;
+    combo?.open('');
+    if (!selectTextOnFocus) return;
+    const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : fn => setTimeout(fn, 0);
+    schedule(() => {
+      if (typeof input.select === 'function') input.select();
+    });
+  });
+  input.addEventListener('mousedown', e => {
+    if (input.readOnly || isButtonTrigger) e.stopPropagation();
+  });
+  input.addEventListener('click', e => {
+    if (!input.readOnly && !isButtonTrigger) {
+      combo?.open('');
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    if (document.activeElement !== input && typeof input.focus === 'function') {
+      input.focus({ preventScroll: true });
+    }
+    combo?.open('');
+  });
+  input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
+  input.addEventListener('blur', () => {
+    setTimeout(() => {
+      if (isButtonTrigger) return;
+      if (!String(input.value || '').trim()) {
+        calcHideOptionTooltip();
+        combo?.close();
+        restoreInput();
+        return;
+      }
+      calcHideOptionTooltip();
+      combo?.commitTyped();
+    }, closeDelay);
+  });
+
+  const handleOptionSelect = e => {
+    const opt = e.target.closest('.combobox-option');
+    if (!opt || opt.classList.contains('empty')) return;
+    e.preventDefault();
+    if (isButtonTrigger && e.type === 'mousedown') return;
+    combo?.select(opt);
+  };
+
+  optsEl.addEventListener('mousedown', handleOptionSelect);
+  optsEl.addEventListener('click', handleOptionSelect);
+  optsEl.addEventListener('touchstart', handleOptionSelect, { passive: false });
+  optsEl.addEventListener('scroll', calcHideOptionTooltip);
+
+  return combo;
+}
+
 function calcComboboxOptionLabel(type, option) {
   if (option?.label) return option.label;
   if (type === 'pokemon') return pkName(option);
@@ -632,6 +775,17 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
 
   const cbType = input.dataset.cbType;
   const side = input.dataset.side || null;
+  if (cbType === 'pokemon') {
+    return wirePokemonSelectCombobox(input, {
+      getOptions: () => calcDatasetForCombobox(side, 'pokemon'),
+      getCurrentId: () => calcComboboxCurrentId(input),
+      getDisplayLabel: () => calcComboboxDisplayLabel(input),
+      onSelect,
+      selectTextOnFocus: true,
+      wiredKey: 'calcPokemonWired',
+    });
+  }
+
   const filter = filterFn || makeCombobox(side, cbType);
   const isButtonTrigger = input.tagName === 'BUTTON';
   let activeIndex = -1;

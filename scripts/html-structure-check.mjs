@@ -58,11 +58,51 @@ for (const page of PAGES) {
   'ui-frame',
   'ui-frame-head',
   'ui-frame-body',
+  'ui-panel',
+  'ui-panel-head',
+  'ui-panel-body',
+  'ui-panel-title',
   'ui-frame-row',
+  'ui-field',
+  'ui-field-label',
+  'ui-check',
+  'ui-btn',
   'ui-control-frame',
   'ui-control-row',
   'ui-control-grid',
   'ui-action-row',
+  'ui-subframe',
+  'ui-subframe-stack',
+  'ui-section-head',
+  'ui-section-title',
+  'ui-control-cell',
+  'ui-control-label',
+  'ui-card-grid',
+  'ui-card',
+  'ui-chip-row',
+  'ui-metric-chip',
+  'ui-stepper',
+  'ui-stat-table',
+  'ui-stat-head',
+  'ui-stat-readout',
+  'ui-summary-row',
+  'ui-summary-card',
+  'ui-meter',
+  'ui-status-badge',
+  'tool-pokemon-field',
+  'tool-pokemon-subframe',
+  'tool-pokemon-row',
+  'tool-pokemon-head-row',
+  'tool-pokemon-control-row',
+  'tool-pokemon-toolbar-row',
+  'tool-pokemon-head',
+  'tool-pokemon-title-actions',
+  'tool-pokemon-primary-actions',
+  'tool-pokemon-meta-actions',
+  'tool-pokemon-secondary-actions',
+  'tool-pokemon-combobox',
+  'tool-pokemon-input',
+  'tool-pokemon-type-strip',
 ].forEach(className => {
   check(template.includes(className) || generated.includes(className), `${className} structure class is present`);
 });
@@ -82,5 +122,16 @@ check(sourceButtonMisses.length === 0, `rendered button literals declare type${s
 check(template.includes('id="dexFullPageDetail"') && template.includes('aria-label="도감 상세"'), 'dex fullpage detail has structural region');
 check(template.includes('id="matchupModeTabs"') && template.includes('aria-label="상성표 모드"'), 'matchup mode tabs expose structure');
 check(template.includes('aria-labelledby="dexDetailTitle"'), 'dex modal has accessible title wiring');
+
+const calcSideRenderer = read(path.join(JS_DIR, '03-30-calc-side-render.js'));
+check(!calcSideRenderer.includes('section-divider'), 'calculator side renderer stacks subframes directly');
+[
+  ['attack side panel body', /class="[^"]*\bui-subframe-stack\b[^"]*" id="atk-body"/],
+  ['defense side panel body', /class="[^"]*\bui-subframe-stack\b[^"]*" id="def-body"/],
+  ['result panel body', /class="[^"]*\bui-subframe-stack\b[^"]*" id="results-body"/],
+].forEach(([label, pattern]) => {
+  check(pattern.test(template), `calculator ${label} uses subframe stack`);
+});
+check(/id="field-panel"[\s\S]*?class="[^"]*\bui-panel-body\b[^"]*\bui-subframe-stack\b/.test(template), 'calculator field panel body uses subframe stack');
 
 if (failed) process.exit(1);

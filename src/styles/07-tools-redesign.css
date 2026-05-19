@@ -44,14 +44,14 @@
   box-shadow: inset 0 3px 0 var(--panel-point-color, transparent);
 }
 
-.tool-page .panel-title {
+.tool-page .ui-panel-title {
   color: var(--tool-text);
   font-size: var(--ui-panel-title-size);
   font-weight: var(--ui-panel-title-weight);
   line-height: var(--ui-panel-title-line-height);
 }
 
-.tool-page .panel-tag {
+.tool-page .ui-panel-tag {
   border-radius: 6px;
   padding: 4px 9px;
   color: #ffffff;
@@ -65,7 +65,7 @@
   padding: 16px;
 }
 
-.tool-page .field-label,
+.tool-page .ui-field:not(.tool-pokemon-field) .ui-field-label,
 .tool-page .ft-section-title {
   color: var(--tool-muted);
   font-family: "Noto Sans KR", sans-serif;
@@ -75,107 +75,9 @@
   text-transform: none;
 }
 
-.tool-page .field {
+.tool-page .ui-field {
   min-width: 0;
   margin: 0;
-}
-
-.tool-page .tool-pokemon-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-width: 0;
-}
-
-.tool-page .tool-pokemon-title-actions,
-.tool-page .tool-pokemon-meta-actions {
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-  gap: 6px;
-}
-
-.tool-page .tool-pokemon-title-actions {
-  flex: 1 1 auto;
-  justify-content: flex-start;
-}
-
-.tool-page .tool-pokemon-title-actions .field-label {
-  margin-bottom: 0;
-}
-
-.tool-page .tool-pokemon-meta-actions {
-  position: relative;
-  z-index: 5;
-  flex: 0 1 auto;
-  justify-content: flex-end;
-  overflow: visible;
-}
-
-.tool-page .tool-form-combobox {
-  flex: 0 0 128px;
-  width: 128px;
-  min-width: 0;
-  height: 26px;
-}
-
-.tool-page .tool-form-combobox::after {
-  right: 8px;
-}
-
-.tool-page .tool-form-combobox .form-switch-btn {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  height: 26px;
-  min-height: 26px !important;
-  margin: 0;
-  padding: 0 22px 0 9px !important;
-  overflow: hidden;
-  border: 1px solid var(--tool-line);
-  border-radius: 4px;
-  background: #ffffff;
-  color: var(--tool-muted);
-  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1;
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tool-page .tool-form-combobox .form-switch-btn:hover {
-  border-color: #b9c5d1;
-  background: var(--tool-surface-soft);
-  color: var(--tool-text);
-}
-
-.tool-page .tool-form-combobox .form-switch-btn:focus-visible {
-  outline: 0;
-  border-color: var(--tool-accent);
-  box-shadow: 0 0 0 2px rgba(123, 97, 255, 0.16);
-}
-
-.tool-page .tool-form-combobox .combobox-options {
-  left: auto;
-  right: 0;
-  width: max-content;
-  min-width: 128px;
-  max-width: calc(100vw - 24px);
-  transform: none;
-  z-index: 60;
-}
-
-.tool-page .tool-form-combobox .combobox-option {
-  min-width: 128px;
-  border-left: 3px solid transparent;
-}
-
-.tool-page .tool-form-combobox .combobox-option.selected {
-  border-left-color: var(--tool-combo-selected, var(--tool-accent));
 }
 
 .tool-page .combobox-option.pokemon-option.selected,
@@ -236,13 +138,13 @@
   padding: 0 8px;
   border-radius: 5px;
   font-family: "Noto Sans KR", sans-serif;
-  font-size: 11px;
-  font-weight: 900;
+  font-size: var(--ui-type-pill-font-size);
+  font-weight: var(--ui-type-pill-font-weight);
   line-height: 1;
   white-space: nowrap;
 }
 
-.tool-page .checkbox-label {
+.tool-page .ui-check {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -259,19 +161,19 @@
   cursor: pointer;
 }
 
-.tool-page .checkbox-label:hover {
+.tool-page .ui-check:hover {
   border-color: #b9c5d1;
   background: var(--tool-surface-soft);
   color: var(--tool-text);
 }
 
-.tool-page .checkbox-label:has(input:checked) {
+.tool-page .ui-check:has(input:checked) {
   border-color: rgba(37, 122, 87, 0.34);
   background: rgba(37, 122, 87, 0.08);
   color: var(--tool-text);
 }
 
-.tool-page .empty-state {
+.tool-page .ui-empty {
   padding: 28px 18px;
   color: var(--tool-faint);
   font-family: "Noto Sans KR", sans-serif;
@@ -280,13 +182,39 @@
   text-align: center;
 }
 
-.tool-page :where(.matchup-slot, .matchup-coverage-card, .ft-table-section, .ft-analysis-section, .rc-my-moves-panel, .rc-table-section, .rc-input-block) {
+.tool-page :where(.matchup-slot, .matchup-coverage-card, .ft-analysis-section, .rc-my-moves-panel, .rc-input-block) {
   min-width: 0;
   border: 1px solid var(--tool-line);
   border-radius: var(--ui-subframe-radius);
 }
 
-#page-revcalc .empty-state.error {
+.tool-page .tool-stat-panel {
+  min-width: 0;
+  padding: var(--ui-subframe-padding);
+  border-color: var(--tool-line);
+  background: var(--ui-subframe-bg);
+}
+
+.tool-page .tool-stat-panel-head {
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.tool-page .tool-stat-panel-title {
+  margin: 0;
+}
+
+.tool-page .tool-stat-panel-body,
+.tool-page .tool-stat-grid {
+  min-width: 0;
+}
+
+.tool-page .tool-stat-total {
+  min-height: 30px;
+  padding: 0 10px;
+}
+
+#page-revcalc .ui-empty.error {
   color: var(--tool-danger);
 }
 
@@ -994,8 +922,8 @@
   font-weight: 700;
 }
 
-#page-finetune .panel-head-actions,
-#page-revcalc .panel-head-actions {
+#page-finetune .ui-panel-actions,
+#page-revcalc .ui-panel-actions {
   display: inline-flex;
   align-items: center;
   min-width: 0;
@@ -1039,38 +967,11 @@
   width: 100%;
 }
 
-#page-finetune .ft-pokemon-main-row .ft-pokemon-field {
+#page-finetune .ft-pokemon-main-row .tool-pokemon-field {
   width: 100%;
 }
 
-#page-finetune .ft-pokemon-head,
-#page-revcalc .rc-pokemon-head {
-  margin-bottom: var(--ui-field-stack-gap);
-}
-
-#page-finetune .ft-pokemon-main-row .ft-type-strip {
-  flex: 0 0 auto;
-  flex-wrap: nowrap;
-  justify-content: flex-end;
-  height: var(--ui-type-chip-height);
-  max-width: none;
-  min-height: var(--ui-type-chip-height);
-  overflow: visible;
-  pointer-events: none;
-}
-
-#page-finetune .pokemon-select .cb-input {
-  height: var(--ui-control-height);
-  min-height: var(--ui-control-height);
-  padding-right: 30px;
-  overflow: hidden;
-  font-size: 13px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#page-finetune .ft-pokemon-field {
+#page-finetune .tool-pokemon-field {
   grid-area: pokemon;
 }
 
@@ -1099,25 +1000,6 @@
   max-width: 128px;
 }
 
-#page-finetune .ft-type-strip,
-#page-revcalc .types-display {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--ui-type-strip-gap);
-  min-height: var(--ui-type-chip-height);
-}
-
-#page-finetune .ft-type-strip {
-  grid-area: types;
-  align-self: end;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
 #page-finetune .ft-ability-control {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1140,22 +1022,15 @@
   white-space: nowrap;
 }
 
-#page-finetune .ft-table-section {
-  min-width: 0;
+#page-finetune .tool-stat-panel {
   margin-top: 14px;
-  padding: var(--ui-subframe-padding);
-  background: var(--ui-subframe-bg);
 }
 
-#page-finetune .ft-table-title {
+#page-finetune .tool-stat-panel-title {
   margin-bottom: 7px;
   color: var(--tool-text);
   font-size: 13px;
   font-weight: 900;
-}
-
-#page-finetune .ft-edit-layout {
-  display: block;
 }
 
 #page-finetune .ft-stats-column {
@@ -1220,16 +1095,38 @@
   color: var(--tool-muted);
 }
 
-#page-finetune .ft-stat-ev,
-#page-revcalc .ft-stat-ev {
+.tool-page .tool-stat-point-stepper {
   display: grid;
   grid-template-columns: 32px minmax(82px, 1fr) 32px;
   gap: 4px;
   align-items: center;
 }
 
-#page-finetune .ft-ev-input,
-#page-revcalc .ft-ev-input {
+.tool-page .tool-stat-point-button,
+.tool-page .tool-stat-rank-button {
+  display: inline-grid;
+  place-items: center;
+  width: var(--ui-stat-control-size);
+  height: var(--ui-stat-control-size);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-stat-control-radius);
+  background: #ffffff;
+  color: var(--text-dim);
+  font-family: "Fira Code", "JetBrains Mono", monospace;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.tool-page .tool-stat-point-button:hover,
+.tool-page .tool-stat-rank-button:hover {
+  border-color: var(--border-bright);
+  background: #f8fafc;
+  color: var(--text);
+}
+
+.tool-page .tool-stat-point-input {
   width: 100%;
   min-height: 32px;
   height: 32px;
@@ -1247,15 +1144,13 @@
   box-shadow: none;
 }
 
-#page-finetune .ft-ev-input:focus,
-#page-revcalc .ft-ev-input:focus {
+.tool-page .tool-stat-point-input:focus {
   outline: none;
   border-color: var(--tool-accent);
   box-shadow: var(--focus-ring);
 }
 
-#page-finetune .ft-rank,
-#page-revcalc .ft-rank {
+.tool-page .tool-stat-rank-stepper {
   display: grid;
   grid-template-columns: 28px 28px 28px;
   gap: 3px;
@@ -1263,14 +1158,12 @@
   align-items: center;
 }
 
-#page-finetune .ft-rank-btn,
-#page-revcalc .ft-rank-btn {
+.tool-page .tool-stat-rank-button {
   width: 28px;
   height: 28px;
 }
 
-#page-finetune .ft-rank-val,
-#page-revcalc .ft-rank-val {
+.tool-page .tool-stat-rank-value {
   color: var(--tool-text);
   font-family: "Fira Code", "JetBrains Mono", monospace;
   font-size: 13px;
@@ -1278,22 +1171,19 @@
   text-align: center;
 }
 
-#page-finetune .ft-rank-val.pos,
-#page-revcalc .ft-rank-val.pos,
+.tool-page .tool-stat-rank-value.pos,
 #page-finetune .ft-nature-up,
 #page-revcalc .ft-nature-up {
   color: var(--tool-danger);
 }
 
-#page-finetune .ft-rank-val.neg,
-#page-revcalc .ft-rank-val.neg,
+.tool-page .tool-stat-rank-value.neg,
 #page-finetune .ft-nature-down,
 #page-revcalc .ft-nature-down {
   color: var(--tool-info);
 }
 
-#page-finetune .ft-rank-empty,
-#page-revcalc .ft-rank-empty {
+.tool-page .tool-stat-rank-empty {
   min-height: 30px;
 }
 
@@ -1348,7 +1238,7 @@
   font-size: clamp(12px, 0.95vw, 13px);
 }
 
-#page-finetune .ft-stat-ev {
+#page-finetune .tool-stat-point-stepper {
   grid-template-columns: var(--ft-ev-btn) var(--ft-ev-input) var(--ft-ev-btn);
   gap: var(--ft-ev-gap);
   justify-content: center;
@@ -1356,21 +1246,21 @@
   min-height: 42px;
 }
 
-#page-finetune .ft-ev-quick {
+#page-finetune .tool-stat-point-button {
   width: var(--ft-ev-btn);
   height: var(--ft-control-h);
   border-radius: 7px;
   font-size: clamp(11px, 0.85vw, 12px);
 }
 
-#page-finetune .ft-ev-input {
+#page-finetune .tool-stat-point-input {
   min-height: var(--ft-control-h);
   height: var(--ft-control-h);
   font-size: clamp(12px, 0.9vw, 13px);
   line-height: var(--ft-control-h);
 }
 
-#page-finetune .ft-rank {
+#page-finetune .tool-stat-rank-stepper {
   grid-template-columns: var(--ft-rank-btn) var(--ft-rank-val) var(--ft-rank-btn);
   gap: var(--ft-rank-gap);
   justify-content: center;
@@ -1378,18 +1268,18 @@
   min-height: 42px;
 }
 
-#page-finetune .ft-rank-btn {
+#page-finetune .tool-stat-rank-button {
   width: var(--ft-rank-btn);
   height: calc(var(--ft-control-h) - 2px);
   border-radius: 7px;
   font-size: clamp(11px, 0.85vw, 12px);
 }
 
-#page-finetune .ft-rank-val {
+#page-finetune .tool-stat-rank-value {
   font-size: clamp(12px, 0.9vw, 13px);
 }
 
-#page-finetune .ft-rank-empty {
+#page-finetune .tool-stat-rank-empty {
   height: 42px;
   min-height: 42px;
 }
@@ -1746,26 +1636,8 @@
   width: 100%;
 }
 
-#page-finetune .ft-opp-pick-row .ft-cb-field {
+#page-finetune .ft-opp-pick-row .tool-pokemon-field {
   width: 100%;
-}
-
-#page-finetune .ft-opp-types {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: nowrap;
-  gap: var(--ui-type-strip-gap);
-  height: var(--ui-type-chip-height);
-  max-width: none;
-  min-width: 0;
-  min-height: var(--ui-type-chip-height);
-  overflow: visible;
-  pointer-events: none;
-}
-
-#page-finetune .ft-opp-types.empty {
-  visibility: hidden;
 }
 
 #page-finetune .ft-opp-speed-controls {
@@ -2212,9 +2084,9 @@
   width: 100%;
 }
 
-#page-revcalc .rc-pokemon-field,
-#page-revcalc .rc-pokemon-field .combobox,
-#page-revcalc .rc-pokemon-field .cb-input,
+#page-revcalc .tool-pokemon-field,
+#page-revcalc .tool-pokemon-field .tool-pokemon-combobox,
+#page-revcalc .tool-pokemon-field .tool-pokemon-input,
 #page-revcalc .rc-cb-field,
 #page-revcalc .rc-cb-field .combobox,
 #page-revcalc .rc-cb-field .cb-input,
@@ -2227,7 +2099,7 @@
   min-width: 0;
 }
 
-#page-revcalc .rc-pokemon-field .tool-form-combobox {
+#page-revcalc .tool-pokemon-field .tool-form-combobox {
   flex: 0 0 128px;
   width: 128px;
   max-width: 128px;
@@ -2248,30 +2120,6 @@
   cursor: pointer;
 }
 
-#page-revcalc .rc-pokemon-main-row .rc-type-strip {
-  flex: 0 0 auto;
-  align-items: center;
-  flex-wrap: nowrap;
-  justify-content: flex-end;
-  height: var(--ui-type-chip-height);
-  max-width: none;
-  min-height: var(--ui-type-chip-height);
-  margin: 0;
-  overflow: visible;
-  pointer-events: none;
-}
-
-#page-revcalc .pokemon-select .cb-input {
-  height: var(--ui-control-height);
-  min-height: var(--ui-control-height);
-  padding-right: 30px;
-  overflow: hidden;
-  font-size: 13px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 #page-revcalc .rc-nature-field {
   grid-area: nature;
 }
@@ -2282,18 +2130,6 @@
 
 #page-revcalc .rc-item-field {
   grid-area: item;
-}
-
-#page-revcalc .rc-types-display {
-  margin: 0;
-}
-
-#page-revcalc .rc-type-pill {
-  min-width: var(--ui-type-chip-width);
-  min-height: var(--ui-type-chip-height);
-  height: var(--ui-type-chip-height);
-  padding: 0 7px;
-  font-size: 10px;
 }
 
 #page-revcalc .rc-status-combobox .combobox-options {
@@ -2320,25 +2156,7 @@
   background: var(--ui-subframe-bg);
 }
 
-#page-revcalc .rc-my-stats-block {
-  min-width: 0;
-}
-
-#page-revcalc .rc-table-section {
-  min-width: 0;
-  padding: var(--ui-subframe-padding);
-  background: var(--ui-subframe-bg);
-}
-
-#page-revcalc .rc-table-headline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-#page-revcalc .ft-table-title {
+#page-revcalc .tool-stat-panel-title {
   margin: 0;
   color: var(--tool-muted);
   font-family: "Noto Sans KR", sans-serif;
@@ -2385,11 +2203,11 @@
 
 #page-revcalc .rc-stats-grid .ft-stat-base,
 #page-revcalc .rc-stats-grid .ft-stat-final,
-#page-revcalc .rc-stats-grid .ft-rank-val {
+#page-revcalc .rc-stats-grid .tool-stat-rank-value {
   font-size: clamp(11px, 0.9vw, 13px);
 }
 
-#page-revcalc .rc-stats-grid .ft-stat-ev {
+#page-revcalc .rc-stats-grid .tool-stat-point-stepper {
   grid-template-columns: 30px minmax(52px, 1fr) 30px;
   gap: 3px;
   justify-content: center;
@@ -2397,7 +2215,7 @@
   width: 100%;
 }
 
-#page-revcalc .rc-stats-grid .ft-ev-quick {
+#page-revcalc .rc-stats-grid .tool-stat-point-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2407,7 +2225,7 @@
   line-height: 30px;
 }
 
-#page-revcalc .rc-stats-grid .ft-ev-input {
+#page-revcalc .rc-stats-grid .tool-stat-point-input {
   display: block;
   min-width: 0;
   height: 30px;
@@ -2417,12 +2235,12 @@
   text-align: center;
 }
 
-#page-revcalc .rc-stats-grid .ft-rank {
+#page-revcalc .rc-stats-grid .tool-stat-rank-stepper {
   grid-template-columns: 26px 24px 26px;
   gap: 2px;
 }
 
-#page-revcalc .rc-stats-grid .ft-rank-btn {
+#page-revcalc .rc-stats-grid .tool-stat-rank-button {
   width: 26px;
   height: 30px;
 }
@@ -2463,7 +2281,7 @@
   gap: 10px;
 }
 
-#page-revcalc .rc-opp-item-row .field {
+#page-revcalc .rc-opp-item-row .ui-field {
   grid-column: 1;
 }
 
@@ -2553,7 +2371,7 @@
   margin-bottom: 0;
 }
 
-#page-revcalc .rc-action-block .field-label {
+#page-revcalc .rc-action-block .ui-field-label {
   margin-bottom: 5px;
 }
 
@@ -2572,7 +2390,7 @@
   padding-top: 0;
 }
 
-#page-revcalc .rc-action-block .rc-side-condition-row > .checkbox-label {
+#page-revcalc .rc-action-block .rc-side-condition-row > .ui-check {
   box-sizing: border-box;
   width: 100%;
   justify-content: center;
@@ -2587,7 +2405,7 @@
   white-space: nowrap;
 }
 
-#page-revcalc .rc-action-block .rc-side-condition-row > label.checkbox-label.rc-compact-toggle {
+#page-revcalc .rc-action-block .rc-side-condition-row > label.ui-check.rc-compact-toggle {
   display: inline-flex !important;
   align-items: center !important;
   box-sizing: border-box !important;
@@ -2600,7 +2418,7 @@
   overflow: hidden;
 }
 
-#page-revcalc .rc-action-block .rc-side-condition-row > .checkbox-label input[type="checkbox"] {
+#page-revcalc .rc-action-block .rc-side-condition-row > .ui-check input[type="checkbox"] {
   width: 10px;
   height: 10px;
   margin: 0;
@@ -3235,10 +3053,6 @@
       "speed";
   }
 
-  #page-finetune .ft-edit-layout {
-    grid-template-columns: 1fr;
-  }
-
   #page-finetune .ft-breakpoint-list {
     grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
     gap: 8px;
@@ -3368,7 +3182,7 @@
     display: block;
   }
 
-  #page-finetune .ft-pokemon-main-row .ft-type-strip {
+  #page-finetune .ft-pokemon-main-row .tool-pokemon-type-strip {
     gap: 4px;
     max-width: none;
   }
@@ -3377,7 +3191,7 @@
   #page-finetune .ft-pokemon-main-row .badge-mega {
     min-height: 22px;
     padding: 0 8px;
-    font-size: 10px;
+    font-size: var(--ui-type-pill-font-size);
   }
 
   #page-finetune .ui-frame-head {
@@ -3385,7 +3199,7 @@
     padding: var(--ui-panel-head-padding-compact);
   }
 
-  #page-finetune .panel-head-actions {
+  #page-finetune .ui-panel-actions {
     flex: 0 1 auto;
     gap: 5px;
   }
@@ -3396,9 +3210,9 @@
     font-size: 11px;
   }
 
-  #page-finetune .ft-ability-field .field-label,
-  #page-finetune .ft-nature-field .field-label,
-  #page-finetune .ft-item-field .field-label {
+  #page-finetune .ft-ability-field .ui-field-label,
+  #page-finetune .ft-nature-field .ui-field-label,
+  #page-finetune .ft-item-field .ui-field-label {
     font-size: 11px;
   }
 
@@ -3420,34 +3234,34 @@
     gap: 5px 1px;
   }
 
-  #page-revcalc .rc-stats-grid .ft-stat-ev {
+  #page-revcalc .rc-stats-grid .tool-stat-point-stepper {
     grid-template-columns: 22px minmax(38px, 1fr) 22px;
     gap: 2px;
   }
 
-  #page-revcalc .rc-stats-grid .ft-ev-quick {
+  #page-revcalc .rc-stats-grid .tool-stat-point-button {
     width: 22px;
     height: 28px;
     line-height: 28px;
   }
 
-  #page-revcalc .rc-stats-grid .ft-ev-input {
+  #page-revcalc .rc-stats-grid .tool-stat-point-input {
     height: 28px;
     min-height: 28px;
     line-height: 28px;
   }
 
-  #page-revcalc .rc-stats-grid .ft-rank {
+  #page-revcalc .rc-stats-grid .tool-stat-rank-stepper {
     grid-template-columns: 18px 18px 18px;
     gap: 1px;
   }
 
-  #page-revcalc .rc-stats-grid .ft-rank-btn {
+  #page-revcalc .rc-stats-grid .tool-stat-rank-button {
     width: 18px;
     height: 28px;
   }
 
-  #page-finetune .ft-table-section {
+  #page-finetune .tool-stat-panel {
     padding: 10px 8px;
   }
 
@@ -3455,7 +3269,7 @@
     display: block;
   }
 
-  #page-finetune .ft-opp-types {
+  #page-finetune .ft-opp-pick-row .tool-pokemon-type-strip {
     justify-content: flex-end;
     max-width: none;
     min-height: 0;
@@ -3564,9 +3378,9 @@
   #page-finetune .ft-stat-name,
   #page-finetune .ft-stat-base,
   #page-finetune .ft-stat-final,
-  #page-finetune .ft-stat-ev,
-  #page-finetune .ft-rank,
-  #page-finetune .ft-rank-empty,
+  #page-finetune .tool-stat-point-stepper,
+  #page-finetune .tool-stat-rank-stepper,
+  #page-finetune .tool-stat-rank-empty,
   #page-finetune .ft-magic {
     height: 40px;
     min-height: 40px;
@@ -3574,30 +3388,30 @@
 
   #page-finetune .ft-stat-base,
   #page-finetune .ft-stat-final,
-  #page-finetune .ft-rank-val {
+  #page-finetune .tool-stat-rank-value {
     font-size: 11px;
   }
 
-  #page-finetune .ft-stat-ev {
+  #page-finetune .tool-stat-point-stepper {
     grid-template-columns: var(--ft-ev-btn) var(--ft-ev-input) var(--ft-ev-btn);
     gap: var(--ft-ev-gap);
   }
 
-  #page-finetune .ft-ev-quick {
+  #page-finetune .tool-stat-point-button {
     width: var(--ft-ev-btn);
     font-size: 10px;
   }
 
-  #page-finetune .ft-ev-input {
+  #page-finetune .tool-stat-point-input {
     font-size: 11px;
   }
 
-  #page-finetune .ft-rank {
+  #page-finetune .tool-stat-rank-stepper {
     grid-template-columns: var(--ft-rank-btn) var(--ft-rank-val) var(--ft-rank-btn);
     gap: var(--ft-rank-gap);
   }
 
-  #page-finetune .ft-rank-btn {
+  #page-finetune .tool-stat-rank-button {
     width: var(--ft-rank-btn);
     font-size: 10px;
   }
@@ -3650,7 +3464,7 @@
   #page-finetune .ft-stats-head > div,
   #page-finetune .ft-stat-base,
   #page-finetune .ft-stat-final,
-  #page-finetune .ft-rank-val {
+  #page-finetune .tool-stat-rank-value {
     font-size: 10px;
   }
 }
@@ -3671,19 +3485,19 @@
     font-size: 10px;
   }
 
-  #page-revcalc .rc-stats-grid .ft-stat-ev {
+  #page-revcalc .rc-stats-grid .tool-stat-point-stepper {
     grid-template-columns: 22px minmax(38px, 1fr) 22px;
   }
 
-  #page-revcalc .rc-stats-grid .ft-ev-quick {
+  #page-revcalc .rc-stats-grid .tool-stat-point-button {
     width: 22px;
   }
 
-  #page-revcalc .rc-stats-grid .ft-rank {
+  #page-revcalc .rc-stats-grid .tool-stat-rank-stepper {
     grid-template-columns: 18px 18px 18px;
   }
 
-  #page-revcalc .rc-stats-grid .ft-rank-btn {
+  #page-revcalc .rc-stats-grid .tool-stat-rank-button {
     width: 18px;
   }
 

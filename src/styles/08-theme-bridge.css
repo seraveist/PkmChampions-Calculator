@@ -1,0 +1,418 @@
+/* Theme bridge.
+ * This file loads after page-specific styles and maps legacy page scopes back
+ * to the shared ui token system. It keeps the current light UI intact while
+ * making future dark-mode work a token change instead of a per-menu rewrite.
+ */
+
+#page-calc {
+  --calc-bg: var(--bg);
+  --calc-panel: var(--bg-panel);
+  --calc-line: var(--border);
+  --calc-line-soft: var(--border-soft);
+  --calc-text: var(--text);
+  --calc-muted: var(--text-dim);
+  --calc-attacker: var(--atk);
+  --calc-attacker-soft: color-mix(in srgb, var(--atk) 9%, var(--bg-panel));
+  --calc-defender: var(--def);
+  --calc-defender-soft: color-mix(in srgb, var(--def) 9%, var(--bg-panel));
+  --calc-field-soft: color-mix(in srgb, var(--ok) 6%, var(--bg-panel));
+  --calc-result-soft: var(--ui-action-active-bg);
+  --calc-accent: var(--text);
+  --calc-control-bg: var(--bg-input);
+  --calc-control-hover: var(--bg-muted);
+  --calc-surface: var(--bg-panel);
+  --calc-surface-2: var(--bg-input);
+  --calc-surface-3: var(--bg-muted);
+  --calc-shadow: var(--surface-shadow-soft);
+}
+
+.tool-page {
+  --tool-line: var(--border);
+  --tool-line-soft: var(--border-soft);
+  --tool-surface: var(--bg-panel);
+  --tool-surface-soft: var(--bg-input);
+  --tool-muted: var(--text-dim);
+  --tool-faint: var(--text-faint);
+  --tool-text: var(--text);
+  --tool-accent: var(--warn);
+  --tool-good: var(--ok);
+  --tool-warn: var(--warn);
+  --tool-danger: var(--atk);
+  --tool-info: var(--def);
+  --tool-shadow: var(--surface-shadow-soft);
+}
+
+#page-dex {
+  --dex-surface: var(--bg-panel);
+  --dex-surface-soft: var(--bg-input);
+  --dex-muted: var(--text-dim);
+  --dex-faint: var(--text-faint);
+  --dex-text: var(--text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex) {
+  color: var(--text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-frame, .ui-panel, .ui-subframe, .ui-card, .ui-summary-card, .ui-meter-card, .dex-modal) {
+  background: var(--ui-frame-bg);
+  border-color: var(--border);
+  box-shadow: var(--ui-frame-shadow);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-frame-head, .ui-panel-head, .dex-modal-head) {
+  background: var(--ui-panel-head-bg);
+  border-bottom-color: var(--border);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-frame-body, .ui-panel-body, .ui-card-body, .dex-modal-body) {
+  color: var(--text);
+}
+
+#page-calc .ui-section-title,
+#page-calc .ui-control-label,
+#page-calc .ui-stat-head,
+#page-calc .ui-chip-label {
+  color: var(--text-dim);
+}
+
+#page-calc .ui-stat-readout,
+#page-calc .ui-chip-value,
+#page-calc .ui-index {
+  color: var(--text);
+}
+
+#page-calc .ui-metric-chip,
+#page-calc .ui-status-badge {
+  border-color: var(--border);
+  background: var(--bg-input);
+  color: var(--text);
+}
+
+#page-calc .ui-table-head-row,
+#page-calc .ui-meta-row {
+  color: var(--text-dim);
+}
+
+#page-calc .ui-meter {
+  background: var(--bg-muted);
+}
+
+:root[data-theme="dark"] #page-calc :is(select, input[type="number"], input[type="text"], textarea, .cb-input, .form-switch-btn) {
+  border-color: var(--border);
+  background: var(--ui-control-bg);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] #page-calc .move-card.ui-card {
+  border-color: var(--border);
+  background: var(--bg-panel);
+  color: var(--text);
+  box-shadow: var(--surface-shadow-soft);
+}
+
+:root[data-theme="dark"] #page-calc .move-section {
+  border-color: var(--border);
+  background: var(--bg-input);
+}
+
+:root[data-theme="dark"] #page-calc .stat-grid.ui-stat-table {
+  border-color: var(--border);
+  background: var(--bg-input);
+}
+
+:root[data-theme="dark"] #page-calc .calc-ev-preset-button.ui-popover-trigger,
+:root[data-theme="dark"] #page-calc .ev-total.ui-metric-chip {
+  border-color: var(--border);
+  background: var(--bg-input);
+  color: var(--text-dim);
+}
+
+:root[data-theme="dark"] #page-calc .ev-total.ui-metric-chip b {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] #page-calc .durability-card.ui-metric-chip,
+:root[data-theme="dark"] #page-calc .durability-card:nth-child(2).ui-metric-chip {
+  border-color: var(--border);
+  background: var(--bg-input);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] #page-calc .durability-label.ui-chip-label {
+  color: var(--text-dim);
+}
+
+:root[data-theme="dark"] #page-calc .durability-value.ui-chip-value {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] #page-calc .tool-pokemon-meta-actions .type-reset-btn {
+  border-color: var(--border);
+  background: var(--bg-input);
+  color: var(--text-dim);
+}
+
+:root[data-theme="dark"] #page-calc .tool-pokemon-meta-actions .type-reset-btn:hover,
+:root[data-theme="dark"] #page-calc .tool-pokemon-meta-actions .type-reset-btn:focus-visible {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
+}
+
+:root[data-theme="dark"] #page-calc .calc-page-jump-button {
+  border-color: var(--border);
+  background: var(--bg-input);
+  color: var(--text-dim);
+}
+
+:root[data-theme="dark"] #page-calc .calc-page-jump-button:hover,
+:root[data-theme="dark"] #page-calc .calc-page-jump-button:focus-visible {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
+}
+
+:root[data-theme="dark"] #page-calc .calc-side-swap-button {
+  color: var(--bg);
+}
+
+:root[data-theme="dark"] #page-calc .ui-panel {
+  background: var(--bg-panel);
+  border-color: var(--border);
+  box-shadow: var(--surface-shadow-soft);
+}
+
+:root[data-theme="dark"] #page-calc .ui-panel > .ui-panel-head {
+  background: var(--ui-panel-head-bg);
+  border-bottom-color: var(--border);
+}
+
+:root[data-theme="dark"] #page-calc .move-card.none.compact.ui-card {
+  background: var(--bg-input);
+}
+
+:root[data-theme="dark"] #page-calc .move-card-top.ui-card-head {
+  border-bottom-color: var(--border-soft);
+}
+
+:root[data-theme="dark"] #page-calc .move-card .move-slot-num.ui-index {
+  border-color: var(--border);
+  background: var(--bg-input);
+  color: var(--text-dim);
+}
+
+:root[data-theme="dark"] #page-calc .speed-value.ui-stat-readout {
+  border-color: var(--border);
+  background: var(--bg-input);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] #page-calc .speed-row.ui-summary-row {
+  border-color: var(--border);
+  background: var(--bg-input);
+}
+
+:root[data-theme="dark"] #page-calc :is(.field-select-frame, .field-effects-frame, .mold-breaker-info, .move-results).ui-subframe {
+  border-color: var(--border);
+  background: var(--bg-input);
+}
+
+:root[data-theme="dark"] #page-calc .move-type-control.type-none {
+  border-color: var(--border);
+  background: var(--bg-input);
+  color: var(--text-faint);
+}
+
+:root[data-theme="dark"] #page-calc .move-card .move-name,
+:root[data-theme="dark"] #page-calc .dmg-info b {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] #page-calc .dmg-range-box.ui-meter-card {
+  border-color: var(--border);
+  background: var(--bg-input);
+}
+
+:root[data-theme="dark"] #page-calc .dmg-bar.ui-meter {
+  border-color: var(--border-bright);
+  background: var(--bg-muted);
+}
+
+:root[data-theme="dark"] #page-calc .dmg-info.ui-meta-row {
+  color: var(--text-dim);
+}
+
+:root[data-theme="dark"] #page-calc .mods-trace b.ui-status-badge,
+:root[data-theme="dark"] #page-calc .side-effect.ui-status-badge,
+:root[data-theme="dark"] #page-calc .timing-power-badge.ui-status-badge,
+:root[data-theme="dark"] #page-calc .speed-entry-note.ui-status-badge {
+  border-color: var(--border);
+  background: var(--bg-input);
+  color: var(--text-dim);
+}
+
+:root[data-theme="dark"] #page-calc .side-effect.ui-status-badge b {
+  color: var(--warn);
+}
+
+#page-calc .battle-grid > .ui-panel.atk,
+#page-calc.sides-swapped .battle-grid > .ui-panel.def,
+.ui-panel.atk {
+  border-color: var(--ui-atk-border);
+}
+
+#page-calc .battle-grid > .ui-panel.def,
+#page-calc.sides-swapped .battle-grid > .ui-panel.atk,
+.ui-panel.def {
+  border-color: var(--ui-def-border);
+}
+
+#page-calc .battle-grid > .ui-panel.atk > .ui-panel-head,
+#page-calc.sides-swapped .battle-grid > .ui-panel.def > .ui-panel-head,
+.ui-panel.atk > .ui-panel-head {
+  background: var(--ui-atk-head-bg);
+}
+
+#page-calc .battle-grid > .ui-panel.def > .ui-panel-head,
+#page-calc.sides-swapped .battle-grid > .ui-panel.atk > .ui-panel-head,
+.ui-panel.def > .ui-panel-head {
+  background: var(--ui-def-head-bg);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(select, input[type="number"], input[type="text"], textarea, .cb-input, .form-switch-btn, .party-preset-input, .party-preset-ev-input) {
+  border-color: var(--border);
+  background: var(--ui-control-bg);
+  color: var(--text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(select:hover, input[type="number"]:hover, input[type="text"]:hover, textarea:hover, .cb-input:hover, .form-switch-btn:hover) {
+  border-color: var(--border-bright);
+  background: var(--bg-input);
+  color: var(--text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(select:focus, input[type="number"]:focus, input[type="text"]:focus, textarea:focus, .cb-input[aria-expanded="true"], .form-switch-btn:focus-visible) {
+  border-color: var(--warn);
+  box-shadow: var(--focus-ring);
+}
+
+:is(#page-revcalc, #page-finetune)
+  :where(.tool-pokemon-combobox .tool-pokemon-input:focus, .tool-pokemon-combobox .tool-pokemon-input[aria-expanded="true"]) {
+  outline: 0;
+  border-color: var(--warn);
+  box-shadow: var(--ui-pokemon-focus-ring);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.combobox-options) {
+  border-color: var(--border-bright);
+  background: var(--bg-elev);
+  box-shadow: var(--surface-shadow);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.combobox-option) {
+  border-bottom-color: var(--border-soft);
+  color: var(--text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.combobox-option:hover, .combobox-option.active) {
+  background: var(--ui-option-hover-bg);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.combobox-option.selected) {
+  background: var(--ui-option-selected-bg);
+  color: var(--text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-label-action, .ui-field-action, .ui-popover-trigger, .party-preset-button, .theme-toggle-button, .party-preset-action, .party-preset-close, .party-preset-party-action, .dex-modal-btn, .ft-action-btn, .tool-stat-point-button, .tool-stat-rank-button) {
+  border-color: var(--ui-action-border);
+  background: var(--ui-action-bg);
+  color: var(--text-dim);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-label-action:hover, .ui-field-action:hover, .ui-popover-trigger:hover, .party-preset-button:hover, .theme-toggle-button:hover, .party-preset-action:hover, .party-preset-close:hover, .party-preset-party-action:hover, .dex-modal-btn:hover, .ft-action-btn:hover, .tool-stat-point-button:hover, .tool-stat-rank-button:hover) {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
+}
+
+:is(#page-revcalc, #page-finetune) .tool-stat-rank-value:not(.pos):not(.neg) {
+  color: var(--text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-btn-secondary, .type-filter-btn, .dex-tab, .matchup-mode-btn) {
+  border-color: var(--border);
+  background: var(--ui-action-bg);
+  color: var(--text-dim);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-btn-secondary:hover, .type-filter-btn:hover, .dex-tab:hover, .matchup-mode-btn:hover) {
+  border-color: var(--border-bright);
+  background: var(--bg-input);
+  color: var(--text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-btn-secondary.active, .type-filter-btn.active, .dex-tab.active, .matchup-mode-btn.active) {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-active-bg);
+  color: var(--ui-action-active-text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-check) {
+  border-color: var(--border);
+  background: var(--bg-input);
+  color: var(--text-dim);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-check:hover) {
+  border-color: var(--border-bright);
+  background: var(--bg-elev);
+  color: var(--text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-check:has(input:checked)) {
+  border-color: color-mix(in srgb, var(--ok) 38%, transparent);
+  background: color-mix(in srgb, var(--ok) 8%, transparent);
+  color: var(--text);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.dex-table-wrap, .matchup-table-wrap, .ft-analysis-section, .ft-speed-embedded, .rc-input-block, .rc-result-row, .rc-briefing, .rc-prediction-panel) {
+  border-color: var(--border);
+  background: var(--bg-panel);
+  box-shadow: var(--surface-shadow-soft);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.dex-table th, .matchup-table th) {
+  background: var(--bg-muted);
+  color: var(--text-dim);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.dex-table td, .matchup-table td) {
+  border-color: var(--border);
+}
+
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+  :where(.ui-empty) {
+  color: var(--text-faint);
+}

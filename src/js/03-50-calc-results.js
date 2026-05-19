@@ -34,7 +34,8 @@ function runCalc() {
     const hko = hkoLabel(result.damages, result.defHP, calcDef, calcField);
     const defStartHp = Math.max(1, sideCurrentHp(result.defHP, calcDef) - calcHazardDamage(calcDef, calcField));
   const first = firstMover(move.pri, atkSpe, defSpe);
-    return { ...result, hko, first, slot: i+1, move, defStartHp, entryMeta: calcState.entryMeta };
+    const timingPowerLabel = timingPowerConditionLabel(move, calcAtk, calcDef, calcField);
+    return { ...result, hko, first, slot: i+1, move, defStartHp, entryMeta: calcState.entryMeta, timingPowerLabel };
   });
   
   // 틀깨기 / 다능 등 공격측 특성으로 무시되는 방어측 특성 체크
@@ -47,30 +48,30 @@ function runCalc() {
   const body = document.getElementById('results-body');
   body.innerHTML = `
     ${moldBreakerActive ? `
-    <div class="mold-breaker-info">
+    <div class="mold-breaker-info ui-control-frame ui-subframe ui-meta-row">
       <span class="mold-breaker-tag">${AbilityById[atkAb]?.koName || atkAb}</span>
       ${ignoredAb ? `상대 <b>${ignoredAb.koName}</b> 특성을 무시합니다` : '방어측 일부 특성을 관통할 수 있습니다'}
     </div>
     ` : ''}
 
     <!-- 속도 대결 -->
-    <div class="speed-row">
-      <div class="speed-side atk">
+    <div class="speed-row ui-control-frame ui-subframe ui-summary-row">
+      <div class="speed-side atk ui-summary-card">
         <span class="speed-identity">
           <span class="speed-role">공격측</span>
           <b class="speed-pokemon">${pkName(atkP)}</b>
         </span>
         <span class="speed-value-wrap">
-          <strong class="speed-value">${atkSpe}</strong>
+          <strong class="speed-value ui-stat-readout">${atkSpe}</strong>
           ${renderEntrySpeedNote(calcState, 'atk')}
         </span>
       </div>
       <div class="speed-center">
-        <span class="speed-label">속도</span>
+        <span class="speed-label ui-section-title">속도</span>
       </div>
-      <div class="speed-side def">
+      <div class="speed-side def ui-summary-card">
         <span class="speed-value-wrap">
-          <strong class="speed-value">${defSpe}</strong>
+          <strong class="speed-value ui-stat-readout">${defSpe}</strong>
           ${renderEntrySpeedNote(calcState, 'def')}
         </span>
         <span class="speed-identity">
@@ -81,7 +82,7 @@ function runCalc() {
     </div>
     
     <!-- 기술별 결과 -->
-    <div class="move-results">
+    <div class="move-results ui-control-frame ui-subframe ui-card-grid">
       ${moveResults.map(r => renderMoveCard(r)).join('')}
     </div>
   `;
@@ -119,33 +120,57 @@ function renderModsTrace(mods, limit = 6, result = null) {
   const visible = ordered.slice(0, limit);
   const hidden = labels.length - visible.length;
   const title = escapeHTML(ordered.join(' · '));
-  const parts = visible.map(m => `<b>${escapeHTML(m)}</b>`);
-  if (hidden > 0) parts.push(`<b title="${title}">+${hidden}</b>`);
+  const parts = visible.map(m => `<b class="ui-status-badge">${escapeHTML(m)}</b>`);
+  if (hidden > 0) parts.push(`<b class="ui-status-badge" title="${title}">+${hidden}</b>`);
   return `<span class="mods-trace" title="${title}">${parts.join('<span class="sep">·</span>')}</span>`;
 }
 
 function renderEntrySpeedNote(calcState, sideKey) {
   const delta = calcState.entryMeta?.rankDeltas?.[sideKey]?.spe || 0;
   if (!delta) return '';
-  return `<span class="speed-entry-note">${STAT_LABEL.spe} ${formatRankValue(delta)}랭크</span>`;
+  return `<span class="speed-entry-note ui-status-badge">${STAT_LABEL.spe} ${formatRankValue(delta)}랭크</span>`;
+}
+
+function timingPowerConditionLabel(move, atkSide, defSide, field) {
+  if (!move || move.cat === 'Status') return '';
+  if (move.variableBpKind === 'userMovesFirstDouble' && field.atkMovesFirst) return '선공 시 위력';
+  if (move.variableBpKind === 'userMovesSecondDouble' && field.atkMovesSecond) return '후공 시 위력';
+
+  const ability = AbilityById[atkSide?.ability];
+  const moveType = move.originalType || move.type;
+  const isPhysical = move.cat === 'Physical';
+  const analyticBoostActive = !!ability?.bpBoosts?.some(rule => rule.movesSecond && abilityRuleApplies(rule, {
+    atkSide,
+    defSide,
+    move,
+    field,
+    bp: move.bp || 0,
+    moveType,
+    weather: field.weather,
+    effectiveness: 1,
+    isCritical: false,
+    isPhysical,
+  }));
+
+  return analyticBoostActive ? '후공 시 위력' : '';
 }
 
 function renderMoveCard(r) {
   if (r.empty) {
     if (r.statusMove) {
       return `
-        <div class="move-card none compact">
-          <div class="move-card-placeholder">
-            <span class="move-slot-num mono">${r.slot}</span>
+        <div class="move-card none compact ui-card ui-result-card">
+          <div class="move-card-placeholder ui-card-body">
+            <span class="move-slot-num ui-index mono">${r.slot}</span>
             <span class="move-name">${escapeHTML(mvName(r.move))} · 변화기</span>
           </div>
         </div>
       `;
     }
     return `
-      <div class="move-card none compact">
-        <div class="move-card-placeholder">
-          <span class="move-slot-num mono">${r.slot}</span>
+      <div class="move-card none compact ui-card ui-result-card">
+        <div class="move-card-placeholder ui-card-body">
+          <span class="move-slot-num ui-index mono">${r.slot}</span>
           <span class="move-name">기술 미설정</span>
         </div>
       </div>
@@ -187,7 +212,7 @@ function renderMoveCard(r) {
     const recoilMax = Math.floor(max * num / den);
     const recoilMinPct = (recoilMin / atkHP * 100).toFixed(1);
     const recoilMaxPct = (recoilMax / atkHP * 100).toFixed(1);
-    sideEffect += `<span class="side-effect"><span>반동</span><b>${recoilMinPct}% ~ ${recoilMaxPct}%</b><span>(${recoilMin}~${recoilMax})</span></span>`;
+    sideEffect += `<span class="side-effect ui-status-badge"><span>반동</span><b>${recoilMinPct}% ~ ${recoilMaxPct}%</b><span>(${recoilMin}~${recoilMax})</span></span>`;
   }
   if (moveData.drain) {
     const [num, den] = moveData.drain;
@@ -196,7 +221,7 @@ function renderMoveCard(r) {
     const healMax = Math.floor(max * num / den);
     const healMinPct = (healMin / atkHP * 100).toFixed(1);
     const healMaxPct = (healMax / atkHP * 100).toFixed(1);
-    sideEffect += `<span class="side-effect"><span>흡수</span><b>${healMinPct}% ~ ${healMaxPct}%</b><span>(${healMin}~${healMax})</span></span>`;
+    sideEffect += `<span class="side-effect ui-status-badge"><span>흡수</span><b>${healMinPct}% ~ ${healMaxPct}%</b><span>(${healMin}~${healMax})</span></span>`;
   }
 
   // 다단 히트 표시
@@ -219,15 +244,19 @@ function renderMoveCard(r) {
                   r.hko.turns === '1타' ? 'ko-strong' : 'ko-stable';
   const hkoTitle = escapeHTML([r.hko.label, r.hko.turns, r.hko.pct, r.hko.sub].filter(Boolean).join(' · '));
   
+  const timingPowerBadge = r.timingPowerLabel
+    ? `<span class="timing-power-badge ui-status-badge">${escapeHTML(r.timingPowerLabel)}</span>`
+    : '';
+
   return `
-    <div class="move-card">
-      <div class="move-card-main">
-        <div class="move-card-top">
-          <div class="move-title-row">
-            <span class="move-slot-num mono">${r.slot}</span>
+    <div class="move-card ui-card ui-result-card">
+      <div class="move-card-main ui-card-body">
+        <div class="move-card-top ui-card-head">
+          <div class="move-title-row ui-title-row">
+            <span class="move-slot-num ui-index mono">${r.slot}</span>
             <span class="move-name">${mvName(moveData)}</span>
           </div>
-          <div class="move-badges">
+          <div class="move-badges ui-chip-row">
             <span class="cat-badge ${catCls}">${cat}</span>
             ${typeLabel}
             ${stabBadge}
@@ -235,23 +264,24 @@ function renderMoveCard(r) {
             ${metaHtml}
           </div>
         </div>
-        <div class="dmg-range-box">
+        <div class="dmg-range-box ui-meter-card">
           <div class="dmg-summary">
             <span class="dmg-pct">${pctMin} ~ ${pctMax}%</span>
             <span class="hp-remain">잔여 HP ${hpRemMin}-${hpRemMax} / ${r.defHP}</span>
           </div>
-          <div class="dmg-bar">
-            <div class="dmg-bar-fill" style="width: ${barMax}%"></div>
-            <div class="dmg-bar-fill min" style="width: ${barMin}%"></div>
+          <div class="dmg-bar ui-meter">
+            <div class="dmg-bar-fill ui-meter-fill" style="width: ${barMax}%"></div>
+            <div class="dmg-bar-fill min ui-meter-fill" style="width: ${barMin}%"></div>
           </div>
         </div>
-        <div class="dmg-info">
+        <div class="dmg-info ui-meta-row">
           <span>실제 대미지 <b>${min}-${max}</b></span>
+          ${timingPowerBadge}
           ${renderModsTrace(r.mods, 6, r)}
           ${sideEffect}
         </div>
       </div>
-      <div class="hko-badge ${hkoTone}" title="${hkoTitle}">
+      <div class="hko-badge ui-status-badge ${hkoTone}" title="${hkoTitle}">
         <div class="hko-main ${r.hko.cls}">
           <span class="hko-label">${r.hko.label}</span>
           <span class="hko-turns">${r.hko.turns}</span>

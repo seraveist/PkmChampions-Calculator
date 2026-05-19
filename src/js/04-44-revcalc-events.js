@@ -78,6 +78,20 @@ function rcWireComboboxKeyboard(control, optsEl, { showOptions, onSelect, getQue
 function rcWireMyComboboxes() {
   document.getElementById('rc-my-body').querySelectorAll('.rc-cb-input').forEach(input => {
     const target = input.dataset.rcPick;
+    if (target === 'my') {
+      wirePokemonSelectCombobox(input, {
+        wiredKey: 'rcPokemonWired',
+        getOptions: () => sortPokemonForCalcSelect(POKEMON),
+        getCurrentId: () => revCalcState.my.pokemonIdx || '',
+        getDisplayLabel: () => pkName(PokemonById[revCalcState.my.pokemonIdx] || { name: '' }),
+        onSelect: id => {
+          rcApplyMyPokemonSelection(id);
+          renderRevCalcAll();
+        },
+      });
+      return;
+    }
+
     const cb = input.closest('.combobox');
     const optsEl = cb.querySelector('.combobox-options');
     const isButtonTrigger = input.tagName === 'BUTTON';
@@ -210,6 +224,28 @@ function rcDefaultKnownOpponentItemForPokemon(pokemon) {
 function rcWireOppComboboxes() {
   document.getElementById('rc-opp-body').querySelectorAll('.rc-cb-input').forEach(input => {
     const target = input.dataset.rcPick || 'opp';
+    if (target === 'opp') {
+      wirePokemonSelectCombobox(input, {
+        wiredKey: 'rcPokemonWired',
+        getOptions: () => sortPokemonForCalcSelect(POKEMON),
+        getCurrentId: () => revCalcState.opp.pokemonIdx || '',
+        getDisplayLabel: () => pkName(PokemonById[revCalcState.opp.pokemonIdx] || { name: '' }),
+        onSelect: id => {
+          revCalcState.opp.pokemonIdx = id;
+          const pokemon = PokemonById[revCalcState.opp.pokemonIdx];
+          revCalcState.opp.item = defaultPokemonItemId(pokemon);
+          revCalcState.oppItemKnown = rcDefaultKnownOpponentItemForPokemon(pokemon);
+          revCalcState.oppMove = '';
+          revCalcState.oppMoveBp = '';
+          revCalcState.nextOppRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+          revCalcState.predictedOppMove = '';
+          rcResetItemCandidatesForOpponent();
+          renderRevCalcAll();
+        },
+      });
+      return;
+    }
+
     const cb = input.closest('.combobox');
     const optsEl = cb.querySelector('.combobox-options');
     const isButtonTrigger = input.tagName === 'BUTTON';

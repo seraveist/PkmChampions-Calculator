@@ -99,12 +99,12 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#page-calc .ev-preset-shell') && typeof closeEvPresetPopovers === 'function') {
     closeEvPresetPopovers();
   }
-  const ftBtn = e.target.closest('.ft-jump-btn[data-ft-from-side]');
+  const ftBtn = e.target.closest('.calc-page-jump-button[data-ft-from-side]');
   if (ftBtn && typeof loadSideToFineTune === 'function') {
     loadSideToFineTune(ftBtn.dataset.ftFromSide);
     return;
   }
-  const rcBtn = e.target.closest('.ft-jump-btn[data-rc-from-side]');
+  const rcBtn = e.target.closest('.calc-page-jump-button[data-rc-from-side]');
   if (rcBtn && typeof loadSideToRevCalc === 'function') {
     loadSideToRevCalc(rcBtn.dataset.rcFromSide);
     return;
