@@ -112,15 +112,53 @@ const allCss = [...cssByFile.values()].join('\n');
   '.tool-settings-hp-control',
   '.tool-settings-hp-input',
   '.tool-stat-panel',
+  '.tool-stat-set',
   '.tool-stat-panel-head',
   '.tool-stat-panel-title',
   '.tool-stat-panel-body',
+  '.tool-stat-table-frame',
+  '.tool-stat-head-row',
+  '.tool-stat-head-cell',
+  '.tool-stat-row',
   '.tool-stat-grid',
   '.tool-stat-total',
+  '.tool-stat-col-name',
+  '.tool-stat-col-base',
+  '.tool-stat-col-point',
+  '.tool-stat-col-magic',
+  '.tool-stat-col-final',
+  '.tool-stat-col-rank',
+  '.tool-stat-name-text',
+  '.tool-stat-nature-mark',
+  '.tool-stat-nature-up',
+  '.tool-stat-nature-down',
+  '.tool-stat-nature-empty',
+  '.tool-stat-preset-button',
+  '.tool-stat-preset-popover',
+  '.tool-stat-preset-menu',
+  '.tool-stat-preset-label',
+  '.tool-stat-preset-row',
+  '.tool-stat-preset-option',
+  '.tool-stat-bulk-strip',
+  '.tool-stat-bulk-card',
+  '.tool-stat-bulk-label',
+  '.tool-stat-bulk-value',
+  '.tool-stat-magic',
+  '.tool-stat-magic-prev',
+  '.tool-stat-magic-current',
+  '.tool-stat-magic-next',
+  '.tool-stat-point-stepper',
+  '.tool-stat-point-button',
+  '.tool-stat-point-input',
+  '.tool-stat-rank-stepper',
+  '.tool-stat-rank-button',
+  '.tool-stat-rank-value',
+  '.tool-stat-rank-empty',
   '.tool-move-panel',
   '.tool-move-panel-head',
   '.tool-move-panel-title',
   '.tool-move-panel-body',
+  '.tool-move-list-frame',
   '.tool-move-list',
   '.tool-move-head-row',
   '.tool-move-row',
@@ -184,10 +222,10 @@ check(!pageCss.includes('#page-calc .ui-panel > .ui-panel-body'), 'calculator pa
 check(allCss.includes('.ui-panel-body.ui-subframe-stack'), 'shared panel body subframe stack spacing exists');
 check(/\.ui-frame-row\s*\{[^}]*gap:\s*var\(--ui-frame-row-gap\)/s.test(allCss), 'shared frame rows own row gap');
 check(/\.page-frame\s*>[\s\S]*\+\s*:where\(\.ui-frame-row,\s*\.ui-frame,\s*\.ui-panel\)\s*\{[^}]*margin-top:\s*var\(--ui-frame-row-gap\)/s.test(allCss), 'shared page frame owns panel row spacing');
-check(!pageCss.includes('#page-calc .results-body.ui-subframe-stack'), 'calculator results body uses shared stack spacing');
+check(!pageCss.includes('#page-calc .calc-results-body.ui-subframe-stack'), 'calculator results body uses shared stack spacing');
 check(!pageCss.includes('#page-calc .battle-grid > .ui-panel > .ui-subframe-stack'), 'calculator side panels use shared stack spacing');
-check(!pageCss.includes('#page-calc #field-panel > .ui-subframe-stack'), 'calculator field panel uses shared stack spacing');
-const structuralSpacingSelectorRe = /(battle-grid|field-row|results-body|field-grid|field-checkbox-grid|matchup-results-panel|matchup-control-row|matchup-slots|matchup-coverage-inputs|matchup-coverage-card|matchup-result-layout|ft-layout|ft-speed-panel-body|ft-speed-embedded|ft-speed-body|rc-grid|rc-my-build-row|rc-input-grid|rc-setup-grid|rc-my-moves-panel|rc-move-set-grid|rc-input-block|rc-side-condition-row|rc-speed-field-row|tool-stat-panel-head|tool-stat-panel-title|tool-stat-panel\b|tool-move-panel-head|tool-move-panel-title|tool-move-panel-body|tool-move-panel\b)/;
+check(!pageCss.includes('#page-calc #calc-field-panel > .ui-subframe-stack'), 'calculator field panel uses shared stack spacing');
+const structuralSpacingSelectorRe = /(battle-grid|calc-field-row|calc-results-body|battle-field-select-frame|calc-field-effects-frame|matchup-results-panel|matchup-control-row|matchup-slots|matchup-coverage-inputs|matchup-coverage-card|matchup-result-layout|ft-layout|ft-speed-panel-body|ft-speed-embedded|ft-speed-body|rc-grid|rc-my-build-row|rc-input-grid|rc-setup-grid|rc-my-moves-panel|rc-move-set-grid|rc-input-block|rc-side-condition-row|rc-speed-field-row|tool-stat-panel-head|tool-stat-panel-title|tool-stat-panel\b|tool-move-panel-head|tool-move-panel-title|tool-move-panel-body|tool-move-panel\b)/;
 const structuralSpacingPropRe = /(?:^|\n)\s*(margin(?:-top|-bottom|-left|-right)?|gap|row-gap|column-gap)\s*:/;
 const structuralSpacingHits = [];
 for (const [file, css] of cssByFile) {

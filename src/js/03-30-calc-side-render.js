@@ -8,61 +8,63 @@ function renderDurabilityStrip(side) {
   const dStats = calcStats(side);
   const physBulk = Math.round(dStats.hp * dStats.def / 0.411);
   const specBulk = Math.round(dStats.hp * dStats.spd / 0.411);
-  return `
-    <div class="durability-grid compact ui-metric-row ui-chip-row">
-      <div class="durability-card phys ui-metric-chip">
-        <span class="durability-label ui-chip-label">\uBB3C\uB9AC \uB0B4\uAD6C</span>
-        <span class="durability-value ui-chip-value">${physBulk.toLocaleString()}</span>
-      </div>
-      <div class="durability-card spec ui-metric-chip">
-        <span class="durability-label ui-chip-label">\uD2B9\uC218 \uB0B4\uAD6C</span>
-        <span class="durability-value ui-chip-value">${specBulk.toLocaleString()}</span>
-      </div>
-    </div>
-  `;
+  return renderToolStatBulkStrip({ phys: physBulk, spec: specBulk }, {
+    className: 'calc-stat-bulk-strip calc-stat-bulk-strip--compact',
+    cardClass: 'calc-stat-bulk-card',
+    physClass: 'calc-stat-bulk-phys',
+    specClass: 'calc-stat-bulk-spec',
+    labelClass: 'calc-stat-bulk-label',
+    valueClass: 'calc-stat-bulk-value',
+  });
 }
 
 function renderMoveList(sideKey, side) {
-  return `
-    <div class="moves-list tool-move-list ui-control-grid">
-      <div class="move-list-header tool-move-head-row ui-table-head-row" aria-hidden="true">
-        <span></span><span></span><span></span><span></span><span>\uACB0\uC815\uB825</span>
-      </div>
-      ${[0,1,2,3].map(i => {
-        const moveId = side.moves[i];
-        const move = moveId ? MoveById[moveId] : null;
-        const slotBp = move ? manualBpForSlot(side, i, move) : '';
-        const manualBp = normalizeManualBp(side.moveBpOverrides?.[i]);
-        const slotType = move ? manualTypeForSlot(side, i, move) : '';
-        const manualType = normalizeMoveType(side.moveTypeOverrides?.[i]);
-        const targetSide = state[sideKey === 'atk' ? 'def' : 'atk'];
-        const moveForCalc = move ? moveWithManualBp(move, manualBp, manualType) : null;
-        const power = moveForCalc ? estimateMovePower(side, moveForCalc, targetSide) : null;
-        return `
-          <div class="move-slot tool-move-row ui-control-row" data-move-slot="${i}">
-            <span class="move-slot-num tool-move-index ui-index">${i+1}</span>
-            <div class="move-select tool-move-combobox combobox" data-cb="${sideKey}-move-${i}">
-              <input type="text" class="cb-input tool-move-input" value="${move ? escapeHTML(mvName(move)) : ''}" data-cb-type="move" data-side="${sideKey}" data-field="moves.${i}" placeholder="\uC5C6\uC74C" autocomplete="off" aria-label="${sideKey} move ${i+1} select" aria-expanded="false">
-              <div class="combobox-options" role="listbox"></div>
-            </div>
-            <div class="move-type-control tool-move-type-control combobox type-pill-combobox ${slotType ? `t-${slotType}` : 'type-none'}" data-cb="${sideKey}-move-type-${i}">
-              <button type="button" class="cb-input cb-trigger tool-move-type-input" data-cb-type="moveType" data-side="${sideKey}" data-field="moveTypes.${i}" aria-label="${sideKey} move ${i+1} type" aria-expanded="false" ${move ? '' : 'disabled'}>${slotType ? escapeHTML(TYPE_KO[slotType] || slotType) : ''}</button>
-              <div class="combobox-options" role="listbox"></div>
-            </div>
-            <label class="hp-inline-control move-bp-control tool-move-power-control ui-inline-number is-plain" title="power">
-              <input type="text" class="hp-percent-input move-bp-input tool-move-power-input ui-inline-number-input" data-action="moveBp" data-side="${sideKey}" data-slot="${i}" value="${move ? slotBp : ''}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} move ${i+1} power" ${move ? '' : 'disabled'}>
-            </label>
-            ${move ? `<span class="move-stat-info tool-move-power-readout ui-stat-readout"><b>${typeof power.eff === 'number' ? power.eff.toLocaleString() : power.eff}</b></span>` : '<span class="move-stat-info tool-move-power-readout empty ui-stat-readout">-</span>'}
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `;
+  const rows = [0,1,2,3].map(i => {
+    const moveId = side.moves[i];
+    const move = moveId ? MoveById[moveId] : null;
+    const slotBp = move ? manualBpForSlot(side, i, move) : '';
+    const manualBp = normalizeManualBp(side.moveBpOverrides?.[i]);
+    const slotType = move ? manualTypeForSlot(side, i, move) : '';
+    const manualType = normalizeMoveType(side.moveTypeOverrides?.[i]);
+    const targetSide = state[sideKey === 'atk' ? 'def' : 'atk'];
+    const moveForCalc = move ? moveWithManualBp(move, manualBp, manualType) : null;
+    const power = moveForCalc ? estimateMovePower(side, moveForCalc, targetSide) : null;
+    return {
+      index: i + 1,
+      attrs: { 'data-move-slot': i },
+      nameHtml: `
+        <div class="tool-move-combobox combobox" data-cb="${sideKey}-move-${i}">
+          <input type="text" class="cb-input tool-move-input" value="${move ? escapeHTML(mvName(move)) : ''}" data-cb-type="move" data-side="${sideKey}" data-field="moves.${i}" placeholder="\uC5C6\uC74C" autocomplete="off" aria-label="${sideKey} move ${i+1} select" aria-expanded="false">
+          <div class="combobox-options" role="listbox"></div>
+        </div>
+      `,
+      typeHtml: `
+        <div class="tool-move-type-control combobox type-pill-combobox ${slotType ? `t-${slotType}` : 'type-none'}" data-cb="${sideKey}-move-type-${i}">
+          <button type="button" class="cb-input cb-trigger tool-move-type-input" data-cb-type="moveType" data-side="${sideKey}" data-field="moveTypes.${i}" aria-label="${sideKey} move ${i+1} type" aria-expanded="false" ${move ? '' : 'disabled'}>${slotType ? escapeHTML(TYPE_KO[slotType] || slotType) : ''}</button>
+          <div class="combobox-options" role="listbox"></div>
+        </div>
+      `,
+      powerHtml: `
+        <label class="tool-move-power-control ui-inline-number is-plain" title="power">
+          <input type="text" class="tool-move-power-input ui-inline-number-input" data-action="moveBp" data-side="${sideKey}" data-slot="${i}" value="${move ? slotBp : ''}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} move ${i+1} power" ${move ? '' : 'disabled'}>
+        </label>
+      `,
+      readoutHtml: move
+        ? `<span class="tool-move-power-readout ui-stat-readout"><b>${typeof power.eff === 'number' ? power.eff.toLocaleString() : power.eff}</b></span>`
+        : '<span class="tool-move-power-readout empty ui-stat-readout">-</span>',
+    };
+  });
+
+  return renderToolMoveList(rows, {
+    className: 'tool-move-list--full',
+    columns: ['index', 'name', 'type', 'power', 'readout'],
+  });
 }
 
 function renderSide(sideKey) {
   const side = state[sideKey];
   const container = document.getElementById(`${sideKey}-body`);
+  if (typeof calcCleanupComboboxPortals === 'function') calcCleanupComboboxPortals(sideKey);
   const p = PokemonById[side.pokemonIdx];
   if (!p) { container.innerHTML = '<div class="empty-state ui-empty">\uD3EC\uCF13\uBAAC \uC120\uD0DD \uD544\uC694</div>'; return; }
   
@@ -72,10 +74,9 @@ function renderSide(sideKey) {
   const totalEV = Object.values(side.evs).reduce((a,b) => a+b, 0);
   const overEV = totalEV > 66;
   const manualDamageBlockToggle = renderManualDamageBlockToggle(sideKey, side);
-  const natureInfo = NATURE_BY_ID[side.nature] || {};
   const evPresetButtons = ['AS', 'HA', 'HB', 'CS', 'HC', 'HD'].map(preset =>
     uiButton(preset, {
-      class: `ev-preset-btn ${calcEvPresetProgress[sideKey]?.evPreset === preset ? 'active' : ''}`,
+      class: `calc-stat-preset-option tool-stat-preset-option ${calcEvPresetProgress[sideKey]?.evPreset === preset ? 'active' : ''}`,
       'data-action': 'evPreset',
       'data-side': sideKey,
       'data-preset': preset,
@@ -93,7 +94,7 @@ function renderSide(sideKey) {
   ];
   const naturePresetButtons = naturePresets.map(([id, label, title]) =>
     uiButton(label, {
-      class: `ev-preset-btn nature-btn ${calcEvPresetProgress[sideKey]?.nature === id ? 'active' : ''}`,
+      class: `calc-stat-preset-option tool-stat-preset-option calc-stat-nature-option ${calcEvPresetProgress[sideKey]?.nature === id ? 'active' : ''}`,
       'data-action': 'naturePreset',
       'data-side': sideKey,
       'data-nature': id,
@@ -101,9 +102,42 @@ function renderSide(sideKey) {
       'aria-label': `${label}: ${title}`,
     })
   ).join('');
+  const statRows = renderToolStatRows(STATS.map(s => {
+    const r = side.ranks[s] || 0;
+    return {
+      stat: s,
+      label: STAT_LABEL[s],
+      base: p.bs[s],
+      point: side.evs[s],
+      final: stats[s],
+      natureHtml: renderToolStatNatureMark(s, side.nature, {
+        upClass: 'nature-stat-mark up',
+        downClass: 'nature-stat-mark down',
+        emptyClass: 'nature-stat-mark empty',
+      }),
+      pointOptions: {
+        inputType: 'number',
+        zeroAttrs: { 'data-action': 'evQuick', 'data-side': sideKey, 'data-stat': s, 'data-val': '0', title: 'set 0' },
+        inputAttrs: { 'data-action': 'ev', 'data-side': sideKey, 'data-stat': s, autocomplete: 'off', 'aria-label': `${STAT_LABEL[s]} EV` },
+        maxAttrs: { 'data-action': 'evQuick', 'data-side': sideKey, 'data-stat': s, 'data-val': '32', title: 'set 32' },
+      },
+      rank: r,
+      rankOptions: {
+        rankable: s !== 'hp',
+        decAttrs: { 'data-action': 'rank', 'data-side': sideKey, 'data-stat': s, 'data-dir': '-1' },
+        incAttrs: { 'data-action': 'rank', 'data-side': sideKey, 'data-stat': s, 'data-dir': '1' },
+      },
+    };
+  }), {
+    rowClass: 'calc-stat-row',
+    nameClass: 'calc-stat-name',
+    nameTextClass: 'calc-stat-name-text',
+    baseClass: 'calc-stat-base',
+    finalClass: 'calc-stat-final',
+  });
   const pokemonPicker = renderToolPokemonSelectSubframe({
     fieldClass: 'pokemon-field',
-    headClass: 'pokemon-field-head ui-section-head',
+    headClass: 'calc-pokemon-field-head ui-section-head',
     labelClass: 'ui-section-title',
     primaryActions: uiButton('불러오기', {
       class: 'party-load-button ui-label-action ui-field-action',
@@ -138,7 +172,7 @@ function renderSide(sideKey) {
     ${pokemonPicker}
 
     <!-- ?뱀꽦/?꾧뎄 + ?깃꺽/HP/?곹깭 -->
-    <div class="field calc-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+    <div class="calc-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
       <div class="calc-pair-grid tool-settings-grid ui-control-grid">
         <div class="calc-control-cell tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell" data-tool-setting="ability">
           <span class="calc-control-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-control-label">\uD2B9\uC131</span>
@@ -184,67 +218,43 @@ function renderSide(sideKey) {
     </div>
 
     <!-- ?ㅽ꺈 (?λ젰?ъ씤??+ ??겕 + ?ㅼ닔移? -->
-    <div class="field ev-field ev-preset-shell tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field" data-ev-preset-side="${sideKey}">
-      <div class="ev-field-head tool-stat-panel-head ui-section-head">
+    <div class="calc-stat-panel calc-stat-preset-shell tool-stat-panel tool-stat-set tool-stat-set--calc tool-stat-has-preset tool-stat-has-bulk tool-stat-has-nature ui-control-frame ui-subframe ui-subframe-stack ui-field" data-calc-stat-preset-side="${sideKey}">
+      <div class="calc-stat-panel-head tool-stat-panel-head ui-section-head">
         <div class="tool-stat-panel-title ui-section-title">
           <span>\uB2A5\uB825 \uD3EC\uC778\uD2B8 \u00B7 \uB7AD\uD06C</span>
-          <button type="button" class="ev-preset-toggle calc-ev-preset-button ui-popover-trigger" data-action="evPresetMenu" data-side="${sideKey}" aria-expanded="false" aria-controls="ev-presets-${sideKey}">\uD504\uB9AC\uC14B</button>
+          <button type="button" class="calc-stat-preset-toggle tool-stat-preset-button ui-popover-trigger" data-action="evPresetMenu" data-side="${sideKey}" aria-expanded="false" aria-controls="calc-stat-preset-menu-${sideKey}">\uD504\uB9AC\uC14B</button>
         </div>
-        <div class="ev-total tool-stat-total ui-label-action ui-metric-chip is-static ${overEV ? 'over' : ''}">
+        <div class="calc-stat-total tool-stat-total ui-label-action ui-metric-chip is-static ${overEV ? 'over' : ''}">
           <span>\uCD1D\uD569</span>
           <span><b>${totalEV}</b>/66</span>
         </div>
       </div>
-      <div class="ev-control-layout tool-stat-panel-body">
-        <div class="stat-grid tool-stat-grid ui-stat-grid ui-stat-table">
-          <div class="stat-table-head ui-stat-head">\uB2A5\uB825</div>
-          <div class="stat-table-head ui-stat-head">\uC885\uC871\uAC12</div>
-          <div class="stat-table-head ui-stat-head">\uB178\uB825\uCE58</div>
-          <div class="stat-table-head ui-stat-head">\uC2E4\uC218\uCE58</div>
-          <div class="stat-table-head ui-stat-head">\uB7AD\uD06C</div>
-          ${STATS.map(s => {
-            const r = (side.ranks[s] || 0);
-            const isRankable = s !== 'hp';
-            const cls = r > 0 ? 'up' : r < 0 ? 'down' : '';
-            const natureMark = natureInfo.up === s
-              ? '<span class="nature-stat-mark up" aria-label="nature up">\u25B2</span>'
-              : natureInfo.down === s
-                ? '<span class="nature-stat-mark down" aria-label="nature down">\u25BC</span>'
-                : '<span class="nature-stat-mark empty" aria-hidden="true"></span>';
-            return `
-              <div class="stat-name ui-stat-name"><span class="stat-name-text">${STAT_LABEL[s]}</span>${natureMark}</div>
-              <div class="stat-base ui-stat-readout">${p.bs[s]}</div>
-              <div class="calc-stat-point-stepper tool-stat-point-stepper ui-stepper">
-                <button type="button" class="calc-stat-point-button tool-stat-point-button" data-action="evQuick" data-side="${sideKey}" data-stat="${s}" data-val="0" title="set 0">0</button>
-                <input type="text" class="calc-stat-point-input tool-stat-point-input" data-action="ev" data-side="${sideKey}" data-stat="${s}" value="${side.evs[s]}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${STAT_LABEL[s]} EV">
-                <button type="button" class="calc-stat-point-button tool-stat-point-button" data-action="evQuick" data-side="${sideKey}" data-stat="${s}" data-val="32" title="set 32">32</button>
-              </div>
-              <div class="stat-final ui-stat-readout">${stats[s]}</div>
-              ${isRankable ? `
-                <div class="calc-stat-rank-stepper tool-stat-rank-stepper ui-stepper">
-                  <button type="button" class="calc-stat-rank-button tool-stat-rank-button" data-action="rank" data-side="${sideKey}" data-stat="${s}" data-dir="-1">-</button>
-                  <span class="calc-stat-rank-value tool-stat-rank-value ui-stat-value ${cls}">${r > 0 ? '+' + r : r}</span>
-                  <button type="button" class="calc-stat-rank-button tool-stat-rank-button" data-action="rank" data-side="${sideKey}" data-stat="${s}" data-dir="1">+</button>
-                </div>
-              ` : '<div class="calc-stat-rank-empty tool-stat-rank-empty" aria-hidden="true"></div>'}
-            `;
-          }).join('')}
+      <div class="calc-stat-body tool-stat-panel-body">
+        <div class="tool-stat-table-frame ui-control-frame">
+          <div class="calc-stat-grid tool-stat-grid ui-stat-grid ui-stat-table">
+            ${renderToolStatHead(['name', 'base', 'point', 'final', 'rank'], {
+              rowClass: 'calc-stat-head-row',
+              cellClass: 'calc-stat-head',
+              labels: { point: '\uB178\uB825\uCE58' },
+            })}
+            ${statRows}
+          </div>
         </div>
       </div>
       ${renderDurabilityStrip(side)}
-      <div class="ev-preset-popover ui-popover" id="ev-presets-${sideKey}" role="dialog" aria-label="${sideKey} EV presets" aria-hidden="true">
-        <div class="ev-presets">
-          <div class="ev-presets-label">
+      <div class="calc-stat-preset-popover tool-stat-preset-popover ui-popover" id="calc-stat-preset-menu-${sideKey}" role="dialog" aria-label="${sideKey} EV presets" aria-hidden="true">
+        <div class="calc-stat-preset-menu tool-stat-preset-menu">
+          <div class="calc-stat-preset-label tool-stat-preset-label">
             <span>\uB178\uB825\uCE58 \uD504\uB9AC\uC14B</span>
-            <button type="button" class="reset-btn" data-action="evReset" data-side="${sideKey}">\uCD08\uAE30\uD654</button>
+            <button type="button" class="calc-stat-reset-button" data-action="evReset" data-side="${sideKey}">\uCD08\uAE30\uD654</button>
           </div>
-          <div class="ev-presets-row">
+          <div class="calc-stat-preset-row tool-stat-preset-row">
             ${evPresetButtons}
           </div>
-          <div class="ev-presets-label secondary">
+          <div class="calc-stat-preset-label calc-stat-preset-label--secondary tool-stat-preset-label">
             <span>\uC131\uACA9 \uD504\uB9AC\uC14B</span>
           </div>
-          <div class="ev-presets-row natures">
+          <div class="calc-stat-preset-row calc-stat-preset-row--natures tool-stat-preset-row">
             ${naturePresetButtons}
           </div>
         </div>
@@ -252,14 +262,16 @@ function renderSide(sideKey) {
     </div>
 
     <!-- 湲곗닠 -->
-    <div class="field move-field tool-move-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
-      <div class="ev-field-head move-field-head tool-move-panel-head ui-section-head">
-        <div class="field-label move-title-label tool-move-panel-title ui-field-label ui-section-title">
+    <div class="tool-move-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
+      <div class="tool-move-panel-head ui-section-head">
+        <div class="tool-move-panel-title ui-section-title">
           <span>\uAE30\uC220 \uBC30\uCE58</span>
         </div>
       </div>
-      <div class="move-control-layout move-section tool-move-panel-body">
-        ${renderMoveList(sideKey, side)}
+      <div class="tool-move-panel-body">
+        <div class="tool-move-list-frame ui-control-frame">
+          ${renderMoveList(sideKey, side)}
+        </div>
       </div>
     </div>
 
@@ -317,11 +329,27 @@ function wireSide(sideKey) {
   });
   
   // ?쇰컲 input/select
-  container.querySelectorAll('[data-action]').forEach(el => {
+  container.querySelectorAll('[data-action], [data-tool-stat-point-input], [data-tool-stat-point-set], [data-tool-stat-rank]').forEach(el => {
     const action = el.dataset.action;
     if (action === 'moveBp') {
       el.addEventListener('input', () => applyMoveBpInput(el));
       el.addEventListener('change', () => applyMoveBpInput(el, true));
+      return;
+    }
+    if (el.dataset.toolStatPointInput && action === 'ev') {
+      const applyPointInput = event => {
+        const side = state[el.dataset.side];
+        const stat = el.dataset.toolStatPointInput || el.dataset.stat;
+        const normalized = toolStatNormalizePointInputValue(el.value);
+        if (normalized !== el.value) el.value = normalized;
+        const finalVal = toolStatApplyPointValue(side, stat, el.value);
+        if (!toolStatShouldCommitPointInput(el.value, event.type)) return;
+        if (String(finalVal) !== String(el.value)) el.value = finalVal;
+        renderSide(el.dataset.side);
+        triggerCalc();
+      };
+      el.addEventListener('input', applyPointInput);
+      el.addEventListener('change', applyPointInput);
       return;
     }
     const evt = el.tagName === 'BUTTON' ? 'click' : 'change';
@@ -381,33 +409,24 @@ function wireSide(sideKey) {
       else if (action === 'teraToggle') { side.tera = !side.tera; renderSide(el.dataset.side); return; }
       else if (action === 'teraType') side.teraType = el.value;
       else if (action === 'ev') {
-        const stat = el.dataset.stat;
-        const requested = Math.max(0, Math.min(32, parseInt(el.value) || 0));
-        // ?ㅻⅨ ?ㅽ꺈 ?⑷퀎
-        const otherTotal = STATS.reduce((sum, s) => sum + (s === stat ? 0 : (side.evs[s] || 0)), 0);
-        const remaining = Math.max(0, 66 - otherTotal);
-        // ?붿껌媛믨낵 ?붿뿬 ?쒕룄 以??묒? 媛믪쑝濡??대옩??        const finalVal = Math.min(requested, remaining);
-        side.evs[stat] = finalVal;
-        // ?ъ슜?먭? ?낅젰??媛믨낵 ?ㅼ젣 ?곸슜??媛믪씠 ?ㅻⅤ硫?input.value???낅뜲?댄듃
-        if (finalVal !== requested) {
+        const stat = el.dataset.toolStatPointInput || el.dataset.stat;
+        const finalVal = toolStatApplyPointValue(side, stat, el.value);
+        if (String(finalVal) !== String(el.value)) {
           el.value = finalVal;
         }
       }
       else if (action === 'evQuick') {
-        const stat = el.dataset.stat;
-        const requested = parseInt(el.dataset.val);
-        const otherTotal = STATS.reduce((sum, s) => sum + (s === stat ? 0 : (side.evs[s] || 0)), 0);
-        const remaining = Math.max(0, 66 - otherTotal);
-        side.evs[stat] = Math.min(requested, remaining);
+        const stat = el.dataset.toolStatPointSet || el.dataset.stat;
+        const requested = el.dataset.toolStatPointValue ?? el.dataset.val;
+        toolStatApplyPointValue(side, stat, requested);
         renderSide(el.dataset.side);
         triggerCalc();
         return;
       }
       else if (action === 'rank') {
-        const dir = parseInt(el.dataset.dir);
-        const curr = side.ranks[el.dataset.stat] || 0;
-        side.ranks[el.dataset.stat] = Math.max(-6, Math.min(6, curr + dir));
-        // ?щ젋?붾쭅?댁꽌 ?쒖떆 ?낅뜲?댄듃
+        const stat = el.dataset.toolStatRank || el.dataset.stat;
+        const dir = el.dataset.toolStatRankDir || el.dataset.dir;
+        toolStatApplyRankDelta(side, stat, dir);
         renderSide(el.dataset.side);
         triggerCalc();
         return;
@@ -449,28 +468,28 @@ function wireSide(sideKey) {
 function setEvPresetPopover(wrapper, open) {
   if (!wrapper) return;
   wrapper.classList.toggle('is-preset-open', open);
-  const toggle = wrapper.querySelector('.ev-preset-toggle');
-  const popover = wrapper.querySelector('.ev-preset-popover');
+  const toggle = wrapper.querySelector('.calc-stat-preset-toggle');
+  const popover = wrapper.querySelector('.calc-stat-preset-popover');
   toggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
   popover?.setAttribute('aria-hidden', open ? 'false' : 'true');
   if (!open) {
-    resetEvPresetProgress(wrapper.dataset.evPresetSide);
+    resetEvPresetProgress(wrapper.dataset.calcStatPresetSide);
     clearEvPresetActiveButtons(wrapper);
   }
 }
 
 function closeEvPresetPopovers(except = null) {
-  document.querySelectorAll('#page-calc .ev-preset-shell.is-preset-open').forEach(wrapper => {
+  document.querySelectorAll('#page-calc .calc-stat-preset-shell.is-preset-open').forEach(wrapper => {
     if (wrapper !== except) setEvPresetPopover(wrapper, false);
   });
 }
 
 function toggleEvPresetPopover(button) {
-  const wrapper = button?.closest('.ev-preset-shell');
+  const wrapper = button?.closest('.calc-stat-preset-shell');
   if (!wrapper) return;
   const willOpen = !wrapper.classList.contains('is-preset-open');
   closeEvPresetPopovers(wrapper);
-  resetEvPresetProgress(wrapper.dataset.evPresetSide);
+  resetEvPresetProgress(wrapper.dataset.calcStatPresetSide);
   clearEvPresetActiveButtons(wrapper);
   setEvPresetPopover(wrapper, willOpen);
 }
@@ -482,7 +501,7 @@ function resetEvPresetProgress(sideKey) {
 }
 
 function clearEvPresetActiveButtons(wrapper) {
-  wrapper?.querySelectorAll('.ev-preset-btn.active').forEach(button => {
+  wrapper?.querySelectorAll('.calc-stat-preset-option.active').forEach(button => {
     button.classList.remove('active');
   });
 }
@@ -496,8 +515,8 @@ function stageEvPresetSelection(button, kind) {
   } else {
     pending.nature = button.dataset.nature;
   }
-  const row = button.closest('.ev-presets-row');
-  row?.querySelectorAll('.ev-preset-btn').forEach(item => {
+  const row = button.closest('.calc-stat-preset-row');
+  row?.querySelectorAll('.calc-stat-preset-option').forEach(item => {
     item.classList.toggle('active', item === button);
   });
   return Boolean(pending.evPreset && pending.nature);

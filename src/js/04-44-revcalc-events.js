@@ -12,11 +12,11 @@ function rcSyncInputsFromDom() {
     const idx = parseInt(el.dataset.rcMoveslot, 10);
     if (Number.isInteger(idx) && idx >= 0 && idx < RC_MOVESET_SIZE) rcMoveSet()[idx] = el.value;
   });
-  const evInputs = Array.from(root.querySelectorAll('[data-rc-ev]'));
+  const evInputs = Array.from(root.querySelectorAll('[data-rc-ev], [data-tool-stat-point-input]'));
   if (evInputs.length) {
     const requested = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
     evInputs.forEach(el => {
-      const stat = el.dataset.rcEv;
+      const stat = el.dataset.toolStatPointInput || el.dataset.rcEv;
       if (stat in requested) requested[stat] = Math.max(0, Math.min(32, parseInt(el.value, 10) || 0));
     });
     let remaining = 66;
@@ -509,9 +509,15 @@ function rcFieldComboboxLabel(kind, value) {
 
 function rcRenderFieldCombobox(kind, value) {
   const current = value || 'none';
+  const battleKindClass = kind === 'weather'
+    ? ' battle-field-combobox battle-weather-combobox ui-choice-combobox'
+    : kind === 'terrain'
+      ? ' battle-field-combobox battle-terrain-combobox ui-choice-combobox'
+      : '';
+  const battleSurfaceClass = kind === 'weather' || kind === 'terrain' ? ' ui-choice-surface' : '';
   return `
-    <div class="combobox rc-field-combobox rc-${escapeHTML(kind)}-combobox">
-      <button type="button" class="cb-input cb-trigger" data-rc-field-combobox="${escapeHTML(kind)}" data-rc-field="${escapeHTML(kind)}" data-cb-type="${escapeHTML(kind)}" data-value="${escapeHTML(current)}" value="${escapeHTML(current)}" aria-expanded="false">${escapeHTML(rcFieldComboboxLabel(kind, current))}</button>
+    <div class="combobox rc-field-combobox rc-${escapeHTML(kind)}-combobox${battleKindClass}">
+      <button type="button" class="cb-input cb-trigger${battleSurfaceClass}" data-rc-field-combobox="${escapeHTML(kind)}" data-rc-field="${escapeHTML(kind)}" data-cb-type="${escapeHTML(kind)}" data-value="${escapeHTML(current)}" value="${escapeHTML(current)}" aria-expanded="false">${escapeHTML(rcFieldComboboxLabel(kind, current))}</button>
       <div class="combobox-options"></div>
     </div>
   `;
@@ -790,12 +796,14 @@ function rcComboSearchMatches(query, option) {
 // 위임 이벤트 핸들러
 document.getElementById('page-revcalc')?.addEventListener('change', e => {
   const t = e.target;
-  if (t.dataset.rcEv) {
-    const stat = t.dataset.rcEv;
-    const evs = revCalcState.my.evs;
-    const requested = Math.max(0, Math.min(32, parseInt(t.value, 10) || 0));
-    const otherSum = ['hp','atk','def','spa','spd','spe'].reduce((a, k) => k === stat ? a : a + (evs[k] || 0), 0);
-    evs[stat] = Math.min(requested, Math.max(0, 66 - otherSum));
+  const pointInputStat = t.dataset.toolStatPointInput || t.dataset.rcEv;
+  if (pointInputStat) {
+    const stat = pointInputStat;
+    const normalized = toolStatNormalizePointInputValue(t.value);
+    if (normalized !== t.value) t.value = normalized;
+    const finalVal = toolStatApplyPointValue(revCalcState.my, stat, t.value);
+    if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
+    if (String(finalVal) !== String(t.value)) t.value = finalVal;
     renderRevCalcMy();
     renderRevCalcInputs();
     return;
@@ -869,6 +877,17 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
 
 document.getElementById('page-revcalc')?.addEventListener('input', e => {
   const t = e.target;
+  const pointInputStat = t.dataset.toolStatPointInput || t.dataset.rcEv;
+  if (pointInputStat) {
+    const normalized = toolStatNormalizePointInputValue(t.value);
+    if (normalized !== t.value) t.value = normalized;
+    const finalVal = toolStatApplyPointValue(revCalcState.my, pointInputStat, t.value);
+    if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
+    if (String(finalVal) !== String(t.value)) t.value = finalVal;
+    renderRevCalcMy();
+    renderRevCalcInputs();
+    return;
+  }
   if (!t.dataset?.rcAction) return;
   if (t.dataset.rcAction === 'myMoveBp') revCalcState.myMoveBp = t.value;
   if (t.dataset.rcAction === 'oppMoveBp') revCalcState.oppMoveBp = t.value;
@@ -903,29 +922,29 @@ document.getElementById('page-revcalc')?.addEventListener('click', e => {
     renderRevCalcResults();
     return;
   }
-  if (t.dataset.rcEvset !== undefined) {
-    const stat = t.dataset.rcEvset;
-    const evs = revCalcState.my.evs;
-    const requested = parseInt(t.dataset.rcEvval, 10) || 0;
-    const otherSum = ['hp','atk','def','spa','spd','spe'].reduce((a, k) => k === stat ? a : a + (evs[k] || 0), 0);
-    evs[stat] = Math.min(requested, Math.max(0, 66 - otherSum));
+  const pointSetStat = t.dataset.toolStatPointSet || t.dataset.rcEvset;
+  if (pointSetStat !== undefined) {
+    const stat = pointSetStat;
+    toolStatApplyPointValue(revCalcState.my, stat, t.dataset.toolStatPointValue ?? t.dataset.rcEvval);
     renderRevCalcMy();
     renderRevCalcInputs();
     return;
   }
-  if (t.dataset.rcRank) {
-    const stat = t.dataset.rcRank;
-    const dir = parseInt(t.dataset.rcDir, 10);
-    revCalcState.my.ranks[stat] = Math.max(-6, Math.min(6, (revCalcState.my.ranks[stat] || 0) + dir));
+  const myRankStat = t.dataset.rcRank || (t.dataset.rcOpprank ? '' : t.dataset.toolStatRank);
+  if (myRankStat) {
+    const stat = myRankStat;
+    const dir = t.dataset.toolStatRankDir || t.dataset.rcDir;
+    toolStatApplyRankDelta(revCalcState.my, stat, dir);
     revCalcState.nextMyRanks[stat] = revCalcState.my.ranks[stat];
     renderRevCalcMy();
     renderRevCalcInputs();
     return;
   }
-  if (t.dataset.rcOpprank) {
-    const stat = t.dataset.rcOpprank;
-    const dir = parseInt(t.dataset.rcDir, 10);
-    revCalcState.opp.ranks[stat] = Math.max(-6, Math.min(6, (revCalcState.opp.ranks[stat] || 0) + dir));
+  const oppRankStat = t.dataset.rcOpprank;
+  if (oppRankStat) {
+    const stat = oppRankStat;
+    const dir = t.dataset.toolStatRankDir || t.dataset.rcDir;
+    toolStatApplyRankDelta(revCalcState.opp, stat, dir);
     revCalcState.nextOppRanks[stat] = revCalcState.opp.ranks[stat];
     renderRevCalcOpp();
     return;

@@ -1,221 +1,412 @@
-# UI Panel / Subframe Handoff
+# UI Handoff: Calculator UI Complete
 
-이 문서는 다른 PC에서 `codex-ui-panel-subframe-handoff-20260519` 브랜치를 이어서 작업하기 위한 단일 handoff 문서다. 현재 작업의 목표는 계산기, 형태 역계산, 세부조정, 상성표의 panel/subframe 구조와 기본 UI 값을 공통 class로 정리하는 것이다. 도감은 마지막에 별도 정리할 예정이므로 이번 공통화 범위에서는 제외한다.
+이 문서는 다른 PC에서 `codex-ui-panel-subframe-handoff-20260519` 브랜치를 이어받아 작업할 때 필요한 UI 구조 인수인계 문서다. 2026-05-19 기준 대미지 계산기 UI 구조 정리는 완료 상태이며, 다음 작업은 형태 역계산과 세부조정 메뉴를 같은 규칙으로 맞추는 것이다.
 
 ## 현재 브랜치
 
 - 작업 브랜치: `codex-ui-panel-subframe-handoff-20260519`
 - 원격 브랜치: `origin/codex-ui-panel-subframe-handoff-20260519`
-- 기준 방향: 대미지 계산기의 포켓몬 선택, 포켓몬 설정, panel/subframe 규격을 base로 삼아 다른 메뉴에 확산한다.
+- 커밋 기준 메모: `calculator ui complete`
 
-## 현재 상태 요약
+## 기본 방향
 
-- 모든 주요 메뉴의 최외곽 panel은 `ui-panel` 계열 공통 class를 받도록 정리했다.
-- panel header는 높이 `50px` 기준으로 통일했다.
-- panel header 안의 title, actions, 버튼, ATK/DEF badge는 공통 규격을 타도록 정리했다.
-- panel border, radius, point line, overflow 등 frame 관련 개별 override를 제거하고 색상 variant만 개별로 남기는 방향으로 정리했다.
-- panel body는 `ui-subframe-stack`을 통해 내부 subframe 간격을 공통 관리한다.
-- `margin`, `gap` 계열 layout 값은 가능한 한 menu-specific selector에서 제거하고 공통 layout/grid class로 올렸다.
-- 도감(`dex-*`)은 아직 별도 정리 대상이라 검사/정리 대상에서 제외한다.
-
-## 공통 구조 원칙
-
-기본 계층은 아래 순서로 본다.
+전체 UI 계층은 아래 구조를 기준으로 둔다.
 
 ```text
-page layout
-> ui-panel
-  > ui-panel-head
-  > ui-panel-body.ui-subframe-stack
-    > ui-subframe
-      > common element classes
+메뉴별 LAYOUT
+> UI-PANEL
+  > SUBFRAME
+    > ELEMENT
 ```
+
+- 메뉴별 layout은 화면 배치가 다를 수 있으므로 각 메뉴 전용 클래스를 허용한다.
+- 패널, 서브프레임, 라벨, 버튼, 입력칸, 뱃지, 스텝퍼는 가능한 공통 `ui-*`와 `tool-*` 클래스를 먼저 사용한다.
+- 대미지 계산기에서만 필요한 기능/상태/배치는 `calc-*` 클래스로 분리한다.
+- 이전 구조의 `panel`, `panel-head`, `field`, `field-label`, `ev-*`, `stat-*`, `durability-*`, `move-card`, `results-body` 같은 계산기 레거시 클래스는 `#page-calc` 안에서 제거했다.
+- 구조와 시각 스타일이 섞이지 않도록 한다. 구조는 `ui-*`, 도구 공통 요소는 `tool-*`, 계산기 전용 요소는 `calc-*`로 읽히게 둔다.
+
+## 공통 클래스 규칙
 
 ### Panel
 
-최외곽 frame은 아래 구조를 기준으로 한다.
+패널은 최외곽 영역이다.
 
 ```html
-<section class="panel ui-frame ui-panel ...">
-  <div class="panel-head ui-frame-head ui-panel-head">
-    <div class="panel-title ui-panel-title">...</div>
-    <div class="panel-head-actions ui-action-row ui-panel-actions">...</div>
+<section class="ui-frame ui-panel ...">
+  <div class="ui-frame-head ui-panel-head">
+    <div class="ui-panel-title">...</div>
+    <div class="ui-action-row ui-panel-actions">...</div>
   </div>
-  <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack">
+  <div class="ui-frame-body ui-panel-body ui-subframe-stack">
     ...
   </div>
 </section>
 ```
 
-- `panel`, `panel-head`, `panel-title`, `panel-body`는 기존 호환 class로 남을 수 있다.
-- 실제 공통 frame 값은 `ui-panel`, `ui-panel-head`, `ui-panel-title`, `ui-panel-body`에서 관리한다.
-- 메뉴별 class는 기능/색상 variant를 위한 보조 class로만 남기는 방향이다.
+주요 공통 클래스:
+
+- `ui-frame`
+- `ui-panel`
+- `ui-frame-head`
+- `ui-panel-head`
+- `ui-panel-title`
+- `ui-panel-tag`
+- `ui-action-row`
+- `ui-panel-actions`
+- `ui-frame-body`
+- `ui-panel-body`
+- `ui-subframe-stack`
 
 ### Subframe
 
-panel 내부의 기능 묶음은 아래 구조를 기준으로 한다.
+패널 안의 기능 단위는 서브프레임으로 묶는다.
 
 ```html
-<div class="... ui-control-frame ui-subframe ...">
+<div class="ui-control-frame ui-subframe ...">
   ...
 </div>
 ```
 
-- subframe 자체의 padding, border, radius, background는 `ui-subframe`/`ui-control-frame` 공통값을 우선한다.
-- subframe 제목은 `ui-section-head`, `ui-section-title` 또는 해당 기능의 `tool-*-title` class를 통해 공통 label token을 받는다.
-- panel body 바로 아래에는 가능한 한 subframe만 배치한다.
+주요 공통 클래스:
+
+- `ui-control-frame`
+- `ui-subframe`
+- `ui-control-grid`
+- `ui-control-row`
+- `ui-section-head`
+- `ui-section-title`
 
 ### Element
 
-반복되는 입력/버튼/라벨은 공통 class를 먼저 적용한다.
+반복되는 입력/버튼/뱃지/카드류는 아래 계층을 우선 사용한다.
 
+- 라벨/필드: `ui-field`, `ui-field-label`, `ui-control-label`
 - 버튼: `ui-btn`, `ui-label-action`, `ui-field-action`, `ui-popover-trigger`
-- field/label: `ui-field`, `ui-field-label`, `ui-control-label`
-- row/grid: `ui-control-grid`, `ui-control-row`, `ui-action-row`
-- card/chip: `ui-card`, `ui-card-grid`, `ui-metric-chip`, `ui-status-badge`
-- stat/stepper: `ui-stat-readout`, `ui-stepper`, `tool-stat-*`
-- 포켓몬 선택: `tool-pokemon-*`
-- 포켓몬 설정: `tool-settings-*`
-- 기술배치: `tool-move-*`
+- 입력/선택: `cb-input`, `cb-trigger`, `ui-choice-field`, `ui-choice-combobox`, `ui-choice-surface`
+- 체크박스: `ui-check`
+- 칩/뱃지: `ui-chip-row`, `ui-metric-chip`, `ui-status-badge`
+- 카드: `ui-card-grid`, `ui-card`, `ui-card-head`, `ui-card-body`
+- 수치/스텝퍼: `ui-stat-table`, `ui-stat-grid`, `ui-stat-readout`, `ui-stepper`
 
-## 완료된 주요 작업
+## 대미지 계산기 최종 계층
 
-### 포켓몬 선택 subframe
+대미지 계산기의 `#page-calc` 안은 아래 기준으로 정리되어 있다.
 
-- 대미지 계산기의 포켓몬 선택 UI를 기준으로 `tool-pokemon-*` 계열을 정리했다.
-- 계산기, 형태 역계산, 세부조정의 포켓몬 선택칸은 같은 class 체계를 받도록 맞췄다.
-- 포켓몬 이름 input, 불러오기 버튼, 타입 배지, 보조 action row를 공통 구조로 정리했다.
+```text
+#page-calc.page-frame
+├─ .battle-grid.ui-frame-row
+│  ├─ .ui-frame.atk.ui-panel
+│  │  ├─ .ui-frame-head.ui-panel-head
+│  │  │  ├─ .ui-panel-title: 공격측
+│  │  │  └─ .ui-panel-tag: ATK
+│  │  └─ #atk-body.calc-side-body.ui-frame-body.ui-panel-body.ui-subframe-stack
+│  │     ├─ Pokemon Select Subframe
+│  │     ├─ Settings Subframe
+│  │     ├─ Stat Subframe
+│  │     └─ Move Subframe
+│  ├─ #btnSwapSides.calc-side-swap-button
+│  └─ .ui-frame.def.ui-panel
+│     ├─ .ui-frame-head.ui-panel-head
+│     │  ├─ .ui-panel-title: 방어측
+│     │  └─ .ui-panel-tag: DEF
+│     └─ #def-body.calc-side-body.ui-frame-body.ui-panel-body.ui-subframe-stack
+│        ├─ Pokemon Select Subframe
+│        ├─ Settings Subframe
+│        ├─ Stat Subframe
+│        └─ Move Subframe
+├─ .calc-field-row.ui-frame-row
+│  └─ #calc-field-panel.ui-frame.ui-panel.collapsible
+│     ├─ #calc-field-head.ui-frame-head.ui-panel-head
+│     └─ .ui-frame-body.ui-panel-body.ui-subframe-stack
+│        ├─ .battle-field-select-frame
+│        └─ .calc-field-effects-frame
+└─ .calc-results-panel.ui-frame.ui-panel
+   ├─ .calc-results-head.ui-frame-head.ui-panel-head
+   └─ #calc-results-body.calc-results-body.ui-frame-body.ui-panel-body.ui-subframe-stack
+      ├─ .calc-mold-breaker-info
+      ├─ .calc-speed-row
+      └─ .calc-result-grid
+```
 
-### 특성 / 도구 / 성격 / 상태 / HP%
+## 대미지 계산기 서브프레임 상세
 
-- `tool-settings-*` 계열 공통 class를 추가했다.
-- 특성, 성격, 도구는 같은 선택칸 class를 공유하고 dropdown 데이터만 개별 처리한다.
-- 상태와 HP%는 같은 condition group 계열로 묶었다.
-- HP% input의 focus는 개별 focus style 대신 공통 focus token을 사용하도록 정리했다.
-- 폰트, 높이, radius, border, dark mode debug color가 같은 경로를 타도록 정리했다.
-- dropdown이 열린 상태에서 다른 dropdown을 열 때 둘 다 닫히거나 초기화되는 문제를 combobox active state 처리 쪽에서 정리했다.
+### 1. 포켓몬 선택
 
-### Panel 공통화
+공격측/방어측 모두 `renderToolPokemonSelectSubframe()`을 사용한다.
 
-- 계산기, 형태 역계산, 세부조정, 상성표의 주요 panel이 `ui-panel` 공통 frame을 받도록 정리했다.
-- panel header 높이를 50px 기준으로 맞췄다.
-- header 버튼 높이와 수직 정렬을 공통화했다.
-- 공격측/방어측 badge도 header action 규격에 맞췄다.
-- point line 위치는 수학적 정렬을 유지하는 방향으로 정리했고, round 경계 문제 때문에 최종적으로 공통 panel frame 안에서 처리하도록 맞췄다.
-- 결과 panel의 `overflow: visible` 등 불필요한 개별 frame override를 제거했다.
-- 세부조정 `ft-hp-panel`에 남아 있던 1px 개별 border도 제거해 공통 panel 값을 받게 했다.
+```text
+.tool-pokemon-subframe.ui-control-frame.ui-subframe
+└─ .tool-pokemon-field.ui-field
+   ├─ .ui-field-head.tool-pokemon-head.tool-pokemon-row.tool-pokemon-head-row
+   │  ├─ .tool-pokemon-label-actions
+   │  │  ├─ .ui-field-label.ui-section-title: 포켓몬
+   │  │  └─ .party-load-button.ui-label-action.ui-field-action: 불러오기
+   │  └─ .tool-pokemon-nav-actions
+   │     ├─ .calc-page-jump-button: 세부조정
+   │     └─ .calc-page-jump-button: 역계산
+   ├─ .tool-pokemon-combobox
+   │  └─ .tool-pokemon-input
+   └─ .tool-pokemon-toolbar-row
+      ├─ 타입 선택 버튼
+      ├─ 폼체인지 선택 박스
+      └─ 초기화 버튼
+```
 
-### Panel 내부 layout 정리
+현재 포켓몬 선택 subframe은 대미지 계산기, 형태 역계산, 세부조정이 같은 계열의 `tool-pokemon-*` 구조를 공유한다. 다음 메뉴 정리 때도 이 구조를 유지하면 된다.
 
-- page/panel layout에서 중복된 `margin`, `gap` 값을 제거하고 공통 class로 이관했다.
-- `ui-frame-row`, `.page-frame` sibling spacing, `ui-control-grid`, `ui-control-row`, `ui-subframe-stack`이 기본 간격을 관리한다.
-- 메뉴별 layout class는 column 구성이나 반응형 배치처럼 실제 구조 차이가 있는 경우에만 남긴다.
+### 2. 포켓몬 세팅
 
-### 계산기 필드 / 결과 panel
+특성, 도구, 성격, 상태/HP%는 `tool-settings-*` 계층으로 정리되어 있다.
 
-- 필드 panel은 선택 영역과 부가 효과 영역을 각각 subframe으로 분리했다.
-- 필드 panel의 자동진입효과 토글은 예외 케이스로 header 우측에 유지했다.
-- 결과 panel은 조건 안내, 속도 비교, 기술 결과 카드 영역을 각각 subframe으로 정리했다.
-- 결과 카드 영역은 `ui-card-grid`/`ui-card` 계열과 함께 공통 frame을 받는다.
+```text
+.calc-settings-field.tool-settings-subframe.ui-control-frame.ui-subframe
+└─ .calc-pair-grid.tool-settings-grid.ui-control-grid
+   ├─ 특성: .tool-settings-select-cell
+   ├─ 도구: .tool-settings-select-cell
+   ├─ 성격: .tool-settings-select-cell
+   └─ 상태/HP: .tool-settings-condition-cell
+```
 
-### 형태 역계산
+참고:
 
-- 상대 포켓몬 능력치 영역을 subframe 공통 구조로 정리했다.
-- 관측 panel 안의 데이터 row 묶음에 subframe 계층을 적용했다.
-- 내 행동, 상대 행동, 선후공/필드 상태, 도구 후보 등 주요 block이 `ui-subframe` 계열을 받도록 정리했다.
+- 포켓몬 세팅 선택 UI는 역계산/세부조정과 기본 방향이 맞춰져 있다.
+- 메뉴별로 데이터나 이벤트는 다를 수 있지만, 입력칸/라벨/드롭다운의 시각 계층은 `tool-settings-*`를 기준으로 가져가면 된다.
+- 상태와 HP%처럼 복합 입력인 경우 `tool-settings-compound`, `tool-settings-hp-control`, `tool-settings-status-combobox`를 사용한다.
 
-### 세부조정
+### 3. 능력 포인트 / 랭크
 
-- 상대/스피드 panel 내부를 subframe 계층으로 나눴다.
-- 상대 포켓몬 선택에 2중 subframe이 들어가던 문제는 바깥 subframe을 제거했다.
-- 상대/스피드 내부 stat/speed block이 panel body stack과 subframe 공통 구조를 받도록 정리했다.
+능력치 섹션은 공통 `tool-stat-*` 계층 위에 계산기 전용 `calc-stat-*`를 얹었다.
 
-### 상성표
+```text
+.calc-stat-panel.tool-stat-panel.ui-control-frame.ui-subframe
+├─ .calc-stat-panel-head.tool-stat-panel-head.ui-section-head
+│  ├─ .tool-stat-panel-title.ui-section-title
+│  │  └─ .calc-stat-preset-toggle.tool-stat-preset-button.ui-popover-trigger
+│  └─ .calc-stat-total.tool-stat-total.ui-metric-chip
+├─ .calc-stat-body.tool-stat-panel-body
+│  └─ .tool-stat-table-frame.ui-control-frame
+│     └─ .calc-stat-grid.tool-stat-grid.ui-stat-grid.ui-stat-table
+│        ├─ .calc-stat-head-row.tool-stat-head-row
+│        └─ .calc-stat-row.tool-stat-row
+├─ .calc-stat-bulk-strip.tool-stat-bulk-strip
+│  ├─ .calc-stat-bulk-card.calc-stat-bulk-phys
+│  └─ .calc-stat-bulk-card.calc-stat-bulk-spec
+└─ .calc-stat-preset-popover.tool-stat-preset-popover
+```
 
-- 방어 상성/타점 체크 toggle과 불러오기를 하나의 subframe으로 묶었다.
-- 포켓몬 6마리 선택 영역을 하나의 subframe으로 묶었다.
-- 타점 체크일 때 출력되는 6마리 기술배치 영역을 하나의 subframe으로 묶었다.
+공통으로 쓸 수 있는 함수/요소:
 
-### 능력포인트 / 기술배치
+- `renderToolStatHead()`
+- `renderToolStatRows()`
+- `renderToolStatPointControl()`
+- `renderToolStatRankControl()`
+- `renderToolStatBulkStrip()`
+- `toolStatApplyPointValue()`
+- `toolStatApplyRankDelta()`
 
-- 계산기 능력포인트 subframe에 `tool-stat-*` 공통 class를 추가했다.
-- 계산기 기술배치 subframe에 `tool-move-*` 공통 class를 추가했다.
-- 능력포인트 라벨과 기술배치 라벨은 다른 subframe 라벨과 같은 공통 label token을 받도록 `04-ui-foundation.css`로 올렸다.
-- 세부조정/형태 역계산에 남아 있던 능력포인트 라벨 개별 override를 제거했다.
+계산기 전용 요소:
 
-## 현재 의도적으로 남아 있는 디버그 색상
+- `calc-stat-preset-toggle`
+- `calc-stat-preset-shell`
+- `calc-stat-preset-popover`
+- `calc-stat-preset-option`
+- `calc-stat-reset-button`
+- `calc-stat-total`
+- `calc-stat-bulk-*`
 
-공통 class가 실제로 어디까지 전파되는지 확인하기 위해 debug 색상을 아직 제거하지 않았다.
+다음 작업에서 형태 역계산/세부조정의 능력치 섹션도 이 구조를 그대로 따르게 하는 것이 좋다. 세부조정의 매직넘버 열은 세부조정 전용으로 남기되, 같은 `tool-stat-*` 테이블의 선택 열로 취급하면 된다.
 
-- `--ui-debug-panel-bg`
-- `--ui-debug-subframe-bg`
-- `--ui-debug-pokemon-select-bg`
-- `--ui-debug-settings-select-bg`
+### 4. 기술 배치
 
-다음 작업자가 실제 시각 정리 단계에 들어갈 때 제거하거나 neutral token으로 되돌리면 된다.
+기술 배치는 `tool-move-*` 계층을 사용한다.
 
-## 주요 파일
+```text
+.tool-move-panel.ui-control-frame.ui-subframe
+├─ .tool-move-panel-head.ui-section-head
+│  └─ .tool-move-panel-title.ui-section-title
+└─ .tool-move-panel-body
+   └─ .tool-move-list-frame.ui-control-frame
+      └─ .tool-move-list
+         ├─ .tool-move-head-row
+         └─ .tool-move-row
+            ├─ .tool-move-col-index
+            ├─ .tool-move-combobox / .tool-move-input
+            ├─ .tool-move-type-control / .tool-move-type-input
+            ├─ .tool-move-power-control / .tool-move-power-input
+            └─ .tool-move-power-readout
+```
 
-- `src/styles/04-ui-foundation.css`
-  - `ui-*`, `tool-*` 공통 token과 frame/label/control class의 중심 파일.
-- `src/styles/05-calc-sample-layout.css`
-  - 계산기 전용 배치. 공통 가능한 값은 foundation으로 이동 중이다.
-- `src/styles/07-tools-redesign.css`
-  - 형태 역계산, 세부조정, 상성표 쪽 전용 배치와 variant.
-- `src/styles/08-theme-bridge.css`
-  - dark mode 및 legacy selector bridge.
+타입 배지와 결정력 readout은 공통화해 두었고, 메뉴별로 표시/숨김만 다르게 가져가면 된다.
+
+### 5. 필드 / 부가 효과
+
+필드 패널은 계산기 전용 패널이지만 내부 선택칸은 전투 공통으로 올릴 수 있게 정리했다.
+
+```text
+#calc-field-panel
+├─ .battle-field-select-frame.ui-control-frame.ui-subframe.ui-control-grid
+│  ├─ .battle-weather-field.ui-choice-field: 날씨
+│  ├─ .battle-terrain-field.ui-choice-field: 필드
+│  └─ .calc-rule-field.ui-choice-field: 룰
+└─ .calc-field-effects-frame.ui-control-frame.ui-subframe.ui-control-row
+   ├─ 급소
+   ├─ 리플렉터
+   ├─ 빛의장막
+   ├─ 도우미
+   ├─ 재앙 특성 체크들
+   ├─ 스텔스록
+   ├─ 압정뿌리기 + .calc-spikes-layer-combobox
+   └─ 중력장
+```
+
+참고:
+
+- 날씨/필드 선택은 역계산에서도 사용될 예정이라 `battle-weather-field`, `battle-terrain-field`로 공통 명명했다.
+- 룰, 자동진입효과, 각종 부가효과 체크는 계산기 전용에 가깝기 때문에 `calc-*` 또는 현재 계산기 패널 안에 둔다.
+
+### 6. 결과 패널
+
+결과 패널은 모두 `calc-result-*`와 공통 카드/뱃지 계층을 사용한다.
+
+```text
+.calc-results-panel.ui-frame.ui-panel
+└─ #calc-results-body.ui-frame-body.ui-panel-body.ui-subframe-stack
+   ├─ .calc-mold-breaker-info.ui-control-frame.ui-subframe.ui-meta-row
+   ├─ .calc-speed-row.ui-control-frame.ui-subframe.ui-summary-row
+   └─ .calc-result-grid.ui-control-frame.ui-subframe.ui-card-grid
+      └─ .calc-result-card.ui-card.ui-result-card
+         ├─ .calc-result-card-head.ui-card-head
+         │  ├─ .calc-result-title-row
+         │  └─ .calc-move-badges.ui-chip-row
+         ├─ .calc-damage-range.ui-meter
+         ├─ .calc-damage-summary
+         └─ .calc-damage-meta.ui-meta-row
+```
+
+조건부로 출력되는 배지들도 새 계층을 받는다.
+
+- 분류: `cat-badge calc-move-cat-badge`
+- 타입: `type-pill calc-move-type-badge`
+- 자속: `calc-stab-badge`
+- 상성: `calc-effectiveness-badge`
+- 조건부 위력: `calc-timing-power-badge ui-status-badge`
+- 보정: `calc-mod-badge ui-status-badge`
+- 반동/흡수: `calc-side-effect-badge ui-status-badge`
+- KO 정보: `calc-ko-badge`
+
+## 오늘 정리된 레거시 제거 기준
+
+`#page-calc` 실제 DOM 기준으로 아래 클래스들은 더 이상 나오지 않아야 한다.
+
+```text
+field
+field-label
+field-panel
+field-head
+field-inline-combobox
+field-inline-input
+ev-field
+ev-preset-*
+ev-total
+stat-grid
+stat-table-head
+stat-name
+stat-base
+stat-final
+durability-*
+results
+results-body
+move-results
+move-card
+mold-breaker-info
+speed-row
+dmg-*
+hp-remain
+mods-trace
+panel
+panel-head
+panel-body
+panel-title
+panel-tag
+panel-head-actions
+```
+
+주의: 다른 메뉴에는 아직 기존 호환 클래스가 남아 있을 수 있다. 이번 완료 기준은 대미지 계산기 `#page-calc` 내부다.
+
+## 다음 작업: 형태 역계산 / 세부조정 참고사항
+
+다음 작업은 형태 역계산과 세부조정 메뉴를 대미지 계산기의 정리 기준으로 맞추면 된다.
+
+추천 순서:
+
+1. 포켓몬 선택 subframe 확인
+   - 이미 세 메뉴가 `tool-pokemon-*` 계열을 공유하는 방향으로 맞춰져 있다.
+   - 형태 역계산/세부조정의 포켓몬 선택은 현재 구조를 유지하되, 남은 메뉴 전용 레거시 클래스가 있으면 제거한다.
+
+2. 포켓몬 세팅 subframe 확인
+   - 특성/도구/성격/상태 계열은 `tool-settings-*`로 맞추는 것이 기준이다.
+   - 대미지 계산기와 형태 역계산/세부조정의 세팅 선택 UI는 이미 거의 같은 개념으로 맞춰져 있으므로, 차이가 있다면 데이터 흐름이나 배치 목적 때문인지 먼저 확인한다.
+
+3. 능력치 섹션 통합
+   - 대미지 계산기 능력치 섹션의 `tool-stat-*` + `calc-stat-*` 구조를 기준으로 삼는다.
+   - 형태 역계산/세부조정은 계산기 전용 `calc-*`가 아니라 메뉴 전용 접두사 또는 순수 `tool-stat-*`를 쓰는 쪽이 좋다.
+   - 세부조정의 매직넘버 열은 세부조정 전용 열로 유지한다.
+   - 노력치 입력, 0/32 버튼, 랭크 -/+ 버튼, 실수치/종족값 readout은 공통 `tool-stat-*`를 최대한 공유한다.
+
+4. 기술/관측 입력 정리
+   - 기술 선택, 타입 선택, 위력/결정력 readout이 필요하면 `tool-move-*`를 기준으로 가져간다.
+   - 역계산은 관측 데이터, 행동 순서, 상대 다음 기술 등 계산기와 다른 도메인 입력이 있으므로 무리하게 계산기 전용 클래스를 쓰지 않는다.
+
+5. 결과/요약 카드 정리
+   - 반복 카드나 결과 목록은 `ui-card`, `ui-card-grid`, `ui-status-badge`, `ui-metric-chip`을 먼저 적용한다.
+   - 메뉴 고유 의미는 `rc-*`, `ft-*` 같은 접두사로만 보조한다.
+
+## 핵심 파일
+
 - `src/calc-template.html`
-  - SPA shell과 정적 panel/subframe 구조.
+  - SPA의 정적 panel 구조, 계산기 필드/결과 패널 구조.
+- `src/js/01-20-html-structure.js`
+  - 공통 HTML 렌더 헬퍼. `tool-stat-*`, `tool-move-*` 생성 기준이 들어 있다.
+- `src/js/03-10-calc-state.js`
+  - 계산기 상태와 포켓몬 선택 공통 subframe 헬퍼.
 - `src/js/03-20-calc-combobox.js`
-  - dropdown/combobox interaction.
+  - 계산기 드롭다운/portal 렌더링.
 - `src/js/03-30-calc-side-render.js`
-  - 계산기 공격측/방어측 내부 subframe render.
-- `src/js/04-20-matchup.js`
-  - 상성표 구조.
-- `src/js/04-30-finetune.js`
-  - 세부조정 구조.
-- `src/js/04-43-revcalc-render.js`
-  - 형태 역계산 render 구조.
-- `scripts/html-structure-check.mjs`
-  - HTML 구조 class 검사.
+  - 계산기 공격측/방어측 내부 subframe 렌더링.
+- `src/js/03-50-calc-results.js`
+  - 계산기 결과 패널 렌더링.
+- `src/js/03-60-calc-events.js`
+  - 계산기 필드 패널, 프리셋, 공수교대 이벤트.
+- `src/styles/04-ui-foundation.css`
+  - 공통 `ui-*`, `tool-*` 스타일 기준.
+- `src/styles/05-calc-sample-layout.css`
+  - 대미지 계산기 전용 layout/variant.
+- `src/styles/08-theme-bridge.css`
+  - 다크모드 및 테마 브릿지.
 - `scripts/css-structure-check.mjs`
-  - CSS 공통화/override 검사.
+  - CSS 구조 규칙 검사.
+- `scripts/html-structure-check.mjs`
+  - HTML 구조 규칙 검사.
 
-## 검사 상태
+## 검증 상태
 
-마지막 작업 기준으로 아래 명령은 통과했다.
+마지막 확인 기준으로 아래 명령은 통과했다.
 
 ```bash
 npm.cmd run build
 npm.cmd run css:structure
 npm.cmd run html:structure
+npm.cmd run build:pages
 ```
 
-다른 PC에서 이어받은 뒤에는 최소한 아래를 다시 실행한다.
+브라우저 QA도 진행했다.
 
-```bash
-npm test
-npm run build:pages
-```
-
-## 다음 작업 추천 순서
-
-1. 계산기의 능력포인트 subframe 내부 row/grid 세부 요소를 계속 정리한다.
-2. 능력포인트의 point input, rank stepper, final stat readout이 `tool-stat-*` 공통 class만으로 충분한지 확인한다.
-3. 세부조정/형태 역계산의 능력치 조정 UI와 계산기 능력포인트 UI 사이에서 더 공유할 수 있는 token/class를 추린다.
-4. 기술배치 subframe 내부 row, 기술 선택 dropdown, 타입 override, 위력 override, 결정력 readout을 `tool-move-*` 중심으로 맞춘다.
-5. debug 색상 제거 전, 계산기/형태 역계산/세부조정/상성표에서 panel/subframe 적용 범위를 한 번 더 눈으로 확인한다.
-6. 도감은 마지막 단계에서 별도 기준을 잡아 정리한다.
-
-## 다른 PC에서 시작하는 방법
-
-```bash
-git fetch origin
-git switch codex-ui-panel-subframe-handoff-20260519
-npm install
-npm test
-npm run build:pages
-```
+- `dist/index.html` 로컬 서버 로드
+- 계산기 페이지 렌더 확인
+- 필드 패널 펼침 상호작용 확인
+- 다크모드 토글 확인
+- 콘솔 warning/error 없음
+- `#page-calc` 내부 old class 검사 결과: `[]`
 
 Cloudflare Pages 설정은 기존과 동일하다.
 
@@ -223,3 +414,4 @@ Cloudflare Pages 설정은 기존과 동일하다.
 Build command: npm run build:pages
 Build output directory: /dist
 ```
+

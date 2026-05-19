@@ -205,6 +205,7 @@ let calcComboboxLastPointerTarget = null;
 let calcComboboxLastPointerAt = 0;
 let calcComboboxLastOpenedControl = null;
 let calcComboboxLastOpenedAt = 0;
+let calcComboboxPortalListenersBound = false;
 
 function calcComboboxTrackPointerTarget(event) {
   calcComboboxLastPointerTarget = event.target?.closest?.('.combobox') || null;
@@ -230,6 +231,105 @@ function closeSiblingComboboxOptions(optsEl, control) {
   document.querySelectorAll('.cb-input[aria-expanded="true"]').forEach(el => {
     if (el !== control) el.setAttribute('aria-expanded', 'false');
   });
+}
+
+function calcComboboxShouldUsePortal(input, cbParent) {
+  const type = input?.dataset?.cbType || '';
+  return Boolean(cbParent?.closest?.('.tool-move-list-frame') && (type === 'move' || type === 'moveType'));
+}
+
+function calcComboboxPortalKey(input) {
+  return [
+    input?.dataset?.side || '',
+    input?.dataset?.field || '',
+    input?.dataset?.cbType || '',
+  ].join(':');
+}
+
+function calcCleanupComboboxPortals(sideKey = null) {
+  if (typeof document?.querySelectorAll !== 'function') return;
+  document.querySelectorAll('.combobox-options.combobox-options-portal').forEach(el => {
+    if (!sideKey || el.dataset.calcPortalSide === sideKey) el.remove();
+  });
+}
+
+function calcComboboxPortalWidth(input, type) {
+  const rect = input.getBoundingClientRect();
+  const viewportWidth = Math.max(240, window.innerWidth || document.documentElement.clientWidth || 0);
+  const maxWidth = Math.max(120, viewportWidth - 16);
+  if (type === 'move') {
+    return Math.min(Math.max(rect.width, 300), 330, maxWidth);
+  }
+  if (type === 'moveType') {
+    return Math.min(Math.max(rect.width, 92), 140, maxWidth);
+  }
+  return Math.min(rect.width, maxWidth);
+}
+
+function calcPositionComboboxPortal(input, optsEl, type = '') {
+  if (
+    typeof window === 'undefined'
+    || typeof input?.getBoundingClientRect !== 'function'
+    || !optsEl
+  ) return;
+  const rect = input.getBoundingClientRect();
+  const margin = 8;
+  const viewportWidth = Math.max(240, window.innerWidth || document.documentElement.clientWidth || 0);
+  const viewportHeight = Math.max(240, window.innerHeight || document.documentElement.clientHeight || 0);
+  const width = calcComboboxPortalWidth(input, type);
+  const left = Math.max(margin, Math.min(rect.left, viewportWidth - width - margin));
+  const top = Math.max(margin, rect.bottom + 4);
+  const maxHeight = Math.max(96, Math.min(280, viewportHeight - top - margin));
+  optsEl.style.left = `${left}px`;
+  optsEl.style.top = `${top}px`;
+  optsEl.style.right = 'auto';
+  optsEl.style.width = `${width}px`;
+  optsEl.style.minWidth = `${Math.min(width, type === 'move' ? 300 : 92)}px`;
+  optsEl.style.maxWidth = `${viewportWidth - margin * 2}px`;
+  optsEl.style.maxHeight = `${maxHeight}px`;
+}
+
+function calcPositionOpenComboboxPortals() {
+  if (typeof document?.querySelectorAll !== 'function') return;
+  document.querySelectorAll('.combobox-options.combobox-options-portal.open').forEach(optsEl => {
+    const controlId = optsEl.dataset.calcPortalControl || '';
+    const input = controlId ? document.getElementById(controlId) : null;
+    if (!input) {
+      optsEl.classList.remove('open');
+      return;
+    }
+    calcPositionComboboxPortal(input, optsEl, optsEl.dataset.calcPortalType || input.dataset.cbType || '');
+  });
+}
+
+function calcEnsureComboboxPortalListeners() {
+  if (calcComboboxPortalListenersBound || typeof window === 'undefined') return;
+  calcComboboxPortalListenersBound = true;
+  window.addEventListener('scroll', calcPositionOpenComboboxPortals, true);
+  window.addEventListener('resize', calcPositionOpenComboboxPortals);
+}
+
+function calcMountComboboxPortal(input, cbParent, optsEl) {
+  if (!calcComboboxShouldUsePortal(input, cbParent)) return false;
+  if (typeof document?.body?.appendChild !== 'function') return false;
+  const key = calcComboboxPortalKey(input);
+  document.querySelectorAll('.combobox-options.combobox-options-portal').forEach(el => {
+    if (el !== optsEl && el.dataset.calcPortalKey === key) el.remove();
+  });
+  if (!input.id) input.id = `calc-cb-control-${++calcComboboxUid}`;
+  optsEl.dataset.calcPortalKey = key;
+  optsEl.dataset.calcPortalSide = input.dataset.side || '';
+  optsEl.dataset.calcPortalType = input.dataset.cbType || '';
+  optsEl.dataset.calcPortalControl = input.id;
+  optsEl.classList.add(
+    'combobox-options-portal',
+    input.dataset.cbType === 'move' ? 'tool-move-options-portal' : 'tool-move-type-options-portal',
+  );
+  if (input.dataset.side === 'atk') optsEl.style.setProperty('--tool-combo-selected', 'var(--atk)');
+  if (input.dataset.side === 'def') optsEl.style.setProperty('--tool-combo-selected', 'var(--def)');
+  document.body.appendChild(optsEl);
+  calcEnsureComboboxPortalListeners();
+  return true;
 }
 
 function calcComboboxFocusMovedToAnother(control, optsEl) {
@@ -826,6 +926,7 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
 
   const cbType = input.dataset.cbType;
   const side = input.dataset.side || null;
+  const usesPortal = calcMountComboboxPortal(input, cbParent, optsEl);
   if (cbType === 'pokemon') {
     return wirePokemonSelectCombobox(input, {
       getOptions: () => calcDatasetForCombobox(side, 'pokemon'),
@@ -959,10 +1060,15 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
     calcComboboxMarkOpened(input);
     const selectedIndex = optionData.findIndex(option => String(option?.id || '') === String(currentId));
     setActiveOption(activateFirst ? 0 : selectedIndex);
+    if (usesPortal) calcPositionComboboxPortal(input, optsEl, cbType);
 
     const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : fn => setTimeout(fn, 0);
     schedule(() => {
       if (typeof window === 'undefined' || typeof optsEl.getBoundingClientRect !== 'function') return;
+      if (usesPortal) {
+        calcPositionComboboxPortal(input, optsEl, cbType);
+        return;
+      }
       const rect = optsEl.getBoundingClientRect();
       const overflowRight = rect.right > window.innerWidth - 8;
       optsEl.style.left = overflowRight ? 'auto' : '';

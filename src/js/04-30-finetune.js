@@ -36,6 +36,10 @@ function ftClampEvValue(stat, requested, evs = fineTuneState.my.evs) {
 
 function ftSetEv(stat, requested) {
   if (!ftStatKeys().includes(stat)) return;
+  if (typeof toolStatApplyPointValue === 'function') {
+    toolStatApplyPointValue(fineTuneState.my, stat, requested, { stats: ftStatKeys(), maxTotal: 66 });
+    return;
+  }
   fineTuneState.my.evs[stat] = ftClampEvValue(stat, requested, fineTuneState.my.evs);
 }
 
@@ -503,22 +507,33 @@ function ftEvSummary(side) {
 }
 
 function ftNatureMark(stat, natureId) {
-  const nature = NATURE_BY_ID?.[natureId];
-  if (nature?.up === stat) return '<span class="ft-nature-up">&#9650;</span>';
-  if (nature?.down === stat) return '<span class="ft-nature-down">&#9660;</span>';
-  return '';
+  return renderToolStatNatureMark(stat, natureId, {
+    upClass: 'ft-nature-up',
+    downClass: 'ft-nature-down',
+    emptyClass: 'ft-nature-spacer',
+  });
 }
 
 function ftRenderMagicCell(side, stat, ev) {
   const magic = ftMagicNumbers(side, stat);
-  if (!magic) return '<div class="ft-magic empty"></div>';
-  return `
-    <div class="ft-magic">
-      ${magic.prev !== null ? `<span class="ft-magic-prev" title="이전 매직 포인트: ${magic.prev}pt">-${ev - magic.prev}</span>` : '<span class="ft-magic-prev empty"></span>'}
-      <span class="ft-magic-current-slot">${magic.current !== null ? '<span class="ft-magic-current" title="현재 매직 포인트">현재</span>' : '<span class="ft-magic-current empty"></span>'}</span>
-      ${magic.next !== null ? `<span class="ft-magic-next" title="다음 매직 포인트: ${magic.next}pt">+${magic.next - ev}</span>` : '<span class="ft-magic-next empty"></span>'}
-    </div>
-  `;
+  if (!magic) return renderToolStatMagicCell(null, { className: 'ft-magic', empty: true });
+  return renderToolStatMagicCell({
+    prev: magic.prev,
+    prevLabel: magic.prev !== null ? `-${ev - magic.prev}` : null,
+    prevTitle: magic.prev !== null ? `이전 매직 포인트: ${magic.prev}pt` : null,
+    current: magic.current,
+    currentLabel: magic.current !== null ? '현재' : null,
+    currentTitle: magic.current !== null ? '현재 매직 포인트' : null,
+    next: magic.next,
+    nextLabel: magic.next !== null ? `+${magic.next - ev}` : null,
+    nextTitle: magic.next !== null ? `다음 매직 포인트: ${magic.next}pt` : null,
+  }, {
+    className: 'ft-magic',
+    prevClass: 'ft-magic-prev',
+    currentClass: 'ft-magic-current',
+    nextClass: 'ft-magic-next',
+    currentSlotClass: 'ft-magic-current-slot',
+  });
 }
 
 function ftBulkMetrics(side) {
@@ -683,31 +698,36 @@ function renderFineTuneMy() {
     value: pkName(p),
   });
   const speedActivation = ftAbilitySpeedActivation(my.ability);
-  const statRows = ['hp', ...rankStats].map(stat => {
+  const statRows = renderToolStatRows(['hp', ...rankStats].map(stat => {
     const ev = my.evs[stat] || 0;
     const rank = my.ranks?.[stat] || 0;
-    const rankCtrl = stat === 'hp' ? '<div class="tool-stat-rank-empty"></div>' : `
-      <div class="tool-stat-rank-stepper ui-stepper">
-        <button type="button" class="tool-stat-rank-button" data-ft-rank="${stat}" data-ft-dir="-1">-</button>
-        <span class="tool-stat-rank-value ui-stat-value ${rank > 0 ? 'pos' : rank < 0 ? 'neg' : ''}">${rank > 0 ? '+' + rank : rank}</span>
-        <button type="button" class="tool-stat-rank-button" data-ft-rank="${stat}" data-ft-dir="1">+</button>
-      </div>
-    `;
-    return `
-      <div class="ft-stat-row tool-stat-row">
-        <div class="ft-stat-name ui-stat-name">${STAT_LABEL?.[stat] || stat} ${ftNatureMark(stat, my.nature)}</div>
-        <div class="ft-stat-base ui-stat-readout">${p.bs[stat]}</div>
-        <div class="tool-stat-point-stepper ui-stepper">
-          <button type="button" class="tool-stat-point-button" data-ft-evset="${stat}" data-ft-evval="0" title="0">0</button>
-          <input type="number" class="tool-stat-point-input" data-ft-ev="${stat}" value="${ev}" min="0" max="32" aria-label="${STAT_LABEL?.[stat] || stat} 포인트">
-          <button type="button" class="tool-stat-point-button" data-ft-evset="${stat}" data-ft-evval="32" title="32">32</button>
-        </div>
-        ${ftRenderMagicCell(my, stat, ev)}
-        <div class="ft-stat-final ui-stat-readout">${stats[stat]}</div>
-        ${rankCtrl}
-      </div>
-    `;
-  }).join('');
+    return {
+      stat,
+      label: STAT_LABEL?.[stat] || stat,
+      base: p.bs[stat],
+      point: ev,
+      magicHtml: ftRenderMagicCell(my, stat, ev),
+      final: stats[stat],
+      rank,
+      natureHtml: ftNatureMark(stat, my.nature),
+      pointOptions: {
+        zeroAttrs: { 'data-ft-evset': stat, 'data-ft-evval': '0', title: '0' },
+        inputAttrs: { 'data-ft-ev': stat, min: '0', max: '32', 'aria-label': `${STAT_LABEL?.[stat] || stat} 포인트` },
+        maxAttrs: { 'data-ft-evset': stat, 'data-ft-evval': '32', title: '32' },
+      },
+      rankOptions: {
+        rankable: stat !== 'hp',
+        decAttrs: { 'data-ft-rank': stat, 'data-ft-dir': '-1' },
+        incAttrs: { 'data-ft-rank': stat, 'data-ft-dir': '1' },
+      },
+    };
+  }), {
+    columns: ['name', 'base', 'point', 'magic', 'final', 'rank'],
+    rowClass: 'ft-stat-row',
+    nameClass: 'ft-stat-name',
+    baseClass: 'ft-stat-base',
+    finalClass: 'ft-stat-final',
+  });
 
   container.innerHTML = `
     <div class="ft-setup-grid tool-settings-layout ui-control-grid">
@@ -741,36 +761,31 @@ function renderFineTuneMy() {
       </div>
     </div>
 
-    <div class="tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
+    <div class="tool-stat-panel tool-stat-set tool-stat-set--finetune tool-stat-has-bulk tool-stat-has-nature tool-stat-has-magic ui-control-frame ui-subframe ui-subframe-stack ui-field">
       <div class="tool-stat-panel-head ui-section-head">
         <div class="tool-stat-panel-title ui-section-title">능력 포인트</div>
       </div>
       <div class="tool-stat-panel-body">
-        <div class="ft-stats-column">
-        <div class="ft-stats-grid tool-stat-grid ui-stat-grid ui-stat-table">
-            <div class="ft-stats-head tool-stat-head-row">
-              <div>능력</div>
-              <div>종족값</div>
-              <div>포인트</div>
-              <div>매직넘버</div>
-              <div>실수치</div>
-              <div>랭크</div>
-            </div>
+        <div class="ft-stats-column tool-stat-table-frame ui-control-frame">
+          <div class="ft-stats-grid tool-stat-grid ui-stat-grid ui-stat-table">
+            ${renderToolStatHead(['name', 'base', 'point', 'magic', 'final', 'rank'], {
+              rowClass: 'ft-stats-head',
+            })}
             ${statRows}
           </div>
         </div>
       </div>
       <div id="ft-summary-body"></div>
-      <div class="ft-bulk-panel">
-        <div class="ft-bulk-card phys">
-          <span class="ft-bulk-label">물리내구</span>
-          <span class="ft-bulk-value">${bulk.phys.toLocaleString()}</span>
-        </div>
-        <div class="ft-bulk-card spec">
-          <span class="ft-bulk-label">특수내구</span>
-          <span class="ft-bulk-value">${bulk.spec.toLocaleString()}</span>
-        </div>
-      </div>
+      ${renderToolStatBulkStrip(bulk, {
+        className: 'ft-bulk-panel',
+        cardClass: 'ft-bulk-card',
+        physClass: 'phys',
+        specClass: 'spec',
+        labelClass: 'ft-bulk-label',
+        valueClass: 'ft-bulk-value',
+        physLabel: '물리내구',
+        specLabel: '특수내구',
+      })}
     </div>
   `;
   ftWireMyComboboxes();
@@ -919,9 +934,13 @@ document.getElementById('page-finetune')?.addEventListener('change', e => {
   if (t.id === 'ftOppScarf') { fineTuneState.opp.scarf = t.checked; renderFineTuneOpp(); renderFineTuneSpeed(); return; }
   if (t.id === 'ftWeatherAbility') { fineTuneState.weatherAbilityActive = t.checked; renderFineTuneAll(); return; }
   if (t.id === 'ftOppBaseSpe') { fineTuneState.opp.baseSpe = t.value; renderFineTuneOpp(); renderFineTuneSpeed(); return; }
-  if (t.dataset.ftEv) {
-    const stat = t.dataset.ftEv;
+  const pointInputStat = t.dataset.toolStatPointInput || t.dataset.ftEv;
+  if (pointInputStat) {
+    const stat = pointInputStat;
+    const normalized = toolStatNormalizePointInputValue(t.value);
+    if (normalized !== t.value) t.value = normalized;
     ftSetEv(stat, t.value);
+    if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
     renderFineTuneAll();
     return;
   }
@@ -936,8 +955,12 @@ document.getElementById('page-finetune')?.addEventListener('change', e => {
 
 document.getElementById('page-finetune')?.addEventListener('input', e => {
   const t = e.target;
-  if (t.dataset.ftEv) {
-    ftSetEv(t.dataset.ftEv, t.value);
+  const pointInputStat = t.dataset.toolStatPointInput || t.dataset.ftEv;
+  if (pointInputStat) {
+    const normalized = toolStatNormalizePointInputValue(t.value);
+    if (normalized !== t.value) t.value = normalized;
+    ftSetEv(pointInputStat, t.value);
+    if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
     renderFineTuneAll();
     return;
   }
@@ -948,18 +971,24 @@ document.getElementById('page-finetune')?.addEventListener('input', e => {
 document.getElementById('page-finetune')?.addEventListener('click', e => {
   const t = e.target;
   // EV quick set 버튼 (0/32) — 66 캡 적용
-  if (t.dataset.ftEvset !== undefined) {
-    const stat = t.dataset.ftEvset;
-    ftSetEv(stat, t.dataset.ftEvval);
+  const pointSetStat = t.dataset.toolStatPointSet || t.dataset.ftEvset;
+  if (pointSetStat !== undefined) {
+    const stat = pointSetStat;
+    ftSetEv(stat, t.dataset.toolStatPointValue ?? t.dataset.ftEvval);
     renderFineTuneAll();
     return;
   }
   // 내 측 랭크
-  if (t.dataset.ftRank) {
-    const stat = t.dataset.ftRank;
-    const dir = parseInt(t.dataset.ftDir, 10);
-    const cur = fineTuneState.my.ranks[stat] || 0;
-    fineTuneState.my.ranks[stat] = Math.max(-6, Math.min(6, cur + dir));
+  const rankStat = t.dataset.toolStatRank || t.dataset.ftRank;
+  if (rankStat) {
+    const stat = rankStat;
+    const dir = t.dataset.toolStatRankDir || t.dataset.ftDir;
+    if (typeof toolStatApplyRankDelta === 'function') {
+      toolStatApplyRankDelta(fineTuneState.my, stat, dir);
+    } else {
+      const cur = fineTuneState.my.ranks[stat] || 0;
+      fineTuneState.my.ranks[stat] = Math.max(-6, Math.min(6, cur + (parseInt(dir, 10) || 0)));
+    }
     renderFineTuneAll();
     return;
   }

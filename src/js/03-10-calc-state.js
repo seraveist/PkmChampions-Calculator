@@ -360,11 +360,11 @@ function renderToolPokemonSelectSubframe({
     : '';
   return `
     <div class="tool-pokemon-subframe ui-control-frame ui-subframe">
-      <div class="${toolClassNames('field tool-pokemon-field ui-field', fieldClass)}">
+      <div class="${toolClassNames('tool-pokemon-field ui-field', fieldClass)}">
         <div class="${toolClassNames('ui-field-head tool-pokemon-head tool-pokemon-row tool-pokemon-head-row', headClass)}">
           <div class="tool-pokemon-title-actions">
             <div class="tool-pokemon-label-actions">
-              <span class="${toolClassNames('field-label ui-field-label', labelClass)}">${escapeHTML(title)}</span>
+              <span class="${toolClassNames('ui-field-label', labelClass)}">${escapeHTML(title)}</span>
               ${primaryHtml}
             </div>
             ${titleExtraHtml}

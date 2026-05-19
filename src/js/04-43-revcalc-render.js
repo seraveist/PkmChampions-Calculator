@@ -39,34 +39,39 @@ function renderRevCalcMy() {
 
   const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
   const RANK_STATS = ['atk','def','spa','spd','spe'];
-  const statRows = ['hp', ...RANK_STATS].map(s => {
+  const statRows = renderToolStatRows(['hp', ...RANK_STATS].map(s => {
     const ev = my.evs[s] || 0;
     const final = stats[s];
-    const nature = NATURE_BY_ID?.[my.nature];
-    const isUp = nature?.up === s, isDown = nature?.down === s;
-    const natureMark = isUp ? '<span class="ft-nature-up">▲</span>' : isDown ? '<span class="ft-nature-down">▼</span>' : '<span class="ft-nature-spacer"></span>';
     const rank = my.ranks?.[s] || 0;
-    const rankCtrl = s === 'hp' ? '<div class="tool-stat-rank-empty"></div>' : `
-      <div class="tool-stat-rank-stepper ui-stepper">
-        <button type="button" class="tool-stat-rank-button" data-rc-rank="${s}" data-rc-dir="-1">−</button>
-        <span class="tool-stat-rank-value ui-stat-value ${rank > 0 ? 'pos' : rank < 0 ? 'neg' : ''}">${rank > 0 ? '+' + rank : rank}</span>
-        <button type="button" class="tool-stat-rank-button" data-rc-rank="${s}" data-rc-dir="1">+</button>
-      </div>
-    `;
-    return `
-      <div class="ft-stat-row tool-stat-row">
-        <div class="ft-stat-name ui-stat-name"><span class="ft-stat-label">${STAT_KO[s]}</span>${natureMark}</div>
-        <div class="ft-stat-base ui-stat-readout">${p.bs[s]}</div>
-        <div class="tool-stat-point-stepper ui-stepper">
-          <button type="button" class="tool-stat-point-button" data-rc-evset="${s}" data-rc-evval="0">0</button>
-          <input type="number" class="tool-stat-point-input" data-rc-ev="${s}" value="${ev}" min="0" max="32">
-          <button type="button" class="tool-stat-point-button" data-rc-evset="${s}" data-rc-evval="32">32</button>
-        </div>
-        <div class="ft-stat-final ui-stat-readout">${final}</div>
-        ${rankCtrl}
-      </div>
-    `;
-  }).join('');
+    return {
+      stat: s,
+      labelHtml: `<span class="ft-stat-label tool-stat-name-text">${escapeHTML(STAT_KO[s])}</span>`,
+      base: p.bs[s],
+      point: ev,
+      final,
+      rank,
+      natureHtml: renderToolStatNatureMark(s, my.nature, {
+        upClass: 'ft-nature-up',
+        downClass: 'ft-nature-down',
+        emptyClass: 'ft-nature-spacer',
+      }),
+      pointOptions: {
+        zeroAttrs: { 'data-rc-evset': s, 'data-rc-evval': '0' },
+        inputAttrs: { 'data-rc-ev': s, min: '0', max: '32' },
+        maxAttrs: { 'data-rc-evset': s, 'data-rc-evval': '32' },
+      },
+      rankOptions: {
+        rankable: s !== 'hp',
+        decAttrs: { 'data-rc-rank': s, 'data-rc-dir': '-1' },
+        incAttrs: { 'data-rc-rank': s, 'data-rc-dir': '1' },
+      },
+    };
+  }), {
+    rowClass: 'ft-stat-row',
+    nameClass: 'ft-stat-name',
+    baseClass: 'ft-stat-base',
+    finalClass: 'ft-stat-final',
+  });
 
   container.innerHTML = `
     <div class="rc-setup-grid tool-settings-layout ui-control-grid">
@@ -97,7 +102,7 @@ function renderRevCalcMy() {
       </div>
     </div>
       <div class="rc-my-build-row ui-control-row">
-      <div class="tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
+      <div class="tool-stat-panel tool-stat-set tool-stat-set--revcalc tool-stat-has-nature ui-control-frame ui-subframe ui-subframe-stack ui-field">
         <div class="tool-stat-panel-head ui-section-head">
           <div class="tool-stat-panel-title ui-section-title">능력 포인트</div>
           <div class="ft-ev-total tool-stat-total ui-metric-chip ${overEV ? 'over' : ''}">
@@ -105,9 +110,13 @@ function renderRevCalcMy() {
           </div>
         </div>
         <div class="tool-stat-panel-body">
-          <div class="ft-stats-grid rc-stats-grid tool-stat-grid ui-stat-grid ui-stat-table">
-            <div class="ft-stats-head tool-stat-head-row"><div>능력</div><div>종족값</div><div>포인트</div><div>실수치</div><div>랭크</div></div>
-            ${statRows}
+          <div class="tool-stat-table-frame ui-control-frame">
+            <div class="ft-stats-grid rc-stats-grid tool-stat-grid ui-stat-grid ui-stat-table">
+              ${renderToolStatHead(['name', 'base', 'point', 'final', 'rank'], {
+                rowClass: 'ft-stats-head',
+              })}
+              ${statRows}
+            </div>
           </div>
         </div>
       </div>
@@ -151,24 +160,33 @@ function renderRevCalcOpp() {
     value: p ? pkName(p) : '',
   });
 
-  const statRows = ['hp','atk','def','spa','spd','spe'].map(s => {
+  const statRows = renderToolStatRows(['hp','atk','def','spa','spd','spe'].map(s => {
     const r = opp.ranks?.[s] || 0;
-    return `
-      <div class="rc-opp-stat-row">
-        <div class="rc-opp-stat-name">${STAT_KO[s]}</div>
-        <div class="rc-opp-stat-base">${p?.bs?.[s] ?? '-'}</div>
-        <div class="rc-opp-rank-cell">
-          ${s === 'hp' ? '<span class="rc-opp-rank-empty"></span>' : `
-            <div class="ft-rank">
-            <button type="button" class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="-1">−</button>
-              <span class="ft-rank-val ${r > 0 ? 'pos' : r < 0 ? 'neg' : ''}">${r > 0 ? '+' + r : r}</span>
-              <button type="button" class="ft-rank-btn" data-rc-opprank="${s}" data-rc-dir="1">+</button>
-            </div>
-          `}
+    return {
+      stat: s,
+      label: STAT_KO[s],
+      base: p?.bs?.[s] ?? '-',
+      rank: r,
+      rankHtml: `
+        <div class="rc-opp-rank-cell tool-stat-col-rank">
+          ${renderToolStatRankControl(s, r, {
+            rankable: s !== 'hp',
+            className: 'rc-opp-rank-stepper',
+            emptyClass: 'rc-opp-rank-empty',
+            emptyTag: 'span',
+            valueClass: 'rc-opp-rank-value',
+            decAttrs: { class: 'rc-opp-rank-button', 'data-rc-opprank': s, 'data-rc-dir': '-1' },
+            incAttrs: { class: 'rc-opp-rank-button', 'data-rc-opprank': s, 'data-rc-dir': '1' },
+          })}
         </div>
-      </div>
-    `;
-  }).join('');
+      `,
+    };
+  }), {
+    columns: ['name', 'base', 'rank'],
+    rowClass: 'rc-opp-stat-row',
+    nameClass: 'rc-opp-stat-name',
+    baseClass: 'rc-opp-stat-base',
+  });
 
   container.innerHTML = `
     <div class="rc-setup-grid rc-opp-setup tool-settings-layout ui-control-grid">
@@ -189,18 +207,19 @@ function renderRevCalcOpp() {
       ` : ''}
     </div>
     ${p ? `
-      <div class="rc-opp-stat-panel tool-stat-panel ui-control-frame ui-subframe ui-subframe-stack ui-field">
+      <div class="rc-opp-stat-panel tool-stat-panel tool-stat-set tool-stat-set--revcalc-opponent ui-control-frame ui-subframe ui-subframe-stack ui-field">
         <div class="tool-stat-panel-head ui-section-head">
           <div class="tool-stat-panel-title ui-section-title">능력 상태</div>
         </div>
         <div class="tool-stat-panel-body">
-          <div class="rc-opp-stat-table tool-stat-grid ui-stat-grid ui-stat-table">
-            <div class="rc-opp-stat-head">
-              <span>능력</span>
-              <span>종족값</span>
-              <span>랭크</span>
+          <div class="tool-stat-table-frame ui-control-frame">
+            <div class="rc-opp-stat-table tool-stat-grid ui-stat-grid ui-stat-table">
+              ${renderToolStatHead(['name', 'base', 'rank'], {
+                rowClass: 'rc-opp-stat-head',
+                cellClass: 'rc-opp-stat-head-cell',
+              })}
+              ${statRows}
             </div>
-            ${statRows}
           </div>
         </div>
       </div>
@@ -290,10 +309,10 @@ function renderRevCalcInputs() {
             <span class="field-label ui-field-label">이번 턴 행동 순서</span>
             ${rcRenderTurnOrderCombobox(revCalcState.turnOrder)}
           </label>
-          <label class="field ui-field"><span class="field-label ui-field-label">날씨</span>
+          <label class="field battle-field-choice battle-weather-field ui-field ui-choice-field"><span class="field-label ui-field-label ui-choice-label">날씨</span>
             ${rcRenderFieldCombobox('weather', revCalcState.field.weather)}
           </label>
-          <label class="field ui-field"><span class="field-label ui-field-label">필드</span>
+          <label class="field battle-field-choice battle-terrain-field ui-field ui-choice-field"><span class="field-label ui-field-label ui-choice-label">필드</span>
             ${rcRenderFieldCombobox('terrain', revCalcState.field.terrain)}
           </label>
         </div>

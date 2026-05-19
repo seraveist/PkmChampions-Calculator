@@ -45,44 +45,44 @@ function runCalc() {
   const ignoredAb = moldBreakerActive && MOLD_BREAKER_IGNORED_ABILITIES.includes(defAb)
     ? AbilityById[defAb] : null;
 
-  const body = document.getElementById('results-body');
+  const body = document.getElementById('calc-results-body');
   body.innerHTML = `
     ${moldBreakerActive ? `
-    <div class="mold-breaker-info ui-control-frame ui-subframe ui-meta-row">
-      <span class="mold-breaker-tag">${AbilityById[atkAb]?.koName || atkAb}</span>
+    <div class="calc-mold-breaker-info ui-control-frame ui-subframe ui-meta-row">
+      <span class="calc-mold-breaker-tag">${AbilityById[atkAb]?.koName || atkAb}</span>
       ${ignoredAb ? `상대 <b>${ignoredAb.koName}</b> 특성을 무시합니다` : '방어측 일부 특성을 관통할 수 있습니다'}
     </div>
     ` : ''}
 
     <!-- 속도 대결 -->
-    <div class="speed-row ui-control-frame ui-subframe ui-summary-row">
-      <div class="speed-side atk ui-summary-card">
-        <span class="speed-identity">
-          <span class="speed-role">공격측</span>
-          <b class="speed-pokemon">${pkName(atkP)}</b>
+    <div class="calc-speed-row ui-control-frame ui-subframe ui-summary-row">
+      <div class="calc-speed-side calc-speed-side--atk ui-summary-card">
+        <span class="calc-speed-identity">
+          <span class="calc-speed-role">공격측</span>
+          <b class="calc-speed-pokemon">${pkName(atkP)}</b>
         </span>
-        <span class="speed-value-wrap">
-          <strong class="speed-value ui-stat-readout">${atkSpe}</strong>
+        <span class="calc-speed-value-wrap">
+          <strong class="calc-speed-value ui-stat-readout">${atkSpe}</strong>
           ${renderEntrySpeedNote(calcState, 'atk')}
         </span>
       </div>
-      <div class="speed-center">
-        <span class="speed-label ui-section-title">속도</span>
+      <div class="calc-speed-center">
+        <span class="calc-speed-label ui-section-title">속도</span>
       </div>
-      <div class="speed-side def ui-summary-card">
-        <span class="speed-value-wrap">
-          <strong class="speed-value ui-stat-readout">${defSpe}</strong>
+      <div class="calc-speed-side calc-speed-side--def ui-summary-card">
+        <span class="calc-speed-value-wrap">
+          <strong class="calc-speed-value ui-stat-readout">${defSpe}</strong>
           ${renderEntrySpeedNote(calcState, 'def')}
         </span>
-        <span class="speed-identity">
-          <span class="speed-role">수비측</span>
-          <b class="speed-pokemon">${pkName(defP)}</b>
+        <span class="calc-speed-identity">
+          <span class="calc-speed-role">수비측</span>
+          <b class="calc-speed-pokemon">${pkName(defP)}</b>
         </span>
       </div>
     </div>
     
     <!-- 기술별 결과 -->
-    <div class="move-results ui-control-frame ui-subframe ui-card-grid">
+    <div class="calc-result-grid ui-control-frame ui-subframe ui-card-grid">
       ${moveResults.map(r => renderMoveCard(r)).join('')}
     </div>
   `;
@@ -120,15 +120,15 @@ function renderModsTrace(mods, limit = 6, result = null) {
   const visible = ordered.slice(0, limit);
   const hidden = labels.length - visible.length;
   const title = escapeHTML(ordered.join(' · '));
-  const parts = visible.map(m => `<b class="ui-status-badge">${escapeHTML(m)}</b>`);
-  if (hidden > 0) parts.push(`<b class="ui-status-badge" title="${title}">+${hidden}</b>`);
-  return `<span class="mods-trace" title="${title}">${parts.join('<span class="sep">·</span>')}</span>`;
+  const parts = visible.map(m => `<b class="calc-mod-badge ui-status-badge">${escapeHTML(m)}</b>`);
+  if (hidden > 0) parts.push(`<b class="calc-mod-badge ui-status-badge" title="${title}">+${hidden}</b>`);
+  return `<span class="calc-mods-trace" title="${title}">${parts.join('<span class="calc-mod-separator">·</span>')}</span>`;
 }
 
 function renderEntrySpeedNote(calcState, sideKey) {
   const delta = calcState.entryMeta?.rankDeltas?.[sideKey]?.spe || 0;
   if (!delta) return '';
-  return `<span class="speed-entry-note ui-status-badge">${STAT_LABEL.spe} ${formatRankValue(delta)}랭크</span>`;
+  return `<span class="calc-speed-entry-note ui-status-badge">${STAT_LABEL.spe} ${formatRankValue(delta)}랭크</span>`;
 }
 
 function timingPowerConditionLabel(move, atkSide, defSide, field) {
@@ -159,19 +159,19 @@ function renderMoveCard(r) {
   if (r.empty) {
     if (r.statusMove) {
       return `
-        <div class="move-card none compact ui-card ui-result-card">
-          <div class="move-card-placeholder ui-card-body">
-            <span class="move-slot-num ui-index mono">${r.slot}</span>
-            <span class="move-name">${escapeHTML(mvName(r.move))} · 변화기</span>
+        <div class="calc-result-card none compact ui-card ui-result-card">
+          <div class="calc-result-card-placeholder ui-card-body">
+            <span class="calc-result-slot ui-index mono">${r.slot}</span>
+            <span class="calc-result-move-name">${escapeHTML(mvName(r.move))} · 변화기</span>
           </div>
         </div>
       `;
     }
     return `
-      <div class="move-card none compact ui-card ui-result-card">
-        <div class="move-card-placeholder ui-card-body">
-          <span class="move-slot-num ui-index mono">${r.slot}</span>
-          <span class="move-name">기술 미설정</span>
+      <div class="calc-result-card none compact ui-card ui-result-card">
+        <div class="calc-result-card-placeholder ui-card-body">
+          <span class="calc-result-slot ui-index mono">${r.slot}</span>
+          <span class="calc-result-move-name">기술 미설정</span>
         </div>
       </div>
     `;
@@ -201,7 +201,7 @@ function renderMoveCard(r) {
   const originalMoveType = moveData.originalType || moveData.type;
   const typeChange = r.moveType !== originalMoveType;
   // 타입 셀은 단일 컬럼: 변환 시 작은 원본 표시는 type-pill 안에 흡수
-  const typeLabel = `<span class="type-pill t-${r.moveType}" ${typeChange ? `title="원래: ${TYPE_KO[originalMoveType]}"` : ''}>${TYPE_KO[r.moveType] || r.moveType}${typeChange ? '*' : ''}</span>`;
+  const typeLabel = `<span class="type-pill calc-move-type-badge t-${r.moveType}" ${typeChange ? `title="원래: ${TYPE_KO[originalMoveType]}"` : ''}>${TYPE_KO[r.moveType] || r.moveType}${typeChange ? '*' : ''}</span>`;
   
   // 반동/회복 계산
   let sideEffect = '';
@@ -212,7 +212,7 @@ function renderMoveCard(r) {
     const recoilMax = Math.floor(max * num / den);
     const recoilMinPct = (recoilMin / atkHP * 100).toFixed(1);
     const recoilMaxPct = (recoilMax / atkHP * 100).toFixed(1);
-    sideEffect += `<span class="side-effect ui-status-badge"><span>반동</span><b>${recoilMinPct}% ~ ${recoilMaxPct}%</b><span>(${recoilMin}~${recoilMax})</span></span>`;
+    sideEffect += `<span class="calc-side-effect-badge ui-status-badge"><span>반동</span><b>${recoilMinPct}% ~ ${recoilMaxPct}%</b><span>(${recoilMin}~${recoilMax})</span></span>`;
   }
   if (moveData.drain) {
     const [num, den] = moveData.drain;
@@ -221,73 +221,73 @@ function renderMoveCard(r) {
     const healMax = Math.floor(max * num / den);
     const healMinPct = (healMin / atkHP * 100).toFixed(1);
     const healMaxPct = (healMax / atkHP * 100).toFixed(1);
-    sideEffect += `<span class="side-effect ui-status-badge"><span>흡수</span><b>${healMinPct}% ~ ${healMaxPct}%</b><span>(${healMin}~${healMax})</span></span>`;
+    sideEffect += `<span class="calc-side-effect-badge ui-status-badge"><span>흡수</span><b>${healMinPct}% ~ ${healMaxPct}%</b><span>(${healMin}~${healMax})</span></span>`;
   }
 
   // 다단 히트 표시
   let multihitLabel = '';
   if (moveData.mh) {
     if (Array.isArray(moveData.mh)) {
-      multihitLabel = `<span class="move-meta-note">${moveData.mh[0]}~${moveData.mh[1]}타</span>`;
+      multihitLabel = `<span class="calc-move-meta-badge">${moveData.mh[0]}~${moveData.mh[1]}타</span>`;
     } else {
-      multihitLabel = `<span class="move-meta-note">${moveData.mh}타 고정</span>`;
+      multihitLabel = `<span class="calc-move-meta-badge">${moveData.mh}타 고정</span>`;
     }
   }
   // 부자유친 표시
   if (r.mods?.some(m => m.includes('부자유친'))) {
-    multihitLabel = `<span class="move-meta-note">1타 + 0.25타</span>`;
+    multihitLabel = `<span class="calc-move-meta-badge">1타 + 0.25타</span>`;
   }
-  const stabBadge = r.stab ? '<span class="stab-mark">자속</span>' : '';
-  const metaHtml = multihitLabel ? `<span class="move-meta">${multihitLabel}</span>` : '';
+  const stabBadge = r.stab ? '<span class="calc-stab-badge">자속</span>' : '';
+  const metaHtml = multihitLabel ? `<span class="calc-move-meta">${multihitLabel}</span>` : '';
   const hkoTone = r.hko.cls === 'no' ? 'no' :
                   r.hko.label === '난수' ? 'chance' :
                   r.hko.turns === '1타' ? 'ko-strong' : 'ko-stable';
   const hkoTitle = escapeHTML([r.hko.label, r.hko.turns, r.hko.pct, r.hko.sub].filter(Boolean).join(' · '));
   
   const timingPowerBadge = r.timingPowerLabel
-    ? `<span class="timing-power-badge ui-status-badge">${escapeHTML(r.timingPowerLabel)}</span>`
+    ? `<span class="calc-timing-power-badge ui-status-badge">${escapeHTML(r.timingPowerLabel)}</span>`
     : '';
 
   return `
-    <div class="move-card ui-card ui-result-card">
-      <div class="move-card-main ui-card-body">
-        <div class="move-card-top ui-card-head">
-          <div class="move-title-row ui-title-row">
-            <span class="move-slot-num ui-index mono">${r.slot}</span>
-            <span class="move-name">${mvName(moveData)}</span>
+    <div class="calc-result-card ui-card ui-result-card">
+      <div class="calc-result-card-main ui-card-body">
+        <div class="calc-result-card-head ui-card-head">
+          <div class="calc-result-title-row ui-title-row">
+            <span class="calc-result-slot ui-index mono">${r.slot}</span>
+            <span class="calc-result-move-name">${mvName(moveData)}</span>
           </div>
-          <div class="move-badges ui-chip-row">
-            <span class="cat-badge ${catCls}">${cat}</span>
+          <div class="calc-move-badges ui-chip-row">
+            <span class="cat-badge calc-move-cat-badge ${catCls}">${cat}</span>
             ${typeLabel}
             ${stabBadge}
-            <span class="eff-badge ${effCls}">${effText}</span>
+            <span class="calc-effectiveness-badge ${effCls}">${effText}</span>
             ${metaHtml}
           </div>
         </div>
-        <div class="dmg-range-box ui-meter-card">
-          <div class="dmg-summary">
-            <span class="dmg-pct">${pctMin} ~ ${pctMax}%</span>
-            <span class="hp-remain">잔여 HP ${hpRemMin}-${hpRemMax} / ${r.defHP}</span>
+        <div class="calc-damage-range ui-meter-card">
+          <div class="calc-damage-summary">
+            <span class="calc-damage-percent">${pctMin} ~ ${pctMax}%</span>
+            <span class="calc-hp-remain"><span class="calc-hp-remain-label">잔여 HP</span><b class="calc-hp-remain-value">${hpRemMin}-${hpRemMax} / ${r.defHP}</b></span>
           </div>
-          <div class="dmg-bar ui-meter">
-            <div class="dmg-bar-fill ui-meter-fill" style="width: ${barMax}%"></div>
-            <div class="dmg-bar-fill min ui-meter-fill" style="width: ${barMin}%"></div>
+          <div class="calc-damage-meter ui-meter">
+            <div class="calc-damage-meter-fill ui-meter-fill" style="width: ${barMax}%"></div>
+            <div class="calc-damage-meter-fill min ui-meter-fill" style="width: ${barMin}%"></div>
           </div>
         </div>
-        <div class="dmg-info ui-meta-row">
-          <span>실제 대미지 <b>${min}-${max}</b></span>
+        <div class="calc-damage-meta ui-meta-row">
+          <span class="calc-damage-actual"><span class="calc-damage-actual-label">실제 대미지</span><b class="calc-damage-actual-value">${min}-${max}</b></span>
           ${timingPowerBadge}
           ${renderModsTrace(r.mods, 6, r)}
           ${sideEffect}
         </div>
       </div>
-      <div class="hko-badge ui-status-badge ${hkoTone}" title="${hkoTitle}">
-        <div class="hko-main ${r.hko.cls}">
-          <span class="hko-label">${r.hko.label}</span>
-          <span class="hko-turns">${r.hko.turns}</span>
-          <span class="hko-pct">${r.hko.pct || ''}</span>
+      <div class="calc-ko-badge ui-status-badge ${hkoTone}" title="${hkoTitle}">
+        <div class="calc-ko-main ${r.hko.cls}">
+          <span class="calc-ko-label">${r.hko.label}</span>
+          <span class="calc-ko-turns">${r.hko.turns}</span>
+          <span class="calc-ko-percent">${r.hko.pct || ''}</span>
         </div>
-        ${r.hko.sub ? `<div class="hko-sub">${r.hko.sub}</div>` : ''}
+        ${r.hko.sub ? `<div class="calc-ko-sub">${r.hko.sub}</div>` : ''}
       </div>
     </div>
   `;

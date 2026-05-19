@@ -72,12 +72,12 @@
     <!-- 대미지 계산기 -->
     <section id="page-calc" class="page page-frame active" role="tabpanel" aria-labelledby="nav-calc" aria-hidden="false">
       <div class="battle-grid ui-frame-row">
-        <section class="panel ui-frame atk ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
-            <div class="panel-title ui-panel-title" role="heading" aria-level="2">공격측</div>
-            <span class="panel-tag ui-panel-tag">ATK</span>
+        <section class="ui-frame atk ui-panel">
+          <div class="ui-frame-head ui-panel-head">
+            <div class="ui-panel-title" role="heading" aria-level="2">공격측</div>
+            <span class="ui-panel-tag">ATK</span>
           </div>
-          <div class="panel-body calc-side-body ui-frame-body ui-panel-body ui-subframe-stack" id="atk-body"></div>
+          <div class="calc-side-body ui-frame-body ui-panel-body ui-subframe-stack" id="atk-body"></div>
         </section>
 
         <button class="calc-side-swap-button" id="btnSwapSides" type="button" title="공격측과 방어측 교대">
@@ -85,52 +85,52 @@
           <span class="label">교대</span>
         </button>
 
-        <section class="panel ui-frame def ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
-            <div class="panel-title ui-panel-title" role="heading" aria-level="2">방어측</div>
-            <span class="panel-tag ui-panel-tag">DEF</span>
+        <section class="ui-frame def ui-panel">
+          <div class="ui-frame-head ui-panel-head">
+            <div class="ui-panel-title" role="heading" aria-level="2">방어측</div>
+            <span class="ui-panel-tag">DEF</span>
           </div>
-          <div class="panel-body calc-side-body ui-frame-body ui-panel-body ui-subframe-stack" id="def-body"></div>
+          <div class="calc-side-body ui-frame-body ui-panel-body ui-subframe-stack" id="def-body"></div>
         </section>
       </div>
 
-      <div class="field-row ui-frame-row">
-        <section class="panel ui-frame collapsible collapsed ui-panel" id="field-panel">
-          <div class="panel-head ui-frame-head ui-panel-head" id="field-head">
-            <div class="panel-title ui-panel-title" role="heading" aria-level="2">필드 · 부가 효과</div>
-            <div class="panel-head-actions ui-action-row ui-panel-actions">
-              <label class="field-auto-toggle">
+      <div class="calc-field-row ui-frame-row">
+        <section class="ui-frame collapsible collapsed ui-panel" id="calc-field-panel">
+          <div class="ui-frame-head ui-panel-head" id="calc-field-head">
+            <div class="ui-panel-title" role="heading" aria-level="2">필드 · 부가 효과</div>
+            <div class="ui-action-row ui-panel-actions">
+              <label class="calc-field-auto-toggle">
                 <input type="checkbox" id="autoEntry" checked>
                 <span>자동진입효과</span>
               </label>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack">
-            <div class="field-grid field-select-frame ui-control-frame ui-subframe ui-control-grid">
-              <div class="field ui-field">
-                <label class="field-label ui-field-label" for="weather">날씨</label>
-                <div class="combobox field-combobox" data-cb="field-weather">
-                  <button type="button" id="weather" class="cb-input cb-trigger" data-cb-type="weather" data-field="weather" data-value="none" aria-label="날씨 선택" aria-expanded="false">없음</button>
+          <div class="ui-frame-body ui-panel-body ui-subframe-stack">
+            <div class="battle-field-select-frame ui-control-frame ui-subframe ui-control-grid">
+              <div class="battle-field-choice battle-weather-field ui-field ui-choice-field">
+                <label class="ui-field-label ui-choice-label" for="weather">날씨</label>
+                <div class="combobox battle-field-combobox battle-weather-combobox ui-choice-combobox" data-cb="field-weather">
+                  <button type="button" id="weather" class="cb-input cb-trigger ui-choice-surface" data-cb-type="weather" data-field="weather" data-value="none" aria-label="날씨 선택" aria-expanded="false">없음</button>
                   <div class="combobox-options" role="listbox"></div>
                 </div>
               </div>
-              <div class="field ui-field">
-                <label class="field-label ui-field-label" for="terrain">필드</label>
-                <div class="combobox field-combobox" data-cb="field-terrain">
-                  <button type="button" id="terrain" class="cb-input cb-trigger" data-cb-type="terrain" data-field="terrain" data-value="none" aria-label="필드 선택" aria-expanded="false">없음</button>
+              <div class="battle-field-choice battle-terrain-field ui-field ui-choice-field">
+                <label class="ui-field-label ui-choice-label" for="terrain">필드</label>
+                <div class="combobox battle-field-combobox battle-terrain-combobox ui-choice-combobox" data-cb="field-terrain">
+                  <button type="button" id="terrain" class="cb-input cb-trigger ui-choice-surface" data-cb-type="terrain" data-field="terrain" data-value="none" aria-label="필드 선택" aria-expanded="false">없음</button>
                   <div class="combobox-options" role="listbox"></div>
                 </div>
               </div>
-              <div class="field ui-field">
-                <label class="field-label ui-field-label" for="gameType">룰</label>
-                <div class="combobox field-combobox" data-cb="field-game-type">
-                  <button type="button" id="gameType" class="cb-input cb-trigger" data-cb-type="gameType" data-field="gameType" data-value="Singles" aria-label="룰 선택" aria-expanded="false">싱글</button>
+              <div class="calc-rule-field ui-field ui-choice-field">
+                <label class="ui-field-label ui-choice-label" for="gameType">룰</label>
+                <div class="combobox calc-rule-combobox ui-choice-combobox" data-cb="field-game-type">
+                  <button type="button" id="gameType" class="cb-input cb-trigger ui-choice-surface" data-cb-type="gameType" data-field="gameType" data-value="Singles" aria-label="룰 선택" aria-expanded="false">싱글</button>
                   <div class="combobox-options" role="listbox"></div>
                 </div>
               </div>
             </div>
 
-            <div class="field-checkbox-grid field-effects-frame ui-control-frame ui-subframe ui-control-row">
+            <div class="calc-field-effects-frame ui-control-frame ui-subframe ui-control-row">
               <label class="checkbox-label ui-check"><input type="checkbox" id="critHit"><span>급소</span></label>
               <label class="checkbox-label ui-check"><input type="checkbox" id="defReflect"><span>리플렉터</span></label>
               <label class="checkbox-label ui-check"><input type="checkbox" id="defLightScreen"><span>빛의장막</span></label>
@@ -142,8 +142,8 @@
               <label class="checkbox-label ui-check"><input type="checkbox" id="defStealthRock"><span>스텔스록</span></label>
               <label class="checkbox-label spikes ui-check">
                 <input type="checkbox" id="defSpikes"><span>압정뿌리기</span>
-                <div class="combobox field-inline-combobox" data-cb="field-spikes-layers">
-                  <button type="button" id="defSpikesLayers" class="cb-input cb-trigger field-inline-input" data-cb-type="spikesLayers" data-field="defSpikesLayers" data-value="1" disabled aria-label="압정뿌리기 중첩 수" aria-expanded="false">1중첩</button>
+                <div class="combobox calc-spikes-layer-combobox" data-cb="field-spikes-layers">
+                  <button type="button" id="defSpikesLayers" class="cb-input cb-trigger calc-spikes-layer-input" data-cb-type="spikesLayers" data-field="defSpikesLayers" data-value="1" disabled aria-label="압정뿌리기 중첩 수" aria-expanded="false">1중첩</button>
                   <div class="combobox-options" role="listbox"></div>
                 </div>
               </label>
@@ -153,16 +153,16 @@
         </section>
       </div>
 
-      <section class="panel results ui-frame ui-panel">
-        <div class="panel-head results-head ui-frame-head ui-panel-head">
-          <div class="panel-title results-title ui-panel-title" role="heading" aria-level="2">결과</div>
-          <div class="panel-head-actions results-actions ui-action-row ui-panel-actions">
+      <section class="calc-results-panel ui-frame ui-panel">
+        <div class="calc-results-head ui-frame-head ui-panel-head">
+          <div class="calc-results-title ui-panel-title" role="heading" aria-level="2">결과</div>
+          <div class="calc-results-actions ui-action-row ui-panel-actions">
             <button class="btn-calculate ui-btn ui-btn-primary" id="btnSwapSidesResult" type="button">공수교대</button>
             <button class="btn-secondary ui-btn ui-btn-secondary" id="btnCalculate" type="button">계산 재실행</button>
             <button class="btn-secondary ui-btn ui-btn-secondary" id="btnResetManual" type="button">기본값 복원</button>
           </div>
         </div>
-        <div class="panel-body results-body ui-frame-body ui-panel-body ui-subframe-stack" id="results-body"></div>
+        <div class="calc-results-body ui-frame-body ui-panel-body ui-subframe-stack" id="calc-results-body"></div>
       </section>
     </section>
 

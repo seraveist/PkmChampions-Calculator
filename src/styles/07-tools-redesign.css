@@ -183,7 +183,8 @@
 }
 
 .tool-page .tool-stat-total {
-  min-height: 30px;
+  height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
   padding: 0 10px;
 }
 
@@ -988,19 +989,12 @@
   min-width: 0;
 }
 
-#page-finetune .ft-stats-head,
-#page-finetune .ft-stat-row,
-#page-revcalc .ft-stats-head,
-#page-revcalc .ft-stat-row {
-  display: contents;
-}
-
 #page-finetune .ft-stats-head > div,
 #page-revcalc .ft-stats-head > div {
   padding: 0 4px 6px;
   border-bottom: 1px solid var(--tool-line-soft);
   color: var(--tool-muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   text-align: center;
   white-space: nowrap;
@@ -1024,124 +1018,56 @@
 #page-revcalc .ft-stat-base,
 #page-finetune .ft-stat-final,
 #page-revcalc .ft-stat-final {
-  color: var(--tool-text);
-  font-family: "Fira Code", "JetBrains Mono", monospace;
-  font-size: 13px;
-  font-weight: 800;
-  text-align: center;
+  color: var(--tool-stat-final-color, var(--tool-text));
 }
 
 #page-finetune .ft-stat-base,
 #page-revcalc .ft-stat-base {
-  color: var(--tool-muted);
+  color: var(--tool-stat-base-color, var(--tool-muted));
 }
 
-.tool-page .tool-stat-point-stepper {
-  display: grid;
-  grid-template-columns: 32px minmax(82px, 1fr) 32px;
-  gap: 4px;
-  align-items: center;
+.tool-page .tool-stat-grid {
+  --tool-stat-control-border: 1px solid var(--border);
+  --tool-stat-control-hover-border: var(--border-bright);
+  --tool-stat-control-focus-border: var(--tool-accent);
+  --tool-stat-control-radius: var(--ui-stat-control-radius);
+  --tool-stat-focus-ring: var(--focus-ring);
+  --tool-stat-button-bg: #ffffff;
+  --tool-stat-button-hover-bg: #f8fafc;
+  --tool-stat-input-bg: #ffffff;
+  --tool-stat-input-color: var(--tool-text);
+  --tool-stat-rank-value-color: var(--tool-text);
+  --tool-stat-base-color: var(--tool-muted);
+  --tool-stat-final-color: var(--tool-text);
+  --tool-stat-positive-color: var(--tool-danger);
+  --tool-stat-negative-color: var(--tool-info);
 }
 
-.tool-page .tool-stat-point-button,
-.tool-page .tool-stat-rank-button {
-  display: inline-grid;
-  place-items: center;
-  width: var(--ui-stat-control-size);
-  height: var(--ui-stat-control-size);
-  border: 1px solid var(--border);
-  border-radius: var(--ui-stat-control-radius);
-  background: #ffffff;
-  color: var(--text-dim);
-  font-family: "Fira Code", "JetBrains Mono", monospace;
-  font-size: 12px;
-  font-weight: 900;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
-}
-
-.tool-page .tool-stat-point-button:hover,
-.tool-page .tool-stat-rank-button:hover {
-  border-color: var(--border-bright);
-  background: #f8fafc;
-  color: var(--text);
-}
-
-.tool-page .tool-stat-point-input {
-  width: 100%;
-  min-height: 32px;
-  height: 32px;
-  padding: 0 2px;
-  border: 1px solid var(--tool-line);
-  border-radius: 8px;
-  background: #ffffff;
-  color: var(--tool-text);
-  font-family: "Fira Code", "JetBrains Mono", monospace;
-  font-size: 13px;
-  font-weight: 900;
-  line-height: 32px;
-  text-align: center;
-  appearance: auto;
-  box-shadow: none;
-}
-
-.tool-page .tool-stat-point-input:focus {
-  outline: none;
-  border-color: var(--tool-accent);
-  box-shadow: var(--focus-ring);
-}
-
-.tool-page .tool-stat-rank-stepper {
-  display: grid;
-  grid-template-columns: 28px 28px 28px;
-  gap: 3px;
-  justify-content: center;
-  align-items: center;
-}
-
-.tool-page .tool-stat-rank-button {
-  width: 28px;
-  height: 28px;
-}
-
-.tool-page .tool-stat-rank-value {
-  color: var(--tool-text);
-  font-family: "Fira Code", "JetBrains Mono", monospace;
-  font-size: 13px;
-  font-weight: 900;
-  text-align: center;
-}
-
-.tool-page .tool-stat-rank-value.pos,
 #page-finetune .ft-nature-up,
 #page-revcalc .ft-nature-up {
   color: var(--tool-danger);
 }
 
-.tool-page .tool-stat-rank-value.neg,
 #page-finetune .ft-nature-down,
 #page-revcalc .ft-nature-down {
   color: var(--tool-info);
 }
 
-.tool-page .tool-stat-rank-empty {
-  min-height: 30px;
-}
-
 #page-finetune .ft-stats-grid {
-  --ft-ev-btn: clamp(24px, 2.2vw, 30px);
-  --ft-ev-input: clamp(52px, 5vw, 64px);
-  --ft-control-h: clamp(32px, 2.45vw, 34px);
-  --ft-ev-gap: clamp(3px, 0.35vw, 5px);
-  --ft-point-col: calc((var(--ft-ev-btn) * 2) + var(--ft-ev-input) + (var(--ft-ev-gap) * 2));
+  --ft-point-col: calc((var(--tool-stat-point-button-size) * 2) + var(--tool-stat-point-input-width) + (var(--tool-stat-point-gap) * 2));
   --ft-magic-edge: clamp(18px, 2vw, 28px);
   --ft-magic-current: clamp(22px, 2.5vw, 36px);
   --ft-magic-gap: clamp(2px, 0.28vw, 4px);
   --ft-magic-col: calc((var(--ft-magic-edge) * 2) + var(--ft-magic-current) + (var(--ft-magic-gap) * 2));
-  --ft-rank-btn: clamp(20px, 1.9vw, 26px);
-  --ft-rank-val: clamp(20px, 1.9vw, 26px);
-  --ft-rank-gap: clamp(3px, 0.35vw, 5px);
-  --ft-rank-col: calc((var(--ft-rank-btn) * 2) + var(--ft-rank-val) + (var(--ft-rank-gap) * 2));
+  --ft-rank-col: calc((var(--tool-stat-rank-button-size) * 2) + var(--tool-stat-rank-value-width) + (var(--tool-stat-rank-gap) * 2));
+  --tool-stat-magic-edge-width: var(--ft-magic-edge);
+  --tool-stat-magic-current-width: var(--ft-magic-current);
+  --tool-stat-magic-gap: var(--ft-magic-gap);
+  --tool-stat-magic-row-height: 36px;
+  --tool-stat-magic-control-radius: clamp(5px, 0.45vw, 7px);
+  --tool-stat-magic-control-padding: 0 clamp(2px, 0.35vw, 5px);
+  --tool-stat-magic-font-size: clamp(9px, 0.72vw, 10px);
+  --tool-stat-control-radius: 7px;
   width: max-content;
   max-width: none;
   grid-template-columns:
@@ -1163,8 +1089,8 @@
 #page-finetune .ft-stat-name {
   justify-content: flex-start;
   gap: 3px;
-  height: 42px;
-  min-height: 42px;
+  height: 36px;
+  min-height: 36px;
   padding: 0 0 0 clamp(8px, 26%, 18px);
   font-size: clamp(12px, 0.95vw, 13px);
 }
@@ -1174,55 +1100,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 42px;
-  min-height: 42px;
-  font-size: clamp(12px, 0.95vw, 13px);
-}
-
-#page-finetune .tool-stat-point-stepper {
-  grid-template-columns: var(--ft-ev-btn) var(--ft-ev-input) var(--ft-ev-btn);
-  gap: var(--ft-ev-gap);
-  justify-content: center;
-  height: 42px;
-  min-height: 42px;
-}
-
-#page-finetune .tool-stat-point-button {
-  width: var(--ft-ev-btn);
-  height: var(--ft-control-h);
-  border-radius: 7px;
-  font-size: clamp(11px, 0.85vw, 12px);
-}
-
-#page-finetune .tool-stat-point-input {
-  min-height: var(--ft-control-h);
-  height: var(--ft-control-h);
-  font-size: clamp(12px, 0.9vw, 13px);
-  line-height: var(--ft-control-h);
-}
-
-#page-finetune .tool-stat-rank-stepper {
-  grid-template-columns: var(--ft-rank-btn) var(--ft-rank-val) var(--ft-rank-btn);
-  gap: var(--ft-rank-gap);
-  justify-content: center;
-  height: 42px;
-  min-height: 42px;
-}
-
-#page-finetune .tool-stat-rank-button {
-  width: var(--ft-rank-btn);
-  height: calc(var(--ft-control-h) - 2px);
-  border-radius: 7px;
-  font-size: clamp(11px, 0.85vw, 12px);
-}
-
-#page-finetune .tool-stat-rank-value {
-  font-size: clamp(12px, 0.9vw, 13px);
-}
-
-#page-finetune .tool-stat-rank-empty {
-  height: 42px;
-  min-height: 42px;
+  height: 36px;
+  min-height: 36px;
 }
 
 #page-finetune .ft-nature-up,
@@ -1246,8 +1125,8 @@
   justify-content: center;
   gap: var(--ft-magic-gap);
   min-width: 0;
-  height: 42px;
-  min-height: 42px;
+  height: 36px;
+  min-height: 36px;
 }
 
 #page-finetune .ft-magic-current-slot {
@@ -1270,7 +1149,7 @@
   align-items: center;
   justify-content: center;
   min-width: 0;
-  min-height: calc(var(--ft-control-h) - 2px);
+  min-height: var(--tool-stat-magic-control-height);
   padding: 0 clamp(2px, 0.35vw, 5px);
   border: 1px solid var(--tool-line);
   border-radius: clamp(5px, 0.45vw, 7px);
@@ -1320,8 +1199,9 @@
   line-height: 1;
   gap: 6px;
   min-width: 0;
-  min-height: 28px;
-  padding: 5px 10px;
+  height: var(--tool-stat-bulk-card-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-bulk-card-height, var(--ui-pokemon-action-height));
+  padding: var(--tool-stat-bulk-card-padding, 0 10px);
   border: 1px solid #e5e7eb;
   border-radius: 999px;
   background: #f8fafc;
@@ -1357,22 +1237,26 @@
 #page-finetune .ft-bulk-label {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  height: var(--tool-stat-bulk-content-height, 16px);
   color: var(--tool-muted);
   font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 0.78rem;
   font-weight: 800;
-  line-height: 1;
+  line-height: var(--tool-stat-bulk-content-height, 16px);
   white-space: nowrap;
 }
 
 #page-finetune .ft-bulk-value {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  height: var(--tool-stat-bulk-content-height, 16px);
   color: #334155;
   font-family: "Fira Code", "JetBrains Mono", monospace;
   font-size: 0.82rem;
   font-weight: 900;
-  line-height: 1;
+  line-height: var(--tool-stat-bulk-content-height, 16px);
   white-space: nowrap;
 }
 
@@ -1892,12 +1776,7 @@
   margin-top: 12px;
 }
 
-#page-revcalc .rc-opp-stat-head,
-#page-revcalc .rc-opp-stat-row {
-  display: contents;
-}
-
-#page-revcalc .rc-opp-stat-head span {
+#page-revcalc .rc-opp-stat-head-cell {
   min-height: 20px;
   padding-bottom: 5px;
   border-bottom: 1px solid var(--tool-line);
@@ -1933,14 +1812,12 @@
   justify-content: center;
 }
 
-#page-revcalc .rc-opp-rank-cell .ft-rank {
+#page-revcalc .rc-opp-rank-stepper {
   width: min(100%, 116px);
 }
 
 #page-revcalc .rc-opp-rank-empty {
-  display: block;
   width: min(100%, 116px);
-  height: 34px;
 }
 
 /* Reverse calculator */
@@ -2116,50 +1993,6 @@
   min-width: 10px;
 }
 
-#page-revcalc .rc-stats-grid .ft-stat-base,
-#page-revcalc .rc-stats-grid .ft-stat-final,
-#page-revcalc .rc-stats-grid .tool-stat-rank-value {
-  font-size: clamp(11px, 0.9vw, 13px);
-}
-
-#page-revcalc .rc-stats-grid .tool-stat-point-stepper {
-  grid-template-columns: 30px minmax(52px, 1fr) 30px;
-  gap: 3px;
-  justify-content: center;
-  justify-items: center;
-  width: 100%;
-}
-
-#page-revcalc .rc-stats-grid .tool-stat-point-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  line-height: 30px;
-}
-
-#page-revcalc .rc-stats-grid .tool-stat-point-input {
-  display: block;
-  min-width: 0;
-  height: 30px;
-  min-height: 30px;
-  padding: 0 2px;
-  line-height: 30px;
-  text-align: center;
-}
-
-#page-revcalc .rc-stats-grid .tool-stat-rank-stepper {
-  grid-template-columns: 26px 24px 26px;
-  gap: 2px;
-}
-
-#page-revcalc .rc-stats-grid .tool-stat-rank-button {
-  width: 26px;
-  height: 30px;
-}
-
 #page-revcalc .rc-move-set-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2227,16 +2060,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  min-height: 24px;
+  gap: var(--tool-stat-total-gap, 6px);
+  height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
   margin: 0;
-  padding: 0 8px;
+  padding: var(--tool-stat-head-action-padding, 0 12px);
   border: 1px solid var(--tool-line);
   border-radius: 999px;
   background: var(--tool-surface-soft);
   color: var(--tool-muted);
-  font-size: 11px;
-  font-weight: 900;
+  font-size: var(--ui-label-action-font-size);
+  font-weight: var(--ui-label-action-font-weight);
+  line-height: 1;
   white-space: nowrap;
 }
 
@@ -3093,33 +2928,6 @@
     gap: 5px 1px;
   }
 
-  #page-revcalc .rc-stats-grid .tool-stat-point-stepper {
-    grid-template-columns: 22px minmax(38px, 1fr) 22px;
-    gap: 2px;
-  }
-
-  #page-revcalc .rc-stats-grid .tool-stat-point-button {
-    width: 22px;
-    height: 28px;
-    line-height: 28px;
-  }
-
-  #page-revcalc .rc-stats-grid .tool-stat-point-input {
-    height: 28px;
-    min-height: 28px;
-    line-height: 28px;
-  }
-
-  #page-revcalc .rc-stats-grid .tool-stat-rank-stepper {
-    grid-template-columns: 18px 18px 18px;
-    gap: 1px;
-  }
-
-  #page-revcalc .rc-stats-grid .tool-stat-rank-button {
-    width: 18px;
-    height: 28px;
-  }
-
   #page-finetune .ft-opp-pick-row {
     display: block;
   }
@@ -3199,16 +3007,10 @@
   }
 
   #page-finetune .ft-stats-grid {
-    --ft-ev-btn: 22px;
-    --ft-ev-input: 48px;
-    --ft-control-h: 28px;
-    --ft-ev-gap: 2px;
     --ft-magic-edge: 18px;
     --ft-magic-current: 20px;
     --ft-magic-gap: 1px;
-    --ft-rank-btn: 18px;
-    --ft-rank-val: 20px;
-    --ft-rank-gap: 2px;
+    --tool-stat-magic-row-height: 34px;
     grid-template-columns:
       44px
       32px
@@ -3221,7 +3023,7 @@
   }
 
   #page-finetune .ft-stats-head > div {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   #page-finetune .ft-stat-name {
@@ -3233,42 +3035,9 @@
   #page-finetune .ft-stat-name,
   #page-finetune .ft-stat-base,
   #page-finetune .ft-stat-final,
-  #page-finetune .tool-stat-point-stepper,
-  #page-finetune .tool-stat-rank-stepper,
-  #page-finetune .tool-stat-rank-empty,
   #page-finetune .ft-magic {
-    height: 40px;
-    min-height: 40px;
-  }
-
-  #page-finetune .ft-stat-base,
-  #page-finetune .ft-stat-final,
-  #page-finetune .tool-stat-rank-value {
-    font-size: 11px;
-  }
-
-  #page-finetune .tool-stat-point-stepper {
-    grid-template-columns: var(--ft-ev-btn) var(--ft-ev-input) var(--ft-ev-btn);
-    gap: var(--ft-ev-gap);
-  }
-
-  #page-finetune .tool-stat-point-button {
-    width: var(--ft-ev-btn);
-    font-size: 10px;
-  }
-
-  #page-finetune .tool-stat-point-input {
-    font-size: 11px;
-  }
-
-  #page-finetune .tool-stat-rank-stepper {
-    grid-template-columns: var(--ft-rank-btn) var(--ft-rank-val) var(--ft-rank-btn);
-    gap: var(--ft-rank-gap);
-  }
-
-  #page-finetune .tool-stat-rank-button {
-    width: var(--ft-rank-btn);
-    font-size: 10px;
+    height: 34px;
+    min-height: 34px;
   }
 
   #page-finetune .ft-magic-prev,
@@ -3281,7 +3050,7 @@
 
   #page-finetune .ft-magic {
     grid-template-columns: var(--ft-magic-edge) var(--ft-magic-current) var(--ft-magic-edge);
-    min-height: 40px;
+    min-height: 34px;
   }
 
   #page-finetune .ft-magic-current-slot {
@@ -3292,15 +3061,10 @@
 
 @media (max-width: 420px) {
   #page-finetune .ft-stats-grid {
-    --ft-ev-btn: 20px;
-    --ft-ev-input: 40px;
-    --ft-ev-gap: 2px;
-    --ft-magic-edge: 16px;
+    --ft-magic-edge: 14px;
     --ft-magic-current: 16px;
     --ft-magic-gap: 1px;
-    --ft-rank-btn: 18px;
-    --ft-rank-val: 16px;
-    --ft-rank-gap: 1px;
+    --tool-stat-magic-row-height: 32px;
     grid-template-columns:
       36px
       27px
@@ -3316,12 +3080,18 @@
     font-size: 10px;
   }
 
-  #page-finetune .ft-stats-head > div,
+  #page-finetune .ft-stat-name,
   #page-finetune .ft-stat-base,
   #page-finetune .ft-stat-final,
-  #page-finetune .tool-stat-rank-value {
+  #page-finetune .ft-magic {
+    height: 32px;
+    min-height: 32px;
+  }
+
+  #page-finetune .ft-stats-head > div {
     font-size: 10px;
   }
+
 }
 
 @media (max-width: 380px) {
@@ -3340,32 +3110,10 @@
     font-size: 10px;
   }
 
-  #page-revcalc .rc-stats-grid .tool-stat-point-stepper {
-    grid-template-columns: 22px minmax(38px, 1fr) 22px;
-  }
-
-  #page-revcalc .rc-stats-grid .tool-stat-point-button {
-    width: 22px;
-  }
-
-  #page-revcalc .rc-stats-grid .tool-stat-rank-stepper {
-    grid-template-columns: 18px 18px 18px;
-  }
-
-  #page-revcalc .rc-stats-grid .tool-stat-rank-button {
-    width: 18px;
-  }
-
   #page-finetune .ft-stats-grid {
-    --ft-ev-btn: 18px;
-    --ft-ev-input: 36px;
-    --ft-ev-gap: 2px;
     --ft-magic-edge: 12px;
     --ft-magic-current: 14px;
     --ft-magic-gap: 1px;
-    --ft-rank-btn: 16px;
-    --ft-rank-val: 14px;
-    --ft-rank-gap: 1px;
     grid-template-columns:
       32px
       24px
