@@ -169,36 +169,36 @@
     <!-- 형태 역계산 -->
     <section id="page-revcalc" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-revcalc" aria-hidden="true" hidden>
       <div class="rc-grid ui-frame-row">
-        <section class="panel ui-frame rc-my ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
-            <div class="panel-title ui-panel-title" role="heading" aria-level="2">내 포켓몬</div>
+        <section class="ui-frame rc-my ui-panel">
+          <div class="ui-frame-head ui-panel-head">
+            <div class="ui-panel-title" role="heading" aria-level="2">내 포켓몬</div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-my-body"></div>
+          <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-my-body"></div>
         </section>
 
-        <section class="panel ui-frame rc-opp ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
-            <div class="panel-title ui-panel-title" role="heading" aria-level="2">상대 포켓몬</div>
+        <section class="ui-frame rc-opp ui-panel">
+          <div class="ui-frame-head ui-panel-head">
+            <div class="ui-panel-title" role="heading" aria-level="2">상대 포켓몬</div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-opp-body"></div>
+          <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-opp-body"></div>
         </section>
       </div>
 
-      <section class="panel ui-frame ui-panel">
-        <div class="panel-head ui-frame-head ui-panel-head">
-          <div class="panel-title ui-panel-title" role="heading" aria-level="2">관측 데이터</div>
+      <section class="ui-frame ui-panel">
+        <div class="ui-frame-head ui-panel-head">
+          <div class="ui-panel-title" role="heading" aria-level="2">관측 데이터</div>
         </div>
-        <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-input-body"></div>
+        <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-input-body"></div>
       </section>
 
-      <section class="panel ui-frame ui-panel">
-        <div class="panel-head ui-frame-head ui-panel-head">
-          <div class="panel-title ui-panel-title" role="heading" aria-level="2">형태 분석 결과</div>
-          <div class="panel-head-actions ui-action-row ui-panel-actions">
+      <section class="ui-frame ui-panel">
+        <div class="ui-frame-head ui-panel-head">
+          <div class="ui-panel-title" role="heading" aria-level="2">형태 분석 결과</div>
+          <div class="ui-action-row ui-panel-actions">
             <button type="button" class="btn-calculate rc-analyze-btn ui-btn ui-btn-primary" id="rcAnalyze">형태 분석</button>
           </div>
         </div>
-        <div class="panel-body ui-frame-body ui-panel-body" id="rc-results-body">
+        <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-results-body">
           <div class="empty-state ui-empty">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>
         </div>
       </section>
@@ -207,36 +207,32 @@
     <!-- 세부조정 -->
     <section id="page-finetune" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-finetune" aria-hidden="true" hidden>
       <div class="finetune-grid ft-layout ui-frame-row">
-        <section class="panel ui-frame ft-editor ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
+        <section class="ui-frame ft-editor ui-panel">
+          <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="panel-title ui-panel-title" role="heading" aria-level="2">세부조정</div>
-            </div>
-            <div class="panel-head-actions ui-action-row ui-panel-actions">
-              <button type="button" class="ft-action-btn atk" id="ftApplyAtk" title="현재 세팅을 계산기 공격측으로 적용 (상대는 방어측으로)">공격측</button>
-              <button type="button" class="ft-action-btn def" id="ftApplyDef" title="현재 세팅을 계산기 방어측으로 적용 (상대는 공격측으로)">방어측</button>
+              <div class="ui-panel-title" role="heading" aria-level="2">세부조정</div>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="ft-my-body"></div>
+          <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="ft-my-body"></div>
         </section>
 
-        <aside class="panel ui-frame ft-hp-panel ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
+        <aside class="ui-frame ft-hp-panel ui-panel">
+          <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="panel-title ui-panel-title" role="heading" aria-level="2">HP 브레이크포인트</div>
+              <div class="ui-panel-title" role="heading" aria-level="2">HP 브레이크포인트</div>
               <div class="ft-panel-subtitle">HP 기준점 · 조정 포인트</div>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="ft-hp-body"></div>
+          <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="ft-hp-body"></div>
         </aside>
 
-        <section class="panel ui-frame ft-speed-panel ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
+        <section class="ui-frame ft-speed-panel ui-panel">
+          <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="panel-title ui-panel-title" role="heading" aria-level="2">상대 / 스피드</div>
+              <div class="ui-panel-title" role="heading" aria-level="2">상대 / 스피드</div>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ft-speed-panel-body ui-panel-body ui-control-grid">
+          <div class="ui-frame-body ft-speed-panel-body ui-panel-body ui-control-grid">
             <div id="ft-opp-body"></div>
             <div class="ft-speed-embedded ui-control-frame ui-subframe ui-subframe-stack">
               <div class="ft-speed-head ui-section-head">
@@ -399,7 +395,7 @@
         </div>
       </div>
 
-      <div class="dex-content" id="dexFullPageDetail" role="region" aria-label="도감 상세" aria-hidden="true"></div>
+      <div class="dex-content ui-frame" id="dexFullPageDetail" role="region" aria-label="도감 상세" aria-hidden="true"></div>
     </section>
   </main>
 

@@ -552,7 +552,7 @@ function openDexDetail(type, id, parentCtx = null) {
   const actionsEl = document.getElementById('dexDetailActions');
   const actions = (content.actions || '').trim();
   actionsEl.innerHTML = actions;
-  actionsEl.hidden = false;
+  actionsEl.hidden = !actions;
   if (!modal.open) modal.showModal();
 }
 
@@ -568,7 +568,7 @@ function openDexDetailPage(type, id) {
   const headerActions = type === 'pokemon' && hasActions
     ? `<div class="dex-fullpage-head-actions">${content.actions}</div>`
     : '';
-  const footerActions = type === 'pokemon'
+  const footerActions = type === 'pokemon' || !hasActions
     ? ''
     : `<div class="dex-fullpage-actions" id="dexFullPageActions">${content.actions}</div>`;
   container.innerHTML = `

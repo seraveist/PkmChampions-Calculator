@@ -536,7 +536,7 @@ function renderPartyPresetSlot(member, partyIndex, slotIndex) {
   const slotKey = partyPresetSlotCollapseKey(partyIndex, slotIndex);
   const isCollapsed = pokemon && !partyPresetExpandedSlots.has(slotKey);
   return `
-    <div class="party-preset-slot ${pokemon ? 'filled' : ''}${isCollapsed ? ' collapsed' : ''}" data-party-index="${partyIndex}" data-slot-index="${slotIndex}">
+    <div class="party-preset-slot ui-control-frame ui-subframe ${pokemon ? 'filled' : ''}${isCollapsed ? ' collapsed' : ''}" data-party-index="${partyIndex}" data-slot-index="${slotIndex}">
       <div class="party-preset-slot-head">
         <span class="party-preset-slot-label">슬롯 ${slotIndex + 1}</span>
         ${partyPresetComboboxHtml({ partyIndex, slotIndex, type: 'pokemon', value: member.pokemon, label: partyPresetCurrentLabel('pokemon', member) })}
@@ -586,7 +586,7 @@ function renderPartyPresetModal() {
     const isCollapsed = partyPresetCollapsedParties.has(partyIndex);
     const filledCount = partyPresetFilledMembers(party).length;
     return `
-    <section class="party-preset-party ${isCollapsed ? 'collapsed' : ''}" data-party-index="${partyIndex}">
+    <section class="party-preset-party ui-control-frame ui-subframe ${isCollapsed ? 'collapsed' : ''}" data-party-index="${partyIndex}">
       <div class="party-preset-party-head">
         <div class="party-preset-party-title">
           <h3>${escapeHTML(party.name || `파티 ${partyIndex + 1}`)}</h3>
@@ -613,8 +613,8 @@ function ensurePartyPresetModal() {
   modal.className = 'party-preset-modal-backdrop';
   modal.hidden = true;
   modal.innerHTML = `
-    <div class="party-preset-modal" role="dialog" aria-modal="true" aria-labelledby="partyPresetTitle" aria-describedby="partyPresetBackupNote">
-      <div class="party-preset-modal-head">
+    <div class="party-preset-modal ui-frame" role="dialog" aria-modal="true" aria-labelledby="partyPresetTitle" aria-describedby="partyPresetBackupNote">
+      <div class="party-preset-modal-head ui-frame-head">
         <div>
           <div class="party-preset-eyebrow">PARTY PRESET</div>
           <h2 id="partyPresetTitle">파티 프리셋</h2>
@@ -630,9 +630,9 @@ function ensurePartyPresetModal() {
       <div class="party-preset-backup-note" id="partyPresetBackupNote" role="note">
         프리셋은 현재 브라우저에 저장됩니다. 기기 변경이나 브라우저 초기화 전에 JSON 내보내기로 백업하세요.
       </div>
-      <div class="party-preset-modal-body" id="partyPresetBody"></div>
+      <div class="party-preset-modal-body ui-frame-body ui-subframe-stack" id="partyPresetBody"></div>
       <div class="party-preset-text-dialog" id="partyPresetTextDialog" hidden>
-        <div class="party-preset-text-card">
+        <div class="party-preset-text-card ui-frame">
           <div class="party-preset-text-head">
             <h3 id="partyPresetTextTitle">Showdown 텍스트</h3>
             <button type="button" class="party-preset-close" id="partyPresetTextClose">닫기</button>
@@ -673,15 +673,15 @@ function ensurePartyPresetPickerModal() {
   modal.className = 'party-preset-picker-backdrop';
   modal.hidden = true;
   modal.innerHTML = `
-    <div class="party-preset-picker" role="dialog" aria-modal="true" aria-labelledby="partyPresetPickerTitle">
-      <div class="party-preset-picker-head">
+    <div class="party-preset-picker ui-frame" role="dialog" aria-modal="true" aria-labelledby="partyPresetPickerTitle">
+      <div class="party-preset-picker-head ui-frame-head">
         <div>
           <div class="party-preset-eyebrow">PARTY LOAD</div>
           <h2 id="partyPresetPickerTitle">불러오기</h2>
         </div>
         <button type="button" class="party-preset-close" id="partyPresetPickerClose">닫기</button>
       </div>
-      <div class="party-preset-picker-body" id="partyPresetPickerBody"></div>
+      <div class="party-preset-picker-body ui-frame-body ui-subframe-stack" id="partyPresetPickerBody"></div>
     </div>
   `;
   document.body.appendChild(modal);
@@ -701,18 +701,20 @@ function renderPartyPresetPicker() {
 
   if (mode === 'party') {
     body.innerHTML = `
-      <div class="party-preset-picker-party-grid">
-        ${partyPresetData.parties.map((party, partyIndex) => {
-          const members = partyPresetFilledMembers(party);
-          const labels = members.map(entry => pkName(PokemonById[entry.member.pokemon])).join(' · ');
-          return `
-            <button type="button" class="party-preset-picker-party ${members.length ? '' : 'empty'}" data-party-picker-party="${partyIndex}" ${members.length ? '' : 'disabled'}>
-              <b>${escapeHTML(party.name || `파티 ${partyIndex + 1}`)}</b>
-              <span>${members.length ? escapeHTML(labels) : '저장된 포켓몬 없음'}</span>
-            </button>
-          `;
-        }).join('')}
-      </div>
+      <section class="party-preset-picker-section party-preset-picker-party-section ui-control-frame ui-subframe">
+        <div class="party-preset-picker-party-grid">
+          ${partyPresetData.parties.map((party, partyIndex) => {
+            const members = partyPresetFilledMembers(party);
+            const labels = members.map(entry => pkName(PokemonById[entry.member.pokemon])).join(' · ');
+            return `
+              <button type="button" class="party-preset-picker-party ${members.length ? '' : 'empty'}" data-party-picker-party="${partyIndex}" ${members.length ? '' : 'disabled'}>
+                <b>${escapeHTML(party.name || `파티 ${partyIndex + 1}`)}</b>
+                <span>${members.length ? escapeHTML(labels) : '저장된 포켓몬 없음'}</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </section>
     `;
     return;
   }
@@ -720,7 +722,7 @@ function renderPartyPresetPicker() {
   body.innerHTML = partyPresetData.parties.map((party, partyIndex) => {
     const members = partyPresetFilledMembers(party);
     return `
-      <section class="party-preset-picker-section">
+      <section class="party-preset-picker-section ui-control-frame ui-subframe">
         <div class="party-preset-picker-section-head">${escapeHTML(party.name || `파티 ${partyIndex + 1}`)}</div>
         <div class="party-preset-picker-member-grid">
           ${members.length ? members.map(({ member, slotIndex }) => {

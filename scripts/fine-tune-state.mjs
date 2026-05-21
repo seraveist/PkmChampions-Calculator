@@ -226,14 +226,17 @@ assertEqual(api.ftOpponentBaseSpeed(api.fineTuneState.opp), 200, 'editable oppon
 assertEqual(api.ftOppSpeedCase(api.fineTuneState.opp, 0, 'hardy'), 220, 'opponent speed case uses edited base Speed');
 
 api.renderFineTuneAll();
-assertOk(api.elements.get('ft-summary-body').innerHTML.includes('ft-ev-meter'), 'fine-tune render includes EV summary panel');
-assertOk(!api.elements.get('ft-summary-body').innerHTML.includes('<span>HP</span>'), 'fine-tune EV summary omits duplicate HP stat');
-assertOk(!api.elements.get('ft-summary-body').innerHTML.includes('<span>속도</span>'), 'fine-tune EV summary omits duplicate speed stat');
+const ftMyHtml = api.elements.get('ft-my-body').innerHTML;
+assertOk(!ftMyHtml.includes('ft-summary-body'), 'fine-tune render omits standalone EV summary panel');
+assertOk(ftMyHtml.includes('ft-stat-total tool-stat-total'), 'fine-tune render uses the common stat total badge');
+assertOk(ftMyHtml.includes('<span>총합</span>'), 'fine-tune stat total badge labels point total');
 assertOk(api.elements.get('ft-hp-body').innerHTML.includes('ft-breakpoint-list'), 'fine-tune render includes HP breakpoint panel');
 assertOk(api.elements.get('ft-hp-body').innerHTML.includes('스텔스록 2배, 압정 3중 +1턴'), 'fine-tune HP breakpoints merge identical rule rows');
 assertOk(!api.elements.get('ft-hp-body').innerHTML.includes('ft-breakpoint-target'), 'fine-tune HP breakpoint panel omits target HP subline');
-assertOk(api.elements.get('ft-my-body').innerHTML.includes('data-ft-pick="nature"'), 'fine-tune nature uses combobox markup');
-assertOk(api.elements.get('ft-my-body').innerHTML.includes('ft-bulk-panel'), 'fine-tune render includes durability metrics');
-assertOk(api.elements.get('ft-my-body').innerHTML.indexOf('ft-magic') < api.elements.get('ft-my-body').innerHTML.indexOf('ft-stat-final'), 'fine-tune stat rows place magic before final stat');
+assertOk(ftMyHtml.includes('data-ft-pick="nature"'), 'fine-tune nature uses combobox markup');
+assertOk(ftMyHtml.includes('tool-stat-bulk-strip'), 'fine-tune render includes common durability metrics');
+assertOk(!ftMyHtml.includes('ft-bulk-panel'), 'fine-tune render omits legacy durability wrapper');
+assertOk(!ftMyHtml.includes(' field-label ') && !ftMyHtml.includes('"field-label '), 'fine-tune settings omit legacy field-label classes');
+assertOk(ftMyHtml.indexOf('ft-magic') < ftMyHtml.indexOf('ft-stat-final'), 'fine-tune stat rows place magic before final stat');
 assertOk(api.elements.get('ft-opp-body').innerHTML.includes('ftOppBaseSpe'), 'opponent render includes editable base Speed input');
 assertOk(api.elements.get('ft-opp-body').innerHTML.includes('ft-opp-speed-detail'), 'opponent render includes speed stat detail row');

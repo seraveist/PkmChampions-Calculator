@@ -166,90 +166,23 @@ function wireMatchupSlots() {
   if (!container) return;
   container.querySelectorAll('.matchup-cb-input').forEach(input => {
     const slot = parseInt(input.dataset.slot, 10);
-    const cbParent = input.closest('.combobox');
-    const optsEl = cbParent.querySelector('.combobox-options');
-    let activeIndex = -1;
-    const getOptions = () => [...optsEl.querySelectorAll('.combobox-option:not(.empty)')];
-    const setActiveOption = index => {
-      const options = getOptions();
-      activeIndex = options.length ? Math.max(-1, Math.min(index, options.length - 1)) : -1;
-      options.forEach((option, optionIndex) => option.classList.toggle('active', optionIndex === activeIndex));
-    };
-
-    const showOptions = (query, activateFirst = false) => {
-      const s = (query || '').toLowerCase();
-      const matches = sortPokemonForCalcSelect(POKEMON).filter(p =>
-        calcMatches(s, p.koName || pkName(p))
-      );
-      optsEl.innerHTML = matches.map(p =>
-        `<div class="combobox-option matchup-option" data-id="${p.id}">
-          <b class="matchup-option-name">${escapeHTML(pkName(p))}</b>
-          <small class="matchup-option-types">${p.types.map(t => `<span class="type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}</small>
-        </div>`
-      ).join('');
-      optsEl.classList.add('open');
-      setActiveOption(activateFirst ? 0 : -1);
-      requestAnimationFrame(() => {
-        const rect = optsEl.getBoundingClientRect();
-        const sw = window.innerWidth;
-        if (rect.right > sw - 8) { optsEl.style.left = 'auto'; optsEl.style.right = '0'; }
-        else { optsEl.style.left = ''; optsEl.style.right = ''; }
-      });
-    };
-
-    const applyPokemonOption = opt => {
-      if (!opt) return;
-      matchupSlots[slot] = opt.dataset.id;
-      renderMatchupSlots();
-      renderMatchupCoverageInputs();
-      renderMatchupTable();
-    };
-    const restorePokemonInput = () => {
-      input.value = matchupSlots[slot] && PokemonById[matchupSlots[slot]]
-        ? pkName(PokemonById[matchupSlots[slot]])
-        : '';
-    };
-    const commitTypedPokemon = () => {
-      const query = input.value || '';
-      if (!String(query).trim()) return false;
-      showOptions(query);
-      const exact = [...optsEl.querySelectorAll('.combobox-option:not(.empty)')]
-        .find(opt => calcComboboxOptionMatchesExactText(opt, query));
-      if (exact) {
-        applyPokemonOption(exact);
-        return true;
-      }
-      restorePokemonInput();
-      optsEl.classList.remove('open');
-      return false;
-    };
-
-    input.addEventListener('focus', e => showOptions(e.target.value));
-    input.addEventListener('input', e => showOptions(e.target.value, true));
-    input.addEventListener('keydown', e => {
-      if (e.isComposing || e.keyCode === 229) return;
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      const active = getOptions()[activeIndex] || null;
-      if (active) applyPokemonOption(active);
-      else commitTypedPokemon();
-    });
-    input.addEventListener('blur', () => setTimeout(() => {
-      commitTypedPokemon();
-      optsEl.classList.remove('open');
-    }, 200));
-
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt) return;
-      e.preventDefault();
-      applyPokemonOption(opt);
-    });
-    optsEl.addEventListener('mousemove', e => {
-      const opt = e.target.closest('.combobox-option:not(.empty)');
-      if (!opt) return;
-      const index = getOptions().indexOf(opt);
-      if (index >= 0) setActiveOption(index);
+    wirePokemonSelectCombobox(input, {
+      getOptions: () => sortPokemonForCalcSelect(POKEMON),
+      getCurrentId: () => matchupSlots[slot] || '',
+      getDisplayLabel: () => {
+        const id = matchupSlots[slot] || '';
+        return id && PokemonById[id] ? pkName(PokemonById[id]) : '';
+      },
+      renderOption: typeof calcRenderSimplePokemonOption === 'function' ? calcRenderSimplePokemonOption : null,
+      renderHeader: '',
+      wiredKey: 'matchupPokemonWired',
+      onSelect: id => {
+        if (!id || !PokemonById[id]) return;
+        matchupSlots[slot] = id;
+        renderMatchupSlots();
+        renderMatchupCoverageInputs();
+        renderMatchupTable();
+      },
     });
   });
   container.querySelectorAll('.matchup-slot-clear').forEach(btn => {
@@ -268,6 +201,31 @@ function coverageMovePool(slot) {
   const p = matchupSlots[slot] ? PokemonById[matchupSlots[slot]] : null;
   const pool = p?.ls?.length ? p.ls.map(id => MoveById[id]).filter(Boolean) : MOVES;
   return sortMovesForCalcSelect(pool.filter(m => m.cat !== 'Status' && m.type && BATTLE_TYPES.includes(m.type)));
+}
+
+function matchupMoveMatchesQuery(move, search) {
+  return calcMatches(
+    search,
+    move.id,
+    move.name,
+    move.koName,
+    mvName(move),
+    move.type,
+    TYPE_KO[move.type],
+    calcMoveCategoryLabel(move.cat),
+    String(move.bp || '')
+  );
+}
+
+function matchupMoveOptionRows(slot, moveIndex, query) {
+  const search = calcSearchText(query);
+  const noneOption = { id: '', label: '\uC5C6\uC74C' };
+  const noneMatches = calcMatches(search, noneOption.label, 'none') ? [noneOption] : [];
+  const matches = coverageMovePool(slot).filter(move => matchupMoveMatchesQuery(move, search));
+  const currentId = matchupCoverageMoves[slot]?.[moveIndex] || '';
+  return [...noneMatches, ...matches]
+    .map(option => calcRenderMoveOption(option, currentId))
+    .join('');
 }
 
 function renderMatchupCoverageInputs() {
@@ -317,97 +275,78 @@ function wireMatchupCoverageInputs() {
     const slot = parseInt(input.dataset.slot, 10);
     const moveIndex = parseInt(input.dataset.moveIndex, 10);
     const cbParent = input.closest('.combobox');
-    const optsEl = cbParent.querySelector('.combobox-options');
-    let activeIndex = -1;
-    const getOptions = () => [...optsEl.querySelectorAll('.combobox-option:not(.empty)')];
-    const setActiveOption = index => {
-      const options = getOptions();
-      activeIndex = options.length ? Math.max(-1, Math.min(index, options.length - 1)) : -1;
-      options.forEach((option, optionIndex) => option.classList.toggle('active', optionIndex === activeIndex));
-    };
-    const showOptions = (query, activateFirst = false) => {
-      const s = (query || '').toLowerCase();
-      const noneMatches = !s || '없음'.includes(s) || 'none'.includes(s) ? [true] : [];
-      const matches = coverageMovePool(slot).filter(m =>
-        (m.koName || '').toLowerCase().includes(s) ||
-        m.name.toLowerCase().includes(s) ||
-        (TYPE_KO[m.type] || '').toLowerCase().includes(s) ||
-        m.type.toLowerCase().includes(s)
-      );
-      const currentId = matchupCoverageMoves[slot]?.[moveIndex] || '';
-      const noneRows = noneMatches.map(() => calcRenderMoveOption({ id: '', label: '없음' }, currentId)).join('');
-      const rows = matches.map(m => calcRenderMoveOption(m, currentId)).join('');
-      const header = typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('move') : '';
-      optsEl.innerHTML = `
-        ${header}
-        ${noneRows}${rows || (!noneRows ? '<div class="combobox-option empty" aria-disabled="true"><span>검색 결과 없음</span></div>' : '')}
-      `;
-      optsEl.classList.add('open');
-      setActiveOption(activateFirst ? 0 : -1);
-    };
-    const applyMoveOption = opt => {
-      if (!opt || opt.classList.contains('empty')) return;
-      matchupCoverageMoves[slot][moveIndex] = opt.dataset.id || null;
-      renderMatchupCoverageInputs();
-      renderMatchupTable();
-    };
-    const restoreMoveInput = () => {
-      const moveId = matchupCoverageMoves[slot]?.[moveIndex] || '';
+    const optsEl = cbParent?.querySelector('.combobox-options');
+    if (!optsEl) return;
+
+    let selectingOption = false;
+    const selectedMoveId = () => matchupCoverageMoves[slot]?.[moveIndex] || '';
+    const restoreInput = () => {
+      const moveId = selectedMoveId();
       input.value = moveId && MoveById[moveId] ? mvName(MoveById[moveId]) : '';
     };
-    const commitTypedMove = () => {
-      const query = input.value || '';
-      if (!String(query).trim()) {
-        matchupCoverageMoves[slot][moveIndex] = null;
-        renderMatchupCoverageInputs();
-        renderMatchupTable();
-        return true;
-      }
-      showOptions(query);
-      const exact = [...optsEl.querySelectorAll('.combobox-option:not(.empty)')]
-        .find(opt => calcComboboxOptionMatchesExactText(opt, query));
-      if (exact) {
-        applyMoveOption(exact);
-        return true;
-      }
-      matchupCoverageMoves[slot][moveIndex] = null;
+    const applyMoveId = id => {
+      matchupCoverageMoves[slot][moveIndex] = id && MoveById[id] ? id : null;
       renderMatchupCoverageInputs();
       renderMatchupTable();
-      optsEl.classList.remove('open');
-      return false;
     };
-    input.addEventListener('focus', e => showOptions(e.target.value));
+    const showMoveOptions = query => {
+      const rows = matchupMoveOptionRows(slot, moveIndex, query);
+      const header = typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('move') : '';
+      optsEl.innerHTML = rows
+        ? `${header}${rows}`
+        : '<div class="combobox-option empty" aria-disabled="true"><span>\uAC80\uC0C9 \uACB0\uACFC \uC5C6\uC74C</span></div>';
+      if (typeof closeSiblingComboboxOptions === 'function') {
+        closeSiblingComboboxOptions(optsEl, input);
+      }
+    };
+    const moveCombo = wireSharedComboboxKeyboard(input, optsEl, {
+      showOptions: showMoveOptions,
+      onSelect: opt => {
+        selectingOption = true;
+        applyMoveId(opt.dataset.id || '');
+      },
+      getQuery: () => input.value || '',
+      onInvalidInput: restoreInput,
+    });
+
+    input.addEventListener('focus', () => moveCombo?.open(input.value || ''));
+    input.addEventListener('click', () => moveCombo?.open(input.value || ''));
     input.addEventListener('input', e => {
       if (!e.target.value.trim()) {
         matchupCoverageMoves[slot][moveIndex] = null;
         renderMatchupTable();
       }
-      showOptions(e.target.value, true);
+      moveCombo?.open(e.target.value, { activateFirst: true });
     });
-    input.addEventListener('keydown', e => {
-      if (e.isComposing || e.keyCode === 229) return;
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      const active = getOptions()[activeIndex] || null;
-      if (active) applyMoveOption(active);
-      else commitTypedMove();
-    });
+    input.addEventListener('compositionend', e => moveCombo?.open(e.target.value, { activateFirst: true }));
     input.addEventListener('blur', () => setTimeout(() => {
-      commitTypedMove();
-      optsEl.classList.remove('open');
-    }, 200));
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt || opt.classList.contains('empty')) return;
-      e.preventDefault();
-      applyMoveOption(opt);
-    });
-    optsEl.addEventListener('mousemove', e => {
+      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+        selectingOption = false;
+        restoreInput();
+        moveCombo?.close();
+        return;
+      }
+      if (selectingOption) {
+        selectingOption = false;
+        return;
+      }
+      if (!String(input.value || '').trim()) {
+        applyMoveId('');
+        return;
+      }
+      moveCombo?.commitTyped();
+    }, 180));
+
+    const handleOptionSelect = e => {
       const opt = e.target.closest('.combobox-option:not(.empty)');
-      if (!opt) return;
-      const index = getOptions().indexOf(opt);
-      if (index >= 0) setActiveOption(index);
-    });
+      if (!opt || opt.classList.contains('empty')) return;
+      selectingOption = true;
+      e.preventDefault();
+      moveCombo?.select(opt);
+    };
+    optsEl.addEventListener('mousedown', handleOptionSelect);
+    optsEl.addEventListener('click', handleOptionSelect);
+    optsEl.addEventListener('touchstart', handleOptionSelect, { passive: false });
   });
   container.querySelectorAll('.matchup-move-clear').forEach(btn => {
     btn.addEventListener('click', () => {

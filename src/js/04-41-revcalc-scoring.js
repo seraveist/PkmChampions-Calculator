@@ -587,9 +587,9 @@ function rcRenderNextRankCells(ranks, action) {
     const value = ranks[stat] || 0;
     return `
       <div class="rc-next-rank-cell">
-        <button type="button" data-rc-${action}="${stat}" data-rc-dir="-1">-</button>
-        <b class="${value > 0 ? 'pos' : value < 0 ? 'neg' : ''}">${value > 0 ? '+' + value : value}</b>
-        <button type="button" data-rc-${action}="${stat}" data-rc-dir="1">+</button>
+        <button type="button" class="tool-stat-rank-button ui-stat-button" data-rc-${action}="${stat}" data-rc-dir="-1">-</button>
+        <b class="tool-stat-rank-value ui-stat-value ${value > 0 ? 'pos' : value < 0 ? 'neg' : ''}">${value > 0 ? '+' + value : value}</b>
+        <button type="button" class="tool-stat-rank-button ui-stat-button" data-rc-${action}="${stat}" data-rc-dir="1">+</button>
       </div>
     `;
   }).join('');

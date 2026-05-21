@@ -45,15 +45,15 @@ function renderRevCalcMy() {
     const rank = my.ranks?.[s] || 0;
     return {
       stat: s,
-      labelHtml: `<span class="ft-stat-label tool-stat-name-text">${escapeHTML(STAT_KO[s])}</span>`,
+      labelHtml: `<span class="rc-stat-label tool-stat-name-text">${escapeHTML(STAT_KO[s])}</span>`,
       base: p.bs[s],
       point: ev,
       final,
       rank,
       natureHtml: renderToolStatNatureMark(s, my.nature, {
-        upClass: 'ft-nature-up',
-        downClass: 'ft-nature-down',
-        emptyClass: 'ft-nature-spacer',
+        upClass: 'rc-nature-up',
+        downClass: 'rc-nature-down',
+        emptyClass: 'rc-nature-spacer',
       }),
       pointOptions: {
         zeroAttrs: { 'data-rc-evset': s, 'data-rc-evval': '0' },
@@ -67,10 +67,10 @@ function renderRevCalcMy() {
       },
     };
   }), {
-    rowClass: 'ft-stat-row',
-    nameClass: 'ft-stat-name',
-    baseClass: 'ft-stat-base',
-    finalClass: 'ft-stat-final',
+    rowClass: 'rc-stat-row',
+    nameClass: 'rc-stat-name',
+    baseClass: 'rc-stat-base',
+    finalClass: 'rc-stat-final',
   });
 
   container.innerHTML = `
@@ -78,21 +78,21 @@ function renderRevCalcMy() {
       <div class="rc-pokemon-main-row ui-control-row">
         ${pokemonPicker}
       </div>
-      <div class="field rc-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+      <div class="rc-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
         <div class="rc-settings-grid tool-settings-grid ui-control-grid">
-          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="ability"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">특성</span>
+          <label class="rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="ability"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">특성</span>
             <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
               <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="myability" value="${escapeHTML(rcComboLabel('ability', my.ability))}" placeholder="특성 검색..." autocomplete="off">
               <div class="combobox-options"></div>
             </div>
           </label>
-          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="nature"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">성격</span>
+          <label class="rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="nature"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">성격</span>
             <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
               <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="mynature" value="${escapeHTML(rcComboLabel('nature', my.nature))}" placeholder="성격 검색..." autocomplete="off">
               <div class="combobox-options"></div>
             </div>
           </label>
-          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="item"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">도구</span>
+          <label class="rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="item"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">도구</span>
             <div class="combobox rc-flex-combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
               <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="myitem" value="${my.item ? escapeHTML(itName(ItemById[my.item] || { name: my.item })) : '없음'}" autocomplete="off">
               <div class="combobox-options"></div>
@@ -105,24 +105,30 @@ function renderRevCalcMy() {
       <div class="tool-stat-panel tool-stat-set tool-stat-set--revcalc tool-stat-has-nature ui-control-frame ui-subframe ui-subframe-stack ui-field">
         <div class="tool-stat-panel-head ui-section-head">
           <div class="tool-stat-panel-title ui-section-title">능력 포인트</div>
-          <div class="ft-ev-total tool-stat-total ui-metric-chip ${overEV ? 'over' : ''}">
+          <div class="rc-stat-total tool-stat-total ui-metric-chip ${overEV ? 'over' : ''}">
             총합 <b>${totalEV}</b> / 66 ${overEV ? '<span class="rc-ev-over">초과</span>' : ''}
           </div>
         </div>
         <div class="tool-stat-panel-body">
           <div class="tool-stat-table-frame ui-control-frame">
-            <div class="ft-stats-grid rc-stats-grid tool-stat-grid ui-stat-grid ui-stat-table">
+            <div class="rc-stats-grid rc-stat-grid tool-stat-grid ui-stat-grid ui-stat-table">
               ${renderToolStatHead(['name', 'base', 'point', 'final', 'rank'], {
-                rowClass: 'ft-stats-head',
+                rowClass: 'rc-stat-head-row',
               })}
               ${statRows}
             </div>
           </div>
         </div>
       </div>
-      <div class="rc-my-moves-panel ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="ft-section-title">기술배치</div>
-        <div class="rc-move-set-grid compact ui-control-grid">${moveSetRows}</div>
+      <div class="rc-my-moves-panel tool-move-panel tool-move-no-type tool-move-no-power tool-move-no-readout ui-control-frame ui-subframe ui-subframe-stack ui-field">
+        <div class="tool-move-panel-head ui-section-head">
+          <div class="tool-move-panel-title ui-section-title">기술배치</div>
+        </div>
+        <div class="tool-move-panel-body">
+          <div class="tool-move-list-frame ui-control-frame">
+            <div class="rc-move-set-grid compact tool-move-list ui-control-grid">${moveSetRows}</div>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -164,27 +170,21 @@ function renderRevCalcOpp() {
     const r = opp.ranks?.[s] || 0;
     return {
       stat: s,
-      label: STAT_KO[s],
+      labelHtml: `<span class="rc-stat-label tool-stat-name-text">${escapeHTML(STAT_KO[s])}</span>`,
+      natureHtml: '<span class="rc-nature-spacer tool-stat-nature-mark tool-stat-nature-empty" aria-hidden="true"></span>',
       base: p?.bs?.[s] ?? '-',
       rank: r,
-      rankHtml: `
-        <div class="rc-opp-rank-cell tool-stat-col-rank">
-          ${renderToolStatRankControl(s, r, {
-            rankable: s !== 'hp',
-            className: 'rc-opp-rank-stepper',
-            emptyClass: 'rc-opp-rank-empty',
-            emptyTag: 'span',
-            valueClass: 'rc-opp-rank-value',
-            decAttrs: { class: 'rc-opp-rank-button', 'data-rc-opprank': s, 'data-rc-dir': '-1' },
-            incAttrs: { class: 'rc-opp-rank-button', 'data-rc-opprank': s, 'data-rc-dir': '1' },
-          })}
-        </div>
-      `,
+      rankOptions: {
+        rankable: s !== 'hp',
+        emptyTag: 'span',
+        decAttrs: { 'data-rc-opprank': s, 'data-rc-dir': '-1' },
+        incAttrs: { 'data-rc-opprank': s, 'data-rc-dir': '1' },
+      },
     };
   }), {
     columns: ['name', 'base', 'rank'],
     rowClass: 'rc-opp-stat-row',
-    nameClass: 'rc-opp-stat-name',
+    nameClass: 'rc-stat-name rc-opp-stat-name',
     baseClass: 'rc-opp-stat-base',
   });
 
@@ -194,9 +194,9 @@ function renderRevCalcOpp() {
         ${pokemonPicker}
       </div>
       ${p ? `
-        <div class="field rc-settings-field rc-opp-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+        <div class="rc-settings-field rc-opp-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
           <div class="rc-settings-grid rc-opp-settings-grid tool-settings-grid ui-control-grid">
-            <label class="field rc-field rc-opp-status-field tool-settings-cell tool-settings-choice-cell tool-settings-condition-cell ui-control-cell ui-field" data-tool-setting="condition"><span class="field-label tool-settings-label tool-settings-choice-label ui-field-label ui-control-label">상태</span>
+            <label class="rc-field rc-opp-status-field tool-settings-cell tool-settings-choice-cell tool-settings-condition-cell ui-control-cell ui-field" data-tool-setting="condition"><span class="tool-settings-label tool-settings-choice-label ui-field-label ui-control-label">상태</span>
               <div class="combobox rc-status-combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-condition-control tool-settings-status-combobox">
                 <button type="button" class="cb-input cb-trigger tool-settings-choice-surface tool-settings-choice-input" data-rc-status="opp" aria-label="상대 상태 선택" aria-expanded="false">${escapeHTML(rcStatusDisplayLabel(opp.status))}</button>
                 <div class="combobox-options" role="listbox"></div>
@@ -213,10 +213,9 @@ function renderRevCalcOpp() {
         </div>
         <div class="tool-stat-panel-body">
           <div class="tool-stat-table-frame ui-control-frame">
-            <div class="rc-opp-stat-table tool-stat-grid ui-stat-grid ui-stat-table">
+            <div class="rc-opp-stat-table rc-stat-grid tool-stat-grid ui-stat-grid ui-stat-table">
               ${renderToolStatHead(['name', 'base', 'rank'], {
                 rowClass: 'rc-opp-stat-head',
-                cellClass: 'rc-opp-stat-head-cell',
               })}
               ${statRows}
             </div>
@@ -239,33 +238,31 @@ function renderRevCalcInputs() {
   const myCurrentHp = rcCurrentHpValue(my);
 
   // 도구 후보 체크박스 (type-boost 도구 + 그외 사용 가능 도구)
-  const itemMaster = ITEMS.filter(i => !i.ms && !i.isBerry);
+  const itemMaster = rcItemCandidateMasterList();
   const knownOppItem = rcKnownOpponentItem();
   const itemCandidates = knownOppItem === null ? rcActiveItemCandidates() : [];
   const itemPanelOpen = !!revCalcState.itemCandidatesOpen;
   const itemBoxes = itemMaster.map(i => `
-    <label class="rc-item-chk ${knownOppItem !== null ? 'disabled' : ''}">
+    <label class="rc-item-chk ui-check ${knownOppItem !== null ? 'is-disabled disabled' : ''}">
       <input type="checkbox" data-rc-item="${i.id}" ${knownOppItem === null && itemCandidates.includes(i.id) ? 'checked' : ''} ${knownOppItem !== null ? 'disabled' : ''}>
-      ${escapeHTML(itName(i))}
+      <span>${escapeHTML(itName(i))}</span>
     </label>
   `).join('');
 
   container.innerHTML = `
     <div class="rc-input-grid ui-control-grid">
       <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="ft-section-title">내 행동</div>
-        <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
-          <label class="field rc-field-wide ui-field">
-            <span class="field-label ui-field-label">사용 기술</span>
+        <div class="rc-section-title ui-section-title">내 행동</div>
+        <div class="rc-control-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
+          <label class="rc-field-wide ui-field">
+            <span class="ui-field-label">사용 기술</span>
             ${rcRenderMoveCombobox('myMove', revCalcState.myMove, { placeholder: '사용 기술 선택' })}
           </label>
-          <label class="field rc-field-compact ui-field">
-            <span class="field-label ui-field-label">상대 남은 HP %</span>
+          <label class="rc-field-compact ui-field">
+            <span class="ui-field-label">상대 남은 HP %</span>
             <input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="100" placeholder="0~100">
           </label>
         </div>
-        <div class="rc-input-divider"></div>
         <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defReflect" ${revCalcState.observedFields.dealt.defReflect ? 'checked' : ''}> 상대 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.dealt.defLightScreen ? 'checked' : ''}> 상대 빛의장막</label>
@@ -274,26 +271,21 @@ function renderRevCalcInputs() {
       </div>
 
       <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="ft-section-title">상대 행동</div>
-        <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
-          <label class="field rc-field-wide ui-field">
-            <span class="field-label ui-field-label">사용 기술</span>
+        <div class="rc-section-title ui-section-title">상대 행동</div>
+        <div class="rc-control-row rc-observed-row rc-opponent-action-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
+          <label class="rc-field-wide ui-field">
+            <span class="ui-field-label">사용 기술</span>
             ${rcRenderMoveCombobox('oppMove', revCalcState.oppMove, { placeholder: '상대 기술 선택' })}
           </label>
-          <label class="field rc-field-compact ui-field">
-            <span class="field-label ui-field-label">내 남은 HP</span>
+          <label class="rc-field-compact ui-field">
+            <span class="ui-field-label">내 남은 HP</span>
             <input type="number" data-rc-action="observedMyHp" value="${revCalcState.observedMyHp}" min="0" max="${myCurrentHp}" placeholder="0~${myCurrentHp}">
           </label>
-        </div>
-        <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row rc-opp-item-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
-          <label class="field rc-field-wide ui-field">
-            <span class="field-label ui-field-label">상대 도구</span>
+          <label class="rc-field-wide ui-field">
+            <span class="ui-field-label">상대 도구</span>
             ${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}
           </label>
         </div>
-        <div class="rc-input-divider"></div>
         <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defReflect" ${revCalcState.observedFields.received.defReflect ? 'checked' : ''}> 내 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.received.defLightScreen ? 'checked' : ''}> 내 빛의장막</label>
@@ -302,30 +294,28 @@ function renderRevCalcInputs() {
       </div>
 
       <div class="rc-input-block rc-speed-block ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="ft-section-title">선후공 | 필드 상태</div>
-        <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-speed-field-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
-          <label class="field rc-field-compact ui-field">
-            <span class="field-label ui-field-label">이번 턴 행동 순서</span>
+        <div class="rc-section-title ui-section-title">선후공 | 필드 상태</div>
+        <div class="rc-control-row rc-speed-field-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
+          <label class="rc-field-compact ui-field">
+            <span class="ui-field-label">이번 턴 행동 순서</span>
             ${rcRenderTurnOrderCombobox(revCalcState.turnOrder)}
           </label>
-          <label class="field battle-field-choice battle-weather-field ui-field ui-choice-field"><span class="field-label ui-field-label ui-choice-label">날씨</span>
+          <label class="battle-field-choice battle-weather-field ui-field ui-choice-field"><span class="ui-field-label ui-choice-label">날씨</span>
             ${rcRenderFieldCombobox('weather', revCalcState.field.weather)}
           </label>
-          <label class="field battle-field-choice battle-terrain-field ui-field ui-choice-field"><span class="field-label ui-field-label ui-choice-label">필드</span>
+          <label class="battle-field-choice battle-terrain-field ui-field ui-choice-field"><span class="ui-field-label ui-choice-label">필드</span>
             ${rcRenderFieldCombobox('terrain', revCalcState.field.terrain)}
           </label>
         </div>
       </div>
 
-      <div class="rc-input-block rc-item-candidates-block ui-control-frame ui-subframe ui-subframe-stack ${itemPanelOpen ? 'open' : 'collapsed'}">
-        <button type="button" class="ft-section-title rc-title-with-badge rc-collapse-head" data-rc-toggle-item-candidates aria-expanded="${itemPanelOpen ? 'true' : 'false'}">
+      <div class="rc-input-block rc-item-candidates-block ui-collapsible ui-control-frame ui-subframe ui-subframe-stack ${itemPanelOpen ? 'open' : 'collapsed is-collapsed'}">
+        <button type="button" class="rc-section-title ui-section-title rc-title-with-badge rc-collapse-head ui-collapse-head" data-rc-toggle-item-candidates aria-expanded="${itemPanelOpen ? 'true' : 'false'}">
           <span>도구 후보</span>
-          <span class="rc-count-badge rc-item-candidate-count">${knownOppItem === null ? `${itemCandidates.length}개` : '고정됨'}</span>
+          <span class="rc-count-badge rc-item-candidate-count ui-count-badge">${knownOppItem === null ? rcItemCandidateCountLabel(itemCandidates) : '고정됨'}</span>
         </button>
-        <div class="rc-input-divider rc-collapse-divider"></div>
         <div class="rc-item-candidates-body" ${itemPanelOpen ? '' : 'hidden'}>
-          <div class="rc-item-grid rc-observed-subframe ui-control-frame ui-subframe">${itemBoxes}</div>
+          <div class="rc-item-grid rc-observed-subframe ui-check-grid ui-control-frame ui-subframe">${itemBoxes}</div>
         </div>
       </div>
     </div>
@@ -408,8 +398,8 @@ function renderRevCalcResults() {
       : null;
     const predictedPanel = expanded ? `
       <div class="rc-prediction-panel ui-control-frame ui-subframe">
-        <label class="field ui-field">
-          <span class="field-label ui-field-label">상대 다음 기술</span>
+        <label class="ui-field">
+          <span class="ui-field-label">상대 다음 기술</span>
           ${rcRenderMoveCombobox('predictedOppMove', predictedMoveId, { compact: true, placeholder: '예상 기술' })}
         </label>
         <div class="rc-prediction-result">

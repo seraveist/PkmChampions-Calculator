@@ -24,6 +24,43 @@
   --calc-surface-3: var(--bg-muted);
 }
 
+:root[data-theme="dark"] #page-finetune {
+  --ft-speed-chip-bg: var(--bg-input);
+  --ft-speed-neutral-fast: var(--def);
+  --ft-speed-need-bg: color-mix(in srgb, var(--ok) 13%, var(--bg-input));
+  --ft-speed-impossible-bg: color-mix(in srgb, var(--atk) 13%, var(--bg-input));
+  --ft-tag-bg: var(--bg-input);
+  --ft-breakpoint-bg: var(--bg-input);
+  --ft-breakpoint-active-bg: color-mix(in srgb, var(--ok) 12%, var(--bg-input));
+  --ft-breakpoint-delta-bg: color-mix(in srgb, var(--bg-input) 86%, var(--text) 14%);
+}
+
+:root[data-theme="dark"] #page-matchup {
+  --matchup-accent: var(--ok);
+  --matchup-accent-text: var(--ok);
+  --matchup-accent-contrast: var(--bg);
+  --matchup-accent-soft: color-mix(in srgb, var(--ok) 9%, var(--bg-panel));
+  --matchup-active-bg: var(--bg-input);
+  --matchup-active-border: color-mix(in srgb, var(--ok) 34%, var(--border));
+  --matchup-active-shadow: none;
+  --matchup-soft-bg: var(--bg-input);
+  --matchup-card-bg: var(--bg-input);
+  --matchup-table-head-bg: var(--bg-muted);
+  --matchup-table-summary-bg: var(--bg-input);
+  --matchup-cell-neutral-bg: var(--bg-input);
+  --matchup-delete-hover-border: color-mix(in srgb, var(--atk) 34%, transparent);
+  --matchup-delete-hover-bg: color-mix(in srgb, var(--atk) 12%, var(--bg-input));
+  --matchup-eff-4-bg: color-mix(in srgb, var(--atk) 24%, var(--bg-input));
+  --matchup-eff-4-text: color-mix(in srgb, var(--atk) 86%, var(--text));
+  --matchup-eff-2-bg: color-mix(in srgb, var(--atk) 15%, var(--bg-input));
+  --matchup-eff-2-text: color-mix(in srgb, var(--atk) 78%, var(--text));
+  --matchup-eff-resist-bg: color-mix(in srgb, var(--ok) 12%, var(--bg-input));
+  --matchup-eff-quarter-bg: color-mix(in srgb, var(--ok) 18%, var(--bg-input));
+  --matchup-eff-zero-bg: var(--bg-muted);
+  --matchup-coverage-hit-bg: color-mix(in srgb, var(--ok) 13%, var(--bg-input));
+  --matchup-coverage-miss-bg: color-mix(in srgb, var(--atk) 12%, var(--bg-input));
+}
+
 .tool-page {
   --tool-line: var(--border);
   --tool-line-soft: var(--border-soft);
@@ -305,7 +342,7 @@
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  :where(select, input[type="number"]:not(.tool-stat-point-input), input[type="text"], textarea, .cb-input, .form-switch-btn, .party-preset-input, .party-preset-ev-input) {
+  :where(select, input[type="number"]:not(.tool-stat-point-input), input[type="text"], textarea, .cb-input, .form-switch-btn) {
   border-color: var(--border);
   background: var(--ui-control-bg);
   color: var(--text);
@@ -458,15 +495,6 @@
   box-shadow: var(--ui-pokemon-focus-ring);
 }
 
-:root[data-theme="dark"] :is(#page-calc, #page-revcalc, #page-finetune) .tool-pokemon-combobox .tool-pokemon-input {
-  background: var(--ui-debug-pokemon-select-bg);
-}
-
-:root[data-theme="dark"] :is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface,
-:root[data-theme="dark"] :is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input {
-  background: var(--ui-debug-settings-select-bg);
-}
-
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
   :where(.combobox-options),
 .combobox-options.combobox-options-portal {
@@ -497,7 +525,7 @@
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  :where(.ui-label-action, .ui-field-action, .ui-popover-trigger, .party-preset-button, .theme-toggle-button, .party-preset-action, .party-preset-close, .party-preset-party-action, .dex-modal-btn, .ft-action-btn, .tool-stat-point-button, .tool-stat-rank-button) {
+  :where(.ui-label-action, .ui-field-action, .ui-popover-trigger, .theme-toggle-button, .dex-modal-btn, .tool-stat-point-button, .tool-stat-rank-button) {
   border-color: var(--ui-action-border);
   background: var(--ui-action-bg);
   color: var(--text-dim);
@@ -513,7 +541,7 @@
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  .ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .ft-action-btn, .rc-analyze-btn, .dex-modal-btn, .calc-field-auto-toggle) {
+  .ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .rc-analyze-btn, .dex-modal-btn, .calc-field-auto-toggle) {
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -544,7 +572,7 @@
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  :where(.ui-label-action:hover, .ui-field-action:hover, .ui-popover-trigger:hover, .party-preset-button:hover, .theme-toggle-button:hover, .party-preset-action:hover, .party-preset-close:hover, .party-preset-party-action:hover, .dex-modal-btn:hover, .ft-action-btn:hover, .tool-stat-point-button:hover, .tool-stat-rank-button:hover) {
+  :where(.ui-label-action:hover, .ui-field-action:hover, .ui-popover-trigger:hover, .theme-toggle-button:hover, .dex-modal-btn:hover, .tool-stat-point-button:hover, .tool-stat-rank-button:hover) {
   border-color: var(--ui-action-hover-border);
   background: var(--ui-action-hover-bg);
   color: var(--ui-action-hover-text);

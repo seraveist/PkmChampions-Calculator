@@ -519,6 +519,8 @@ function wirePokemonSelectCombobox(input, {
   closeDelay = 200,
   selectTextOnFocus = false,
   wiredKey = 'pokemonWired',
+  renderOption = null,
+  renderHeader = null,
 } = {}) {
   if (!input) return null;
   if (wiredKey && input.dataset[wiredKey] === '1') return null;
@@ -551,9 +553,15 @@ function wirePokemonSelectCombobox(input, {
     const visibleMatches = calcSearchText(query).trim() && searchLimit
       ? matches.slice(0, searchLimit)
       : matches;
+    const optionTemplate = typeof renderOption === 'function' ? renderOption : calcRenderPokemonOption;
+    const headerHtml = typeof renderHeader === 'function'
+      ? renderHeader(input)
+      : renderHeader !== null
+        ? renderHeader
+        : calcComboboxHeaderHtml('pokemon');
     optsEl.innerHTML = visibleMatches.length
-      ? calcComboboxHeaderHtml('pokemon') + visibleMatches.map(option => (
-          calcRenderPokemonOption(option, currentId())
+      ? headerHtml + visibleMatches.map(option => (
+          optionTemplate(option, currentId())
         )).join('')
       : '<div class="combobox-option empty" aria-disabled="true"><b>검색 결과 없음</b></div>';
     closeSiblingComboboxOptions(optsEl, input);
@@ -739,6 +747,26 @@ function calcRenderPokemonOption(option, currentId) {
   `;
 }
 
+function calcRenderSimplePokemonOption(option, currentId) {
+  const pokemon = option?.raw || option || {};
+  const id = option?.id || pokemon.id || '';
+  const label = option?.label || pkName(pokemon);
+  const types = pokemon.types || option?.types || [];
+  const typeBadges = types.map(type => (
+    `<span class="type-pill pokemon-simple-type-pill t-${escapeHTML(type)}">${escapeHTML(TYPE_KO[type] || type)}</span>`
+  )).join('');
+  const selected = String(id) === String(currentId);
+  const optionClass = ['combobox-option', 'ui-option', 'pokemon-simple-option', 'matchup-option', selected ? 'selected' : '']
+    .filter(Boolean)
+    .join(' ');
+  return `
+    <div class="${optionClass}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}">
+      <b class="pokemon-simple-option-name matchup-option-name">${escapeHTML(label)}</b>
+      <small class="pokemon-simple-option-types matchup-option-types">${typeBadges}</small>
+    </div>
+  `;
+}
+
 function calcRenderMoveOption(option, currentId) {
   const id = option?.id || '';
   const label = option?.label || option?.koName || (id ? mvName(option) : '없음');
@@ -806,7 +834,8 @@ function calcRenderGenericOption(type, option, currentId) {
   const sub = calcComboboxOptionSub(type, option);
   const selected = String(id) === String(currentId);
   const subHtml = sub ? `<small>${escapeHTML(sub)}</small>` : '';
-  return `<div class="combobox-option${selected ? ' selected' : ''}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(label)}</b>${subHtml}</div>`;
+  const typeClass = type ? `${type}-option` : '';
+  return `<div class="${uiClassNames('combobox-option ui-option', typeClass, selected ? 'selected' : '')}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(label)}</b>${subHtml}</div>`;
 }
 
 function calcRenderComboboxOption(type, option, currentId) {

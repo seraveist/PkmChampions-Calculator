@@ -88,6 +88,8 @@ function rcWireMyComboboxes() {
           rcApplyMyPokemonSelection(id);
           renderRevCalcAll();
         },
+        renderOption: calcRenderSimplePokemonOption,
+        renderHeader: '',
       });
       return;
     }
@@ -248,6 +250,8 @@ function rcWireOppComboboxes() {
           rcResetItemCandidatesForOpponent();
           renderRevCalcAll();
         },
+        renderOption: calcRenderSimplePokemonOption,
+        renderHeader: '',
       });
       return;
     }
@@ -432,7 +436,7 @@ function rcRenderTurnOrderCombobox(value) {
 
 function rcTurnOrderOptionTemplate(option, currentId) {
   const selected = String(option.id || '') === String(rcNormalizeTurnOrderValue(currentId || 'unknown'));
-  return `<div class="combobox-option rc-turn-order-option${selected ? ' selected' : ''}" data-id="${escapeHTML(option.id || '')}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(option.label || '')}</b></div>`;
+  return `<div class="combobox-option ui-option${selected ? ' selected' : ''}" data-id="${escapeHTML(option.id || '')}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(option.label || '')}</b></div>`;
 }
 
 function rcWireTurnOrderComboboxes(scope) {
@@ -561,8 +565,8 @@ function rcWireMoveComboboxes(scope) {
         ? rcMoveSet()[parseInt(slot, 10)] || ''
         : (revCalcState[target] || '');
       optsEl.innerHTML = matches.length
-        ? calcComboboxHeaderHtml('move') + matches.map(m => calcRenderMoveOption(m, currentId)).join('')
-        : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
+        ? matches.map(m => rcRenderSimpleMoveOption(m, currentId)).join('')
+        : '<div class="combobox-option ui-option empty"><b>검색 결과 없음</b></div>';
       optsEl.classList.add('open');
     };
 
@@ -584,7 +588,10 @@ function rcWireMoveComboboxes(scope) {
     };
     const combo = rcWireComboboxKeyboard(input, optsEl, {
       showOptions: showOpts,
-      onSelect: opt => applyMove(opt.dataset.id || ''),
+      onSelect: opt => {
+        selectingMoveOption = true;
+        applyMove(opt.dataset.id || '');
+      },
       getQuery: () => input.value || '',
       onInvalidInput: () => applyMove(''),
     });
@@ -870,7 +877,7 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
     if (t.checked && !revCalcState.itemCandidates.includes(id)) revCalcState.itemCandidates.push(id);
     if (!t.checked) revCalcState.itemCandidates = revCalcState.itemCandidates.filter(x => x !== id);
     const badge = document.querySelector('#page-revcalc .rc-item-candidate-count');
-    if (badge) badge.textContent = `${rcActiveItemCandidates().length}개`;
+    if (badge) badge.textContent = rcItemCandidateCountLabel();
     return;
   }
 });

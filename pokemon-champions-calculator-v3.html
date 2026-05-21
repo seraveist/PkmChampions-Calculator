@@ -1485,9 +1485,7 @@ main {
   --ui-control-grid-gap: 8px;
   --ui-frame-row-gap: 14px;
   --ui-frame-border: 1px solid var(--border);
-  --ui-debug-panel-bg: #ffe08a;
-  --ui-debug-subframe-bg: #8ee5ff;
-  --ui-frame-bg: var(--ui-debug-panel-bg);
+  --ui-frame-bg: var(--bg-panel);
   --ui-frame-radius: var(--radius-md);
   --ui-frame-shadow: var(--surface-shadow-soft);
   --ui-frame-body-padding: 16px;
@@ -1501,7 +1499,7 @@ main {
   --ui-subframe-content-padding: var(--ui-subframe-padding);
   --ui-subframe-edge-padding-inline: 0;
   --ui-subframe-radius: 10px;
-  --ui-subframe-bg: var(--ui-debug-subframe-bg);
+  --ui-subframe-bg: var(--bg-panel);
   --ui-divider-height: 1px;
   --ui-divider-margin: 6px 0;
   --ui-divider-color: var(--border);
@@ -1608,14 +1606,11 @@ main {
     linear-gradient(90deg, rgba(75, 179, 215, 0.16), transparent 56%),
     var(--bg-input);
   --ui-control-bg: #111a26;
-  --ui-debug-panel-bg: #7c2d12;
-  --ui-debug-subframe-bg: #0f766e;
-  --ui-debug-pokemon-select-bg: #064e3b;
-  --ui-debug-settings-select-bg: #5b21b6;
   --ui-control-hover-border: var(--border-bright);
   --ui-control-focus-border: var(--warn);
   --ui-control-focus-ring: 0 0 0 3px rgba(223, 178, 95, 0.22);
-  --ui-subframe-bg: var(--ui-debug-subframe-bg);
+  --ui-frame-bg: var(--bg-panel);
+  --ui-subframe-bg: var(--bg-panel);
   --ui-panel-head-bg: linear-gradient(180deg, var(--bg-elev), var(--bg-input));
   --ui-action-border: rgba(148, 163, 184, 0.26);
   --ui-action-hover-border: rgba(223, 178, 95, 0.42);
@@ -2670,9 +2665,20 @@ header {
   text-align: center;
 }
 
-.tool-move-combobox {
+.tool-move-row > .tool-move-combobox {
   grid-column: 2;
+}
+
+.tool-move-combobox {
   width: 100%;
+}
+
+.tool-move-combobox .tool-move-input {
+  border: var(--ui-control-border);
+  border-radius: var(--ui-control-radius);
+  background: var(--ui-control-bg);
+  color: var(--text);
+  box-shadow: none;
 }
 
 .tool-move-type-control {
@@ -2844,6 +2850,61 @@ header {
   border-radius: var(--ui-subframe-radius);
 }
 
+.ui-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(22, 127, 165, 0.22);
+  border-radius: 999px;
+  background: rgba(22, 127, 165, 0.08);
+  color: var(--tool-info, var(--def));
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ui-collapse-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ui-control-grid-gap);
+  width: 100%;
+  min-height: var(--ui-field-head-height);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ui-pokemon-label-color, var(--text-dim));
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-pokemon-label-font-size);
+  font-weight: var(--ui-pokemon-label-font-weight);
+  line-height: var(--ui-label-line-height);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-collapse-head::after {
+  content: '▾';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1;
+  transition: transform 0.16s ease;
+}
+
+.ui-collapse-head[aria-expanded="false"]::after {
+  transform: rotate(-90deg);
+}
+
 .ui-meter {
   position: relative;
   overflow: hidden;
@@ -2923,7 +2984,7 @@ header {
   margin-left: auto;
 }
 
-.ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .ft-action-btn, .rc-analyze-btn, .dex-modal-btn, .calc-field-auto-toggle) {
+.ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .rc-analyze-btn, .dex-modal-btn, .calc-field-auto-toggle) {
   box-sizing: border-box;
   display: inline-flex;
   flex: 0 0 auto;
@@ -3063,7 +3124,7 @@ header {
   padding: var(--ui-label-action-padding);
   border: 1px solid var(--ui-action-border);
   border-radius: var(--ui-label-action-radius);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: var(--ui-label-action-font-size);
@@ -3091,7 +3152,7 @@ button.ui-popover-trigger:focus-visible {
 
 .ui-label-action.is-static {
   cursor: default;
-  background: #f9fafb;
+  background: var(--bg-input);
 }
 
 .ui-field-meta-row {
@@ -3115,13 +3176,13 @@ textarea,
   padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: var(--ui-control-radius);
-  background: #ffffff;
+  background: var(--ui-control-bg);
   color: var(--text);
   font-family: inherit;
   font-size: var(--ui-control-font-size);
   font-weight: var(--ui-control-font-weight);
   outline: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  box-shadow: none;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
 }
 
@@ -3482,7 +3543,7 @@ input[type="radio"]:focus-visible {
 
 .ui-stat-button:hover {
   border-color: var(--ui-control-hover-border);
-  background: #f8fafc;
+  background: var(--bg-elev);
   color: var(--text);
 }
 
@@ -3491,7 +3552,7 @@ input[type="radio"]:focus-visible {
 .ui-stat-button:active {
   outline: 0;
   border-color: var(--ui-control-hover-border);
-  background: #ffffff;
+  background: var(--ui-control-bg);
   box-shadow: var(--ui-control-focus-ring);
 }
 
@@ -3792,7 +3853,6 @@ input[type="radio"]:focus-visible {
 }
 
 .ui-divider,
-.rc-input-divider,
 .ft-speed-divider {
   display: block;
   box-sizing: border-box;
@@ -3841,8 +3901,8 @@ input[type="radio"]:focus-visible {
   z-index: 120;
   border: 1px solid var(--border-bright);
   border-radius: var(--radius-md);
-  background: #ffffff;
-  box-shadow: 0 18px 44px rgba(28, 40, 52, 0.18);
+  background: var(--bg-elev);
+  box-shadow: var(--surface-shadow);
 }
 
 .combobox-options.combobox-options-portal {
@@ -3882,7 +3942,7 @@ input[type="radio"]:focus-visible {
   min-width: 0;
   min-height: var(--ui-option-height);
   padding: 8px 10px;
-  border-bottom: 1px solid rgba(104, 122, 142, 0.14);
+  border-bottom: 1px solid var(--border-soft);
   color: var(--text);
   font-size: var(--ui-option-font-size);
   font-weight: var(--ui-option-font-weight);
@@ -3906,13 +3966,22 @@ input[type="radio"]:focus-visible {
 
 .combobox-option:hover,
 .combobox-option.active {
-  background: #eef5fb;
+  background: var(--ui-option-hover-bg);
 }
 
 .combobox-option.selected {
-  background: #f8eddc;
+  background: var(--ui-option-selected-bg);
   color: var(--text);
   box-shadow: none;
+}
+
+.combobox-option.ui-option {
+  border-left: 3px solid transparent;
+  padding-left: calc(10px - 3px);
+}
+
+.combobox-option.ui-option.selected {
+  border-left-color: var(--tool-combo-selected, var(--warn));
 }
 
 .ui-panel.atk .combobox-option.selected,
@@ -3930,6 +3999,34 @@ input[type="radio"]:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.combobox-option.pokemon-simple-option {
+  display: grid;
+  grid-template-columns: minmax(78px, 1fr) calc((var(--ui-type-chip-width) * 2) + var(--ui-type-strip-gap));
+  align-items: center;
+  gap: var(--ui-control-grid-gap);
+  width: 100%;
+}
+
+.pokemon-simple-option-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pokemon-simple-option-types {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ui-type-strip-gap);
+  min-width: 0;
+  margin-left: 0;
+}
+
+.pokemon-simple-option-types .type-pill {
+  flex: 0 0 auto;
 }
 
 .combobox-options::-webkit-scrollbar {
@@ -4292,15 +4389,29 @@ input[type="radio"]:focus-visible {
 .ui-check:hover,
 .checkbox-label:hover {
   border-color: var(--border-bright);
-  background: #ffffff;
+  background: var(--bg-elev);
   color: var(--text);
 }
 
 .ui-check:has(input:checked),
 .checkbox-label:has(input:checked) {
-  border-color: rgba(37, 122, 87, 0.38);
-  background: rgba(37, 122, 87, 0.08);
+  border-color: color-mix(in srgb, var(--ok) 38%, transparent);
+  background: color-mix(in srgb, var(--ok) 8%, transparent);
   color: var(--text);
+}
+
+.ui-check.is-disabled,
+.checkbox-label.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ui-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--ui-check-grid-min, 150px), 1fr));
+  gap: var(--ui-control-grid-gap);
+  max-height: var(--ui-check-grid-max-height, none);
+  overflow: var(--ui-check-grid-overflow, visible);
 }
 
 .party-preset-modal-backdrop {
@@ -4310,7 +4421,7 @@ input[type="radio"]:focus-visible {
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(15, 23, 42, 0.36);
+  background: var(--bg-overlay);
   backdrop-filter: blur(3px);
 }
 
@@ -4321,7 +4432,7 @@ input[type="radio"]:focus-visible {
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(15, 23, 42, 0.32);
+  background: var(--bg-overlay-soft);
   backdrop-filter: blur(3px);
 }
 
@@ -4356,10 +4467,11 @@ input[type="radio"]:focus-visible {
   max-height: min(860px, calc(100vh - 28px));
   overflow: hidden;
   flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+  border: var(--ui-frame-border);
+  border-color: var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--ui-frame-bg);
+  box-shadow: var(--surface-shadow);
 }
 
 .party-preset-picker {
@@ -4369,10 +4481,11 @@ input[type="radio"]:focus-visible {
   max-height: min(780px, calc(100vh - 28px));
   overflow: hidden;
   flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+  border: var(--ui-frame-border);
+  border-color: var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--ui-frame-bg);
+  box-shadow: var(--surface-shadow);
 }
 
 .party-preset-modal-head {
@@ -4380,10 +4493,11 @@ input[type="radio"]:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  height: auto;
   min-height: 64px;
   padding: 14px 18px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  background: var(--ui-panel-head-bg);
 }
 
 .party-preset-picker-head {
@@ -4391,10 +4505,11 @@ input[type="radio"]:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+  height: auto;
   min-height: 62px;
   padding: 14px 18px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  background: var(--ui-panel-head-bg);
 }
 
 .party-preset-eyebrow {
@@ -4437,9 +4552,9 @@ input[type="radio"]:focus-visible {
 
 .party-preset-backup-note {
   padding: 9px 18px;
-  border-bottom: 1px solid rgba(104, 122, 142, 0.18);
-  background: #fff7e9;
-  color: #6f4815;
+  border-bottom: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--warn) 12%, var(--bg-input));
+  color: var(--warn);
   font-size: 12px;
   font-weight: 800;
   line-height: 1.4;
@@ -4470,9 +4585,9 @@ input[type="radio"]:focus-visible {
   justify-content: center;
   min-height: 34px;
   padding: 0 14px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ui-action-border);
   border-radius: var(--radius-md);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   font-family: "Noto Sans KR", sans-serif;
   font-size: 12px;
@@ -4483,8 +4598,9 @@ input[type="radio"]:focus-visible {
 
 .party-preset-action:hover,
 .party-preset-close:hover {
-  border-color: var(--border-bright);
-  color: var(--text);
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
 }
 
 .party-preset-modal-body {
@@ -4492,7 +4608,7 @@ input[type="radio"]:focus-visible {
   gap: 14px;
   padding: 14px;
   overflow-y: auto;
-  background: #f4f6f8;
+  background: var(--bg);
 }
 
 .party-preset-picker-body {
@@ -4500,16 +4616,16 @@ input[type="radio"]:focus-visible {
   gap: 10px;
   overflow-y: auto;
   padding: 12px;
-  background: #f1f5f9;
+  background: var(--bg);
 }
 
 .party-preset-picker-section {
   display: grid;
   gap: 8px;
   padding: 10px;
-  border: 1px solid rgba(82, 97, 120, 0.3);
-  border-radius: 10px;
-  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--ui-subframe-radius);
+  background: var(--ui-subframe-bg);
 }
 
 .party-preset-picker-section-head {
@@ -4536,7 +4652,7 @@ input[type="radio"]:focus-visible {
   padding: 9px 10px;
   border: 1px solid var(--border);
   border-radius: var(--ui-control-radius);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text);
   font-family: "Noto Sans KR", sans-serif;
   text-align: left;
@@ -4584,7 +4700,7 @@ input[type="radio"]:focus-visible {
 
 .party-preset-picker-empty {
   padding: 10px;
-  border: 1px dashed rgba(104, 122, 142, 0.34);
+  border: 1px dashed var(--border-bright);
   border-radius: var(--ui-control-radius);
   color: var(--text-faint);
   font-size: 12px;
@@ -4598,7 +4714,7 @@ input[type="radio"]:focus-visible {
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(15, 23, 42, 0.28);
+  background: var(--bg-overlay-soft);
   backdrop-filter: blur(2px);
 }
 
@@ -4614,9 +4730,9 @@ input[type="radio"]:focus-visible {
   max-height: min(680px, calc(100vh - 72px));
   padding: 14px;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.2);
+  border-radius: var(--radius-lg);
+  background: var(--ui-frame-bg);
+  box-shadow: var(--surface-shadow);
 }
 
 .party-preset-text-head,
@@ -4647,13 +4763,14 @@ input[type="radio"]:focus-visible {
   padding: 12px;
   border: var(--ui-control-border);
   border-radius: var(--ui-control-radius);
-  background: #fbfdff;
+  background: var(--ui-control-bg);
   color: var(--text);
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 12px;
   font-weight: 700;
   line-height: 1.55;
   white-space: pre;
+  box-shadow: none;
 }
 
 .party-preset-textarea:focus {
@@ -4666,8 +4783,8 @@ input[type="radio"]:focus-visible {
   position: relative;
   overflow: visible;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #ffffff;
+  border-radius: var(--ui-subframe-radius);
+  background: var(--ui-subframe-bg);
 }
 
 .party-preset-party::before {
@@ -4677,7 +4794,7 @@ input[type="radio"]:focus-visible {
   left: -1px;
   right: -1px;
   height: 3px;
-  border-radius: 10px 10px 0 0;
+  border-radius: var(--ui-subframe-radius) var(--ui-subframe-radius) 0 0;
   background: var(--tera);
   pointer-events: none;
 }
@@ -4690,7 +4807,7 @@ input[type="radio"]:focus-visible {
   min-height: 44px;
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
-  background: #fbfdff;
+  background: var(--bg-input);
   cursor: pointer;
   user-select: none;
 }
@@ -4717,7 +4834,7 @@ input[type="radio"]:focus-visible {
   height: 18px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   font-family: "Noto Sans KR", sans-serif;
   font-size: 10px;
@@ -4744,10 +4861,10 @@ input[type="radio"]:focus-visible {
   min-width: 42px;
   height: 24px;
   padding: 0 8px;
-  border: 1px solid rgba(127, 87, 191, 0.18);
+  border: 1px solid color-mix(in srgb, var(--tera) 28%, var(--border));
   border-radius: 999px;
-  background: rgba(127, 87, 191, 0.08);
-  color: #62459a;
+  background: color-mix(in srgb, var(--tera) 12%, var(--bg-input));
+  color: var(--tera);
   font-family: var(--ui-number-font);
   font-size: 11px;
   font-weight: 900;
@@ -4768,9 +4885,9 @@ input[type="radio"]:focus-visible {
   justify-content: center;
   min-height: 28px;
   padding: 0 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ui-action-border);
   border-radius: var(--radius-md);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   font-family: "Noto Sans KR", sans-serif;
   font-size: 11px;
@@ -4781,8 +4898,9 @@ input[type="radio"]:focus-visible {
 }
 
 .party-preset-party-action:hover {
-  border-color: var(--border-bright);
-  color: var(--text);
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
 }
 
 .party-preset-slot-grid {
@@ -4798,18 +4916,15 @@ input[type="radio"]:focus-visible {
 
 .party-preset-slot {
   min-width: 0;
-  border: 1px solid rgba(82, 97, 120, 0.5);
-  border-radius: 8px;
-  background: #f1f5f9;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 1px 0 rgba(15, 23, 42, 0.04),
-    0 8px 18px rgba(15, 23, 42, 0.035);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-input);
+  box-shadow: var(--surface-shadow-soft);
 }
 
 .party-preset-slot.filled {
-  border-color: rgba(77, 92, 112, 0.62);
-  background: linear-gradient(180deg, #fbfcfe, #eef3f8);
+  border-color: var(--border-bright);
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
 }
 
 .party-preset-slot-head {
@@ -4841,7 +4956,7 @@ input[type="radio"]:focus-visible {
   gap: 5px;
   width: 100%;
   height: var(--ui-control-height);
-  color: #48576a;
+  color: var(--text-dim);
   font-size: 13px;
   font-weight: 950;
   text-align: center;
@@ -4853,14 +4968,21 @@ input[type="radio"]:focus-visible {
   justify-content: center;
   height: var(--ui-control-height);
   padding: 0 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ui-action-border);
   border-radius: var(--ui-control-radius);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   font-family: "Noto Sans KR", sans-serif;
   font-size: 11px;
   font-weight: 900;
   cursor: pointer;
+}
+
+.party-preset-clear:hover,
+.party-preset-clear:focus-visible {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
 }
 
 .party-preset-clear:disabled {
@@ -4879,7 +5001,7 @@ input[type="radio"]:focus-visible {
 
 .party-preset-divider {
   height: 1px;
-  background: rgba(148, 163, 184, 0.34);
+  background: var(--border-soft);
 }
 
 .party-preset-detail-row,
@@ -4919,6 +5041,7 @@ input[type="radio"]:focus-visible {
   font-family: "Noto Sans KR", sans-serif;
   font-size: var(--ui-control-font-size);
   font-weight: var(--ui-control-font-weight);
+  box-shadow: none;
 }
 
 .party-preset-input:focus {
@@ -4973,7 +5096,7 @@ input[type="radio"]:focus-visible {
   padding: 7px;
   border: 1px solid var(--border-soft);
   border-radius: 8px;
-  background: #f8fafc;
+  background: var(--bg-input);
 }
 
 .party-preset-ev-total {
@@ -4998,7 +5121,7 @@ input[type="radio"]:focus-visible {
   padding: 0 6px;
   border: 1px solid var(--border);
   border-radius: var(--ui-control-radius);
-  background: #ffffff;
+  background: var(--ui-control-bg);
   line-height: 1;
   white-space: nowrap;
 }
@@ -5043,11 +5166,11 @@ input[type="radio"]:focus-visible {
 }
 
 .party-preset-nature-mark.up {
-  color: #d94b61;
+  color: var(--atk);
 }
 
 .party-preset-nature-mark.down {
-  color: #167fa5;
+  color: var(--def);
 }
 
 .party-preset-nature-mark.empty {
@@ -5063,18 +5186,37 @@ input[type="radio"]:focus-visible {
   padding: 0 5px;
   border: var(--ui-control-border);
   border-radius: var(--ui-control-radius);
-  background: #ffffff;
+  background: var(--ui-control-bg);
   color: var(--text);
   font-family: var(--ui-number-font);
   font-size: var(--ui-number-font-size);
   font-weight: var(--ui-number-font-weight);
   text-align: center;
+  box-shadow: none;
 }
 
 .party-preset-ev-input:focus {
   outline: 0;
   border-color: var(--ui-control-focus-border);
   box-shadow: var(--ui-control-focus-ring);
+}
+
+:root[data-theme="dark"] :where(.party-preset-input, .party-preset-ev-input, .party-preset-textarea, .party-preset-ev-total > span:last-child) {
+  border-color: var(--border);
+  background: var(--ui-control-bg);
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+}
+
+:root[data-theme="dark"] :where(.party-preset-input, .party-preset-ev-input, .party-preset-textarea)::placeholder {
+  color: var(--text-faint);
+  opacity: 1;
+  -webkit-text-fill-color: var(--text-faint);
+}
+
+:root[data-theme="dark"] :where(.party-preset-input, .party-preset-ev-input, .party-preset-textarea):hover {
+  border-color: var(--border-bright);
+  background: var(--bg-input);
 }
 
 .party-preset-move-row {
@@ -5088,7 +5230,6 @@ body.party-preset-open {
 .ui-btn,
 .btn-calculate,
 .btn-secondary,
-.ft-action-btn,
 .rc-analyze-btn,
 .dex-tab,
 .matchup-mode-btn,
@@ -5104,7 +5245,6 @@ body.party-preset-open {
 }
 
 .dex-modal-btn,
-.ft-action-btn,
 .rc-analyze-btn {
   display: inline-flex;
   align-items: center;
@@ -5113,7 +5253,7 @@ body.party-preset-open {
   padding: var(--ui-action-padding-sm);
   border: 1px solid var(--ui-action-border);
   border-radius: var(--radius-md);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   font-family: "Noto Sans KR", sans-serif;
   font-size: 12px;
@@ -5125,50 +5265,44 @@ body.party-preset-open {
 }
 
 .dex-modal-btn:hover,
-.ft-action-btn:hover,
 .rc-analyze-btn:hover {
   border-color: var(--ui-action-hover-border);
   background: var(--ui-action-hover-bg);
   color: var(--ui-action-hover-text);
 }
 
-.dex-modal-btn.atk,
-.ft-action-btn.atk {
+.dex-modal-btn.atk {
   border-color: var(--atk);
   background: var(--atk);
   color: #ffffff;
 }
 
-.dex-modal-btn.atk:hover,
-.ft-action-btn.atk:hover {
+.dex-modal-btn.atk:hover {
   border-color: #bd3541;
   background: #bd3541;
   color: #ffffff;
 }
 
-.dex-modal-btn.def,
-.ft-action-btn.def {
+.dex-modal-btn.def {
   border-color: var(--def);
   background: var(--def);
   color: #ffffff;
 }
 
-.dex-modal-btn.def:hover,
-.ft-action-btn.def:hover {
+.dex-modal-btn.def:hover {
   border-color: #0f6f94;
   background: #0f6f94;
   color: #ffffff;
 }
 
-.ft-ev-quick,
 .ft-rank-btn {
   display: inline-grid;
   place-items: center;
   width: var(--ui-stat-control-size);
   height: var(--ui-stat-control-size);
-  border: 1px solid var(--border);
+  border: var(--ui-control-border);
   border-radius: var(--ui-stat-control-radius);
-  background: #ffffff;
+  background: var(--ui-control-bg);
   color: var(--text-dim);
   font-family: "Fira Code", "JetBrains Mono", monospace;
   font-size: 12px;
@@ -5177,10 +5311,9 @@ body.party-preset-open {
   transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
 }
 
-.ft-ev-quick:hover,
 .ft-rank-btn:hover {
-  border-color: var(--border-bright);
-  background: #f8fafc;
+  border-color: var(--ui-control-hover-border);
+  background: var(--bg-elev);
   color: var(--text);
 }
 
@@ -5229,7 +5362,7 @@ body.party-preset-open {
 .type-filter-btn,
 .dex-tab,
 .matchup-mode-btn {
-  background: #ffffff;
+  background: var(--ui-action-bg);
   border: 1px solid var(--border);
   color: var(--text-dim);
 }
@@ -5240,7 +5373,7 @@ body.party-preset-open {
 .dex-tab:hover,
 .matchup-mode-btn:hover {
   border-color: var(--border-bright);
-  background: #f8fafc;
+  background: var(--ui-action-hover-bg);
   color: var(--text);
 }
 
@@ -5255,10 +5388,8 @@ body.party-preset-open {
   box-shadow: inset 0 -2px 0 rgba(183, 121, 31, 0.28);
 }
 
-.dex-search input,
 .dex-table-wrap,
 .matchup-table-wrap,
-.ft-analysis-section,
 .ft-speed-embedded,
 .rc-input-block,
 .rc-result-row,
@@ -5270,7 +5401,7 @@ body.party-preset-open {
 .dex-table-wrap,
 .matchup-table-wrap {
   border: 1px solid var(--border);
-  background: #ffffff;
+  background: var(--bg-panel);
   box-shadow: var(--surface-shadow-soft);
 }
 
@@ -7213,8 +7344,14 @@ body.party-preset-open {
 
 /* PokeChamps Lab - Dex redesign layer */
 
-#page-dex {
+#page-dex,
+.dex-modal {
   --dex-accent: #6f63d6;
+  --dex-chip-border: var(--border-soft);
+  --dex-chip-bg: var(--bg-input);
+}
+
+#page-dex {
   display: none;
   gap: 12px;
 }
@@ -7247,7 +7384,7 @@ body.party-preset-open {
 
 #page-dex .dex-control-body.ui-frame-body {
   padding: 10px;
-  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
 }
 
 #page-dex.dex-fullpage-mode .dex-control-body {
@@ -7273,10 +7410,10 @@ body.party-preset-open {
   min-width: 0;
   min-height: 38px;
   padding: 0 12px;
-  border: 1px solid rgba(104, 122, 142, 0.18);
+  border: 1px solid var(--ui-action-border);
   border-radius: var(--radius-md);
-  background: #ffffff;
-  color: #667384;
+  background: var(--ui-action-bg);
+  color: var(--text-dim);
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 13px;
   font-weight: 900;
@@ -7286,29 +7423,22 @@ body.party-preset-open {
 }
 
 #page-dex .dex-tab:hover {
-  border-color: rgba(104, 122, 142, 0.34);
-  background: #ffffff;
-  color: var(--text);
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
 }
 
 #page-dex .dex-tab.active {
-  border-color: rgba(111, 99, 214, 0.34);
-  background: rgba(111, 99, 214, 0.10);
-  color: #1d2935;
-  box-shadow: 0 8px 18px rgba(28, 40, 52, 0.09);
+  border-color: color-mix(in srgb, var(--dex-accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--dex-accent) 12%, var(--bg-input));
+  color: var(--text);
+  box-shadow: var(--surface-shadow-soft);
 }
 
 #page-dex .dex-nav > .dex-tab {
   appearance: none;
   text-transform: none;
   line-height: 1;
-}
-
-#page-dex .dex-nav > .dex-tab.active {
-  border-color: rgba(111, 99, 214, 0.38);
-  background: rgba(111, 99, 214, 0.10);
-  color: #1d2935;
-  box-shadow: 0 8px 18px rgba(28, 40, 52, 0.09);
 }
 
 #page-dex .dex-filter-frame {
@@ -7341,10 +7471,10 @@ body.party-preset-open {
   height: 42px;
   min-height: 42px;
   padding: 0;
-  border: 2px solid rgba(104, 122, 142, 0.38);
+  border: 2px solid var(--ui-action-border);
   border-radius: var(--radius-md);
-  background: #ffffff;
-  color: #1f3f68;
+  background: var(--ui-action-bg);
+  color: var(--text-dim);
   font-family: 'Noto Sans KR', 'Segoe UI Symbol', sans-serif;
   font-size: 18px;
   font-weight: 900;
@@ -7352,14 +7482,14 @@ body.party-preset-open {
   line-height: 1;
   place-items: center;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.86),
-    0 1px 3px rgba(28, 40, 52, 0.08);
+    inset 0 1px 0 color-mix(in srgb, var(--bg-elev) 76%, transparent),
+    0 1px 3px color-mix(in srgb, var(--text) 8%, transparent);
 }
 
 #page-dex .dex-reset-btn:hover {
-  border-color: rgba(183, 121, 31, 0.54);
-  background: #fff7e9;
-  color: #1f3f68;
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
 }
 
 #page-dex .dex-search input {
@@ -7367,10 +7497,19 @@ body.party-preset-open {
   max-width: none;
   min-height: var(--ui-control-height);
   padding: 0 14px;
+  border: var(--ui-control-border);
   border-radius: var(--ui-control-radius);
-  background: #ffffff;
+  background: var(--ui-control-bg);
+  color: var(--text);
   font-size: var(--ui-control-font-size);
   font-weight: var(--ui-control-font-weight);
+  box-shadow: none;
+}
+
+#page-dex .dex-search input:focus,
+#page-dex .dex-search input:focus-visible {
+  border-color: var(--ui-control-focus-border);
+  box-shadow: var(--ui-control-focus-ring);
 }
 
 #page-dex .dex-type-filter {
@@ -7380,7 +7519,7 @@ body.party-preset-open {
   gap: 7px;
   margin: 10px 0 0;
   padding: 10px 0 0;
-  border-top: 1px solid rgba(104, 122, 142, 0.18);
+  border-top: 1px solid var(--border-soft);
   background: transparent;
   box-shadow: none;
 }
@@ -7391,9 +7530,9 @@ body.party-preset-open {
   gap: 7px;
   margin: 0;
   padding: 9px 10px;
-  border: 1px solid rgba(104, 122, 142, 0.18);
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
   box-shadow: var(--surface-shadow-soft);
 }
 
@@ -7432,9 +7571,9 @@ body.party-preset-open {
 #dexFullPageDetail .type-filter-btn {
   min-height: 30px;
   padding: 0 12px;
-  border: 1px solid rgba(104, 122, 142, 0.18);
+  border: 1px solid var(--ui-action-border);
   border-radius: var(--radius-md);
-  background: #f8fafc;
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 12px;
@@ -7446,26 +7585,24 @@ body.party-preset-open {
 #page-dex .type-filter-btn:hover,
 .dex-modal .type-filter-btn:hover,
 #dexFullPageDetail .type-filter-btn:hover {
-  border-color: rgba(183, 121, 31, 0.3);
-  background: #fffaf1;
-  color: var(--text);
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
 }
 
 #page-dex .type-filter-btn.active,
 .dex-modal .type-filter-btn.active,
 #dexFullPageDetail .type-filter-btn.active {
-  border-color: rgba(183, 121, 31, 0.34);
-  background: linear-gradient(180deg, #fff8e9, #ffefcf);
-  color: #6f4815;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.62),
-    0 4px 10px rgba(183, 121, 31, 0.09);
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-active-bg);
+  color: var(--ui-action-active-text);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--warn) 22%, transparent);
 }
 
 #page-dex .type-filter-btn[data-filter-type=""].active {
-  border-color: rgba(183, 121, 31, 0.42);
-  background: linear-gradient(180deg, #fff4db, #ffe6b8);
-  color: #5f3c0e;
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-active-bg);
+  color: var(--ui-action-active-text);
 }
 
 #page-dex .type-filter-btn[data-filter-type="Normal"], .dex-modal .type-filter-btn[data-learnset-filter="Normal"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Normal"] { --dex-filter-bg: #9a9a7a; --dex-filter-border: #858565; --dex-filter-text: #64644b; --dex-filter-fg: #ffffff; }
@@ -7491,8 +7628,8 @@ body.party-preset-open {
 .dex-modal .type-filter-btn.type-pill-mini,
 #dexFullPageDetail .type-filter-btn.type-pill-mini {
   min-width: 42px;
-  border-color: rgba(104, 122, 142, 0.18);
-  background: #f8fafc;
+  border-color: var(--ui-action-border);
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   opacity: 1;
   box-shadow: none;
@@ -7502,33 +7639,33 @@ body.party-preset-open {
 .dex-modal .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]),
 #dexFullPageDetail .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]) {
   border-color: var(--dex-filter-border);
-  background: #ffffff;
+  background: var(--bg-panel);
   color: var(--dex-filter-text);
 }
 
 #page-dex .type-filter-btn.type-pill-mini:hover,
 .dex-modal .type-filter-btn.type-pill-mini:hover,
 #dexFullPageDetail .type-filter-btn.type-pill-mini:hover {
-  border-color: rgba(183, 121, 31, 0.3);
-  background: #fffaf1;
-  color: var(--text);
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
 }
 
 #page-dex .type-filter-btn.type-pill-mini:not([data-filter-type=""]):hover,
 .dex-modal .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]):hover,
 #dexFullPageDetail .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]):hover {
   border-color: var(--dex-filter-border);
-  background: color-mix(in srgb, var(--dex-filter-bg) 10%, #ffffff);
+  background: color-mix(in srgb, var(--dex-filter-bg) 12%, var(--bg-panel));
   color: var(--dex-filter-text);
 }
 
 #page-dex .type-filter-btn.type-pill-mini.active,
 .dex-modal .type-filter-btn.type-pill-mini.active,
 #dexFullPageDetail .type-filter-btn.type-pill-mini.active {
-  border-color: rgba(183, 121, 31, 0.34);
-  background: #fff3d9;
-  color: #6f4815;
-  box-shadow: inset 0 -2px 0 rgba(183, 121, 31, 0.18);
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-active-bg);
+  color: var(--ui-action-active-text);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--warn) 22%, transparent);
 }
 
 #page-dex .type-filter-btn.type-pill-mini:not([data-filter-type=""]).active,
@@ -7538,8 +7675,8 @@ body.party-preset-open {
   background: var(--dex-filter-bg);
   color: var(--dex-filter-fg);
   box-shadow:
-    0 0 0 2px rgba(17, 24, 39, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    0 0 0 2px color-mix(in srgb, var(--text) 8%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--bg-elev) 22%, transparent);
 }
 
 #page-dex .dex-content {
@@ -7592,8 +7729,8 @@ body.party-preset-open {
 #page-dex .dex-table th {
   height: 38px;
   padding: 0 10px;
-  border-bottom: 1px solid rgba(104, 122, 142, 0.2);
-  background: #f8fafc;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--bg-muted);
   color: var(--text-dim);
   font-size: 11px;
   font-weight: 900;
@@ -7623,7 +7760,7 @@ body.party-preset-open {
 #page-dex .dex-table td {
   height: 42px;
   padding: 6px 10px;
-  border-bottom: 1px solid rgba(104, 122, 142, 0.14);
+  border-bottom: 1px solid var(--border-soft);
   color: var(--text);
   vertical-align: middle;
 }
@@ -7633,7 +7770,7 @@ body.party-preset-open {
 }
 
 #page-dex .dex-table tbody tr:hover {
-  background: #fffaf1;
+  background: var(--ui-action-hover-bg);
 }
 
 #page-dex .dex-name-cell {
@@ -7805,10 +7942,10 @@ body.party-preset-open {
   justify-content: center;
   min-height: 22px;
   padding: 0 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: 4px;
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--ui-category-neutral-bg);
+  color: var(--ui-category-neutral-text);
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 11px;
   font-weight: 900;
@@ -7817,21 +7954,21 @@ body.party-preset-open {
 }
 
 .dex-cat-badge.cat-phys {
-  border-color: #fdba74;
-  background: #fff3e8;
-  color: #9a3412;
+  border-color: color-mix(in srgb, var(--ui-category-phys-text) 36%, var(--border));
+  background: var(--ui-category-phys-bg);
+  color: var(--ui-category-phys-text);
 }
 
 .dex-cat-badge.cat-spec {
-  border-color: #93c5fd;
-  background: #eff6ff;
-  color: #1d4ed8;
+  border-color: color-mix(in srgb, var(--ui-category-spec-text) 36%, var(--border));
+  background: var(--ui-category-spec-bg);
+  color: var(--ui-category-spec-text);
 }
 
 .dex-cat-badge.cat-stat {
-  border-color: #d1d5db;
-  background: #f3f4f6;
-  color: #4b5563;
+  border-color: var(--border);
+  background: var(--ui-category-neutral-bg);
+  color: var(--ui-category-neutral-text);
 }
 
 .dex-tag,
@@ -7841,9 +7978,9 @@ body.party-preset-open {
   justify-content: center;
   min-height: 24px;
   padding: 0 9px;
-  border: 1px solid rgba(104, 122, 142, 0.18);
+  border: 1px solid var(--dex-chip-border);
   border-radius: var(--radius-sm);
-  background: #f8fafc;
+  background: var(--dex-chip-bg);
   color: var(--text-dim);
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 11px;
@@ -7884,8 +8021,8 @@ body.party-preset-open {
 
 #page-dex .dex-cat-header td {
   height: 34px;
-  background: #f8fafc;
-  color: #6f4815;
+  background: var(--bg-muted);
+  color: var(--warn);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0;
@@ -7906,22 +8043,23 @@ body.party-preset-open {
 }
 
 #page-dex .badge-mega {
-  border: 1px solid rgba(126, 87, 194, 0.28);
-  background: rgba(126, 87, 194, 0.08);
-  color: #5d3a9b;
+  border: 1px solid color-mix(in srgb, var(--tera) 32%, transparent);
+  background: color-mix(in srgb, var(--tera) 10%, transparent);
+  color: var(--tera);
 }
 
 #page-dex .dex-var-badge {
-  border: 1px solid rgba(183, 121, 31, 0.26);
-  background: rgba(183, 121, 31, 0.08);
-  color: #8a560f;
+  border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
+  color: var(--warn);
 }
 
 #dexFullPageDetail {
-  border: 1px solid rgba(104, 122, 142, 0.22);
+  border: var(--ui-frame-border);
+  border-color: var(--border);
   border-radius: var(--radius-lg);
-  background: #ffffff;
-  box-shadow: var(--surface-shadow-soft);
+  background: var(--ui-frame-bg);
+  box-shadow: var(--ui-frame-shadow);
 }
 
 #dexFullPageDetail.active {
@@ -7938,9 +8076,9 @@ body.party-preset-open {
   min-height: 36px;
   margin: 0;
   padding: 0 13px;
-  border: 1px solid rgba(104, 122, 142, 0.22);
+  border: 1px solid var(--ui-action-border);
   border-radius: var(--radius-md);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 13px;
@@ -7950,9 +8088,9 @@ body.party-preset-open {
 }
 
 .dex-fullpage-back:hover {
-  border-color: rgba(183, 121, 31, 0.36);
-  background: #fff7e9;
-  color: #6f4815;
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
 }
 
 .dex-fullpage-head {
@@ -7962,7 +8100,8 @@ body.party-preset-open {
   flex-wrap: wrap;
   gap: 14px;
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(104, 122, 142, 0.16);
+  background: var(--ui-panel-head-bg);
+  border-bottom: 1px solid var(--border);
 }
 
 .dex-fullpage-title-block {
@@ -8019,6 +8158,30 @@ body.party-preset-open {
   padding: 0 15px;
 }
 
+#dexFullPageDetail .dex-modal-btn.atk {
+  border-color: var(--atk);
+  background: var(--atk);
+  color: #ffffff;
+}
+
+#dexFullPageDetail .dex-modal-btn.atk:hover {
+  border-color: var(--atk-deep);
+  background: var(--atk-deep);
+  color: #ffffff;
+}
+
+#dexFullPageDetail .dex-modal-btn.def {
+  border-color: var(--def);
+  background: var(--def);
+  color: #ffffff;
+}
+
+#dexFullPageDetail .dex-modal-btn.def:hover {
+  border-color: var(--def-deep);
+  background: var(--def-deep);
+  color: #ffffff;
+}
+
 .dex-fullpage-body,
 .dex-modal .ui-frame-body {
   display: grid;
@@ -8034,9 +8197,9 @@ body.party-preset-open {
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 14px 14px;
-  border-top: 1px solid rgba(104, 122, 142, 0.28);
-  background: #eef3f7;
-  box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.76);
+  border-top: 1px solid var(--border);
+  background: var(--bg-input);
+  box-shadow: 0 -1px 0 color-mix(in srgb, var(--bg-elev) 48%, transparent);
 }
 
 .dex-modal {
@@ -8049,11 +8212,11 @@ body.party-preset-open {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba(104, 122, 142, 0.24);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: #ffffff;
+  background: var(--ui-frame-bg);
   color: var(--text);
-  box-shadow: 0 24px 70px rgba(28, 40, 52, 0.26);
+  box-shadow: var(--surface-shadow);
 }
 
 .dex-modal[open] {
@@ -8073,9 +8236,9 @@ body.party-preset-open {
   gap: 12px;
   min-height: 54px;
   padding: 13px 14px;
-  background: #eef3f7;
-  border-bottom: 1px solid rgba(104, 122, 142, 0.28);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.76);
+  background: var(--ui-panel-head-bg);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--bg-elev) 48%, transparent);
 }
 
 .dex-modal-title {
@@ -8096,18 +8259,18 @@ body.party-preset-open {
 .dex-modal-close {
   min-height: 32px;
   padding: 0 12px;
-  border: 1px solid rgba(104, 122, 142, 0.24);
+  border: 1px solid var(--ui-action-border);
   border-radius: var(--radius-md);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text-dim);
   font-size: 12px;
   font-weight: 900;
 }
 
 .dex-modal-close:hover {
-  border-color: rgba(183, 121, 31, 0.36);
-  background: #fff7e9;
-  color: #6f4815;
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
 }
 
 .dex-modal .ui-frame-body {
@@ -8119,9 +8282,9 @@ body.party-preset-open {
 .dex-modal-section {
   margin: 0;
   padding: 12px;
-  border: 1px solid rgba(104, 122, 142, 0.16);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: #ffffff;
+  background: var(--bg-panel);
 }
 
 .dex-modal-section-title {
@@ -8188,7 +8351,7 @@ body.party-preset-open {
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: #eef3f7;
+  background: var(--bg-input);
 }
 
 .dex-modal-stat-grid .stat-bar-fill {
@@ -8207,7 +8370,7 @@ body.party-preset-open {
 
 .dex-modal-stat-grid .total .stat-name,
 .dex-modal-stat-grid .total .stat-val {
-  color: #6f4815;
+  color: var(--warn);
 }
 
 .dex-modal-flag-row {
@@ -8223,9 +8386,9 @@ body.party-preset-open {
   max-height: 220px;
   overflow-y: auto;
   padding: 8px;
-  border: 1px solid rgba(104, 122, 142, 0.14);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: #f8fafc;
+  background: var(--bg-input);
 }
 
 .dex-link-list-expanded,
@@ -8239,9 +8402,9 @@ body.party-preset-open {
   justify-content: center;
   min-height: 28px;
   padding: 0 9px;
-  border: 1px solid rgba(104, 122, 142, 0.2);
+  border: 1px solid var(--ui-action-border);
   border-radius: var(--radius-sm);
-  background: #ffffff;
+  background: var(--ui-action-bg);
   color: var(--text);
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 12px;
@@ -8249,9 +8412,9 @@ body.party-preset-open {
 }
 
 .dex-link:hover {
-  border-color: rgba(183, 121, 31, 0.36);
-  background: #fff7e9;
-  color: #6f4815;
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
 }
 
 .dex-modal-btn:disabled {
@@ -8307,7 +8470,7 @@ body.party-preset-open {
 
 .dex-modal-actions:empty,
 .dex-fullpage-actions:empty {
-  min-height: 54px;
+  display: none;
 }
 
 .dex-detail-sub,
@@ -8323,12 +8486,12 @@ body.party-preset-open {
 }
 
 .dex-detail-token-mega {
-  color: #5d3a9b;
+  color: var(--tera);
 }
 
 .dex-detail-token-primal,
 .dex-priority {
-  color: #8a560f;
+  color: var(--warn);
 }
 
 .dex-rating {
@@ -8406,7 +8569,7 @@ body.party-preset-open {
 }
 
 .dex-learnset-section {
-  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
 }
 
 .dex-learnset-section .dex-modal-section-title {
@@ -8417,9 +8580,9 @@ body.party-preset-open {
   gap: 6px;
   margin-bottom: 12px;
   padding: 8px;
-  border: 1px solid rgba(104, 122, 142, 0.14);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: #f8fafc;
+  background: var(--bg-input);
 }
 
 .dex-learnset-section .type-filter-btn {
@@ -8436,9 +8599,9 @@ body.party-preset-open {
   min-height: 34px;
   margin: 12px 0 6px;
   padding: 5px 8px;
-  border: 1px solid rgba(104, 122, 142, 0.14);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: #ffffff;
+  background: var(--bg-panel);
 }
 
 .learnset-type-header:first-child {
@@ -8467,8 +8630,8 @@ body.party-preset-open {
   max-height: none;
   overflow: visible;
   padding: 8px;
-  border-color: rgba(104, 122, 142, 0.12);
-  background: #f8fafc;
+  border-color: var(--border);
+  background: var(--bg-input);
 }
 
 .dex-learnset-section .dex-link {
@@ -8508,10 +8671,10 @@ body.party-preset-open {
   height: 34px;
   min-height: 34px;
   padding: 0 12px;
-  border: 1px solid rgba(104, 122, 142, 0.2);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: #ffffff;
-  box-shadow: 0 12px 28px rgba(28, 40, 52, 0.18);
+  background: var(--bg-elev);
+  box-shadow: var(--surface-shadow);
   color: var(--text);
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 12px;
@@ -8533,9 +8696,9 @@ body.party-preset-open {
   z-index: 41;
   width: 10px;
   height: 10px;
-  border-right: 1px solid rgba(104, 122, 142, 0.2);
-  border-bottom: 1px solid rgba(104, 122, 142, 0.2);
-  background: #ffffff;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elev);
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, 4px) rotate(45deg);
@@ -8552,6 +8715,35 @@ body.party-preset-open {
 .dex-learnset-section .dex-link[data-dex-tooltip]:focus-visible::before {
   opacity: 1;
   transform: translate(-50%, 0) rotate(45deg);
+}
+
+:root[data-theme="dark"] #page-dex,
+:root[data-theme="dark"] .dex-modal {
+  --dex-accent: var(--tera);
+  --dex-chip-border: var(--border);
+  --dex-chip-bg: var(--bg-input);
+}
+
+:root[data-theme="dark"] #page-dex .type-filter-btn.type-pill-mini:not([data-filter-type=""]),
+:root[data-theme="dark"] .dex-modal .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]),
+:root[data-theme="dark"] #dexFullPageDetail .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]) {
+  background: color-mix(in srgb, var(--dex-filter-bg) 12%, var(--bg-input));
+  color: color-mix(in srgb, var(--dex-filter-bg) 72%, var(--text));
+}
+
+:root[data-theme="dark"] #page-dex .type-filter-btn.type-pill-mini:not([data-filter-type=""]):hover,
+:root[data-theme="dark"] .dex-modal .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]):hover,
+:root[data-theme="dark"] #dexFullPageDetail .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]):hover {
+  background: color-mix(in srgb, var(--dex-filter-bg) 18%, var(--bg-input));
+  color: var(--text);
+}
+
+:root[data-theme="dark"] #page-dex .dex-table tbody tr:hover {
+  background: color-mix(in srgb, var(--warn) 12%, var(--bg-input));
+}
+
+:root[data-theme="dark"] .dex-modal::backdrop {
+  background: var(--bg-overlay);
 }
 
 @media (max-width: 760px) {
@@ -8627,11 +8819,6 @@ body.party-preset-open {
     font-size: 16px;
   }
 
-  #page-dex .dex-search input {
-    min-height: var(--ui-control-height);
-    font-size: var(--ui-control-font-size);
-  }
-
   #page-dex .dex-type-filter {
     gap: 5px;
     margin-top: 8px;
@@ -8673,9 +8860,7 @@ body.party-preset-open {
   .matchup-grid {
     grid-template-columns: 54px minmax(0, 1fr);
   }
-}
 
-@media (max-width: 520px) {
   .dex-modal .ui-frame-head {
     align-items: center;
     min-height: 52px;
@@ -8722,11 +8907,13 @@ body.party-preset-open {
 }
 
 .tool-page .ui-field:not(.tool-pokemon-field) .ui-field-label,
-.tool-page .ft-section-title {
-  color: var(--tool-muted);
-  font-family: "Noto Sans KR", sans-serif;
-  font-size: 12px;
-  font-weight: 900;
+.tool-page .ft-section-title,
+.tool-page .rc-section-title {
+  color: var(--ui-pokemon-label-color, var(--text-dim));
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-pokemon-label-font-size);
+  font-weight: var(--ui-pokemon-label-font-weight);
+  line-height: var(--ui-label-line-height);
   letter-spacing: 0;
   text-transform: none;
 }
@@ -8758,9 +8945,10 @@ body.party-preset-open {
 .tool-page select,
 .tool-page input,
 .tool-page .cb-input {
-  border-color: var(--tool-line);
-  background: #ffffff;
-  color: var(--tool-text);
+  border-color: var(--border);
+  background: var(--ui-control-bg);
+  color: var(--text);
+  box-shadow: none;
 }
 
 .tool-page .combobox-options {
@@ -8805,10 +8993,10 @@ body.party-preset-open {
   gap: 7px;
   min-height: 34px;
   padding: 7px 10px;
-  border: 1px solid var(--tool-line);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #ffffff;
-  color: var(--tool-muted);
+  background: var(--ui-control-bg);
+  color: var(--text-dim);
   font-family: "Noto Sans KR", sans-serif;
   font-size: 12px;
   font-weight: 800;
@@ -8817,9 +9005,9 @@ body.party-preset-open {
 }
 
 .tool-page .ui-check:hover {
-  border-color: #b9c5d1;
-  background: var(--tool-surface-soft);
-  color: var(--tool-text);
+  border-color: var(--border-bright);
+  background: var(--bg-input);
+  color: var(--text);
 }
 
 .tool-page .ui-check:has(input:checked) {
@@ -8848,7 +9036,9 @@ body.party-preset-open {
   .matchup-coverage-inputs,
   .matchup-slot,
   .matchup-coverage-card,
-  .ft-analysis-section,
+  .ft-hp-section,
+  .ft-opp-section,
+  .ft-opp-config-row,
   .rc-my-moves-panel,
   .rc-input-block
 ) {
@@ -8860,8 +9050,10 @@ body.party-preset-open {
   .matchup-slots,
   .matchup-coverage-inputs,
   .matchup-coverage-card,
-  .ft-analysis-section,
-  .ft-opp-speed-controls,
+  .ft-hp-section,
+  .ft-opp-section,
+  .ft-opp-config-row,
+  .ft-opp-speed-setup,
   .ft-opp-speed-detail,
   .ft-speed-embedded,
   .ft-speed-summary,
@@ -8885,6 +9077,14 @@ body.party-preset-open {
   padding: 0 10px;
 }
 
+.tool-page .tool-stat-total.over {
+  color: var(--tool-danger);
+}
+
+.tool-page .tool-stat-total.over b {
+  color: inherit;
+}
+
 #page-revcalc .ui-empty.error {
   color: var(--tool-danger);
 }
@@ -8893,6 +9093,29 @@ body.party-preset-open {
 
 #page-matchup {
   display: none;
+  --matchup-accent: #789b86;
+  --matchup-accent-text: #476e59;
+  --matchup-accent-contrast: #ffffff;
+  --matchup-accent-soft: #fbfdfb;
+  --matchup-active-bg: var(--tool-surface);
+  --matchup-active-border: color-mix(in srgb, var(--matchup-accent) 42%, transparent);
+  --matchup-active-shadow: 0 6px 16px rgba(28, 40, 52, 0.08);
+  --matchup-soft-bg: #eef2f6;
+  --matchup-card-bg: var(--tool-surface);
+  --matchup-table-head-bg: #f1f5f9;
+  --matchup-table-summary-bg: #f8fafc;
+  --matchup-cell-neutral-bg: #f4f7fa;
+  --matchup-delete-hover-border: color-mix(in srgb, var(--tool-danger) 24%, transparent);
+  --matchup-delete-hover-bg: color-mix(in srgb, var(--tool-danger) 8%, transparent);
+  --matchup-eff-4-bg: rgba(214, 76, 86, 0.18);
+  --matchup-eff-4-text: #9f2834;
+  --matchup-eff-2-bg: rgba(214, 76, 86, 0.09);
+  --matchup-eff-2-text: #b23b45;
+  --matchup-eff-resist-bg: rgba(37, 122, 87, 0.08);
+  --matchup-eff-quarter-bg: rgba(37, 122, 87, 0.15);
+  --matchup-eff-zero-bg: var(--matchup-soft-bg);
+  --matchup-coverage-hit-bg: rgba(37, 122, 87, 0.10);
+  --matchup-coverage-miss-bg: rgba(214, 76, 86, 0.08);
 }
 
 #page-matchup.active {
@@ -8900,7 +9123,7 @@ body.party-preset-open {
 }
 
 #page-matchup .ui-frame.ui-panel {
-  --panel-point-color: #789b86;
+  --panel-point-color: var(--matchup-accent);
 }
 
 #page-matchup .matchup-control-row {
@@ -8937,10 +9160,10 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-mode-btn.active {
-  border-color: rgba(120, 155, 134, 0.32);
-  background: #ffffff;
-  color: #476e59;
-  box-shadow: 0 6px 16px rgba(28, 40, 52, 0.08);
+  border-color: var(--matchup-active-border);
+  background: var(--matchup-active-bg);
+  color: var(--matchup-accent-text);
+  box-shadow: var(--matchup-active-shadow);
 }
 
 #page-matchup .matchup-slots {
@@ -8957,8 +9180,8 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-slot.filled {
-  border-color: rgba(120, 155, 134, 0.42);
-  background: #fbfdfb;
+  border-color: var(--matchup-active-border);
+  background: var(--matchup-accent-soft);
 }
 
 #page-matchup .matchup-slot-num {
@@ -8966,7 +9189,7 @@ body.party-preset-open {
   width: 24px;
   height: 24px;
   border-radius: 999px;
-  background: #eef2f6;
+  background: var(--matchup-soft-bg);
   color: var(--tool-muted);
   font-family: "Fira Code", "JetBrains Mono", monospace;
   font-size: 11px;
@@ -8975,8 +9198,8 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-slot.filled .matchup-slot-num {
-  background: #789b86;
-  color: #ffffff;
+  background: var(--matchup-accent);
+  color: var(--matchup-accent-contrast);
 }
 
 #page-matchup .matchup-slot .combobox,
@@ -9022,8 +9245,8 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-slot-clear:hover {
-  border-color: rgba(214, 76, 86, 0.24);
-  background: rgba(214, 76, 86, 0.08);
+  border-color: var(--matchup-delete-hover-border);
+  background: var(--matchup-delete-hover-bg);
   color: var(--tool-danger);
 }
 
@@ -9066,8 +9289,8 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-coverage-card.filled {
-  border-color: rgba(120, 155, 134, 0.38);
-  background: #ffffff;
+  border-color: var(--matchup-active-border);
+  background: var(--matchup-card-bg);
 }
 
 #page-matchup .matchup-coverage-head {
@@ -9082,7 +9305,7 @@ body.party-preset-open {
 #page-matchup .matchup-coverage-empty {
   display: grid;
   min-height: 34px;
-  border: 1px dashed rgba(104, 122, 142, 0.24);
+  border: 1px dashed var(--tool-line);
   border-radius: 8px;
   color: var(--tool-faint);
   font-size: 12px;
@@ -9126,8 +9349,8 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-move-clear:hover:not(:disabled) {
-  border-color: rgba(214, 76, 86, 0.24);
-  background: rgba(214, 76, 86, 0.08);
+  border-color: var(--matchup-delete-hover-border);
+  background: var(--matchup-delete-hover-bg);
   color: var(--tool-danger);
 }
 
@@ -9241,7 +9464,7 @@ body.party-preset-open {
   border: 1px solid var(--tool-line);
   border-left: 3px solid var(--matchup-tone, var(--tool-line));
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--matchup-card-bg);
 }
 
 #page-matchup .matchup-side-card.safe {
@@ -9271,9 +9494,9 @@ body.party-preset-open {
   gap: 0;
   min-height: 22px;
   padding: 1px;
-  border: 1px solid rgba(104, 122, 142, 0.16);
+  border: 1px solid var(--tool-line-soft);
   border-radius: 7px;
-  background: #ffffff;
+  background: var(--matchup-card-bg);
   color: var(--tool-muted);
   font-size: 10px;
   font-weight: 900;
@@ -9330,7 +9553,7 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-table thead th {
-  background: #f1f5f9;
+  background: var(--matchup-table-head-bg);
   color: var(--tool-muted);
   font-family: "Noto Sans KR", sans-serif;
   font-size: 12px;
@@ -9357,7 +9580,7 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-table td.summary {
-  background: #f8fafc;
+  background: var(--matchup-table-summary-bg);
   color: var(--tool-muted);
   font-weight: 900;
 }
@@ -9389,31 +9612,31 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-table td.eff-4 {
-  background: rgba(214, 76, 86, 0.18);
-  color: #9f2834;
+  background: var(--matchup-eff-4-bg);
+  color: var(--matchup-eff-4-text);
   font-weight: 900;
 }
 
 #page-matchup .matchup-table td.eff-2 {
-  background: rgba(214, 76, 86, 0.09);
-  color: #b23b45;
+  background: var(--matchup-eff-2-bg);
+  color: var(--matchup-eff-2-text);
   font-weight: 900;
 }
 
 #page-matchup .matchup-table td.eff-05 {
-  background: rgba(37, 122, 87, 0.08);
+  background: var(--matchup-eff-resist-bg);
   color: var(--tool-good);
   font-weight: 900;
 }
 
 #page-matchup .matchup-table td.eff-025 {
-  background: rgba(37, 122, 87, 0.15);
+  background: var(--matchup-eff-quarter-bg);
   color: var(--tool-good);
   font-weight: 900;
 }
 
 #page-matchup .matchup-table td.eff-0 {
-  background: #eef2f6;
+  background: var(--matchup-eff-zero-bg);
   color: var(--tool-muted);
   font-weight: 900;
 }
@@ -9429,13 +9652,13 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-table td.coverage-hit {
-  background: rgba(37, 122, 87, 0.1);
+  background: var(--matchup-coverage-hit-bg);
   color: var(--tool-good);
   font-weight: 900;
 }
 
 #page-matchup .matchup-table td.coverage-miss {
-  background: rgba(214, 76, 86, 0.08);
+  background: var(--matchup-coverage-miss-bg);
   color: var(--tool-danger);
   font-weight: 900;
 }
@@ -9477,21 +9700,21 @@ body.party-preset-open {
 
 #page-matchup .cell-demo.eff-4,
 #page-matchup .cell-demo.eff-2 {
-  border-color: rgba(214, 76, 86, 0.18);
-  background: rgba(214, 76, 86, 0.10);
+  border-color: var(--matchup-delete-hover-border);
+  background: var(--matchup-eff-2-bg);
   color: var(--tool-danger);
 }
 
 #page-matchup .cell-demo.eff-1 {
-  border-color: rgba(104, 122, 142, 0.18);
-  background: #f4f7fa;
+  border-color: var(--tool-line-soft);
+  background: var(--matchup-cell-neutral-bg);
   color: var(--tool-muted);
 }
 
 #page-matchup .cell-demo.eff-05,
 #page-matchup .cell-demo.eff-025 {
-  border-color: rgba(37, 122, 87, 0.18);
-  background: rgba(37, 122, 87, 0.10);
+  border-color: color-mix(in srgb, var(--tool-good) 22%, transparent);
+  background: var(--matchup-coverage-hit-bg);
   color: var(--tool-good);
 }
 
@@ -9500,8 +9723,8 @@ body.party-preset-open {
 }
 
 #page-matchup .cell-demo.eff-0 {
-  border-color: rgba(104, 122, 142, 0.20);
-  background: #eef2f6;
+  border-color: var(--tool-line-soft);
+  background: var(--matchup-eff-zero-bg);
   color: var(--tool-muted);
 }
 
@@ -9514,6 +9737,16 @@ body.party-preset-open {
   --ft-speed: #167fa5;
   --ft-phys: #d88555;
   --ft-spec: #5ca8c8;
+  --ft-speed-chip-bg: var(--tool-surface);
+  --ft-speed-neutral-fast: #1f6fd1;
+  --ft-speed-need-bg: rgba(37, 122, 87, 0.07);
+  --ft-speed-impossible-bg: rgba(214, 76, 86, 0.07);
+  --ft-tag-bg: var(--tool-surface);
+  --ft-breakpoint-bg: var(--tool-surface);
+  --ft-breakpoint-active-bg: rgba(37, 122, 87, 0.06);
+  --ft-breakpoint-delta-bg: var(--tool-surface-soft);
+  --ft-magic-control-bg: var(--ui-control-bg);
+  --ft-magic-current-bg: color-mix(in srgb, var(--tool-warn) 10%, var(--ui-control-bg));
   --tool-combo-selected: var(--ft-accent);
 }
 
@@ -9678,7 +9911,7 @@ body.party-preset-open {
 }
 
 #page-finetune .ft-stats-grid,
-#page-revcalc .ft-stats-grid {
+#page-revcalc .rc-stats-grid {
   display: grid;
   grid-template-columns: 68px 52px minmax(146px, 1fr) minmax(54px, 0.28fr) 58px 88px;
   gap: 7px 6px;
@@ -9687,7 +9920,8 @@ body.party-preset-open {
 }
 
 #page-finetune .ft-stats-head > div,
-#page-revcalc .ft-stats-head > div {
+#page-revcalc .rc-stat-head-row > div,
+#page-revcalc .rc-opp-stat-head > div {
   padding: 0 4px 6px;
   border-bottom: 1px solid var(--tool-line-soft);
   color: var(--tool-muted);
@@ -9698,7 +9932,7 @@ body.party-preset-open {
 }
 
 #page-finetune .ft-stat-name,
-#page-revcalc .ft-stat-name {
+#page-revcalc .rc-stat-name {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -9712,14 +9946,14 @@ body.party-preset-open {
 }
 
 #page-finetune .ft-stat-base,
-#page-revcalc .ft-stat-base,
+#page-revcalc .rc-stat-base,
 #page-finetune .ft-stat-final,
-#page-revcalc .ft-stat-final {
+#page-revcalc .rc-stat-final {
   color: var(--tool-stat-final-color, var(--tool-text));
 }
 
 #page-finetune .ft-stat-base,
-#page-revcalc .ft-stat-base {
+#page-revcalc .rc-stat-base {
   color: var(--tool-stat-base-color, var(--tool-muted));
 }
 
@@ -9729,9 +9963,11 @@ body.party-preset-open {
   --tool-stat-control-focus-border: var(--tool-accent);
   --tool-stat-control-radius: var(--ui-stat-control-radius);
   --tool-stat-focus-ring: var(--focus-ring);
-  --tool-stat-button-bg: #ffffff;
-  --tool-stat-button-hover-bg: #f8fafc;
-  --tool-stat-input-bg: #ffffff;
+  --tool-stat-button-bg: var(--ui-action-bg);
+  --tool-stat-button-hover-bg: var(--ui-action-hover-bg);
+  --tool-stat-input-bg: var(--ui-control-bg);
+  --tool-stat-input-hover-bg: var(--bg-input);
+  --tool-stat-input-focus-bg: var(--ui-control-bg);
   --tool-stat-input-color: var(--tool-text);
   --tool-stat-rank-value-color: var(--tool-text);
   --tool-stat-base-color: var(--tool-muted);
@@ -9741,12 +9977,12 @@ body.party-preset-open {
 }
 
 #page-finetune .ft-nature-up,
-#page-revcalc .ft-nature-up {
+#page-revcalc .rc-nature-up {
   color: var(--tool-danger);
 }
 
 #page-finetune .ft-nature-down,
-#page-revcalc .ft-nature-down {
+#page-revcalc .rc-nature-down {
   color: var(--tool-info);
 }
 
@@ -9850,7 +10086,7 @@ body.party-preset-open {
   padding: 0 clamp(2px, 0.35vw, 5px);
   border: 1px solid var(--tool-line);
   border-radius: clamp(5px, 0.45vw, 7px);
-  background: #ffffff;
+  background: var(--ft-magic-control-bg);
   font-size: clamp(9px, 0.72vw, 10px);
   font-weight: 900;
   line-height: 1;
@@ -9866,7 +10102,7 @@ body.party-preset-open {
 #page-finetune .ft-magic-current {
   color: var(--tool-warn);
   border-color: rgba(183, 121, 31, 0.3);
-  background: #fff7e9;
+  background: var(--ft-magic-current-bg);
 }
 
 #page-finetune .ft-magic-next {
@@ -9877,97 +10113,11 @@ body.party-preset-open {
   color: var(--tool-faint);
 }
 
-#page-finetune .ft-bulk-panel {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 6px;
-  margin-top: 10px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-#page-finetune .ft-bulk-card {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  gap: 6px;
-  min-width: 0;
-  height: var(--tool-stat-bulk-card-height, var(--ui-pokemon-action-height));
-  min-height: var(--tool-stat-bulk-card-height, var(--ui-pokemon-action-height));
-  padding: var(--tool-stat-bulk-card-padding, 0 10px);
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-  background: #f8fafc;
-}
-
-#page-finetune .ft-bulk-card.phys {
-  border-color: #e5e7eb;
-  background: #f8fafc;
-}
-
-#page-finetune .ft-bulk-card.spec {
-  border-color: #e5e7eb;
-  background: #f8fafc;
-}
-
-#page-finetune .ft-bulk-card::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  flex: 0 0 6px;
-  border-radius: 999px;
-  background: #9ca3af;
-}
-
-#page-finetune .ft-bulk-card.phys::before {
-  background: #b77945;
-}
-
-#page-finetune .ft-bulk-card.spec::before {
-  background: #5277a3;
-}
-
-#page-finetune .ft-bulk-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--tool-stat-bulk-content-height, 16px);
-  color: var(--tool-muted);
-  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.78rem;
-  font-weight: 800;
-  line-height: var(--tool-stat-bulk-content-height, 16px);
-  white-space: nowrap;
-}
-
-#page-finetune .ft-bulk-value {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--tool-stat-bulk-content-height, 16px);
-  color: #334155;
-  font-family: "Fira Code", "JetBrains Mono", monospace;
-  font-size: 0.82rem;
-  font-weight: 900;
-  line-height: var(--tool-stat-bulk-content-height, 16px);
-  white-space: nowrap;
-}
-
-#page-finetune .ft-summary-section,
-#page-finetune .ft-analysis-section {
+#page-finetune .ft-hp-section {
   min-width: 0;
 }
 
-#page-finetune .ft-summary-section {
-  margin-top: 10px;
-}
-
-#page-finetune .ft-ev-footer-head,
-#page-finetune .ft-analysis-title {
+#page-finetune .ft-hp-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -9978,50 +10128,15 @@ body.party-preset-open {
   font-weight: 900;
 }
 
-#page-finetune .ft-ev-footer-head > span,
-#page-finetune .ft-analysis-title > span {
+#page-finetune .ft-hp-title > span {
   min-width: 0;
 }
 
-#page-finetune .ft-ev-footer-head b,
-#page-finetune .ft-analysis-title b {
+#page-finetune .ft-hp-title b {
   color: var(--tool-text);
   font-family: "Fira Code", "JetBrains Mono", monospace;
 }
 
-#page-finetune .ft-ev-footer-head b.over {
-  color: var(--tool-danger);
-}
-
-#page-finetune .ft-ev-meter {
-  min-width: 0;
-  height: 8px;
-  margin: 8px 0 0;
-  border-radius: 999px;
-  background: #e8edf3;
-  overflow: visible;
-}
-
-#page-finetune .ft-ev-meter span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #789b86, #c59a50);
-}
-
-#page-finetune .ft-ev-meter.over span {
-  background: var(--tool-danger);
-}
-
-#page-finetune .ft-ev-chip-row,
-#page-finetune .ft-tag-row {
-  display: flex;
-  flex-wrap: wrap;
-  min-width: 0;
-  gap: 5px;
-}
-
-#page-finetune .ft-ev-chip,
 #page-finetune .ft-tag {
   display: inline-flex;
   align-items: center;
@@ -10030,7 +10145,7 @@ body.party-preset-open {
   padding: 2px 7px;
   border: 1px solid var(--tool-line);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--ft-tag-bg);
   color: var(--tool-muted);
   font-size: 11px;
   font-weight: 900;
@@ -10060,12 +10175,12 @@ body.party-preset-open {
   border: 1px solid var(--tool-line);
   border-left: 3px solid var(--tool-line);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--ft-breakpoint-bg);
 }
 
 #page-finetune .ft-breakpoint-item.active {
   border-left-color: var(--tool-good);
-  background: rgba(37, 122, 87, 0.06);
+  background: var(--ft-breakpoint-active-bg);
 }
 
 #page-finetune .ft-breakpoint-main {
@@ -10101,7 +10216,7 @@ body.party-preset-open {
   padding: 2px 7px;
   border: 1px solid var(--tool-line);
   border-radius: 999px;
-  background: var(--tool-surface-soft);
+  background: var(--ft-breakpoint-delta-bg);
   color: var(--tool-muted);
   font-size: 11px;
   font-weight: 900;
@@ -10143,28 +10258,98 @@ body.party-preset-open {
   min-width: 0;
 }
 
+#page-finetune .ft-opp-config-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+
 #page-finetune .ft-opp-pick-row {
   position: relative;
   display: block;
   min-width: 0;
+  height: 100%;
   width: 100%;
 }
 
 #page-finetune .ft-opp-pick-row .tool-pokemon-field {
   width: 100%;
+  height: 100%;
 }
 
-#page-finetune .ft-opp-speed-controls {
-  --ft-opp-speed-control-h: clamp(32px, 2.45vw, 36px);
+#page-finetune .ft-opp-pick-row .tool-pokemon-subframe {
+  height: 100%;
+  --ui-field-meta-min-height: 0;
+  --ui-field-meta-margin-top: 0;
+}
+
+#page-finetune .ft-opp-pick-row .tool-pokemon-meta-actions {
+  gap: 6px;
+}
+
+#page-finetune .ft-opp-type-strip {
+  --ui-type-chip-width: 40px;
+  --ui-type-chip-height: 20px;
+  gap: 3px;
+}
+
+#page-finetune .ft-opp-type-strip .tool-pokemon-type-pill {
+  flex-basis: var(--ui-type-chip-width);
+  height: var(--ui-type-chip-height);
+  padding: 0 5px;
+  font-size: 10px;
+}
+
+#page-finetune .ft-opp-speed-setup {
+  --ft-opp-speed-control-h: clamp(28px, 2.1vw, 32px);
+  --ft-opp-rank-button-size: clamp(28px, 2.1vw, 32px);
+  --ft-speed-label-width: 28px;
   display: grid;
-  grid-template-columns: minmax(94px, 1fr) minmax(86px, auto) minmax(104px, 0.9fr);
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, auto) minmax(0, auto);
+  gap: 6px;
+  align-content: center;
+  align-self: stretch;
+  min-width: 0;
+}
+
+#page-finetune .ft-speed-compact-field {
+  display: grid;
+  grid-template-columns: var(--ft-speed-label-width) minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+#page-finetune .ft-speed-compact-field > .ui-field-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: var(--ft-opp-speed-control-h);
+  min-height: 0;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+#page-finetune .ft-rank-scarf-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: end;
+  justify-content: stretch;
+  gap: 8px;
   min-width: 0;
 }
 
 #page-finetune .ft-base-speed-field {
   min-width: 0;
+}
+
+#page-finetune .ft-rank-field {
+  width: max-content;
 }
 
 #page-finetune .ft-base-speed-field input {
@@ -10177,33 +10362,37 @@ body.party-preset-open {
 
 #page-finetune .ft-opp-scarf {
   justify-content: center;
-  width: 100%;
-  min-width: 0;
+  width: auto;
+  min-width: 104px;
   height: var(--ft-opp-speed-control-h);
   min-height: var(--ft-opp-speed-control-h);
+  max-height: var(--ft-opp-speed-control-h);
   padding-right: 8px;
   padding-left: 8px;
+  font-size: 10.5px;
   white-space: nowrap;
 }
 
-#page-finetune .ft-opp-speed-controls .ft-rank {
+#page-finetune .ft-opp-speed-setup .ft-rank {
   display: grid;
-  grid-template-columns: minmax(22px, 0.8fr) minmax(24px, 0.9fr) minmax(22px, 0.8fr);
+  grid-template-columns: var(--ft-opp-rank-button-size) minmax(22px, auto) var(--ft-opp-rank-button-size);
   gap: 3px;
   justify-content: center;
   align-items: center;
-  height: var(--ft-opp-speed-control-h);
-  min-height: var(--ft-opp-speed-control-h);
+  height: var(--ft-opp-rank-button-size);
+  min-height: var(--ft-opp-rank-button-size);
 }
 
-#page-finetune .ft-opp-speed-controls .ft-rank-btn {
-  width: 100%;
-  height: calc(var(--ft-opp-speed-control-h) - 2px);
+#page-finetune .ft-opp-speed-setup .ft-rank-btn {
+  width: var(--ft-opp-rank-button-size);
+  height: var(--ft-opp-rank-button-size);
+  min-height: var(--ft-opp-rank-button-size);
+  max-height: var(--ft-opp-rank-button-size);
   border-radius: 7px;
   font-size: 11px;
 }
 
-#page-finetune .ft-opp-speed-controls .ft-rank-val {
+#page-finetune .ft-opp-speed-setup .ft-rank-val {
   font-size: 12px;
   line-height: 1;
 }
@@ -10248,7 +10437,7 @@ body.party-preset-open {
   padding: 0 clamp(7px, 1vw, 10px);
   border: 1px solid var(--tool-line);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--ft-speed-chip-bg);
 }
 
 #page-finetune .ft-speed-chip em {
@@ -10276,27 +10465,40 @@ body.party-preset-open {
 
 #page-finetune .ft-speed-chip.neutral-fast em,
 #page-finetune .ft-speed-chip.neutral-fast b {
-  color: #1f6fd1;
+  color: var(--ft-speed-neutral-fast);
 }
 
 #page-finetune .ft-speed-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 8px;
+  min-height: 28px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--tool-line);
 }
 
 #page-finetune .ft-margin-field {
   display: inline-grid;
-  grid-template-columns: auto 50px auto;
+  grid-template-columns: auto 34px auto;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   color: var(--tool-muted);
+  font-size: 11px;
   font-weight: 900;
+  line-height: 1;
 }
 
 #page-finetune .ft-margin-field input {
+  width: 34px;
+  height: 26px;
+  min-height: 26px;
+  max-height: 26px;
+  padding: 0 4px;
+  border-radius: 7px;
+  font-family: "Fira Code", "JetBrains Mono", monospace;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
   text-align: center;
 }
 
@@ -10310,15 +10512,15 @@ body.party-preset-open {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 8px;
   align-items: center;
-  min-height: 26px;
+  min-height: 24px;
 }
 
 #page-finetune .ft-current-speed-inline {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 26px;
-  min-height: 26px;
+  height: 24px;
+  min-height: 24px;
   color: var(--tool-muted);
   font-size: 12px;
   font-weight: 900;
@@ -10331,7 +10533,7 @@ body.party-preset-open {
   align-items: center;
   color: var(--tool-text);
   font-family: "Fira Code", "JetBrains Mono", monospace;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
   line-height: 1;
 }
@@ -10342,7 +10544,7 @@ body.party-preset-open {
   align-items: center;
   justify-content: flex-start;
   gap: 5px;
-  min-height: 26px;
+  min-height: 24px;
   min-width: 0;
 }
 
@@ -10368,30 +10570,34 @@ body.party-preset-open {
 
 #page-finetune .ft-speed-case {
   display: grid;
-  gap: 8px;
+  gap: 5px;
   min-width: 0;
-  min-height: 132px;
+  min-height: 100px;
+  padding: 8px 12px;
 }
 
 #page-finetune .ft-speed-case-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 6px;
+  min-height: 16px;
   min-width: 0;
 }
 
 #page-finetune .ft-speed-case-head b {
   color: var(--tool-text);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
+  line-height: 1;
 }
 
 #page-finetune .ft-speed-case-head small {
   overflow: hidden;
   color: var(--tool-faint);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
+  line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -10401,14 +10607,14 @@ body.party-preset-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  min-height: 32px;
-  padding: 0 8px;
+  gap: 5px;
+  min-height: 26px;
+  padding: 0 7px;
   border: 1px solid var(--tool-line-soft);
   border-radius: 8px;
   background: var(--tool-surface-soft);
   color: var(--tool-muted);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 900;
 }
 
@@ -10421,12 +10627,12 @@ body.party-preset-open {
 }
 
 #page-finetune .ft-speed-case-need {
-  background: rgba(37, 122, 87, 0.07);
+  background: var(--ft-speed-need-bg);
   color: var(--tool-good);
 }
 
 #page-finetune .ft-speed-need-label {
-  font-size: 10px;
+  font-size: 9.5px;
   line-height: 1.1;
   white-space: nowrap;
 }
@@ -10441,8 +10647,8 @@ body.party-preset-open {
   grid-template-columns: minmax(22px, auto) auto;
   align-items: baseline;
   justify-content: end;
-  gap: 4px;
-  min-width: 58px;
+  gap: 3px;
+  min-width: 52px;
   text-align: right;
 }
 
@@ -10458,63 +10664,26 @@ body.party-preset-open {
 }
 
 #page-finetune .ft-speed-case.impossible .ft-speed-case-need {
-  background: rgba(214, 76, 86, 0.07);
+  background: var(--ft-speed-impossible-bg);
   color: var(--tool-danger);
 }
 
 #page-revcalc .rc-opp-stat-table {
   display: grid;
-  grid-template-columns: minmax(56px, 0.8fr) minmax(58px, 0.75fr) minmax(112px, 1fr);
-  gap: 6px 8px;
-}
-
-#page-revcalc .rc-opp-stat-panel,
-#page-revcalc .rc-opp-stat-title {
-  margin-top: 12px;
-}
-
-#page-revcalc .rc-opp-stat-head-cell {
-  min-height: 20px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--tool-line);
-  color: var(--tool-muted);
-  font-size: 11px;
-  font-weight: 900;
-  text-align: center;
-}
-
-#page-revcalc .rc-opp-stat-name,
-#page-revcalc .rc-opp-stat-base,
-#page-revcalc .rc-opp-rank-cell {
-  display: flex;
+  width: min(100%, var(--rc-opp-stat-table-width));
+  margin-inline: auto;
+  grid-template-columns: var(--rc-opp-stat-grid-template);
+  gap: var(--rc-opp-stat-grid-gap);
   align-items: center;
-  min-height: 38px;
-  color: var(--tool-text);
-  font-size: 13px;
-  font-weight: 900;
+  min-width: 0;
 }
 
 #page-revcalc .rc-opp-stat-name {
-  justify-content: center;
-  padding-left: 0;
-  color: var(--tool-muted);
+  min-height: 36px;
 }
 
 #page-revcalc .rc-opp-stat-base {
-  justify-content: center;
-  font-family: "Fira Code", "JetBrains Mono", monospace;
-}
-
-#page-revcalc .rc-opp-rank-cell {
-  justify-content: center;
-}
-
-#page-revcalc .rc-opp-rank-stepper {
-  width: min(100%, 116px);
-}
-
-#page-revcalc .rc-opp-rank-empty {
-  width: min(100%, 116px);
+  min-height: 36px;
 }
 
 /* Reverse calculator */
@@ -10522,6 +10691,40 @@ body.party-preset-open {
 #page-revcalc {
   display: none;
   --tool-combo-selected: #8f7cc8;
+  --rc-stat-grid-template:
+    minmax(48px, 0.56fr)
+    minmax(42px, 0.48fr)
+    minmax(126px, 1.35fr)
+    minmax(48px, 0.54fr)
+    minmax(78px, 0.72fr);
+  --rc-stat-grid-gap: 7px clamp(3px, 0.55vw, 6px);
+  --rc-opp-stat-table-width: 520px;
+  --rc-opp-stat-grid-template:
+    minmax(62px, 0.82fr)
+    minmax(62px, 0.78fr)
+    minmax(112px, 1fr);
+  --rc-opp-stat-grid-gap: 7px clamp(22px, 4vw, 44px);
+  --rc-result-note-bg: #fffaf0;
+  --rc-result-note-text: var(--tool-text);
+  --rc-result-accent-bg: #fff7e9;
+  --rc-result-accent-text: #6f4815;
+  --rc-result-chip-bg: #ffffff;
+  --rc-result-chip-text: var(--tool-muted);
+  --rc-result-hover-border: rgba(183, 121, 31, 0.36);
+  --rc-result-hover-ring: rgba(183, 121, 31, 0.08);
+  --rc-result-followup-bg: #ffffff;
+}
+
+:root[data-theme="dark"] #page-revcalc {
+  --rc-result-note-bg: color-mix(in srgb, var(--warn) 10%, var(--bg-panel));
+  --rc-result-note-text: var(--text);
+  --rc-result-accent-bg: var(--ui-action-active-bg);
+  --rc-result-accent-text: var(--ui-action-active-text);
+  --rc-result-chip-bg: var(--bg-input);
+  --rc-result-chip-text: var(--text-dim);
+  --rc-result-hover-border: rgba(223, 178, 95, 0.42);
+  --rc-result-hover-ring: rgba(223, 178, 95, 0.14);
+  --rc-result-followup-bg: var(--bg-input);
 }
 
 #page-revcalc.active {
@@ -10654,18 +10857,18 @@ body.party-preset-open {
   display: grid;
 }
 
-#page-revcalc .rc-stats-grid {
-  width: 100%;
-  grid-template-columns:
-    minmax(48px, 0.56fr)
-    minmax(42px, 0.48fr)
-    minmax(126px, 1.35fr)
-    minmax(48px, 0.54fr)
-    minmax(78px, 0.72fr);
-  gap: 7px clamp(3px, 0.55vw, 6px);
+#page-revcalc .rc-my-moves-panel .tool-move-panel-body,
+#page-revcalc .rc-my-moves-panel .tool-move-list-frame {
+  overflow: visible;
 }
 
-#page-revcalc .rc-stats-grid .ft-stat-name {
+#page-revcalc .rc-stats-grid {
+  width: 100%;
+  grid-template-columns: var(--rc-stat-grid-template);
+  gap: var(--rc-stat-grid-gap);
+}
+
+#page-revcalc .rc-stat-grid .rc-stat-name {
   display: grid;
   grid-template-columns: minmax(28px, auto) 10px;
   justify-content: center;
@@ -10675,14 +10878,14 @@ body.party-preset-open {
   font-size: clamp(11px, 0.9vw, 13px);
 }
 
-#page-revcalc .rc-stats-grid .ft-stat-label {
+#page-revcalc .rc-stat-grid .rc-stat-label {
   min-width: 28px;
   text-align: left;
 }
 
-#page-revcalc .rc-stats-grid .ft-nature-up,
-#page-revcalc .rc-stats-grid .ft-nature-down,
-#page-revcalc .rc-stats-grid .ft-nature-spacer {
+#page-revcalc .rc-stat-grid .rc-nature-up,
+#page-revcalc .rc-stat-grid .rc-nature-down,
+#page-revcalc .rc-stat-grid .rc-nature-spacer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -10710,19 +10913,19 @@ body.party-preset-open {
   z-index: 500;
 }
 
-#page-revcalc .ft-controls-row {
+#page-revcalc .rc-control-row {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
 }
 
-#page-revcalc .ft-controls-row.rc-observed-row {
+#page-revcalc .rc-control-row.rc-observed-row {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(132px, 1fr);
 }
 
-#page-revcalc .rc-opp-item-row .ui-field {
-  grid-column: 1;
+#page-revcalc .rc-control-row.rc-observed-row.rc-opponent-action-row {
+  grid-template-columns: minmax(0, 1.35fr) minmax(150px, 0.65fr) minmax(180px, 1fr);
 }
 
 #page-revcalc .rc-field-wide {
@@ -10740,20 +10943,7 @@ body.party-preset-open {
   gap: 8px;
 }
 
-#page-revcalc .rc-count-badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 22px;
-  padding: 0 8px;
-  border: 1px solid rgba(22, 127, 165, 0.22);
-  border-radius: 999px;
-  background: rgba(22, 127, 165, 0.08);
-  color: var(--tool-info);
-  font-size: 11px;
-  font-weight: 900;
-}
-
-#page-revcalc .ft-ev-total {
+#page-revcalc .rc-stat-total {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -10772,11 +10962,11 @@ body.party-preset-open {
   white-space: nowrap;
 }
 
-#page-revcalc .ft-ev-total b {
+#page-revcalc .rc-stat-total b {
   color: var(--tool-text);
 }
 
-#page-revcalc .ft-ev-total.over,
+#page-revcalc .rc-stat-total.over,
 #page-revcalc .rc-ev-over {
   color: var(--tool-danger);
 }
@@ -10789,8 +10979,34 @@ body.party-preset-open {
   padding: 10px 12px 9px;
 }
 
-#page-revcalc .rc-input-block .ft-section-title {
-  display: block;
+#page-revcalc .rc-input-block .rc-section-title {
+  display: flex;
+  align-items: center;
+  min-height: var(--ui-field-head-height);
+  line-height: var(--ui-label-line-height);
+}
+
+#page-revcalc .rc-observed-subframe {
+  align-items: end;
+}
+
+#page-revcalc .rc-observed-subframe .ui-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: var(--ui-field-stack-gap);
+  min-width: 0;
+}
+
+#page-revcalc .rc-observed-subframe .ui-field > .ui-field-label {
+  display: flex;
+  align-items: center;
+  min-height: var(--ui-field-head-height);
+  line-height: var(--ui-label-line-height);
+}
+
+#page-revcalc .rc-observed-subframe :where(.combobox, input[type="number"]) {
+  align-self: end;
 }
 
 #page-revcalc .rc-action-block .cb-input,
@@ -10803,20 +11019,15 @@ body.party-preset-open {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
-  padding-top: 0;
+  align-content: center;
 }
 
 #page-revcalc .rc-action-block .rc-side-condition-row > .ui-check {
   box-sizing: border-box;
   width: 100%;
   justify-content: center;
+  align-self: center;
   min-width: 0 !important;
-  min-height: 19px !important;
-  padding: 2px 6px !important;
-  border-radius: 6px;
-  font-size: 10px !important;
-  font-weight: 800;
-  line-height: 1;
   white-space: nowrap;
 }
 
@@ -10825,20 +11036,7 @@ body.party-preset-open {
   align-items: center !important;
   box-sizing: border-box !important;
   width: 100% !important;
-  height: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  padding: 0 8px !important;
   overflow: hidden;
-}
-
-#page-revcalc .rc-action-block .rc-side-condition-row > .ui-check input[type="checkbox"] {
-  width: 10px;
-  height: 10px;
-}
-
-#page-revcalc .rc-opp-item-row {
-  max-width: none;
 }
 
 #page-revcalc .rc-opp-item-combobox .combobox-options {
@@ -10874,67 +11072,6 @@ body.party-preset-open {
   max-width: calc(100vw - 24px);
 }
 
-#page-revcalc .rc-field-combobox .combobox-option {
-  border-left: 3px solid transparent;
-  padding-left: calc(10px - 3px);
-}
-
-#page-revcalc .rc-field-combobox .combobox-option.selected {
-  border-left-color: #8f7cc8;
-  box-shadow: none;
-}
-
-#page-revcalc .rc-field-option {
-  display: grid;
-  grid-template-columns: minmax(64px, 0.8fr) minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  border-left: 3px solid transparent;
-  padding-left: calc(12px - 3px);
-}
-
-#page-revcalc .rc-field-option.selected {
-  border-left-color: #8f7cc8;
-  box-shadow: none;
-}
-
-#page-revcalc .rc-turn-order-option {
-  border-left: 3px solid transparent;
-  padding-left: calc(10px - 3px);
-}
-
-#page-revcalc .rc-turn-order-option.selected {
-  border-left-color: #8f7cc8;
-  box-shadow: none;
-}
-
-#page-revcalc .rc-turn-order-option b {
-  min-width: 0;
-  overflow: hidden;
-  font-size: 12px;
-  font-weight: 500;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#page-revcalc .rc-field-option b,
-#page-revcalc .rc-field-option small {
-  min-width: 0;
-  overflow: hidden;
-  font-size: 12px;
-  font-weight: 500;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#page-revcalc .rc-field-option small {
-  margin-left: 0;
-  color: var(--tool-muted);
-  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  text-align: left;
-}
-
-#page-revcalc .rc-hint,
 #page-revcalc .rc-mini-note {
   color: var(--tool-muted);
   font-size: 12px;
@@ -10942,103 +11079,26 @@ body.party-preset-open {
   line-height: 1.55;
 }
 
-#page-revcalc .rc-hint {
-  margin-top: 10px;
-  padding: var(--ui-subframe-content-padding);
-  border-left: 3px solid var(--tool-line);
-  border-radius: var(--ui-subframe-radius);
-  background: #ffffff;
-}
-
 #page-revcalc .rc-item-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 6px;
-  max-height: 188px;
-  overflow: auto;
-}
-
-#page-revcalc .rc-collapse-head {
-  display: flex !important;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  width: 100%;
-  min-height: 24px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--tool-muted);
-  font-family: "Noto Sans KR", sans-serif;
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1;
-  text-align: left;
-  cursor: pointer;
-}
-
-#page-revcalc .rc-collapse-head .rc-count-badge {
-  flex: 0 0 auto;
-  margin-left: 0;
-}
-
-#page-revcalc .rc-collapse-head::after {
-  content: '▾';
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  margin-left: auto;
-  width: 14px;
-  height: 14px;
-  color: var(--tool-faint);
-  font-size: 11px;
-  line-height: 1;
-  transition: transform 0.16s ease;
-}
-
-#page-revcalc .rc-item-candidates-block.collapsed .rc-collapse-head::after {
-  transform: rotate(-90deg);
+  --ui-check-grid-min: 150px;
+  --ui-check-grid-max-height: 188px;
+  --ui-check-grid-overflow: auto;
 }
 
 #page-revcalc .rc-item-candidates-body {
   margin-top: 8px;
 }
 
-#page-revcalc .rc-collapse-divider {
-  margin: 8px 0 0;
-}
-
 #page-revcalc .rc-item-chk {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  width: 100%;
   min-width: 0;
-  min-height: 28px;
-  padding: 4px 6px;
-  border-radius: 7px;
-  color: var(--tool-muted);
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-#page-revcalc .rc-item-chk:hover {
-  background: var(--tool-surface-soft);
-  color: var(--tool-text);
-}
-
-#page-revcalc .rc-item-chk.disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 #page-revcalc .rc-briefing {
   margin-bottom: 12px;
   border: 1px solid rgba(183, 121, 31, 0.24);
-  background: #fffaf0;
-  color: var(--tool-text);
+  background: var(--rc-result-note-bg);
+  color: var(--rc-result-note-text);
   font-size: 13px;
   font-weight: 700;
   line-height: 1.55;
@@ -11046,7 +11106,7 @@ body.party-preset-open {
 
 #page-revcalc .rc-briefing-title {
   margin-bottom: 4px;
-  color: #6f4815;
+  color: var(--rc-result-accent-text);
   font-size: 13px;
   font-weight: 900;
 }
@@ -11066,8 +11126,8 @@ body.party-preset-open {
 
 #page-revcalc .rc-result-row:hover,
 #page-revcalc .rc-result-row.open {
-  border-color: rgba(183, 121, 31, 0.36);
-  box-shadow: 0 0 0 3px rgba(183, 121, 31, 0.08);
+  border-color: var(--rc-result-hover-border);
+  box-shadow: 0 0 0 3px var(--rc-result-hover-ring);
 }
 
 #page-revcalc .rc-result-rank {
@@ -11077,8 +11137,8 @@ body.party-preset-open {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: #fff7e9;
-  color: #6f4815;
+  background: var(--rc-result-accent-bg);
+  color: var(--rc-result-accent-text);
   font-family: "Fira Code", "JetBrains Mono", monospace;
   font-size: 14px;
   font-weight: 900;
@@ -11123,8 +11183,7 @@ body.party-preset-open {
   font-weight: 900;
 }
 
-#page-revcalc .rc-result-lines,
-#page-revcalc .rc-result-stats {
+#page-revcalc .rc-result-lines {
   display: grid;
   gap: 3px;
   color: var(--tool-muted);
@@ -11137,8 +11196,7 @@ body.party-preset-open {
 #page-revcalc .rc-result-nature-badge,
 #page-revcalc .rc-result-item,
 #page-revcalc .rc-result-ability,
-#page-revcalc .rc-info-badge,
-#page-revcalc .rc-practical-badge {
+#page-revcalc .rc-info-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -11146,8 +11204,8 @@ body.party-preset-open {
   padding: 2px 7px;
   border: 1px solid var(--tool-line);
   border-radius: 999px;
-  background: #ffffff;
-  color: var(--tool-muted);
+  background: var(--rc-result-chip-bg);
+  color: var(--rc-result-chip-text);
   font-size: 11px;
   font-weight: 900;
   white-space: nowrap;
@@ -11157,8 +11215,8 @@ body.party-preset-open {
 #page-revcalc .rc-result-item.rc-scarf-item,
 #page-revcalc .rc-info-badge {
   border-color: rgba(183, 121, 31, 0.25);
-  background: #fff7e9;
-  color: #6f4815;
+  background: var(--rc-result-accent-bg);
+  color: var(--rc-result-accent-text);
 }
 
 #page-revcalc .rc-result-ability {
@@ -11167,18 +11225,6 @@ body.party-preset-open {
 }
 
 #page-revcalc .rc-result-item.rc-no-item {
-  color: var(--tool-faint);
-}
-
-#page-revcalc .rc-practical-badge.high {
-  color: var(--tool-good);
-}
-
-#page-revcalc .rc-practical-badge.mid {
-  color: var(--tool-warn);
-}
-
-#page-revcalc .rc-practical-badge.low {
   color: var(--tool-faint);
 }
 
@@ -11271,15 +11317,9 @@ body.party-preset-open {
 #page-revcalc .rc-next-rank-cell button {
   width: 22px;
   height: 22px;
-  border: 1px solid var(--tool-line);
-  border-radius: 6px;
-  background: #ffffff;
-  color: var(--tool-muted);
-  cursor: pointer;
 }
 
-#page-revcalc .rc-next-rank-cell b {
-  color: var(--tool-text);
+#page-revcalc .rc-next-rank-cell .tool-stat-rank-value {
   text-align: center;
 }
 
@@ -11309,7 +11349,7 @@ body.party-preset-open {
   padding: 6px 8px;
   border: 1px solid var(--tool-line);
   border-radius: 9px;
-  background: #ffffff;
+  background: var(--rc-result-followup-bg);
   color: var(--tool-muted);
   font-size: 12px;
   font-weight: 800;
@@ -11394,7 +11434,8 @@ body.party-preset-open {
 }
 
 #page-finetune .ft-opp-scarf,
-#page-finetune .ft-rank-field {
+#page-finetune .ft-rank-field,
+#page-finetune .ft-opp-speed-setup {
   min-width: 0;
 }
 
@@ -11520,8 +11561,8 @@ body.party-preset-open {
     grid-template-areas: "status status status . . .";
   }
 
-  #page-revcalc .ft-stats-grid,
-  #page-revcalc .rc-stats-grid {
+  #page-revcalc .rc-stats-grid,
+  #page-revcalc .rc-opp-stat-table {
     min-width: 0;
   }
 
@@ -11625,6 +11666,23 @@ body.party-preset-open {
     gap: 5px 1px;
   }
 
+  #page-revcalc .rc-opp-stat-table {
+    width: 100%;
+    grid-template-columns:
+      minmax(42px, 0.74fr)
+      minmax(38px, 0.64fr)
+      minmax(72px, 0.9fr);
+    gap: 5px 4px;
+  }
+
+  #page-revcalc .rc-control-row.rc-observed-row.rc-opponent-action-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #page-finetune .ft-opp-config-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   #page-finetune .ft-opp-pick-row {
     display: block;
   }
@@ -11635,10 +11693,17 @@ body.party-preset-open {
     min-height: 0;
   }
 
-  #page-finetune .ft-opp-speed-controls {
-    --ft-opp-speed-control-h: 30px;
-    grid-template-columns: minmax(72px, 0.92fr) minmax(66px, auto) minmax(88px, 0.85fr);
+  #page-finetune .ft-opp-speed-setup {
+    --ft-opp-speed-control-h: 28px;
+    --ft-opp-rank-button-size: 26px;
+    grid-template-columns: minmax(0, 1fr);
     gap: 5px;
+  }
+
+  #page-finetune .ft-rank-scarf-row {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    justify-content: stretch;
+    gap: 8px;
   }
 
   #page-finetune .ft-opp-scarf,
@@ -11648,20 +11713,28 @@ body.party-preset-open {
     font-size: 11px;
   }
 
-  #page-finetune .ft-opp-speed-controls .ft-rank {
-    grid-template-columns: 20px 20px 20px;
-    gap: 2px;
-    height: var(--ft-opp-speed-control-h);
-    min-height: var(--ft-opp-speed-control-h);
+  #page-finetune .ft-opp-scarf {
+    min-width: 104px;
+    padding-right: 8px;
+    padding-left: 8px;
   }
 
-  #page-finetune .ft-opp-speed-controls .ft-rank-btn {
-    width: 20px;
-    height: calc(var(--ft-opp-speed-control-h) - 2px);
+  #page-finetune .ft-opp-speed-setup .ft-rank {
+    grid-template-columns: var(--ft-opp-rank-button-size) 20px var(--ft-opp-rank-button-size);
+    gap: 2px;
+    height: var(--ft-opp-rank-button-size);
+    min-height: var(--ft-opp-rank-button-size);
+  }
+
+  #page-finetune .ft-opp-speed-setup .ft-rank-btn {
+    width: var(--ft-opp-rank-button-size);
+    height: var(--ft-opp-rank-button-size);
+    min-height: var(--ft-opp-rank-button-size);
+    max-height: var(--ft-opp-rank-button-size);
     font-size: 10px;
   }
 
-  #page-finetune .ft-opp-speed-controls .ft-rank-val {
+  #page-finetune .ft-opp-speed-setup .ft-rank-val {
     font-size: 11px;
   }
 
@@ -11680,7 +11753,7 @@ body.party-preset-open {
   }
 
   #page-finetune .ft-speed-case {
-    min-height: 120px;
+    min-height: 108px;
     padding: 8px;
   }
 
@@ -11802,8 +11875,16 @@ body.party-preset-open {
     gap: 5px 2px;
   }
 
-  #page-revcalc .rc-stats-grid .ft-stat-name,
-  #page-revcalc .rc-stats-grid .ft-stat-label {
+  #page-revcalc .rc-opp-stat-table {
+    grid-template-columns:
+      minmax(40px, 0.72fr)
+      minmax(34px, 0.62fr)
+      minmax(74px, 0.92fr);
+    gap: 5px 3px;
+  }
+
+  #page-revcalc .rc-stat-grid .rc-stat-name,
+  #page-revcalc .rc-stat-grid .rc-stat-label {
     font-size: 10px;
   }
 
@@ -11847,6 +11928,43 @@ body.party-preset-open {
   --calc-surface: var(--bg-panel);
   --calc-surface-2: var(--bg-input);
   --calc-surface-3: var(--bg-muted);
+}
+
+:root[data-theme="dark"] #page-finetune {
+  --ft-speed-chip-bg: var(--bg-input);
+  --ft-speed-neutral-fast: var(--def);
+  --ft-speed-need-bg: color-mix(in srgb, var(--ok) 13%, var(--bg-input));
+  --ft-speed-impossible-bg: color-mix(in srgb, var(--atk) 13%, var(--bg-input));
+  --ft-tag-bg: var(--bg-input);
+  --ft-breakpoint-bg: var(--bg-input);
+  --ft-breakpoint-active-bg: color-mix(in srgb, var(--ok) 12%, var(--bg-input));
+  --ft-breakpoint-delta-bg: color-mix(in srgb, var(--bg-input) 86%, var(--text) 14%);
+}
+
+:root[data-theme="dark"] #page-matchup {
+  --matchup-accent: var(--ok);
+  --matchup-accent-text: var(--ok);
+  --matchup-accent-contrast: var(--bg);
+  --matchup-accent-soft: color-mix(in srgb, var(--ok) 9%, var(--bg-panel));
+  --matchup-active-bg: var(--bg-input);
+  --matchup-active-border: color-mix(in srgb, var(--ok) 34%, var(--border));
+  --matchup-active-shadow: none;
+  --matchup-soft-bg: var(--bg-input);
+  --matchup-card-bg: var(--bg-input);
+  --matchup-table-head-bg: var(--bg-muted);
+  --matchup-table-summary-bg: var(--bg-input);
+  --matchup-cell-neutral-bg: var(--bg-input);
+  --matchup-delete-hover-border: color-mix(in srgb, var(--atk) 34%, transparent);
+  --matchup-delete-hover-bg: color-mix(in srgb, var(--atk) 12%, var(--bg-input));
+  --matchup-eff-4-bg: color-mix(in srgb, var(--atk) 24%, var(--bg-input));
+  --matchup-eff-4-text: color-mix(in srgb, var(--atk) 86%, var(--text));
+  --matchup-eff-2-bg: color-mix(in srgb, var(--atk) 15%, var(--bg-input));
+  --matchup-eff-2-text: color-mix(in srgb, var(--atk) 78%, var(--text));
+  --matchup-eff-resist-bg: color-mix(in srgb, var(--ok) 12%, var(--bg-input));
+  --matchup-eff-quarter-bg: color-mix(in srgb, var(--ok) 18%, var(--bg-input));
+  --matchup-eff-zero-bg: var(--bg-muted);
+  --matchup-coverage-hit-bg: color-mix(in srgb, var(--ok) 13%, var(--bg-input));
+  --matchup-coverage-miss-bg: color-mix(in srgb, var(--atk) 12%, var(--bg-input));
 }
 
 .tool-page {
@@ -12130,7 +12248,7 @@ body.party-preset-open {
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  :where(select, input[type="number"]:not(.tool-stat-point-input), input[type="text"], textarea, .cb-input, .form-switch-btn, .party-preset-input, .party-preset-ev-input) {
+  :where(select, input[type="number"]:not(.tool-stat-point-input), input[type="text"], textarea, .cb-input, .form-switch-btn) {
   border-color: var(--border);
   background: var(--ui-control-bg);
   color: var(--text);
@@ -12283,15 +12401,6 @@ body.party-preset-open {
   box-shadow: var(--ui-pokemon-focus-ring);
 }
 
-:root[data-theme="dark"] :is(#page-calc, #page-revcalc, #page-finetune) .tool-pokemon-combobox .tool-pokemon-input {
-  background: var(--ui-debug-pokemon-select-bg);
-}
-
-:root[data-theme="dark"] :is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface,
-:root[data-theme="dark"] :is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input {
-  background: var(--ui-debug-settings-select-bg);
-}
-
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
   :where(.combobox-options),
 .combobox-options.combobox-options-portal {
@@ -12322,7 +12431,7 @@ body.party-preset-open {
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  :where(.ui-label-action, .ui-field-action, .ui-popover-trigger, .party-preset-button, .theme-toggle-button, .party-preset-action, .party-preset-close, .party-preset-party-action, .dex-modal-btn, .ft-action-btn, .tool-stat-point-button, .tool-stat-rank-button) {
+  :where(.ui-label-action, .ui-field-action, .ui-popover-trigger, .theme-toggle-button, .dex-modal-btn, .tool-stat-point-button, .tool-stat-rank-button) {
   border-color: var(--ui-action-border);
   background: var(--ui-action-bg);
   color: var(--text-dim);
@@ -12338,7 +12447,7 @@ body.party-preset-open {
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  .ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .ft-action-btn, .rc-analyze-btn, .dex-modal-btn, .calc-field-auto-toggle) {
+  .ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .rc-analyze-btn, .dex-modal-btn, .calc-field-auto-toggle) {
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -12369,7 +12478,7 @@ body.party-preset-open {
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  :where(.ui-label-action:hover, .ui-field-action:hover, .ui-popover-trigger:hover, .party-preset-button:hover, .theme-toggle-button:hover, .party-preset-action:hover, .party-preset-close:hover, .party-preset-party-action:hover, .dex-modal-btn:hover, .ft-action-btn:hover, .tool-stat-point-button:hover, .tool-stat-rank-button:hover) {
+  :where(.ui-label-action:hover, .ui-field-action:hover, .ui-popover-trigger:hover, .theme-toggle-button:hover, .dex-modal-btn:hover, .tool-stat-point-button:hover, .tool-stat-rank-button:hover) {
   border-color: var(--ui-action-hover-border);
   background: var(--ui-action-hover-bg);
   color: var(--ui-action-hover-text);
@@ -12581,36 +12690,36 @@ body.party-preset-open {
     <!-- 형태 역계산 -->
     <section id="page-revcalc" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-revcalc" aria-hidden="true" hidden>
       <div class="rc-grid ui-frame-row">
-        <section class="panel ui-frame rc-my ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
-            <div class="panel-title ui-panel-title" role="heading" aria-level="2">내 포켓몬</div>
+        <section class="ui-frame rc-my ui-panel">
+          <div class="ui-frame-head ui-panel-head">
+            <div class="ui-panel-title" role="heading" aria-level="2">내 포켓몬</div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-my-body"></div>
+          <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-my-body"></div>
         </section>
 
-        <section class="panel ui-frame rc-opp ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
-            <div class="panel-title ui-panel-title" role="heading" aria-level="2">상대 포켓몬</div>
+        <section class="ui-frame rc-opp ui-panel">
+          <div class="ui-frame-head ui-panel-head">
+            <div class="ui-panel-title" role="heading" aria-level="2">상대 포켓몬</div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-opp-body"></div>
+          <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-opp-body"></div>
         </section>
       </div>
 
-      <section class="panel ui-frame ui-panel">
-        <div class="panel-head ui-frame-head ui-panel-head">
-          <div class="panel-title ui-panel-title" role="heading" aria-level="2">관측 데이터</div>
+      <section class="ui-frame ui-panel">
+        <div class="ui-frame-head ui-panel-head">
+          <div class="ui-panel-title" role="heading" aria-level="2">관측 데이터</div>
         </div>
-        <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="rc-input-body"></div>
+        <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-input-body"></div>
       </section>
 
-      <section class="panel ui-frame ui-panel">
-        <div class="panel-head ui-frame-head ui-panel-head">
-          <div class="panel-title ui-panel-title" role="heading" aria-level="2">형태 분석 결과</div>
-          <div class="panel-head-actions ui-action-row ui-panel-actions">
+      <section class="ui-frame ui-panel">
+        <div class="ui-frame-head ui-panel-head">
+          <div class="ui-panel-title" role="heading" aria-level="2">형태 분석 결과</div>
+          <div class="ui-action-row ui-panel-actions">
             <button type="button" class="btn-calculate rc-analyze-btn ui-btn ui-btn-primary" id="rcAnalyze">형태 분석</button>
           </div>
         </div>
-        <div class="panel-body ui-frame-body ui-panel-body" id="rc-results-body">
+        <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-results-body">
           <div class="empty-state ui-empty">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>
         </div>
       </section>
@@ -12619,36 +12728,32 @@ body.party-preset-open {
     <!-- 세부조정 -->
     <section id="page-finetune" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-finetune" aria-hidden="true" hidden>
       <div class="finetune-grid ft-layout ui-frame-row">
-        <section class="panel ui-frame ft-editor ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
+        <section class="ui-frame ft-editor ui-panel">
+          <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="panel-title ui-panel-title" role="heading" aria-level="2">세부조정</div>
-            </div>
-            <div class="panel-head-actions ui-action-row ui-panel-actions">
-              <button type="button" class="ft-action-btn atk" id="ftApplyAtk" title="현재 세팅을 계산기 공격측으로 적용 (상대는 방어측으로)">공격측</button>
-              <button type="button" class="ft-action-btn def" id="ftApplyDef" title="현재 세팅을 계산기 방어측으로 적용 (상대는 공격측으로)">방어측</button>
+              <div class="ui-panel-title" role="heading" aria-level="2">세부조정</div>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="ft-my-body"></div>
+          <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="ft-my-body"></div>
         </section>
 
-        <aside class="panel ui-frame ft-hp-panel ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
+        <aside class="ui-frame ft-hp-panel ui-panel">
+          <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="panel-title ui-panel-title" role="heading" aria-level="2">HP 브레이크포인트</div>
+              <div class="ui-panel-title" role="heading" aria-level="2">HP 브레이크포인트</div>
               <div class="ft-panel-subtitle">HP 기준점 · 조정 포인트</div>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack" id="ft-hp-body"></div>
+          <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="ft-hp-body"></div>
         </aside>
 
-        <section class="panel ui-frame ft-speed-panel ui-panel">
-          <div class="panel-head ui-frame-head ui-panel-head">
+        <section class="ui-frame ft-speed-panel ui-panel">
+          <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="panel-title ui-panel-title" role="heading" aria-level="2">상대 / 스피드</div>
+              <div class="ui-panel-title" role="heading" aria-level="2">상대 / 스피드</div>
             </div>
           </div>
-          <div class="panel-body ui-frame-body ft-speed-panel-body ui-panel-body ui-control-grid">
+          <div class="ui-frame-body ft-speed-panel-body ui-panel-body ui-control-grid">
             <div id="ft-opp-body"></div>
             <div class="ft-speed-embedded ui-control-frame ui-subframe ui-subframe-stack">
               <div class="ft-speed-head ui-section-head">
@@ -12811,7 +12916,7 @@ body.party-preset-open {
         </div>
       </div>
 
-      <div class="dex-content" id="dexFullPageDetail" role="region" aria-label="도감 상세" aria-hidden="true"></div>
+      <div class="dex-content ui-frame" id="dexFullPageDetail" role="region" aria-label="도감 상세" aria-hidden="true"></div>
     </section>
   </main>
 
@@ -16428,6 +16533,8 @@ function wirePokemonSelectCombobox(input, {
   closeDelay = 200,
   selectTextOnFocus = false,
   wiredKey = 'pokemonWired',
+  renderOption = null,
+  renderHeader = null,
 } = {}) {
   if (!input) return null;
   if (wiredKey && input.dataset[wiredKey] === '1') return null;
@@ -16460,9 +16567,15 @@ function wirePokemonSelectCombobox(input, {
     const visibleMatches = calcSearchText(query).trim() && searchLimit
       ? matches.slice(0, searchLimit)
       : matches;
+    const optionTemplate = typeof renderOption === 'function' ? renderOption : calcRenderPokemonOption;
+    const headerHtml = typeof renderHeader === 'function'
+      ? renderHeader(input)
+      : renderHeader !== null
+        ? renderHeader
+        : calcComboboxHeaderHtml('pokemon');
     optsEl.innerHTML = visibleMatches.length
-      ? calcComboboxHeaderHtml('pokemon') + visibleMatches.map(option => (
-          calcRenderPokemonOption(option, currentId())
+      ? headerHtml + visibleMatches.map(option => (
+          optionTemplate(option, currentId())
         )).join('')
       : '<div class="combobox-option empty" aria-disabled="true"><b>검색 결과 없음</b></div>';
     closeSiblingComboboxOptions(optsEl, input);
@@ -16648,6 +16761,26 @@ function calcRenderPokemonOption(option, currentId) {
   `;
 }
 
+function calcRenderSimplePokemonOption(option, currentId) {
+  const pokemon = option?.raw || option || {};
+  const id = option?.id || pokemon.id || '';
+  const label = option?.label || pkName(pokemon);
+  const types = pokemon.types || option?.types || [];
+  const typeBadges = types.map(type => (
+    `<span class="type-pill pokemon-simple-type-pill t-${escapeHTML(type)}">${escapeHTML(TYPE_KO[type] || type)}</span>`
+  )).join('');
+  const selected = String(id) === String(currentId);
+  const optionClass = ['combobox-option', 'ui-option', 'pokemon-simple-option', 'matchup-option', selected ? 'selected' : '']
+    .filter(Boolean)
+    .join(' ');
+  return `
+    <div class="${optionClass}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}">
+      <b class="pokemon-simple-option-name matchup-option-name">${escapeHTML(label)}</b>
+      <small class="pokemon-simple-option-types matchup-option-types">${typeBadges}</small>
+    </div>
+  `;
+}
+
 function calcRenderMoveOption(option, currentId) {
   const id = option?.id || '';
   const label = option?.label || option?.koName || (id ? mvName(option) : '없음');
@@ -16715,7 +16848,8 @@ function calcRenderGenericOption(type, option, currentId) {
   const sub = calcComboboxOptionSub(type, option);
   const selected = String(id) === String(currentId);
   const subHtml = sub ? `<small>${escapeHTML(sub)}</small>` : '';
-  return `<div class="combobox-option${selected ? ' selected' : ''}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(label)}</b>${subHtml}</div>`;
+  const typeClass = type ? `${type}-option` : '';
+  return `<div class="${uiClassNames('combobox-option ui-option', typeClass, selected ? 'selected' : '')}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(label)}</b>${subHtml}</div>`;
 }
 
 function calcRenderComboboxOption(type, option, currentId) {
@@ -18853,7 +18987,7 @@ function renderPartyPresetSlot(member, partyIndex, slotIndex) {
   const slotKey = partyPresetSlotCollapseKey(partyIndex, slotIndex);
   const isCollapsed = pokemon && !partyPresetExpandedSlots.has(slotKey);
   return `
-    <div class="party-preset-slot ${pokemon ? 'filled' : ''}${isCollapsed ? ' collapsed' : ''}" data-party-index="${partyIndex}" data-slot-index="${slotIndex}">
+    <div class="party-preset-slot ui-control-frame ui-subframe ${pokemon ? 'filled' : ''}${isCollapsed ? ' collapsed' : ''}" data-party-index="${partyIndex}" data-slot-index="${slotIndex}">
       <div class="party-preset-slot-head">
         <span class="party-preset-slot-label">슬롯 ${slotIndex + 1}</span>
         ${partyPresetComboboxHtml({ partyIndex, slotIndex, type: 'pokemon', value: member.pokemon, label: partyPresetCurrentLabel('pokemon', member) })}
@@ -18903,7 +19037,7 @@ function renderPartyPresetModal() {
     const isCollapsed = partyPresetCollapsedParties.has(partyIndex);
     const filledCount = partyPresetFilledMembers(party).length;
     return `
-    <section class="party-preset-party ${isCollapsed ? 'collapsed' : ''}" data-party-index="${partyIndex}">
+    <section class="party-preset-party ui-control-frame ui-subframe ${isCollapsed ? 'collapsed' : ''}" data-party-index="${partyIndex}">
       <div class="party-preset-party-head">
         <div class="party-preset-party-title">
           <h3>${escapeHTML(party.name || `파티 ${partyIndex + 1}`)}</h3>
@@ -18930,8 +19064,8 @@ function ensurePartyPresetModal() {
   modal.className = 'party-preset-modal-backdrop';
   modal.hidden = true;
   modal.innerHTML = `
-    <div class="party-preset-modal" role="dialog" aria-modal="true" aria-labelledby="partyPresetTitle" aria-describedby="partyPresetBackupNote">
-      <div class="party-preset-modal-head">
+    <div class="party-preset-modal ui-frame" role="dialog" aria-modal="true" aria-labelledby="partyPresetTitle" aria-describedby="partyPresetBackupNote">
+      <div class="party-preset-modal-head ui-frame-head">
         <div>
           <div class="party-preset-eyebrow">PARTY PRESET</div>
           <h2 id="partyPresetTitle">파티 프리셋</h2>
@@ -18947,9 +19081,9 @@ function ensurePartyPresetModal() {
       <div class="party-preset-backup-note" id="partyPresetBackupNote" role="note">
         프리셋은 현재 브라우저에 저장됩니다. 기기 변경이나 브라우저 초기화 전에 JSON 내보내기로 백업하세요.
       </div>
-      <div class="party-preset-modal-body" id="partyPresetBody"></div>
+      <div class="party-preset-modal-body ui-frame-body ui-subframe-stack" id="partyPresetBody"></div>
       <div class="party-preset-text-dialog" id="partyPresetTextDialog" hidden>
-        <div class="party-preset-text-card">
+        <div class="party-preset-text-card ui-frame">
           <div class="party-preset-text-head">
             <h3 id="partyPresetTextTitle">Showdown 텍스트</h3>
             <button type="button" class="party-preset-close" id="partyPresetTextClose">닫기</button>
@@ -18990,15 +19124,15 @@ function ensurePartyPresetPickerModal() {
   modal.className = 'party-preset-picker-backdrop';
   modal.hidden = true;
   modal.innerHTML = `
-    <div class="party-preset-picker" role="dialog" aria-modal="true" aria-labelledby="partyPresetPickerTitle">
-      <div class="party-preset-picker-head">
+    <div class="party-preset-picker ui-frame" role="dialog" aria-modal="true" aria-labelledby="partyPresetPickerTitle">
+      <div class="party-preset-picker-head ui-frame-head">
         <div>
           <div class="party-preset-eyebrow">PARTY LOAD</div>
           <h2 id="partyPresetPickerTitle">불러오기</h2>
         </div>
         <button type="button" class="party-preset-close" id="partyPresetPickerClose">닫기</button>
       </div>
-      <div class="party-preset-picker-body" id="partyPresetPickerBody"></div>
+      <div class="party-preset-picker-body ui-frame-body ui-subframe-stack" id="partyPresetPickerBody"></div>
     </div>
   `;
   document.body.appendChild(modal);
@@ -19018,18 +19152,20 @@ function renderPartyPresetPicker() {
 
   if (mode === 'party') {
     body.innerHTML = `
-      <div class="party-preset-picker-party-grid">
-        ${partyPresetData.parties.map((party, partyIndex) => {
-          const members = partyPresetFilledMembers(party);
-          const labels = members.map(entry => pkName(PokemonById[entry.member.pokemon])).join(' · ');
-          return `
-            <button type="button" class="party-preset-picker-party ${members.length ? '' : 'empty'}" data-party-picker-party="${partyIndex}" ${members.length ? '' : 'disabled'}>
-              <b>${escapeHTML(party.name || `파티 ${partyIndex + 1}`)}</b>
-              <span>${members.length ? escapeHTML(labels) : '저장된 포켓몬 없음'}</span>
-            </button>
-          `;
-        }).join('')}
-      </div>
+      <section class="party-preset-picker-section party-preset-picker-party-section ui-control-frame ui-subframe">
+        <div class="party-preset-picker-party-grid">
+          ${partyPresetData.parties.map((party, partyIndex) => {
+            const members = partyPresetFilledMembers(party);
+            const labels = members.map(entry => pkName(PokemonById[entry.member.pokemon])).join(' · ');
+            return `
+              <button type="button" class="party-preset-picker-party ${members.length ? '' : 'empty'}" data-party-picker-party="${partyIndex}" ${members.length ? '' : 'disabled'}>
+                <b>${escapeHTML(party.name || `파티 ${partyIndex + 1}`)}</b>
+                <span>${members.length ? escapeHTML(labels) : '저장된 포켓몬 없음'}</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </section>
     `;
     return;
   }
@@ -19037,7 +19173,7 @@ function renderPartyPresetPicker() {
   body.innerHTML = partyPresetData.parties.map((party, partyIndex) => {
     const members = partyPresetFilledMembers(party);
     return `
-      <section class="party-preset-picker-section">
+      <section class="party-preset-picker-section ui-control-frame ui-subframe">
         <div class="party-preset-picker-section-head">${escapeHTML(party.name || `파티 ${partyIndex + 1}`)}</div>
         <div class="party-preset-picker-member-grid">
           ${members.length ? members.map(({ member, slotIndex }) => {
@@ -19917,7 +20053,7 @@ function openDexDetail(type, id, parentCtx = null) {
   const actionsEl = document.getElementById('dexDetailActions');
   const actions = (content.actions || '').trim();
   actionsEl.innerHTML = actions;
-  actionsEl.hidden = false;
+  actionsEl.hidden = !actions;
   if (!modal.open) modal.showModal();
 }
 
@@ -19933,7 +20069,7 @@ function openDexDetailPage(type, id) {
   const headerActions = type === 'pokemon' && hasActions
     ? `<div class="dex-fullpage-head-actions">${content.actions}</div>`
     : '';
-  const footerActions = type === 'pokemon'
+  const footerActions = type === 'pokemon' || !hasActions
     ? ''
     : `<div class="dex-fullpage-actions" id="dexFullPageActions">${content.actions}</div>`;
   container.innerHTML = `
@@ -20620,90 +20756,23 @@ function wireMatchupSlots() {
   if (!container) return;
   container.querySelectorAll('.matchup-cb-input').forEach(input => {
     const slot = parseInt(input.dataset.slot, 10);
-    const cbParent = input.closest('.combobox');
-    const optsEl = cbParent.querySelector('.combobox-options');
-    let activeIndex = -1;
-    const getOptions = () => [...optsEl.querySelectorAll('.combobox-option:not(.empty)')];
-    const setActiveOption = index => {
-      const options = getOptions();
-      activeIndex = options.length ? Math.max(-1, Math.min(index, options.length - 1)) : -1;
-      options.forEach((option, optionIndex) => option.classList.toggle('active', optionIndex === activeIndex));
-    };
-
-    const showOptions = (query, activateFirst = false) => {
-      const s = (query || '').toLowerCase();
-      const matches = sortPokemonForCalcSelect(POKEMON).filter(p =>
-        calcMatches(s, p.koName || pkName(p))
-      );
-      optsEl.innerHTML = matches.map(p =>
-        `<div class="combobox-option matchup-option" data-id="${p.id}">
-          <b class="matchup-option-name">${escapeHTML(pkName(p))}</b>
-          <small class="matchup-option-types">${p.types.map(t => `<span class="type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('')}</small>
-        </div>`
-      ).join('');
-      optsEl.classList.add('open');
-      setActiveOption(activateFirst ? 0 : -1);
-      requestAnimationFrame(() => {
-        const rect = optsEl.getBoundingClientRect();
-        const sw = window.innerWidth;
-        if (rect.right > sw - 8) { optsEl.style.left = 'auto'; optsEl.style.right = '0'; }
-        else { optsEl.style.left = ''; optsEl.style.right = ''; }
-      });
-    };
-
-    const applyPokemonOption = opt => {
-      if (!opt) return;
-      matchupSlots[slot] = opt.dataset.id;
-      renderMatchupSlots();
-      renderMatchupCoverageInputs();
-      renderMatchupTable();
-    };
-    const restorePokemonInput = () => {
-      input.value = matchupSlots[slot] && PokemonById[matchupSlots[slot]]
-        ? pkName(PokemonById[matchupSlots[slot]])
-        : '';
-    };
-    const commitTypedPokemon = () => {
-      const query = input.value || '';
-      if (!String(query).trim()) return false;
-      showOptions(query);
-      const exact = [...optsEl.querySelectorAll('.combobox-option:not(.empty)')]
-        .find(opt => calcComboboxOptionMatchesExactText(opt, query));
-      if (exact) {
-        applyPokemonOption(exact);
-        return true;
-      }
-      restorePokemonInput();
-      optsEl.classList.remove('open');
-      return false;
-    };
-
-    input.addEventListener('focus', e => showOptions(e.target.value));
-    input.addEventListener('input', e => showOptions(e.target.value, true));
-    input.addEventListener('keydown', e => {
-      if (e.isComposing || e.keyCode === 229) return;
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      const active = getOptions()[activeIndex] || null;
-      if (active) applyPokemonOption(active);
-      else commitTypedPokemon();
-    });
-    input.addEventListener('blur', () => setTimeout(() => {
-      commitTypedPokemon();
-      optsEl.classList.remove('open');
-    }, 200));
-
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt) return;
-      e.preventDefault();
-      applyPokemonOption(opt);
-    });
-    optsEl.addEventListener('mousemove', e => {
-      const opt = e.target.closest('.combobox-option:not(.empty)');
-      if (!opt) return;
-      const index = getOptions().indexOf(opt);
-      if (index >= 0) setActiveOption(index);
+    wirePokemonSelectCombobox(input, {
+      getOptions: () => sortPokemonForCalcSelect(POKEMON),
+      getCurrentId: () => matchupSlots[slot] || '',
+      getDisplayLabel: () => {
+        const id = matchupSlots[slot] || '';
+        return id && PokemonById[id] ? pkName(PokemonById[id]) : '';
+      },
+      renderOption: typeof calcRenderSimplePokemonOption === 'function' ? calcRenderSimplePokemonOption : null,
+      renderHeader: '',
+      wiredKey: 'matchupPokemonWired',
+      onSelect: id => {
+        if (!id || !PokemonById[id]) return;
+        matchupSlots[slot] = id;
+        renderMatchupSlots();
+        renderMatchupCoverageInputs();
+        renderMatchupTable();
+      },
     });
   });
   container.querySelectorAll('.matchup-slot-clear').forEach(btn => {
@@ -20722,6 +20791,31 @@ function coverageMovePool(slot) {
   const p = matchupSlots[slot] ? PokemonById[matchupSlots[slot]] : null;
   const pool = p?.ls?.length ? p.ls.map(id => MoveById[id]).filter(Boolean) : MOVES;
   return sortMovesForCalcSelect(pool.filter(m => m.cat !== 'Status' && m.type && BATTLE_TYPES.includes(m.type)));
+}
+
+function matchupMoveMatchesQuery(move, search) {
+  return calcMatches(
+    search,
+    move.id,
+    move.name,
+    move.koName,
+    mvName(move),
+    move.type,
+    TYPE_KO[move.type],
+    calcMoveCategoryLabel(move.cat),
+    String(move.bp || '')
+  );
+}
+
+function matchupMoveOptionRows(slot, moveIndex, query) {
+  const search = calcSearchText(query);
+  const noneOption = { id: '', label: '\uC5C6\uC74C' };
+  const noneMatches = calcMatches(search, noneOption.label, 'none') ? [noneOption] : [];
+  const matches = coverageMovePool(slot).filter(move => matchupMoveMatchesQuery(move, search));
+  const currentId = matchupCoverageMoves[slot]?.[moveIndex] || '';
+  return [...noneMatches, ...matches]
+    .map(option => calcRenderMoveOption(option, currentId))
+    .join('');
 }
 
 function renderMatchupCoverageInputs() {
@@ -20771,97 +20865,78 @@ function wireMatchupCoverageInputs() {
     const slot = parseInt(input.dataset.slot, 10);
     const moveIndex = parseInt(input.dataset.moveIndex, 10);
     const cbParent = input.closest('.combobox');
-    const optsEl = cbParent.querySelector('.combobox-options');
-    let activeIndex = -1;
-    const getOptions = () => [...optsEl.querySelectorAll('.combobox-option:not(.empty)')];
-    const setActiveOption = index => {
-      const options = getOptions();
-      activeIndex = options.length ? Math.max(-1, Math.min(index, options.length - 1)) : -1;
-      options.forEach((option, optionIndex) => option.classList.toggle('active', optionIndex === activeIndex));
-    };
-    const showOptions = (query, activateFirst = false) => {
-      const s = (query || '').toLowerCase();
-      const noneMatches = !s || '없음'.includes(s) || 'none'.includes(s) ? [true] : [];
-      const matches = coverageMovePool(slot).filter(m =>
-        (m.koName || '').toLowerCase().includes(s) ||
-        m.name.toLowerCase().includes(s) ||
-        (TYPE_KO[m.type] || '').toLowerCase().includes(s) ||
-        m.type.toLowerCase().includes(s)
-      );
-      const currentId = matchupCoverageMoves[slot]?.[moveIndex] || '';
-      const noneRows = noneMatches.map(() => calcRenderMoveOption({ id: '', label: '없음' }, currentId)).join('');
-      const rows = matches.map(m => calcRenderMoveOption(m, currentId)).join('');
-      const header = typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('move') : '';
-      optsEl.innerHTML = `
-        ${header}
-        ${noneRows}${rows || (!noneRows ? '<div class="combobox-option empty" aria-disabled="true"><span>검색 결과 없음</span></div>' : '')}
-      `;
-      optsEl.classList.add('open');
-      setActiveOption(activateFirst ? 0 : -1);
-    };
-    const applyMoveOption = opt => {
-      if (!opt || opt.classList.contains('empty')) return;
-      matchupCoverageMoves[slot][moveIndex] = opt.dataset.id || null;
-      renderMatchupCoverageInputs();
-      renderMatchupTable();
-    };
-    const restoreMoveInput = () => {
-      const moveId = matchupCoverageMoves[slot]?.[moveIndex] || '';
+    const optsEl = cbParent?.querySelector('.combobox-options');
+    if (!optsEl) return;
+
+    let selectingOption = false;
+    const selectedMoveId = () => matchupCoverageMoves[slot]?.[moveIndex] || '';
+    const restoreInput = () => {
+      const moveId = selectedMoveId();
       input.value = moveId && MoveById[moveId] ? mvName(MoveById[moveId]) : '';
     };
-    const commitTypedMove = () => {
-      const query = input.value || '';
-      if (!String(query).trim()) {
-        matchupCoverageMoves[slot][moveIndex] = null;
-        renderMatchupCoverageInputs();
-        renderMatchupTable();
-        return true;
-      }
-      showOptions(query);
-      const exact = [...optsEl.querySelectorAll('.combobox-option:not(.empty)')]
-        .find(opt => calcComboboxOptionMatchesExactText(opt, query));
-      if (exact) {
-        applyMoveOption(exact);
-        return true;
-      }
-      matchupCoverageMoves[slot][moveIndex] = null;
+    const applyMoveId = id => {
+      matchupCoverageMoves[slot][moveIndex] = id && MoveById[id] ? id : null;
       renderMatchupCoverageInputs();
       renderMatchupTable();
-      optsEl.classList.remove('open');
-      return false;
     };
-    input.addEventListener('focus', e => showOptions(e.target.value));
+    const showMoveOptions = query => {
+      const rows = matchupMoveOptionRows(slot, moveIndex, query);
+      const header = typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('move') : '';
+      optsEl.innerHTML = rows
+        ? `${header}${rows}`
+        : '<div class="combobox-option empty" aria-disabled="true"><span>\uAC80\uC0C9 \uACB0\uACFC \uC5C6\uC74C</span></div>';
+      if (typeof closeSiblingComboboxOptions === 'function') {
+        closeSiblingComboboxOptions(optsEl, input);
+      }
+    };
+    const moveCombo = wireSharedComboboxKeyboard(input, optsEl, {
+      showOptions: showMoveOptions,
+      onSelect: opt => {
+        selectingOption = true;
+        applyMoveId(opt.dataset.id || '');
+      },
+      getQuery: () => input.value || '',
+      onInvalidInput: restoreInput,
+    });
+
+    input.addEventListener('focus', () => moveCombo?.open(input.value || ''));
+    input.addEventListener('click', () => moveCombo?.open(input.value || ''));
     input.addEventListener('input', e => {
       if (!e.target.value.trim()) {
         matchupCoverageMoves[slot][moveIndex] = null;
         renderMatchupTable();
       }
-      showOptions(e.target.value, true);
+      moveCombo?.open(e.target.value, { activateFirst: true });
     });
-    input.addEventListener('keydown', e => {
-      if (e.isComposing || e.keyCode === 229) return;
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      const active = getOptions()[activeIndex] || null;
-      if (active) applyMoveOption(active);
-      else commitTypedMove();
-    });
+    input.addEventListener('compositionend', e => moveCombo?.open(e.target.value, { activateFirst: true }));
     input.addEventListener('blur', () => setTimeout(() => {
-      commitTypedMove();
-      optsEl.classList.remove('open');
-    }, 200));
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt || opt.classList.contains('empty')) return;
-      e.preventDefault();
-      applyMoveOption(opt);
-    });
-    optsEl.addEventListener('mousemove', e => {
+      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
+        selectingOption = false;
+        restoreInput();
+        moveCombo?.close();
+        return;
+      }
+      if (selectingOption) {
+        selectingOption = false;
+        return;
+      }
+      if (!String(input.value || '').trim()) {
+        applyMoveId('');
+        return;
+      }
+      moveCombo?.commitTyped();
+    }, 180));
+
+    const handleOptionSelect = e => {
       const opt = e.target.closest('.combobox-option:not(.empty)');
-      if (!opt) return;
-      const index = getOptions().indexOf(opt);
-      if (index >= 0) setActiveOption(index);
-    });
+      if (!opt || opt.classList.contains('empty')) return;
+      selectingOption = true;
+      e.preventDefault();
+      moveCombo?.select(opt);
+    };
+    optsEl.addEventListener('mousedown', handleOptionSelect);
+    optsEl.addEventListener('click', handleOptionSelect);
+    optsEl.addEventListener('touchstart', handleOptionSelect, { passive: false });
   });
   container.querySelectorAll('.matchup-move-clear').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -21389,6 +21464,7 @@ function ftWireComboboxes(rootId) {
     if (input.dataset.ftWired === '1') return;
     const target = input.dataset.ftPick;
     if (target === 'my' || target === 'opp') {
+      const useSimplePokemonOption = target === 'opp' && typeof calcRenderSimplePokemonOption === 'function';
       wirePokemonSelectCombobox(input, {
         wiredKey: 'ftWired',
         getOptions: () => ftComboData(target),
@@ -21400,6 +21476,8 @@ function ftWireComboboxes(rootId) {
         },
         searchLimit: 80,
         closeDelay: 180,
+        renderOption: useSimplePokemonOption ? calcRenderSimplePokemonOption : null,
+        renderHeader: useSimplePokemonOption ? '' : null,
       });
       return;
     }
@@ -21412,19 +21490,13 @@ function ftWireComboboxes(rootId) {
     const showOptions = q => {
       calcHideOptionTooltip();
       const query = String(q || '').trim();
-      const allMatches = ftComboData(target).filter(option => (
-        (target === 'my' || target === 'opp')
-          ? calcMatches(query, option.label)
-          : ftSearchMatches(query, option)
-      ));
+      const allMatches = ftComboData(target).filter(option => ftSearchMatches(query, option));
       const matches = query ? allMatches.slice(0, target === 'item' ? 50 : 80) : allMatches;
       const currentId = ftCurrentComboId(target);
-      const renderType = (target === 'my' || target === 'opp') ? 'pokemon' : (target === 'myForm' || target === 'oppForm') ? 'form' : target;
-      const header = (target === 'my' || target === 'opp')
-        ? (typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('pokemon') : '')
-        : target === 'nature'
-          ? (typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('nature') : '')
-          : '';
+      const renderType = (target === 'myForm' || target === 'oppForm') ? 'form' : target;
+      const header = target === 'nature'
+        ? (typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('nature') : '')
+        : '';
       optsEl.innerHTML = matches.length ? header + matches.map(option =>
         calcRenderComboboxOption(renderType, option, currentId)
       ).join('') : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
@@ -21659,29 +21731,6 @@ function ftBulkMetrics(side) {
   };
 }
 
-function renderFineTuneSummary() {
-  const container = document.getElementById('ft-summary-body');
-  if (!container) return;
-  const my = fineTuneState.my;
-  const p = PokemonById[my.pokemonIdx];
-  if (!p) {
-    container.innerHTML = '';
-    return;
-  }
-  const ev = ftEvSummary(my);
-  const pct = Math.min(100, Math.round(ev.total / 66 * 100));
-
-  container.innerHTML = `
-    <section class="ft-analysis-section ft-summary-section ui-control-frame ui-subframe">
-      <div class="ft-ev-footer-head">
-        <span>포인트 합계 <b class="${ev.over ? 'over' : ''}">${ev.total}/66</b></span>
-        <span>잔여 <b>${ev.remaining}</b></span>
-      </div>
-      <div class="ft-ev-meter ${ev.over ? 'over' : ''}"><span style="width:${pct}%"></span></div>
-    </section>
-  `;
-}
-
 function ftBreakpointDistance(side, info) {
   const curEv = side.evs?.hp || 0;
   if (info.current) return 0;
@@ -21755,8 +21804,8 @@ function renderFineTuneHp() {
   const groups = ftGroupHpBreakpoints(my, rows).sort(ftCompareBreakpointGroups);
 
   container.innerHTML = `
-    <section class="ft-analysis-section ft-hp-section ui-control-frame ui-subframe">
-      <div class="ft-analysis-title">
+    <section class="ft-hp-section ui-control-frame ui-subframe">
+      <div class="ft-hp-title">
         <span>HP 기준점</span>
         <b>HP ${calcStats(my).hp}</b>
       </div>
@@ -21787,6 +21836,7 @@ function renderFineTuneMy() {
 
   const stats = calcStats(my);
   const bulk = ftBulkMetrics(my);
+  const ev = ftEvSummary(my);
   const rankStats = ['atk','def','spa','spd','spe'];
   const formControl = renderToolFormCombobox({
     pokemonId: my.pokemonIdx,
@@ -21803,13 +21853,20 @@ function renderFineTuneMy() {
       class: 'party-load-button ui-label-action ui-field-action',
       'data-party-import-target': 'finetune:my',
     }),
-    metaActions: `
-      ${formControl}
-      ${renderToolPokemonTypeStrip({ types: normalizeSideTypes(my), ariaLabel: '타입' })}
+    titleActions: `
+      <div class="ft-pokemon-apply-actions tool-pokemon-actions tool-pokemon-nav-actions ui-field-actions">
+        <button type="button" class="ft-apply-side-button ui-label-action ui-field-action" data-ft-apply-side="atk" title="현재 세팅을 계산기 공격측으로 적용">공격측</button>
+        <button type="button" class="ft-apply-side-button ui-label-action ui-field-action" data-ft-apply-side="def" title="현재 세팅을 계산기 방어측으로 적용">방어측</button>
+      </div>
     `,
     inputClass: 'ft-cb-input',
     inputAttrs: { 'data-ft-pick': 'my' },
     value: pkName(p),
+    toolbarClass: 'ft-pokemon-meta-row pokemon-meta-row ui-field-meta-row ui-control-row ui-chip-row',
+    toolbarActions: `
+      ${renderToolPokemonTypeStrip({ types: normalizeSideTypes(my), ariaLabel: '타입' })}
+      ${formControl}
+    `,
   });
   const speedActivation = ftAbilitySpeedActivation(my.ability);
   const statRows = renderToolStatRows(['hp', ...rankStats].map(stat => {
@@ -21848,9 +21905,9 @@ function renderFineTuneMy() {
       <div class="ft-pokemon-main-row ui-control-row">
         ${pokemonPicker}
       </div>
-      <div class="field ft-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+      <div class="ft-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
         <div class="ft-settings-grid tool-settings-grid ui-control-grid">
-          <div class="field ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="ability"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">특성</span>
+          <div class="ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="ability"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">특성</span>
             <div class="ft-ability-control tool-settings-control tool-settings-choice-control tool-settings-compound tool-settings-select-control">
               <div class="combobox tool-settings-combobox tool-settings-choice-combobox tool-settings-select-combobox">
                 <input type="text" class="cb-input ft-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-ft-pick="ability" value="${escapeHTML(ftComboLabel('ability', my.ability))}" placeholder="특성 검색...">
@@ -21859,13 +21916,13 @@ function renderFineTuneMy() {
               ${speedActivation ? `<label class="checkbox-label ft-speed-toggle ui-check" title="${escapeHTML(speedActivation.label)}"><input type="checkbox" id="ftWeatherAbility" ${fineTuneState.weatherAbilityActive ? 'checked' : ''}>${escapeHTML(speedActivation.label)}</label>` : ''}
             </div>
           </div>
-          <label class="field ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="nature"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">성격</span>
+          <label class="ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="nature"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">성격</span>
             <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
               <input type="text" class="cb-input ft-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-ft-pick="nature" value="${escapeHTML(ftComboLabel('nature', my.nature))}" placeholder="성격 검색...">
               <div class="combobox-options"></div>
             </div>
           </label>
-          <label class="field ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="item"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">도구</span>
+          <label class="ft-cb-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="item"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">도구</span>
             <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
               <input type="text" class="cb-input ft-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-ft-pick="item" value="${escapeHTML(ftComboLabel('item', my.item))}" placeholder="도구 검색...">
               <div class="combobox-options"></div>
@@ -21878,6 +21935,10 @@ function renderFineTuneMy() {
     <div class="tool-stat-panel tool-stat-set tool-stat-set--finetune tool-stat-has-bulk tool-stat-has-nature tool-stat-has-magic ui-control-frame ui-subframe ui-subframe-stack ui-field">
       <div class="tool-stat-panel-head ui-section-head">
         <div class="tool-stat-panel-title ui-section-title">능력 포인트</div>
+        <div class="ft-stat-total tool-stat-total ui-label-action ui-metric-chip is-static ${ev.over ? 'over' : ''}">
+          <span>총합</span>
+          <span><b>${ev.total}</b>/66</span>
+        </div>
       </div>
       <div class="tool-stat-panel-body">
         <div class="ft-stats-column tool-stat-table-frame ui-control-frame">
@@ -21889,16 +21950,9 @@ function renderFineTuneMy() {
           </div>
         </div>
       </div>
-      <div id="ft-summary-body"></div>
       ${renderToolStatBulkStrip(bulk, {
-        className: 'ft-bulk-panel',
-        cardClass: 'ft-bulk-card',
-        physClass: 'phys',
-        specClass: 'spec',
-        labelClass: 'ft-bulk-label',
-        valueClass: 'ft-bulk-value',
-        physLabel: '물리내구',
-        specLabel: '특수내구',
+        physLabel: '물리 내구',
+        specLabel: '특수 내구',
       })}
     </div>
   `;
@@ -21926,6 +21980,7 @@ function renderFineTuneOpp() {
       ${formControl}
       ${renderToolPokemonTypeStrip({
         types: p?.types,
+        className: 'ft-opp-type-strip',
         ariaLabel: '상대 타입',
         empty: !p,
       })}
@@ -21936,28 +21991,32 @@ function renderFineTuneOpp() {
   });
 
   container.innerHTML = `
-    <section class="ft-analysis-section ft-opp-section ui-control-frame ui-subframe">
+    <section class="ft-opp-section ui-control-frame ui-subframe ui-subframe-stack">
       <div class="ft-opp-card-head">
         <span class="ft-section-title">상대 포켓몬</span>
       </div>
-      <div class="ft-opp-pick-row ui-control-row">
-        ${pokemonPicker}
-      </div>
-      <div class="ft-opp-speed-controls ui-control-row ui-control-frame ui-subframe">
-        <label class="field ft-base-speed-field ui-field"><span class="field-label ui-field-label">속도 종족값</span>
-          <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftOppBaseSpe" value="${escapeHTML(baseSpe)}" placeholder="속도">
-        </label>
-        <div class="field ft-rank-field ui-field"><span class="field-label ui-field-label">랭크</span>
-          <div class="ft-rank">
-            <button type="button" class="ft-rank-btn" data-ft-opprank="-1">-</button>
-            <span class="ft-rank-val ${opp.speRank > 0 ? 'pos' : opp.speRank < 0 ? 'neg' : ''}">${opp.speRank > 0 ? '+' + opp.speRank : opp.speRank}</span>
-            <button type="button" class="ft-rank-btn" data-ft-opprank="1">+</button>
+      <div class="ft-opp-config-row ui-control-row">
+        <div class="ft-opp-pick-row ui-control-row">
+          ${pokemonPicker}
+        </div>
+        <div class="ft-opp-speed-setup ui-control-frame ui-subframe">
+          <label class="ft-base-speed-field ft-speed-compact-field ui-field"><span class="ui-field-label">속도</span>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" id="ftOppBaseSpe" value="${escapeHTML(baseSpe)}" placeholder="속도">
+          </label>
+          <div class="ft-rank-scarf-row ui-control-row">
+            <div class="ft-rank-field ft-speed-compact-field ui-field"><span class="ui-field-label">랭크</span>
+              <div class="ft-rank tool-stat-rank-stepper">
+                <button type="button" class="ft-rank-btn tool-stat-rank-button ui-stat-button" data-ft-opprank="-1">-</button>
+                <span class="ft-rank-val ${opp.speRank > 0 ? 'pos' : opp.speRank < 0 ? 'neg' : ''}">${opp.speRank > 0 ? '+' + opp.speRank : opp.speRank}</span>
+                <button type="button" class="ft-rank-btn tool-stat-rank-button ui-stat-button" data-ft-opprank="1">+</button>
+              </div>
+            </div>
+            <label class="checkbox-label ft-opp-scarf ui-check">
+              <input type="checkbox" id="ftOppScarf" ${opp.scarf ? 'checked' : ''}>
+              <span>구애스카프</span>
+            </label>
           </div>
         </div>
-        <label class="checkbox-label ft-opp-scarf ui-check">
-          <input type="checkbox" id="ftOppScarf" ${opp.scarf ? 'checked' : ''}>
-          구애스카프
-        </label>
       </div>
       <div class="ft-opp-speed-detail ui-control-frame ui-subframe">
         <div class="ft-opp-speed-detail-head">
@@ -22035,7 +22094,6 @@ function renderFineTuneSpeed() {
 
 function renderFineTuneAll() {
   renderFineTuneMy();
-  renderFineTuneSummary();
   renderFineTuneHp();
   renderFineTuneOpp();
   renderFineTuneSpeed();
@@ -22058,13 +22116,6 @@ document.getElementById('page-finetune')?.addEventListener('change', e => {
     renderFineTuneAll();
     return;
   }
-  if (t.dataset.ftAction === 'nature') { fineTuneState.my.nature = t.value; renderFineTuneAll(); return; }
-  if (t.dataset.ftAction === 'ability') {
-    fineTuneState.my.ability = t.value;
-    if (!ftAbilitySpeedActivation(fineTuneState.my.ability)) fineTuneState.weatherAbilityActive = false;
-    renderFineTuneAll();
-    return;
-  }
 });
 
 document.getElementById('page-finetune')?.addEventListener('input', e => {
@@ -22084,6 +22135,11 @@ document.getElementById('page-finetune')?.addEventListener('input', e => {
 
 document.getElementById('page-finetune')?.addEventListener('click', e => {
   const t = e.target;
+  const applySideButton = t.closest?.('[data-ft-apply-side]');
+  if (applySideButton) {
+    ftApplyToCalc(applySideButton.dataset.ftApplySide);
+    return;
+  }
   // EV quick set 버튼 (0/32) — 66 캡 적용
   const pointSetStat = t.dataset.toolStatPointSet || t.dataset.ftEvset;
   if (pointSetStat !== undefined) {
@@ -22138,8 +22194,6 @@ function ftApplyToCalc(targetSide) {
   if (calcNav) calcNav.click();
 }
 
-document.getElementById('ftApplyAtk')?.addEventListener('click', () => ftApplyToCalc('atk'));
-document.getElementById('ftApplyDef')?.addEventListener('click', () => ftApplyToCalc('def'));
 
 // 양방향 sync — 계산기 → 세부조정
 // renderSide 가 만든 패널 헤더에 "🔧 세부조정" 버튼이 추가되어, 클릭 시 이 함수 호출.
@@ -22337,6 +22391,15 @@ function rcMoveOptionLabel(m) {
   return mvName(m);
 }
 
+function rcRenderSimpleMoveOption(option, currentId) {
+  const id = option?.id || '';
+  const selected = String(id) === String(currentId || '');
+  const optionClass = ['combobox-option', 'ui-option', 'rc-move-simple-option', selected ? 'selected' : '']
+    .filter(Boolean)
+    .join(' ');
+  return `<div class="${optionClass}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(rcMoveOptionLabel(option))}</b></div>`;
+}
+
 function rcObservedMyMoveIds() {
   const ids = rcMoveSet().filter(id => MoveById[id]);
   return ids.filter((id, idx, arr) => arr.indexOf(id) === idx);
@@ -22363,8 +22426,8 @@ function rcRenderMoveCombobox(target, value, options = {}) {
   const compactClass = options.compact ? ' compact' : '';
   const placeholder = options.placeholder || '기술 선택';
   return `
-    <div class="combobox rc-move-combobox${compactClass}">
-      <input type="text" class="cb-input rc-move-input" data-rc-move-picker="${target}"${slotAttr} value="${escapeHTML(rcMoveLabel(value))}" placeholder="${escapeHTML(placeholder)}" autocomplete="off">
+    <div class="combobox rc-move-combobox tool-move-combobox${compactClass}">
+      <input type="text" class="cb-input rc-move-input tool-move-input" data-rc-move-picker="${target}"${slotAttr} value="${escapeHTML(rcMoveLabel(value))}" placeholder="${escapeHTML(placeholder)}" autocomplete="off">
       <div class="combobox-options"></div>
     </div>
   `;
@@ -22404,10 +22467,59 @@ function rcTypeBoostItemIdsForTypes(types = []) {
     .map(item => item.id);
 }
 
+const RC_ITEM_CANDIDATE_EXTRA_IDS = new Set([
+  'leftovers',
+]);
+
+const RC_ITEM_CANDIDATE_EXCLUDED_IDS = new Set([
+  'brightpowder',
+  'cherishball',
+  'focusband',
+  'focussash',
+  'kingsrock',
+  'mentalherb',
+  'quickclaw',
+  'whiteherb',
+]);
+
+function rcItemAffectsObservedNumbers(item) {
+  if (!item?.id) return false;
+  if (RC_ITEM_CANDIDATE_EXCLUDED_IDS.has(item.id)) return false;
+  if (RC_ITEM_CANDIDATE_EXTRA_IDS.has(item.id)) return true;
+  return !!(
+    item.typeBoostType ||
+    item.powerBoostKind ||
+    item.attackStatBoost ||
+    item.defenseStatBoost ||
+    item.finalDamageBoost ||
+    item.speciesTypeBoost ||
+    item.speedStatBoost ||
+    item.residualRecovery ||
+    item.hpRecovery ||
+    item.multiHitModifier ||
+    item.groundImmunity ||
+    item.grounded !== undefined ||
+    item.ignoresWeatherDamageModifiers ||
+    item.paradoxActivation
+  );
+}
+
+function rcItemCandidateMasterList() {
+  return ITEMS
+    .filter(item => !item.ms && !item.isBerry && rcItemAffectsObservedNumbers(item))
+    .filter((item, idx, arr) => arr.findIndex(other => other.id === item.id) === idx);
+}
+
+function rcSanitizeItemCandidateIds(ids = []) {
+  const allowed = new Set(rcItemCandidateMasterList().map(item => item.id));
+  return ids
+    .filter(id => !id || allowed.has(id))
+    .filter((id, idx, arr) => arr.indexOf(id) === idx);
+}
+
 function rcDefaultItemCandidatesForOpponent() {
   const oppP = PokemonById[revCalcState.opp.pokemonIdx];
-  return ['', 'choicescarf', ...rcTypeBoostItemIdsForTypes(oppP?.types || [])]
-    .filter((id, idx, arr) => arr.indexOf(id) === idx);
+  return rcSanitizeItemCandidateIds(['', 'choicescarf', ...rcTypeBoostItemIdsForTypes(oppP?.types || [])]);
 }
 
 function rcResetItemCandidatesForOpponent() {
@@ -22427,7 +22539,17 @@ function rcActiveItemCandidates() {
   const known = rcKnownOpponentItem();
   if (known !== null) return [known];
   const candidates = revCalcState.itemCandidates?.length ? revCalcState.itemCandidates : rcDefaultItemCandidatesForOpponent();
-  return candidates.includes('') ? candidates : ['', ...candidates];
+  const normalized = rcSanitizeItemCandidateIds(candidates);
+  if (revCalcState.itemCandidates?.length && normalized.length !== candidates.length) {
+    revCalcState.itemCandidates = normalized;
+  }
+  return normalized.includes('') ? normalized : ['', ...normalized];
+}
+
+function rcItemCandidateCountLabel(candidates = rcActiveItemCandidates()) {
+  const ids = candidates || [];
+  const visibleCount = ids.filter(Boolean).length;
+  return ids.includes('') ? `${visibleCount}개 + 없음` : `${visibleCount}개`;
 }
 
 function rcObservedField(kind) {
@@ -23212,9 +23334,9 @@ function rcRenderNextRankCells(ranks, action) {
     const value = ranks[stat] || 0;
     return `
       <div class="rc-next-rank-cell">
-        <button type="button" data-rc-${action}="${stat}" data-rc-dir="-1">-</button>
-        <b class="${value > 0 ? 'pos' : value < 0 ? 'neg' : ''}">${value > 0 ? '+' + value : value}</b>
-        <button type="button" data-rc-${action}="${stat}" data-rc-dir="1">+</button>
+        <button type="button" class="tool-stat-rank-button ui-stat-button" data-rc-${action}="${stat}" data-rc-dir="-1">-</button>
+        <b class="tool-stat-rank-value ui-stat-value ${value > 0 ? 'pos' : value < 0 ? 'neg' : ''}">${value > 0 ? '+' + value : value}</b>
+        <button type="button" class="tool-stat-rank-button ui-stat-button" data-rc-${action}="${stat}" data-rc-dir="1">+</button>
       </div>
     `;
   }).join('');
@@ -23916,15 +24038,15 @@ function renderRevCalcMy() {
     const rank = my.ranks?.[s] || 0;
     return {
       stat: s,
-      labelHtml: `<span class="ft-stat-label tool-stat-name-text">${escapeHTML(STAT_KO[s])}</span>`,
+      labelHtml: `<span class="rc-stat-label tool-stat-name-text">${escapeHTML(STAT_KO[s])}</span>`,
       base: p.bs[s],
       point: ev,
       final,
       rank,
       natureHtml: renderToolStatNatureMark(s, my.nature, {
-        upClass: 'ft-nature-up',
-        downClass: 'ft-nature-down',
-        emptyClass: 'ft-nature-spacer',
+        upClass: 'rc-nature-up',
+        downClass: 'rc-nature-down',
+        emptyClass: 'rc-nature-spacer',
       }),
       pointOptions: {
         zeroAttrs: { 'data-rc-evset': s, 'data-rc-evval': '0' },
@@ -23938,10 +24060,10 @@ function renderRevCalcMy() {
       },
     };
   }), {
-    rowClass: 'ft-stat-row',
-    nameClass: 'ft-stat-name',
-    baseClass: 'ft-stat-base',
-    finalClass: 'ft-stat-final',
+    rowClass: 'rc-stat-row',
+    nameClass: 'rc-stat-name',
+    baseClass: 'rc-stat-base',
+    finalClass: 'rc-stat-final',
   });
 
   container.innerHTML = `
@@ -23949,21 +24071,21 @@ function renderRevCalcMy() {
       <div class="rc-pokemon-main-row ui-control-row">
         ${pokemonPicker}
       </div>
-      <div class="field rc-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+      <div class="rc-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
         <div class="rc-settings-grid tool-settings-grid ui-control-grid">
-          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="ability"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">특성</span>
+          <label class="rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="ability"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">특성</span>
             <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
               <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="myability" value="${escapeHTML(rcComboLabel('ability', my.ability))}" placeholder="특성 검색..." autocomplete="off">
               <div class="combobox-options"></div>
             </div>
           </label>
-          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="nature"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">성격</span>
+          <label class="rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="nature"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">성격</span>
             <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
               <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="mynature" value="${escapeHTML(rcComboLabel('nature', my.nature))}" placeholder="성격 검색..." autocomplete="off">
               <div class="combobox-options"></div>
             </div>
           </label>
-          <label class="field rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="item"><span class="field-label tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">도구</span>
+          <label class="rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="item"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">도구</span>
             <div class="combobox rc-flex-combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
               <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="myitem" value="${my.item ? escapeHTML(itName(ItemById[my.item] || { name: my.item })) : '없음'}" autocomplete="off">
               <div class="combobox-options"></div>
@@ -23976,24 +24098,30 @@ function renderRevCalcMy() {
       <div class="tool-stat-panel tool-stat-set tool-stat-set--revcalc tool-stat-has-nature ui-control-frame ui-subframe ui-subframe-stack ui-field">
         <div class="tool-stat-panel-head ui-section-head">
           <div class="tool-stat-panel-title ui-section-title">능력 포인트</div>
-          <div class="ft-ev-total tool-stat-total ui-metric-chip ${overEV ? 'over' : ''}">
+          <div class="rc-stat-total tool-stat-total ui-metric-chip ${overEV ? 'over' : ''}">
             총합 <b>${totalEV}</b> / 66 ${overEV ? '<span class="rc-ev-over">초과</span>' : ''}
           </div>
         </div>
         <div class="tool-stat-panel-body">
           <div class="tool-stat-table-frame ui-control-frame">
-            <div class="ft-stats-grid rc-stats-grid tool-stat-grid ui-stat-grid ui-stat-table">
+            <div class="rc-stats-grid rc-stat-grid tool-stat-grid ui-stat-grid ui-stat-table">
               ${renderToolStatHead(['name', 'base', 'point', 'final', 'rank'], {
-                rowClass: 'ft-stats-head',
+                rowClass: 'rc-stat-head-row',
               })}
               ${statRows}
             </div>
           </div>
         </div>
       </div>
-      <div class="rc-my-moves-panel ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="ft-section-title">기술배치</div>
-        <div class="rc-move-set-grid compact ui-control-grid">${moveSetRows}</div>
+      <div class="rc-my-moves-panel tool-move-panel tool-move-no-type tool-move-no-power tool-move-no-readout ui-control-frame ui-subframe ui-subframe-stack ui-field">
+        <div class="tool-move-panel-head ui-section-head">
+          <div class="tool-move-panel-title ui-section-title">기술배치</div>
+        </div>
+        <div class="tool-move-panel-body">
+          <div class="tool-move-list-frame ui-control-frame">
+            <div class="rc-move-set-grid compact tool-move-list ui-control-grid">${moveSetRows}</div>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -24035,27 +24163,21 @@ function renderRevCalcOpp() {
     const r = opp.ranks?.[s] || 0;
     return {
       stat: s,
-      label: STAT_KO[s],
+      labelHtml: `<span class="rc-stat-label tool-stat-name-text">${escapeHTML(STAT_KO[s])}</span>`,
+      natureHtml: '<span class="rc-nature-spacer tool-stat-nature-mark tool-stat-nature-empty" aria-hidden="true"></span>',
       base: p?.bs?.[s] ?? '-',
       rank: r,
-      rankHtml: `
-        <div class="rc-opp-rank-cell tool-stat-col-rank">
-          ${renderToolStatRankControl(s, r, {
-            rankable: s !== 'hp',
-            className: 'rc-opp-rank-stepper',
-            emptyClass: 'rc-opp-rank-empty',
-            emptyTag: 'span',
-            valueClass: 'rc-opp-rank-value',
-            decAttrs: { class: 'rc-opp-rank-button', 'data-rc-opprank': s, 'data-rc-dir': '-1' },
-            incAttrs: { class: 'rc-opp-rank-button', 'data-rc-opprank': s, 'data-rc-dir': '1' },
-          })}
-        </div>
-      `,
+      rankOptions: {
+        rankable: s !== 'hp',
+        emptyTag: 'span',
+        decAttrs: { 'data-rc-opprank': s, 'data-rc-dir': '-1' },
+        incAttrs: { 'data-rc-opprank': s, 'data-rc-dir': '1' },
+      },
     };
   }), {
     columns: ['name', 'base', 'rank'],
     rowClass: 'rc-opp-stat-row',
-    nameClass: 'rc-opp-stat-name',
+    nameClass: 'rc-stat-name rc-opp-stat-name',
     baseClass: 'rc-opp-stat-base',
   });
 
@@ -24065,9 +24187,9 @@ function renderRevCalcOpp() {
         ${pokemonPicker}
       </div>
       ${p ? `
-        <div class="field rc-settings-field rc-opp-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
+        <div class="rc-settings-field rc-opp-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
           <div class="rc-settings-grid rc-opp-settings-grid tool-settings-grid ui-control-grid">
-            <label class="field rc-field rc-opp-status-field tool-settings-cell tool-settings-choice-cell tool-settings-condition-cell ui-control-cell ui-field" data-tool-setting="condition"><span class="field-label tool-settings-label tool-settings-choice-label ui-field-label ui-control-label">상태</span>
+            <label class="rc-field rc-opp-status-field tool-settings-cell tool-settings-choice-cell tool-settings-condition-cell ui-control-cell ui-field" data-tool-setting="condition"><span class="tool-settings-label tool-settings-choice-label ui-field-label ui-control-label">상태</span>
               <div class="combobox rc-status-combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-condition-control tool-settings-status-combobox">
                 <button type="button" class="cb-input cb-trigger tool-settings-choice-surface tool-settings-choice-input" data-rc-status="opp" aria-label="상대 상태 선택" aria-expanded="false">${escapeHTML(rcStatusDisplayLabel(opp.status))}</button>
                 <div class="combobox-options" role="listbox"></div>
@@ -24084,10 +24206,9 @@ function renderRevCalcOpp() {
         </div>
         <div class="tool-stat-panel-body">
           <div class="tool-stat-table-frame ui-control-frame">
-            <div class="rc-opp-stat-table tool-stat-grid ui-stat-grid ui-stat-table">
+            <div class="rc-opp-stat-table rc-stat-grid tool-stat-grid ui-stat-grid ui-stat-table">
               ${renderToolStatHead(['name', 'base', 'rank'], {
                 rowClass: 'rc-opp-stat-head',
-                cellClass: 'rc-opp-stat-head-cell',
               })}
               ${statRows}
             </div>
@@ -24110,33 +24231,31 @@ function renderRevCalcInputs() {
   const myCurrentHp = rcCurrentHpValue(my);
 
   // 도구 후보 체크박스 (type-boost 도구 + 그외 사용 가능 도구)
-  const itemMaster = ITEMS.filter(i => !i.ms && !i.isBerry);
+  const itemMaster = rcItemCandidateMasterList();
   const knownOppItem = rcKnownOpponentItem();
   const itemCandidates = knownOppItem === null ? rcActiveItemCandidates() : [];
   const itemPanelOpen = !!revCalcState.itemCandidatesOpen;
   const itemBoxes = itemMaster.map(i => `
-    <label class="rc-item-chk ${knownOppItem !== null ? 'disabled' : ''}">
+    <label class="rc-item-chk ui-check ${knownOppItem !== null ? 'is-disabled disabled' : ''}">
       <input type="checkbox" data-rc-item="${i.id}" ${knownOppItem === null && itemCandidates.includes(i.id) ? 'checked' : ''} ${knownOppItem !== null ? 'disabled' : ''}>
-      ${escapeHTML(itName(i))}
+      <span>${escapeHTML(itName(i))}</span>
     </label>
   `).join('');
 
   container.innerHTML = `
     <div class="rc-input-grid ui-control-grid">
       <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="ft-section-title">내 행동</div>
-        <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
-          <label class="field rc-field-wide ui-field">
-            <span class="field-label ui-field-label">사용 기술</span>
+        <div class="rc-section-title ui-section-title">내 행동</div>
+        <div class="rc-control-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
+          <label class="rc-field-wide ui-field">
+            <span class="ui-field-label">사용 기술</span>
             ${rcRenderMoveCombobox('myMove', revCalcState.myMove, { placeholder: '사용 기술 선택' })}
           </label>
-          <label class="field rc-field-compact ui-field">
-            <span class="field-label ui-field-label">상대 남은 HP %</span>
+          <label class="rc-field-compact ui-field">
+            <span class="ui-field-label">상대 남은 HP %</span>
             <input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="100" placeholder="0~100">
           </label>
         </div>
-        <div class="rc-input-divider"></div>
         <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defReflect" ${revCalcState.observedFields.dealt.defReflect ? 'checked' : ''}> 상대 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.dealt.defLightScreen ? 'checked' : ''}> 상대 빛의장막</label>
@@ -24145,26 +24264,21 @@ function renderRevCalcInputs() {
       </div>
 
       <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="ft-section-title">상대 행동</div>
-        <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
-          <label class="field rc-field-wide ui-field">
-            <span class="field-label ui-field-label">사용 기술</span>
+        <div class="rc-section-title ui-section-title">상대 행동</div>
+        <div class="rc-control-row rc-observed-row rc-opponent-action-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
+          <label class="rc-field-wide ui-field">
+            <span class="ui-field-label">사용 기술</span>
             ${rcRenderMoveCombobox('oppMove', revCalcState.oppMove, { placeholder: '상대 기술 선택' })}
           </label>
-          <label class="field rc-field-compact ui-field">
-            <span class="field-label ui-field-label">내 남은 HP</span>
+          <label class="rc-field-compact ui-field">
+            <span class="ui-field-label">내 남은 HP</span>
             <input type="number" data-rc-action="observedMyHp" value="${revCalcState.observedMyHp}" min="0" max="${myCurrentHp}" placeholder="0~${myCurrentHp}">
           </label>
-        </div>
-        <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-observed-row rc-opp-item-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
-          <label class="field rc-field-wide ui-field">
-            <span class="field-label ui-field-label">상대 도구</span>
+          <label class="rc-field-wide ui-field">
+            <span class="ui-field-label">상대 도구</span>
             ${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}
           </label>
         </div>
-        <div class="rc-input-divider"></div>
         <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defReflect" ${revCalcState.observedFields.received.defReflect ? 'checked' : ''}> 내 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.received.defLightScreen ? 'checked' : ''}> 내 빛의장막</label>
@@ -24173,30 +24287,28 @@ function renderRevCalcInputs() {
       </div>
 
       <div class="rc-input-block rc-speed-block ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="ft-section-title">선후공 | 필드 상태</div>
-        <div class="rc-input-divider"></div>
-        <div class="ft-controls-row rc-speed-field-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
-          <label class="field rc-field-compact ui-field">
-            <span class="field-label ui-field-label">이번 턴 행동 순서</span>
+        <div class="rc-section-title ui-section-title">선후공 | 필드 상태</div>
+        <div class="rc-control-row rc-speed-field-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
+          <label class="rc-field-compact ui-field">
+            <span class="ui-field-label">이번 턴 행동 순서</span>
             ${rcRenderTurnOrderCombobox(revCalcState.turnOrder)}
           </label>
-          <label class="field battle-field-choice battle-weather-field ui-field ui-choice-field"><span class="field-label ui-field-label ui-choice-label">날씨</span>
+          <label class="battle-field-choice battle-weather-field ui-field ui-choice-field"><span class="ui-field-label ui-choice-label">날씨</span>
             ${rcRenderFieldCombobox('weather', revCalcState.field.weather)}
           </label>
-          <label class="field battle-field-choice battle-terrain-field ui-field ui-choice-field"><span class="field-label ui-field-label ui-choice-label">필드</span>
+          <label class="battle-field-choice battle-terrain-field ui-field ui-choice-field"><span class="ui-field-label ui-choice-label">필드</span>
             ${rcRenderFieldCombobox('terrain', revCalcState.field.terrain)}
           </label>
         </div>
       </div>
 
-      <div class="rc-input-block rc-item-candidates-block ui-control-frame ui-subframe ui-subframe-stack ${itemPanelOpen ? 'open' : 'collapsed'}">
-        <button type="button" class="ft-section-title rc-title-with-badge rc-collapse-head" data-rc-toggle-item-candidates aria-expanded="${itemPanelOpen ? 'true' : 'false'}">
+      <div class="rc-input-block rc-item-candidates-block ui-collapsible ui-control-frame ui-subframe ui-subframe-stack ${itemPanelOpen ? 'open' : 'collapsed is-collapsed'}">
+        <button type="button" class="rc-section-title ui-section-title rc-title-with-badge rc-collapse-head ui-collapse-head" data-rc-toggle-item-candidates aria-expanded="${itemPanelOpen ? 'true' : 'false'}">
           <span>도구 후보</span>
-          <span class="rc-count-badge rc-item-candidate-count">${knownOppItem === null ? `${itemCandidates.length}개` : '고정됨'}</span>
+          <span class="rc-count-badge rc-item-candidate-count ui-count-badge">${knownOppItem === null ? rcItemCandidateCountLabel(itemCandidates) : '고정됨'}</span>
         </button>
-        <div class="rc-input-divider rc-collapse-divider"></div>
         <div class="rc-item-candidates-body" ${itemPanelOpen ? '' : 'hidden'}>
-          <div class="rc-item-grid rc-observed-subframe ui-control-frame ui-subframe">${itemBoxes}</div>
+          <div class="rc-item-grid rc-observed-subframe ui-check-grid ui-control-frame ui-subframe">${itemBoxes}</div>
         </div>
       </div>
     </div>
@@ -24279,8 +24391,8 @@ function renderRevCalcResults() {
       : null;
     const predictedPanel = expanded ? `
       <div class="rc-prediction-panel ui-control-frame ui-subframe">
-        <label class="field ui-field">
-          <span class="field-label ui-field-label">상대 다음 기술</span>
+        <label class="ui-field">
+          <span class="ui-field-label">상대 다음 기술</span>
           ${rcRenderMoveCombobox('predictedOppMove', predictedMoveId, { compact: true, placeholder: '예상 기술' })}
         </label>
         <div class="rc-prediction-result">
@@ -24434,6 +24546,8 @@ function rcWireMyComboboxes() {
           rcApplyMyPokemonSelection(id);
           renderRevCalcAll();
         },
+        renderOption: calcRenderSimplePokemonOption,
+        renderHeader: '',
       });
       return;
     }
@@ -24594,6 +24708,8 @@ function rcWireOppComboboxes() {
           rcResetItemCandidatesForOpponent();
           renderRevCalcAll();
         },
+        renderOption: calcRenderSimplePokemonOption,
+        renderHeader: '',
       });
       return;
     }
@@ -24778,7 +24894,7 @@ function rcRenderTurnOrderCombobox(value) {
 
 function rcTurnOrderOptionTemplate(option, currentId) {
   const selected = String(option.id || '') === String(rcNormalizeTurnOrderValue(currentId || 'unknown'));
-  return `<div class="combobox-option rc-turn-order-option${selected ? ' selected' : ''}" data-id="${escapeHTML(option.id || '')}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(option.label || '')}</b></div>`;
+  return `<div class="combobox-option ui-option${selected ? ' selected' : ''}" data-id="${escapeHTML(option.id || '')}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(option.label || '')}</b></div>`;
 }
 
 function rcWireTurnOrderComboboxes(scope) {
@@ -24907,8 +25023,8 @@ function rcWireMoveComboboxes(scope) {
         ? rcMoveSet()[parseInt(slot, 10)] || ''
         : (revCalcState[target] || '');
       optsEl.innerHTML = matches.length
-        ? calcComboboxHeaderHtml('move') + matches.map(m => calcRenderMoveOption(m, currentId)).join('')
-        : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
+        ? matches.map(m => rcRenderSimpleMoveOption(m, currentId)).join('')
+        : '<div class="combobox-option ui-option empty"><b>검색 결과 없음</b></div>';
       optsEl.classList.add('open');
     };
 
@@ -24930,7 +25046,10 @@ function rcWireMoveComboboxes(scope) {
     };
     const combo = rcWireComboboxKeyboard(input, optsEl, {
       showOptions: showOpts,
-      onSelect: opt => applyMove(opt.dataset.id || ''),
+      onSelect: opt => {
+        selectingMoveOption = true;
+        applyMove(opt.dataset.id || '');
+      },
       getQuery: () => input.value || '',
       onInvalidInput: () => applyMove(''),
     });
@@ -25216,7 +25335,7 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
     if (t.checked && !revCalcState.itemCandidates.includes(id)) revCalcState.itemCandidates.push(id);
     if (!t.checked) revCalcState.itemCandidates = revCalcState.itemCandidates.filter(x => x !== id);
     const badge = document.querySelector('#page-revcalc .rc-item-candidate-count');
-    if (badge) badge.textContent = `${rcActiveItemCandidates().length}개`;
+    if (badge) badge.textContent = rcItemCandidateCountLabel();
     return;
   }
 });
