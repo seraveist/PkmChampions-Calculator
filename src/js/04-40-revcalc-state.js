@@ -174,6 +174,15 @@ function rcMoveOptionLabel(m) {
   return mvName(m);
 }
 
+function rcRenderSimpleMoveOption(option, currentId) {
+  const id = option?.id || '';
+  const selected = String(id) === String(currentId || '');
+  const optionClass = ['combobox-option', 'ui-option', 'rc-move-simple-option', selected ? 'selected' : '']
+    .filter(Boolean)
+    .join(' ');
+  return `<div class="${optionClass}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(rcMoveOptionLabel(option))}</b></div>`;
+}
+
 function rcObservedMyMoveIds() {
   const ids = rcMoveSet().filter(id => MoveById[id]);
   return ids.filter((id, idx, arr) => arr.indexOf(id) === idx);
@@ -200,8 +209,8 @@ function rcRenderMoveCombobox(target, value, options = {}) {
   const compactClass = options.compact ? ' compact' : '';
   const placeholder = options.placeholder || '기술 선택';
   return `
-    <div class="combobox rc-move-combobox${compactClass}">
-      <input type="text" class="cb-input rc-move-input" data-rc-move-picker="${target}"${slotAttr} value="${escapeHTML(rcMoveLabel(value))}" placeholder="${escapeHTML(placeholder)}" autocomplete="off">
+    <div class="combobox rc-move-combobox tool-move-combobox${compactClass}">
+      <input type="text" class="cb-input rc-move-input tool-move-input" data-rc-move-picker="${target}"${slotAttr} value="${escapeHTML(rcMoveLabel(value))}" placeholder="${escapeHTML(placeholder)}" autocomplete="off">
       <div class="combobox-options"></div>
     </div>
   `;
@@ -241,10 +250,59 @@ function rcTypeBoostItemIdsForTypes(types = []) {
     .map(item => item.id);
 }
 
+const RC_ITEM_CANDIDATE_EXTRA_IDS = new Set([
+  'leftovers',
+]);
+
+const RC_ITEM_CANDIDATE_EXCLUDED_IDS = new Set([
+  'brightpowder',
+  'cherishball',
+  'focusband',
+  'focussash',
+  'kingsrock',
+  'mentalherb',
+  'quickclaw',
+  'whiteherb',
+]);
+
+function rcItemAffectsObservedNumbers(item) {
+  if (!item?.id) return false;
+  if (RC_ITEM_CANDIDATE_EXCLUDED_IDS.has(item.id)) return false;
+  if (RC_ITEM_CANDIDATE_EXTRA_IDS.has(item.id)) return true;
+  return !!(
+    item.typeBoostType ||
+    item.powerBoostKind ||
+    item.attackStatBoost ||
+    item.defenseStatBoost ||
+    item.finalDamageBoost ||
+    item.speciesTypeBoost ||
+    item.speedStatBoost ||
+    item.residualRecovery ||
+    item.hpRecovery ||
+    item.multiHitModifier ||
+    item.groundImmunity ||
+    item.grounded !== undefined ||
+    item.ignoresWeatherDamageModifiers ||
+    item.paradoxActivation
+  );
+}
+
+function rcItemCandidateMasterList() {
+  return ITEMS
+    .filter(item => !item.ms && !item.isBerry && rcItemAffectsObservedNumbers(item))
+    .filter((item, idx, arr) => arr.findIndex(other => other.id === item.id) === idx);
+}
+
+function rcSanitizeItemCandidateIds(ids = []) {
+  const allowed = new Set(rcItemCandidateMasterList().map(item => item.id));
+  return ids
+    .filter(id => !id || allowed.has(id))
+    .filter((id, idx, arr) => arr.indexOf(id) === idx);
+}
+
 function rcDefaultItemCandidatesForOpponent() {
   const oppP = PokemonById[revCalcState.opp.pokemonIdx];
-  return ['', 'choicescarf', ...rcTypeBoostItemIdsForTypes(oppP?.types || [])]
-    .filter((id, idx, arr) => arr.indexOf(id) === idx);
+  return rcSanitizeItemCandidateIds(['', 'choicescarf', ...rcTypeBoostItemIdsForTypes(oppP?.types || [])]);
 }
 
 function rcResetItemCandidatesForOpponent() {
@@ -264,7 +322,17 @@ function rcActiveItemCandidates() {
   const known = rcKnownOpponentItem();
   if (known !== null) return [known];
   const candidates = revCalcState.itemCandidates?.length ? revCalcState.itemCandidates : rcDefaultItemCandidatesForOpponent();
-  return candidates.includes('') ? candidates : ['', ...candidates];
+  const normalized = rcSanitizeItemCandidateIds(candidates);
+  if (revCalcState.itemCandidates?.length && normalized.length !== candidates.length) {
+    revCalcState.itemCandidates = normalized;
+  }
+  return normalized.includes('') ? normalized : ['', ...normalized];
+}
+
+function rcItemCandidateCountLabel(candidates = rcActiveItemCandidates()) {
+  const ids = candidates || [];
+  const visibleCount = ids.filter(Boolean).length;
+  return ids.includes('') ? `${visibleCount}개 + 없음` : `${visibleCount}개`;
 }
 
 function rcObservedField(kind) {

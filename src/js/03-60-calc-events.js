@@ -1,7 +1,7 @@
 /* Damage calculator field controls and page-level events. */
-document.getElementById('field-head').addEventListener('click', e => {
-  if (e.target.closest('input, button, label, .combobox, .field-auto-toggle')) return;
-  document.getElementById('field-panel').classList.toggle('collapsed');
+document.getElementById('calc-field-head').addEventListener('click', e => {
+  if (e.target.closest('input, button, label, .combobox, .calc-field-auto-toggle')) return;
+  document.getElementById('calc-field-panel').classList.toggle('collapsed');
 });
 
 document.getElementById('btnCalculate')?.addEventListener('click', runCalc);
@@ -12,7 +12,7 @@ document.getElementById('btnResetManual')?.addEventListener('click', resetCalcMa
    ════════════════════════════════════════════════════════════ */
 function wireFieldComboboxes() {
   if (typeof document.querySelectorAll !== 'function') return;
-  document.querySelectorAll('#field-panel .cb-input').forEach(input => {
+  document.querySelectorAll('#calc-field-panel .cb-input').forEach(input => {
     const cbType = input.dataset.cbType;
     const field = input.dataset.field;
     wireCalcCombobox(input, {
@@ -96,15 +96,15 @@ function updateRuinCheckboxes(fieldState = null) {
 // 공격측 ↔ 방어측 교대 (사이드 객체 전체를 통째로 교환)
 // 사이드 패널 점프 버튼 위임 — fine-tune/reverse view modules의 sync 함수 호출
 document.addEventListener('click', e => {
-  if (!e.target.closest('#page-calc .ev-preset-shell') && typeof closeEvPresetPopovers === 'function') {
+  if (!e.target.closest('#page-calc .calc-stat-preset-shell') && typeof closeEvPresetPopovers === 'function') {
     closeEvPresetPopovers();
   }
-  const ftBtn = e.target.closest('.ft-jump-btn[data-ft-from-side]');
+  const ftBtn = e.target.closest('.calc-page-jump-button[data-ft-from-side]');
   if (ftBtn && typeof loadSideToFineTune === 'function') {
     loadSideToFineTune(ftBtn.dataset.ftFromSide);
     return;
   }
-  const rcBtn = e.target.closest('.ft-jump-btn[data-rc-from-side]');
+  const rcBtn = e.target.closest('.calc-page-jump-button[data-rc-from-side]');
   if (rcBtn && typeof loadSideToRevCalc === 'function') {
     loadSideToRevCalc(rcBtn.dataset.rcFromSide);
     return;

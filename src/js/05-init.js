@@ -8,6 +8,7 @@
    탭을 건드리기 전까지 화면이 비어있는 버그가 있었다.)
    ════════════════════════════════════════════════════════════ */
 bindMainNavigation();
+initThemeToggle();
 renderSide('atk');
 renderSide('def');
 triggerCalc();

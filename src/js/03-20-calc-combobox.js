@@ -201,6 +201,27 @@ function makeCombobox(sideKey, type) {
 
 let calcComboboxUid = 0;
 let calcSharedComboboxUid = 0;
+let calcComboboxLastPointerTarget = null;
+let calcComboboxLastPointerAt = 0;
+let calcComboboxLastOpenedControl = null;
+let calcComboboxLastOpenedAt = 0;
+let calcComboboxPortalListenersBound = false;
+
+function calcComboboxTrackPointerTarget(event) {
+  calcComboboxLastPointerTarget = event.target?.closest?.('.combobox') || null;
+  calcComboboxLastPointerAt = Date.now();
+}
+
+function calcComboboxMarkOpened(control) {
+  calcComboboxLastOpenedControl = control || null;
+  calcComboboxLastOpenedAt = Date.now();
+}
+
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+  document.addEventListener('pointerdown', calcComboboxTrackPointerTarget, true);
+  document.addEventListener('mousedown', calcComboboxTrackPointerTarget, true);
+  document.addEventListener('touchstart', calcComboboxTrackPointerTarget, true);
+}
 
 function closeSiblingComboboxOptions(optsEl, control) {
   if (typeof document?.querySelectorAll !== 'function') return;
@@ -210,6 +231,129 @@ function closeSiblingComboboxOptions(optsEl, control) {
   document.querySelectorAll('.cb-input[aria-expanded="true"]').forEach(el => {
     if (el !== control) el.setAttribute('aria-expanded', 'false');
   });
+}
+
+function calcComboboxShouldUsePortal(input, cbParent) {
+  const type = input?.dataset?.cbType || '';
+  return Boolean(cbParent?.closest?.('.tool-move-list-frame') && (type === 'move' || type === 'moveType'));
+}
+
+function calcComboboxPortalKey(input) {
+  return [
+    input?.dataset?.side || '',
+    input?.dataset?.field || '',
+    input?.dataset?.cbType || '',
+  ].join(':');
+}
+
+function calcCleanupComboboxPortals(sideKey = null) {
+  if (typeof document?.querySelectorAll !== 'function') return;
+  document.querySelectorAll('.combobox-options.combobox-options-portal').forEach(el => {
+    if (!sideKey || el.dataset.calcPortalSide === sideKey) el.remove();
+  });
+}
+
+function calcComboboxPortalWidth(input, type) {
+  const rect = input.getBoundingClientRect();
+  const viewportWidth = Math.max(240, window.innerWidth || document.documentElement.clientWidth || 0);
+  const maxWidth = Math.max(120, viewportWidth - 16);
+  if (type === 'move') {
+    return Math.min(Math.max(rect.width, 300), 330, maxWidth);
+  }
+  if (type === 'moveType') {
+    return Math.min(Math.max(rect.width, 92), 140, maxWidth);
+  }
+  return Math.min(rect.width, maxWidth);
+}
+
+function calcPositionComboboxPortal(input, optsEl, type = '') {
+  if (
+    typeof window === 'undefined'
+    || typeof input?.getBoundingClientRect !== 'function'
+    || !optsEl
+  ) return;
+  const rect = input.getBoundingClientRect();
+  const margin = 8;
+  const viewportWidth = Math.max(240, window.innerWidth || document.documentElement.clientWidth || 0);
+  const viewportHeight = Math.max(240, window.innerHeight || document.documentElement.clientHeight || 0);
+  const width = calcComboboxPortalWidth(input, type);
+  const left = Math.max(margin, Math.min(rect.left, viewportWidth - width - margin));
+  const top = Math.max(margin, rect.bottom + 4);
+  const maxHeight = Math.max(96, Math.min(280, viewportHeight - top - margin));
+  optsEl.style.left = `${left}px`;
+  optsEl.style.top = `${top}px`;
+  optsEl.style.right = 'auto';
+  optsEl.style.width = `${width}px`;
+  optsEl.style.minWidth = `${Math.min(width, type === 'move' ? 300 : 92)}px`;
+  optsEl.style.maxWidth = `${viewportWidth - margin * 2}px`;
+  optsEl.style.maxHeight = `${maxHeight}px`;
+}
+
+function calcPositionOpenComboboxPortals() {
+  if (typeof document?.querySelectorAll !== 'function') return;
+  document.querySelectorAll('.combobox-options.combobox-options-portal.open').forEach(optsEl => {
+    const controlId = optsEl.dataset.calcPortalControl || '';
+    const input = controlId ? document.getElementById(controlId) : null;
+    if (!input) {
+      optsEl.classList.remove('open');
+      return;
+    }
+    calcPositionComboboxPortal(input, optsEl, optsEl.dataset.calcPortalType || input.dataset.cbType || '');
+  });
+}
+
+function calcEnsureComboboxPortalListeners() {
+  if (calcComboboxPortalListenersBound || typeof window === 'undefined') return;
+  calcComboboxPortalListenersBound = true;
+  window.addEventListener('scroll', calcPositionOpenComboboxPortals, true);
+  window.addEventListener('resize', calcPositionOpenComboboxPortals);
+}
+
+function calcMountComboboxPortal(input, cbParent, optsEl) {
+  if (!calcComboboxShouldUsePortal(input, cbParent)) return false;
+  if (typeof document?.body?.appendChild !== 'function') return false;
+  const key = calcComboboxPortalKey(input);
+  document.querySelectorAll('.combobox-options.combobox-options-portal').forEach(el => {
+    if (el !== optsEl && el.dataset.calcPortalKey === key) el.remove();
+  });
+  if (!input.id) input.id = `calc-cb-control-${++calcComboboxUid}`;
+  optsEl.dataset.calcPortalKey = key;
+  optsEl.dataset.calcPortalSide = input.dataset.side || '';
+  optsEl.dataset.calcPortalType = input.dataset.cbType || '';
+  optsEl.dataset.calcPortalControl = input.id;
+  optsEl.classList.add(
+    'combobox-options-portal',
+    input.dataset.cbType === 'move' ? 'tool-move-options-portal' : 'tool-move-type-options-portal',
+  );
+  if (input.dataset.side === 'atk') optsEl.style.setProperty('--tool-combo-selected', 'var(--atk)');
+  if (input.dataset.side === 'def') optsEl.style.setProperty('--tool-combo-selected', 'var(--def)');
+  document.body.appendChild(optsEl);
+  calcEnsureComboboxPortalListeners();
+  return true;
+}
+
+function calcComboboxFocusMovedToAnother(control, optsEl) {
+  const currentCombobox = control?.closest?.('.combobox') || null;
+  if (
+    calcComboboxLastOpenedControl
+    && calcComboboxLastOpenedControl !== control
+    && Date.now() - calcComboboxLastOpenedAt < 700
+  ) {
+    return true;
+  }
+  if (
+    calcComboboxLastPointerTarget
+    && calcComboboxLastPointerTarget !== currentCombobox
+    && Date.now() - calcComboboxLastPointerAt < 700
+  ) {
+    return true;
+  }
+
+  const active = document.activeElement;
+  if (!active || active === document.body || active === document.documentElement) return false;
+  if (active === control || control?.contains?.(active) || optsEl?.contains?.(active)) return false;
+  const activeCombobox = active.closest?.('.combobox');
+  return !!activeCombobox && activeCombobox !== currentCombobox;
 }
 
 function calcComboboxOptionMatchesExactText(option, query) {
@@ -261,6 +405,7 @@ function wireSharedComboboxKeyboard(control, optsEl, { showOptions, onSelect, ge
     showOptions(query);
     optsEl.classList.add('open');
     control.setAttribute('aria-expanded', 'true');
+    calcComboboxMarkOpened(control);
     const options = optionEls();
     options.forEach((option, index) => {
       if (!option.id) option.id = `${optsEl.id}-opt-${index}`;
@@ -345,6 +490,163 @@ function wireSharedComboboxKeyboard(control, optsEl, { showOptions, onSelect, ge
     close();
   });
   return { open, close, select, commitTyped, commitExact: commitTyped, commitActive };
+}
+
+function calcPokemonComboboxMatches(option, query) {
+  const needle = calcSearchText(query).trim();
+  const pokemon = option?.raw || option || {};
+  const types = pokemon.types || option?.types || [];
+  return calcMatches(
+    needle,
+    option?.id,
+    option?.label,
+    option?.sub,
+    pokemon.id,
+    pokemon.name,
+    pokemon.koName,
+    pkName(pokemon),
+    ...types,
+    ...types.map(type => TYPE_KO[type] || type)
+  );
+}
+
+function wirePokemonSelectCombobox(input, {
+  getOptions = () => sortPokemonForCalcSelect(POKEMON),
+  getCurrentId = () => '',
+  getDisplayLabel = null,
+  onSelect = null,
+  searchLimit = null,
+  closeDelay = 200,
+  selectTextOnFocus = false,
+  wiredKey = 'pokemonWired',
+  renderOption = null,
+  renderHeader = null,
+} = {}) {
+  if (!input) return null;
+  if (wiredKey && input.dataset[wiredKey] === '1') return null;
+  const cb = input.closest('.combobox');
+  const optsEl = cb?.querySelector('.combobox-options');
+  if (!optsEl) return null;
+  if (wiredKey) input.dataset[wiredKey] = '1';
+
+  const isButtonTrigger = input.tagName === 'BUTTON';
+  const currentId = () => getCurrentId(input) || '';
+  const displayLabel = () => {
+    if (typeof getDisplayLabel === 'function') return getDisplayLabel(input) || '';
+    const id = currentId();
+    return PokemonById[id] ? pkName(PokemonById[id]) : '';
+  };
+  const setDisplayLabel = label => {
+    if (isButtonTrigger) {
+      input.textContent = label;
+      input.value = label;
+    } else {
+      input.value = label;
+    }
+  };
+  const restoreInput = () => setDisplayLabel(displayLabel());
+
+  const showOptions = query => {
+    calcHideOptionTooltip();
+    const options = (typeof getOptions === 'function' ? getOptions(input) : getOptions) || [];
+    const matches = options.filter(option => calcPokemonComboboxMatches(option, query));
+    const visibleMatches = calcSearchText(query).trim() && searchLimit
+      ? matches.slice(0, searchLimit)
+      : matches;
+    const optionTemplate = typeof renderOption === 'function' ? renderOption : calcRenderPokemonOption;
+    const headerHtml = typeof renderHeader === 'function'
+      ? renderHeader(input)
+      : renderHeader !== null
+        ? renderHeader
+        : calcComboboxHeaderHtml('pokemon');
+    optsEl.innerHTML = visibleMatches.length
+      ? headerHtml + visibleMatches.map(option => (
+          optionTemplate(option, currentId())
+        )).join('')
+      : '<div class="combobox-option empty" aria-disabled="true"><b>검색 결과 없음</b></div>';
+    closeSiblingComboboxOptions(optsEl, input);
+
+    const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : fn => setTimeout(fn, 0);
+    schedule(() => {
+      if (typeof window === 'undefined' || typeof optsEl.getBoundingClientRect !== 'function') return;
+      const rect = optsEl.getBoundingClientRect();
+      const overflowRight = rect.right > window.innerWidth - 8;
+      optsEl.style.left = overflowRight ? 'auto' : '';
+      optsEl.style.right = overflowRight ? '0' : '';
+    });
+  };
+
+  const combo = wireSharedComboboxKeyboard(input, optsEl, {
+    showOptions,
+    onSelect: opt => {
+      const id = opt.dataset.id || '';
+      setDisplayLabel(opt.querySelector('b')?.textContent || displayLabel());
+      calcHideOptionTooltip();
+      if (typeof onSelect === 'function') onSelect(id, opt);
+    },
+    getQuery: () => isButtonTrigger ? '' : input.value || '',
+    onInvalidInput: restoreInput,
+  });
+
+  input.addEventListener('focus', () => {
+    if (isButtonTrigger) return;
+    combo?.open('');
+    if (!selectTextOnFocus) return;
+    const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : fn => setTimeout(fn, 0);
+    schedule(() => {
+      if (typeof input.select === 'function') input.select();
+    });
+  });
+  input.addEventListener('mousedown', e => {
+    if (input.readOnly || isButtonTrigger) e.stopPropagation();
+  });
+  input.addEventListener('click', e => {
+    if (!input.readOnly && !isButtonTrigger) {
+      combo?.open('');
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    if (document.activeElement !== input && typeof input.focus === 'function') {
+      input.focus({ preventScroll: true });
+    }
+    combo?.open('');
+  });
+  input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
+  input.addEventListener('blur', () => {
+    setTimeout(() => {
+      if (isButtonTrigger) return;
+      if (calcComboboxFocusMovedToAnother(input, optsEl)) {
+        calcHideOptionTooltip();
+        combo?.close();
+        restoreInput();
+        return;
+      }
+      if (!String(input.value || '').trim()) {
+        calcHideOptionTooltip();
+        combo?.close();
+        restoreInput();
+        return;
+      }
+      calcHideOptionTooltip();
+      combo?.commitTyped();
+    }, closeDelay);
+  });
+
+  const handleOptionSelect = e => {
+    const opt = e.target.closest('.combobox-option');
+    if (!opt || opt.classList.contains('empty')) return;
+    e.preventDefault();
+    if (isButtonTrigger && e.type === 'mousedown') return;
+    combo?.select(opt);
+  };
+
+  optsEl.addEventListener('mousedown', handleOptionSelect);
+  optsEl.addEventListener('click', handleOptionSelect);
+  optsEl.addEventListener('touchstart', handleOptionSelect, { passive: false });
+  optsEl.addEventListener('scroll', calcHideOptionTooltip);
+
+  return combo;
 }
 
 function calcComboboxOptionLabel(type, option) {
@@ -445,6 +747,26 @@ function calcRenderPokemonOption(option, currentId) {
   `;
 }
 
+function calcRenderSimplePokemonOption(option, currentId) {
+  const pokemon = option?.raw || option || {};
+  const id = option?.id || pokemon.id || '';
+  const label = option?.label || pkName(pokemon);
+  const types = pokemon.types || option?.types || [];
+  const typeBadges = types.map(type => (
+    `<span class="type-pill pokemon-simple-type-pill t-${escapeHTML(type)}">${escapeHTML(TYPE_KO[type] || type)}</span>`
+  )).join('');
+  const selected = String(id) === String(currentId);
+  const optionClass = ['combobox-option', 'ui-option', 'pokemon-simple-option', 'matchup-option', selected ? 'selected' : '']
+    .filter(Boolean)
+    .join(' ');
+  return `
+    <div class="${optionClass}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}">
+      <b class="pokemon-simple-option-name matchup-option-name">${escapeHTML(label)}</b>
+      <small class="pokemon-simple-option-types matchup-option-types">${typeBadges}</small>
+    </div>
+  `;
+}
+
 function calcRenderMoveOption(option, currentId) {
   const id = option?.id || '';
   const label = option?.label || option?.koName || (id ? mvName(option) : '없음');
@@ -512,7 +834,8 @@ function calcRenderGenericOption(type, option, currentId) {
   const sub = calcComboboxOptionSub(type, option);
   const selected = String(id) === String(currentId);
   const subHtml = sub ? `<small>${escapeHTML(sub)}</small>` : '';
-  return `<div class="combobox-option${selected ? ' selected' : ''}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(label)}</b>${subHtml}</div>`;
+  const typeClass = type ? `${type}-option` : '';
+  return `<div class="${uiClassNames('combobox-option ui-option', typeClass, selected ? 'selected' : '')}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(label)}</b>${subHtml}</div>`;
 }
 
 function calcRenderComboboxOption(type, option, currentId) {
@@ -632,6 +955,18 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
 
   const cbType = input.dataset.cbType;
   const side = input.dataset.side || null;
+  const usesPortal = calcMountComboboxPortal(input, cbParent, optsEl);
+  if (cbType === 'pokemon') {
+    return wirePokemonSelectCombobox(input, {
+      getOptions: () => calcDatasetForCombobox(side, 'pokemon'),
+      getCurrentId: () => calcComboboxCurrentId(input),
+      getDisplayLabel: () => calcComboboxDisplayLabel(input),
+      onSelect,
+      selectTextOnFocus: true,
+      wiredKey: 'calcPokemonWired',
+    });
+  }
+
   const filter = filterFn || makeCombobox(side, cbType);
   const isButtonTrigger = input.tagName === 'BUTTON';
   let activeIndex = -1;
@@ -751,12 +1086,18 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
 
     optsEl.classList.add('open');
     input.setAttribute('aria-expanded', 'true');
+    calcComboboxMarkOpened(input);
     const selectedIndex = optionData.findIndex(option => String(option?.id || '') === String(currentId));
     setActiveOption(activateFirst ? 0 : selectedIndex);
+    if (usesPortal) calcPositionComboboxPortal(input, optsEl, cbType);
 
     const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : fn => setTimeout(fn, 0);
     schedule(() => {
       if (typeof window === 'undefined' || typeof optsEl.getBoundingClientRect !== 'function') return;
+      if (usesPortal) {
+        calcPositionComboboxPortal(input, optsEl, cbType);
+        return;
+      }
       const rect = optsEl.getBoundingClientRect();
       const overflowRight = rect.right > window.innerWidth - 8;
       optsEl.style.left = overflowRight ? 'auto' : '';
@@ -808,7 +1149,10 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
     if (input.readOnly || isButtonTrigger) e.stopPropagation();
   });
   input.addEventListener('click', e => {
-    if (!input.readOnly && !isButtonTrigger) return;
+    if (!input.readOnly && !isButtonTrigger) {
+      showOptions('');
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
     if (document.activeElement !== input && typeof input.focus === 'function') {
@@ -848,6 +1192,11 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
   });
   input.addEventListener('blur', () => {
     setTimeout(() => {
+      if (calcComboboxFocusMovedToAnother(input, optsEl)) {
+        closeOptions();
+        restoreDisplayLabel();
+        return;
+      }
       if (justSelected) {
         justSelected = false;
         closeOptions();

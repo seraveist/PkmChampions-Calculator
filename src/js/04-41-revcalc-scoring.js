@@ -587,9 +587,9 @@ function rcRenderNextRankCells(ranks, action) {
     const value = ranks[stat] || 0;
     return `
       <div class="rc-next-rank-cell">
-        <button type="button" data-rc-${action}="${stat}" data-rc-dir="-1">-</button>
-        <b class="${value > 0 ? 'pos' : value < 0 ? 'neg' : ''}">${value > 0 ? '+' + value : value}</b>
-        <button type="button" data-rc-${action}="${stat}" data-rc-dir="1">+</button>
+        <button type="button" class="tool-stat-rank-button ui-stat-button" data-rc-${action}="${stat}" data-rc-dir="-1">-</button>
+        <b class="tool-stat-rank-value ui-stat-value ${value > 0 ? 'pos' : value < 0 ? 'neg' : ''}">${value > 0 ? '+' + value : value}</b>
+        <button type="button" class="tool-stat-rank-button ui-stat-button" data-rc-${action}="${stat}" data-rc-dir="1">+</button>
       </div>
     `;
   }).join('');
@@ -600,7 +600,7 @@ function rcRenderNextRankPanel() {
   const oppRanks = rcNextOpponentRanks();
   const isOpen = !!revCalcState.nextRankOpen;
   return `
-    <div class="rc-next-rank-panel ${isOpen ? 'open' : 'collapsed'}">
+    <div class="rc-next-rank-panel ui-control-frame ui-subframe ${isOpen ? 'open' : 'collapsed'}">
       <button type="button" class="rc-next-rank-title" data-rc-toggle-next-ranks aria-expanded="${isOpen ? 'true' : 'false'}">
         <b>다음 행동 랭크</b>
         <span>${isOpen ? '접기' : '펼치기'}</span>

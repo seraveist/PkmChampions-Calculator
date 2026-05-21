@@ -1,6 +1,5 @@
 #page-calc {
   --calc-bg: #e5e7eb;
-  --calc-panel: #ffffff;
   --calc-line: #d1d5db;
   --calc-line-soft: #e5e7eb;
   --calc-text: #1f2937;
@@ -20,15 +19,6 @@
   --calc-accent: #111827;
   --calc-control-bg: #f9fafb;
   --calc-control-hover: #f3f4f6;
-  --calc-radius: 12px;
-  --calc-shadow: 0 10px 15px -3px rgb(15 23 42 / 0.08);
-  --calc-stat-control-h: clamp(32px, 2.4vw, 34px);
-  --calc-rank-btn: clamp(24px, 2vw, 28px);
-  --calc-rank-val: clamp(22px, 2vw, 28px);
-  --calc-rank-gap: clamp(3px, 0.35vw, 5px);
-  --calc-ev-btn: var(--calc-rank-btn);
-  --calc-ev-input: clamp(34px, 3.2vw, 42px);
-  --calc-ev-gap: var(--calc-rank-gap);
   --calc-move-control-h: var(--ui-control-height);
   --calc-control-label-width: var(--ui-field-label-width);
   --calc-control-gap: var(--ui-field-label-gap);
@@ -47,84 +37,53 @@
 #page-calc .mono,
 #page-calc .hint,
 #page-calc .brand-sub,
-#page-calc .ev-total,
-#page-calc .ev-input,
-#page-calc .stat-rank-val,
-#page-calc .stat-base,
-#page-calc .stat-final,
-#page-calc .move-bp-input,
-#page-calc .move-stat-info,
-#page-calc .durability-value {
+#page-calc .calc-stat-total,
+#page-calc .tool-stat-point-input,
+#page-calc .tool-stat-rank-value,
+#page-calc .calc-stat-base,
+#page-calc .calc-stat-final,
+#page-calc .tool-move-power-input,
+#page-calc .tool-move-power-readout,
+#page-calc .calc-stat-bulk-value {
   font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
-}
-
-#page-calc .battle-grid > .ui-frame {
-  background: var(--calc-panel);
-  border: 1px solid var(--calc-line);
-  border-radius: var(--calc-radius);
-  box-shadow: var(--calc-shadow);
 }
 
 #page-calc .battle-grid {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px;
   align-items: stretch;
-  margin-top: 20px;
 }
 
-#page-calc .battle-grid > .ui-frame {
-  overflow: visible;
-}
-
-#page-calc .battle-grid > .ui-frame > .ui-frame-head {
-  position: relative;
-  min-height: var(--ui-panel-head-min-height);
-  padding: var(--ui-panel-head-padding);
-  border-bottom: 1px solid var(--calc-line);
-  border-radius: var(--calc-radius) var(--calc-radius) 0 0;
-  box-shadow: inset 0 var(--panel-point-height, 4px) 0 var(--panel-point-color, transparent);
-}
-
-#page-calc .battle-grid > .ui-frame.atk > .ui-frame-head,
-#page-calc.sides-swapped .battle-grid > .ui-frame.def > .ui-frame-head {
+#page-calc .battle-grid > .ui-panel.atk,
+#page-calc.sides-swapped .battle-grid > .ui-panel.def {
   --panel-point-color: var(--calc-attacker);
-  background: linear-gradient(135deg, var(--calc-attacker-soft) 0%, #ffffff 100%);
 }
 
-#page-calc .battle-grid > .ui-frame.def > .ui-frame-head,
-#page-calc.sides-swapped .battle-grid > .ui-frame.atk > .ui-frame-head {
+#page-calc .battle-grid > .ui-panel.def,
+#page-calc.sides-swapped .battle-grid > .ui-panel.atk {
   --panel-point-color: var(--calc-defender);
-  background: linear-gradient(135deg, var(--calc-defender-soft) 0%, #ffffff 100%);
 }
 
-#page-calc .battle-grid > .ui-frame.atk,
-#page-calc.sides-swapped .battle-grid > .ui-frame.def {
-  border-color: rgb(220 38 38 / 0.22);
+#page-calc #calc-field-panel {
+  --panel-point-color: var(--calc-field);
+  --panel-border-color: rgb(122 154 140 / 0.22);
 }
 
-#page-calc .battle-grid > .ui-frame.def,
-#page-calc.sides-swapped .battle-grid > .ui-frame.atk {
-  border-color: rgb(37 99 235 / 0.22);
+#page-calc .calc-results-panel {
+  --panel-point-color: var(--calc-result);
+  --panel-border-color: var(--calc-result-outline);
 }
 
-#page-calc #field-panel {
-  border-color: rgb(122 154 140 / 0.22);
-}
-
-#page-calc .results {
-  border-color: rgb(165 138 104 / 0.22);
-}
-
-#page-calc .ui-frame.collapsible > .ui-frame-head {
+#page-calc .ui-panel.collapsible > .ui-panel-head {
   cursor: pointer;
   user-select: none;
 }
 
-#page-calc .ui-frame.collapsible > .ui-frame-head::after {
+#page-calc .ui-panel.collapsible > .ui-panel-head::after {
   content: '▼';
-  margin-left: auto;
+  flex: 0 0 auto;
+  margin-left: 0;
   color: var(--calc-muted);
   font-size: 0.68rem;
   line-height: 1;
@@ -132,72 +91,45 @@
   transition: transform 160ms ease;
 }
 
-#page-calc .ui-frame.collapsible.collapsed > .ui-frame-head::after {
+#page-calc #calc-field-head::after {
+  margin-left: auto;
+}
+
+#page-calc #calc-field-head .ui-panel-actions {
+  margin-left: 0;
+}
+
+#page-calc .ui-panel.collapsible.collapsed > .ui-panel-head::after {
   transform: rotate(-90deg);
 }
 
-#page-calc .ui-frame.collapsible.collapsed > .ui-frame-body {
+#page-calc .ui-panel.collapsible.collapsed > .ui-panel-body {
   display: none;
 }
 
-#page-calc #field-panel > .ui-frame-head {
-  --panel-point-color: var(--calc-field);
-  --panel-point-height: 3px;
-  position: relative;
+#page-calc #calc-field-panel > .ui-panel-head {
   background: linear-gradient(135deg, var(--calc-field-soft) 0%, #ffffff 100%);
-  box-shadow: inset 0 var(--panel-point-height) 0 var(--panel-point-color);
 }
 
-#page-calc .results > .results-head {
-  --panel-point-color: var(--calc-result);
-  --panel-point-height: 3px;
-  position: relative;
+#page-calc .calc-results-panel > .ui-panel-head {
   background: linear-gradient(135deg, var(--calc-result-soft) 0%, #ffffff 100%);
-  box-shadow: inset 0 var(--panel-point-height) 0 var(--panel-point-color);
 }
 
-#page-calc .results {
-  border-color: var(--calc-result-outline);
-}
-
-#page-calc .battle-grid > .ui-frame .panel-title {
-  margin: 0;
-  color: var(--calc-text);
-  font-size: var(--ui-panel-title-size);
-  font-weight: var(--ui-panel-title-weight);
-  line-height: var(--ui-panel-title-line-height);
-  letter-spacing: 0;
-}
-
-#page-calc .battle-grid > .ui-frame .panel-tag {
-  padding: 4px 10px;
-  border-radius: 4px;
+#page-calc .battle-grid > .ui-panel .ui-panel-tag {
   color: #ffffff;
-  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.15;
 }
 
-#page-calc .battle-grid > .ui-frame.atk .panel-tag,
-#page-calc.sides-swapped .battle-grid > .ui-frame.def .panel-tag {
+#page-calc .battle-grid > .ui-panel.atk .ui-panel-tag,
+#page-calc.sides-swapped .battle-grid > .ui-panel.def .ui-panel-tag {
   background: var(--calc-attacker);
 }
 
-#page-calc .battle-grid > .ui-frame.def .panel-tag,
-#page-calc.sides-swapped .battle-grid > .ui-frame.atk .panel-tag {
+#page-calc .battle-grid > .ui-panel.def .ui-panel-tag,
+#page-calc.sides-swapped .battle-grid > .ui-panel.atk .ui-panel-tag {
   background: var(--calc-defender);
 }
 
-#page-calc .battle-grid > .ui-frame > .ui-frame-body {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 24px;
-}
-
-#page-calc .swap-sides {
+#page-calc .calc-side-swap-button {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -216,23 +148,23 @@
   place-items: center;
 }
 
-#page-calc .swap-sides:hover,
-#page-calc .swap-sides:focus-visible {
+#page-calc .calc-side-swap-button:hover,
+#page-calc .calc-side-swap-button:focus-visible {
   background: #374151;
   color: #ffffff;
   transform: translate(-50%, -50%) scale(1.04);
 }
 
-#page-calc .swap-sides .label {
+#page-calc .calc-side-swap-button .label {
   display: none;
 }
 
-#page-calc .swap-sides .icon {
+#page-calc .calc-side-swap-button .icon {
   font-size: 1.15rem;
   line-height: 1;
 }
 
-#page-calc .field,
+#page-calc .ui-field,
 #page-calc .calc-control-cell,
 #page-calc .compound-control,
 #page-calc .ability-toggle-cell,
@@ -240,12 +172,8 @@
   min-width: 0;
 }
 
-#page-calc .field {
-  margin-bottom: 0;
-}
-
-#page-calc .field label,
-#page-calc .field-label,
+#page-calc .ui-field:not(.tool-pokemon-field) > label,
+#page-calc .ui-field:not(.tool-pokemon-field) > .ui-field-label,
 #page-calc .calc-control-label {
   display: block;
   margin-bottom: var(--ui-field-stack-gap);
@@ -258,132 +186,74 @@
   text-transform: none;
 }
 
-#page-calc .pokemon-field {
-  position: relative;
-}
-
-#page-calc .pokemon-field-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ui-field-label-gap);
-  min-height: var(--ui-field-head-height);
-  margin-bottom: var(--ui-field-stack-gap);
-}
-
-#page-calc .pokemon-field-head .field-label {
-  display: flex;
-  align-items: center;
-  min-height: var(--ui-field-head-height);
-  margin-bottom: 0;
-}
-
-#page-calc .pokemon-actions {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: var(--ui-field-stack-gap);
-}
-
-#page-calc .ft-jump-btn {
+#page-calc .calc-page-jump-button {
   border-color: var(--calc-line);
   border-radius: var(--ui-label-action-radius);
   background: #ffffff;
   color: var(--calc-muted);
 }
 
-#page-calc .ft-jump-btn:hover {
-  background: #eef2ff;
-  border-color: #c7d2fe;
-  color: #4338ca;
-}
-
-#page-calc .pokemon-select .cb-input {
-  height: var(--ui-control-height);
-  min-height: var(--ui-control-height);
-  padding-right: 30px;
-  overflow: hidden;
-  font-size: 13px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#page-calc .pokemon-meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  gap: var(--ui-control-grid-gap) var(--ui-field-label-gap);
-  min-height: var(--ui-field-meta-min-height);
-  margin-top: var(--ui-field-meta-margin-top);
-}
-
-#page-calc .pokemon-meta-row .type-edit-row {
-  min-width: 0;
+#page-calc .calc-page-jump-button:hover,
+#page-calc .calc-page-jump-button:focus-visible {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
+  outline: 0;
 }
 
 #page-calc .calc-pair-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--ui-field-row-gap);
 }
 
 #page-calc .calc-pair-grid > * {
   min-width: 0;
 }
 
-#page-calc .condition-toggle {
-  height: var(--ui-control-height);
-  min-height: var(--ui-control-height);
-  padding: 0 12px;
-  border: 1px solid var(--calc-line);
-  border-radius: 8px;
-  background: var(--calc-control-bg);
-  color: var(--calc-text);
-  font-weight: 800;
-  white-space: nowrap;
+#page-calc :where(
+  .battle-field-select-frame,
+  .calc-field-effects-frame,
+  .calc-mold-breaker-info,
+  .calc-speed-row,
+  .calc-result-grid
+).ui-control-frame.ui-subframe {
+  padding: var(--ui-subframe-content-padding);
+  border-color: var(--border);
+  background: var(--ui-subframe-bg);
+  box-shadow: var(--ui-frame-shadow);
 }
 
-#page-calc .condition-toggle:hover {
-  background: var(--calc-control-hover);
-}
-
-#page-calc .field-row .field-grid {
+#page-calc .battle-field-select-frame {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--ui-control-grid-gap);
   align-items: end;
   width: 100%;
   min-width: 0;
 }
 
-#page-calc .field-row .field-grid > .field,
-#page-calc .field-row .field-combobox {
+#page-calc .battle-field-select-frame > .ui-field,
+#page-calc .battle-field-select-frame .ui-choice-combobox {
   min-width: 0;
 }
 
-#page-calc .field-row .field-grid .field-label {
+#page-calc .battle-field-select-frame .ui-field-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-#page-calc .field-row .field-grid .cb-trigger {
+#page-calc .battle-field-select-frame .cb-trigger {
   height: var(--ui-control-height);
   min-height: var(--ui-control-height);
 }
 
-#page-calc .field-checkbox-grid {
+#page-calc .calc-field-effects-frame {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--ui-control-grid-gap);
-  padding-top: 8px;
-  border-top: 1px solid var(--ui-divider-color);
 }
 
-#page-calc .checkbox-label {
+#page-calc .ui-check {
   min-height: var(--ui-check-card-min-height);
   padding: var(--ui-check-card-padding);
   gap: var(--ui-check-card-gap);
@@ -393,31 +263,30 @@
   color: var(--calc-text);
 }
 
-#page-calc .checkbox-label input {
+#page-calc .ui-check input {
   flex: 0 0 auto;
-  margin: 0;
 }
 
-#page-calc .checkbox-label span {
+#page-calc .ui-check span {
   min-width: auto;
   overflow: visible;
   text-overflow: clip;
 }
 
-#page-calc .checkbox-label.spikes {
+#page-calc .ui-check.spikes {
   height: var(--ui-check-card-min-height);
   min-height: var(--ui-check-card-min-height);
   padding: 0 8px 0 10px;
   gap: 6px;
 }
 
-#page-calc .checkbox-label.spikes .field-inline-combobox {
+#page-calc .ui-check.spikes .calc-spikes-layer-combobox {
   width: var(--ui-check-inline-width);
   height: var(--ui-check-inline-height);
   flex: 0 0 var(--ui-check-inline-width);
 }
 
-#page-calc .checkbox-label.spikes .field-inline-input {
+#page-calc .ui-check.spikes .calc-spikes-layer-input {
   height: var(--ui-check-inline-height) !important;
   min-height: var(--ui-check-inline-height) !important;
   line-height: var(--ui-check-inline-height) !important;
@@ -428,8 +297,8 @@
   text-align: center;
 }
 
-#page-calc input[type="text"],
-#page-calc input[type="number"],
+#page-calc input[type="text"]:not(.tool-stat-point-input),
+#page-calc input[type="number"]:not(.tool-stat-point-input),
 #page-calc select {
   min-height: var(--ui-control-height);
   border: 1px solid var(--calc-line);
@@ -442,11 +311,11 @@
   box-shadow: none;
 }
 
-#page-calc input[type="text"]:focus,
-#page-calc input[type="number"]:focus,
+#page-calc input[type="text"]:not(.tool-stat-point-input):focus,
+#page-calc input[type="number"]:not(.tool-stat-point-input):focus,
 #page-calc select:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.16);
+  border-color: var(--ui-control-focus-border);
+  box-shadow: var(--ui-control-focus-ring);
 }
 
 #page-calc .calc-control-cell {
@@ -477,18 +346,15 @@
   display: grid;
   width: 100%;
   min-width: 0;
-  gap: var(--ui-control-grid-gap);
   align-items: center;
 }
 
 #page-calc .ability-toggle-cell {
   grid-template-columns: minmax(0, 1fr);
-  gap: 0;
 }
 
 #page-calc .ability-toggle-cell:has(.manual-ability-toggle) {
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--ui-control-grid-gap);
 }
 
 #page-calc .ability-toggle-cell .manual-ability-spacer,
@@ -510,6 +376,7 @@
 
 #page-calc .hp-status-cell {
   grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
 }
 
 #page-calc .calc-control-cell .combobox-options {
@@ -534,6 +401,7 @@
   line-height: 1;
 }
 
+#page-calc .ui-field:not(.tool-pokemon-field) label.hp-inline-control,
 #page-calc .hp-status-cell .hp-inline-control {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -548,9 +416,9 @@
   color: var(--calc-text);
 }
 
-#page-calc .hp-status-cell .hp-inline-control:focus-within {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.16);
+#page-calc .hp-status-cell .tool-settings-hp-control:focus-within {
+  border-color: var(--ui-control-focus-border) !important;
+  box-shadow: var(--ui-control-focus-ring);
 }
 
 #page-calc .hp-status-cell .hp-inline-control .hp-percent-input {
@@ -562,8 +430,9 @@
   background: transparent !important;
   box-shadow: none !important;
   color: var(--calc-text);
-  font-family: "Fira Code", "Noto Sans KR", monospace;
-  font-weight: 700;
+  font-family: inherit;
+  font-size: var(--ui-control-font-size);
+  font-weight: var(--ui-control-font-weight);
   text-align: center;
 }
 
@@ -581,13 +450,16 @@
   box-shadow: none !important;
 }
 
-#page-calc .hp-status-cell .hp-inline-control span {
-  display: block;
+#page-calc .hp-status-cell .hp-inline-control .ui-inline-number-unit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-left: 4px;
   color: var(--calc-muted);
   font-size: 0.8rem;
   font-weight: 800;
   line-height: 1;
+  white-space: nowrap;
 }
 
 #page-calc .combobox-option {
@@ -607,21 +479,22 @@
 
 #page-calc .combobox-option:hover,
 #page-calc .combobox-option.active {
-  background: #eef2ff;
+  background: var(--ui-option-hover-bg);
 }
 
 #page-calc .types-display {
   margin-top: 10px;
 }
 
-#page-calc .pokemon-meta-row .type-edit-row {
+#page-calc .tool-pokemon-meta-actions .type-edit-row {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
+  min-width: 0;
   gap: 6px;
 }
 
-#page-calc .pokemon-meta-row .type-pill-combobox {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox {
   display: inline-flex;
   align-items: center;
   width: 62px;
@@ -631,13 +504,13 @@
   color: #ffffff;
 }
 
-#page-calc .pokemon-meta-row .type-pill-combobox.type-none {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox.type-none {
   border: 1px solid var(--calc-line);
   background: #f1f5f9;
   color: var(--calc-muted);
 }
 
-#page-calc .pokemon-meta-row .type-pill-combobox .cb-input {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox .cb-input {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -651,37 +524,53 @@
   color: inherit !important;
   box-shadow: none !important;
   font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: var(--ui-type-pill-font-size);
+  font-weight: var(--ui-type-pill-font-weight);
   line-height: 1 !important;
   text-align: center;
 }
 
-#page-calc .pokemon-meta-row .type-pill-combobox .cb-trigger {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox .cb-trigger {
   align-items: center;
   justify-content: center;
 }
 
-#page-calc .pokemon-meta-row .type-pill-combobox::after {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox::after {
   top: 13px;
   right: 5px;
   color: currentColor;
   opacity: 0.72;
 }
 
-#page-calc .pokemon-meta-row .type-reset-btn {
+#page-calc .tool-pokemon-meta-actions .type-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 58px;
   height: 26px;
-  padding: 0 9px;
+  padding: 0 10px;
   border: 1px solid var(--calc-line);
   border-radius: 4px;
   background: #ffffff;
   color: var(--calc-muted);
   font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: var(--ui-type-pill-font-size);
+  font-weight: var(--ui-type-pill-font-weight);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-#page-calc .pokemon-meta-row .form-switch-row {
+#page-calc .tool-pokemon-meta-actions .type-reset-btn:hover,
+#page-calc .tool-pokemon-meta-actions .type-reset-btn:focus-visible {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
+  outline: 0;
+}
+
+#page-calc .tool-pokemon-meta-actions .form-switch-row {
   display: inline-flex;
   flex: 0 1 auto;
   align-items: center;
@@ -690,100 +579,43 @@
   margin-left: auto;
 }
 
-#page-calc .pokemon-meta-row .form-switch-combobox {
-  width: 132px;
-  height: 26px;
-}
-
-#page-calc .pokemon-meta-row .form-switch-combobox::after {
-  top: 13px;
-  right: 8px;
-}
-
-#page-calc .pokemon-meta-row .form-switch-combobox .form-switch-btn {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  height: 26px;
-  min-height: 26px !important;
-  padding: 0 22px 0 9px !important;
-  border: 1px solid var(--calc-line);
-  border-radius: 4px;
-  background: #ffffff;
-  color: var(--calc-muted);
-  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1;
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#page-calc .pokemon-meta-row .form-switch-combobox .form-switch-btn:hover {
-  border-color: #c7d2fe;
-  background: #eef2ff;
-  color: #4338ca;
-}
-
-#page-calc .pokemon-meta-row .form-switch-combobox .combobox-options {
-  left: auto;
-  right: 0;
-  width: max-content;
-  min-width: 132px;
-}
-
-#page-calc .pokemon-meta-row .form-switch-combobox .combobox-option {
-  min-width: 132px;
-}
-
-#page-calc .pokemon-meta-row .type-pill-combobox .combobox-options {
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox .combobox-options {
   min-width: 92px;
 }
 
-#page-calc .ev-field-head {
+#page-calc .calc-stat-panel-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
   width: 100%;
-  margin-bottom: 10px;
 }
 
-#page-calc .ev-field-head .field-label {
-  margin-bottom: 0;
-}
-
-#page-calc .ev-field {
+#page-calc .calc-stat-panel {
   position: relative;
 }
 
-#page-calc .ev-title-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-#page-calc .ev-preset-toggle {
+#page-calc .calc-stat-preset-toggle {
+  height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
   border-color: var(--calc-line);
   border-radius: var(--ui-label-action-radius);
   background: #ffffff;
   color: var(--calc-muted);
 }
 
-#page-calc .ev-preset-toggle:hover,
-#page-calc .ev-preset-toggle:focus-visible,
-#page-calc .ev-preset-shell.is-preset-open .ev-preset-toggle {
+#page-calc .calc-stat-preset-toggle:hover,
+#page-calc .calc-stat-preset-toggle:focus-visible,
+#page-calc .calc-stat-preset-shell.is-preset-open .calc-stat-preset-toggle {
   border-color: #c7d2fe;
   background: #eef2ff;
   color: #4338ca;
   outline: 0;
 }
 
-#page-calc .ev-total {
-  gap: 8px;
+#page-calc .calc-stat-total {
+  gap: var(--tool-stat-total-gap, 6px);
+  height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
   min-width: 112px;
   border-color: var(--calc-line-soft);
   border-radius: var(--ui-label-action-radius);
@@ -792,43 +624,42 @@
   font-family: "Fira Code", "Noto Sans KR", ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
-#page-calc .ev-total b {
+#page-calc .calc-stat-total b {
   color: var(--calc-text);
   font-family: inherit;
   font-size: inherit;
   font-weight: 900;
 }
 
-#page-calc .ev-total.over {
+#page-calc .calc-stat-total.over {
   border-color: rgb(220 38 38 / 0.36);
   background: rgb(254 242 242 / 0.88);
   color: #dc2626;
 }
 
-#page-calc .ev-control-layout {
+#page-calc .calc-stat-body {
   display: block;
   width: 100%;
 }
 
-#page-calc .stat-grid {
+#page-calc .calc-stat-grid {
   display: grid;
+  --calc-stat-name-label-width: 32px;
+  --calc-stat-nature-width: 12px;
+  --calc-stat-name-gap: 3px;
   grid-template-columns:
     minmax(60px, 0.64fr)
     minmax(46px, 0.45fr)
-    minmax(154px, 1.65fr)
+    minmax(170px, 1.8fr)
     minmax(58px, 0.55fr)
-    minmax(108px, 1.18fr);
+    minmax(92px, 1.02fr);
   gap: 6px 10px;
   align-items: center;
   align-content: start;
   width: 100%;
-  padding: 9px;
-  border: 1px solid var(--calc-line-soft);
-  border-radius: 10px;
-  background: #fbfdff;
 }
 
-#page-calc .stat-table-head {
+#page-calc .calc-stat-head {
   display: flex;
   align-items: center;
   min-height: 18px;
@@ -836,26 +667,33 @@
   border-bottom: 1px solid var(--calc-line-soft);
   color: var(--calc-muted);
   font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.74rem;
   font-weight: 900;
   letter-spacing: 0;
   white-space: nowrap;
 }
 
-#page-calc .stat-table-head:nth-child(1),
-#page-calc .stat-table-head:nth-child(2),
-#page-calc .stat-table-head:nth-child(3),
-#page-calc .stat-table-head:nth-child(4),
-#page-calc .stat-table-head:nth-child(5) {
+#page-calc .calc-stat-head:nth-child(2),
+#page-calc .calc-stat-head:nth-child(3),
+#page-calc .calc-stat-head:nth-child(4),
+#page-calc .calc-stat-head:nth-child(5) {
   justify-content: center;
 }
 
-#page-calc .stat-name {
+#page-calc .calc-stat-head:nth-child(1) {
   display: grid;
-  grid-template-columns: 32px 12px;
+  grid-template-columns: var(--calc-stat-name-label-width, 32px) var(--calc-stat-nature-width, 12px);
+  justify-content: center;
+  justify-items: center;
+  column-gap: var(--calc-stat-name-gap, 3px);
+}
+
+#page-calc .calc-stat-name {
+  display: grid;
+  grid-template-columns: var(--calc-stat-name-label-width, 32px) var(--calc-stat-nature-width, 12px);
   align-items: center;
   justify-content: center;
-  column-gap: 3px;
+  column-gap: var(--calc-stat-name-gap, 3px);
   box-sizing: border-box;
   padding-left: 0;
   color: var(--calc-muted);
@@ -868,9 +706,9 @@
   white-space: nowrap;
 }
 
-#page-calc .stat-name-text {
+#page-calc .calc-stat-name-text {
   display: block;
-  min-width: 32px;
+  min-width: var(--calc-stat-name-label-width, 32px);
   text-align: center;
 }
 
@@ -878,7 +716,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 12px;
+  width: var(--calc-stat-nature-width, 12px);
   font-size: 0.62rem;
   line-height: 1;
 }
@@ -895,219 +733,36 @@
   visibility: hidden;
 }
 
-#page-calc .ev-input-group {
-  display: grid;
-  grid-template-columns: var(--calc-ev-btn) var(--calc-ev-input) var(--calc-ev-btn);
-  height: var(--calc-stat-control-h);
-  gap: var(--calc-ev-gap);
-  align-items: center;
-  justify-content: center;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+#page-calc .calc-stat-grid {
+  --tool-stat-control-border: 1px solid var(--border);
+  --tool-stat-control-hover-border: var(--border-bright);
+  --tool-stat-control-focus-border: var(--tool-accent, var(--border-bright));
+  --tool-stat-focus-ring: var(--focus-ring);
+  --tool-stat-button-bg: var(--ui-action-bg);
+  --tool-stat-button-hover-bg: var(--ui-action-hover-bg);
+  --tool-stat-button-focus-bg: var(--ui-action-bg);
+  --tool-stat-input-bg: var(--ui-control-bg);
+  --tool-stat-input-hover-bg: var(--bg-input);
+  --tool-stat-input-focus-bg: var(--ui-control-bg);
+  --tool-stat-input-color: var(--calc-text);
+  --tool-stat-rank-value-color: var(--calc-text);
+  --tool-stat-base-color: var(--calc-muted);
+  --tool-stat-final-color: var(--calc-text);
+  --tool-stat-positive-color: #dc2626;
+  --tool-stat-negative-color: #2563eb;
 }
 
-#page-calc .ev-input-group:focus-within,
-#page-calc .panel.atk .ev-input-group:focus-within,
-#page-calc .panel.def .ev-input-group:focus-within {
-  border: 0;
-  outline: 0;
-  box-shadow: none;
-}
-
-#page-calc .ev-input-group .ev-quick {
-  display: inline-grid;
-  place-items: center;
-  box-sizing: border-box;
-  width: var(--calc-ev-btn);
-  height: calc(var(--calc-stat-control-h) - 2px);
-  min-height: calc(var(--calc-stat-control-h) - 2px);
-  padding: 0;
-  outline: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--ui-stat-control-radius);
-  background: #ffffff;
-  color: var(--text-dim);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: clamp(0.68rem, 0.85vw, 0.74rem);
-  font-weight: 900;
-  box-shadow: none;
-  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease, color 0.14s ease;
-}
-
-#page-calc .ev-input-group .ev-quick:hover {
-  border-color: var(--border-bright);
-  background: #f8fafc;
-  color: var(--text);
-  outline: 0;
-  box-shadow: none;
-}
-
-#page-calc .ev-input-group .ev-quick:focus,
-#page-calc .ev-input-group .ev-quick:focus-visible,
-#page-calc .ev-input-group .ev-quick:active {
-  outline: 0;
-  border-color: var(--border-bright);
-  background: #ffffff;
-  box-shadow: var(--focus-ring);
-}
-
-#page-calc .ev-input-group .ev-inline-control {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--calc-ev-input);
-  height: calc(var(--calc-stat-control-h) - 2px);
-  min-height: calc(var(--calc-stat-control-h) - 2px);
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--ui-stat-control-radius);
-  background: #ffffff;
+#page-calc .calc-stat-base,
+#page-calc .calc-stat-final {
   color: var(--calc-text);
-  box-sizing: border-box;
-  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
-}
-
-#page-calc .ev-input-group .ev-inline-control:hover {
-  border-color: var(--border-bright);
-  background: #f8fafc;
-}
-
-#page-calc .ev-input-group .ev-inline-control:focus-within {
-  border-color: var(--tool-accent, var(--border-bright));
-  background: #ffffff;
-  box-shadow: var(--focus-ring);
-}
-
-#page-calc .ev-input {
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  padding: 0 2px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--calc-text);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: clamp(0.72rem, 0.86vw, 0.8rem);
-  font-weight: 900;
-  line-height: calc(var(--calc-stat-control-h) - 2px);
-  outline: 0;
-  box-shadow: none;
-  text-align: center;
-  appearance: textfield;
-}
-
-#page-calc .stat-grid .ev-input:focus,
-#page-calc .stat-grid .ev-input:focus-visible,
-#page-calc .stat-grid .ev-input:active {
-  outline: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-#page-calc .stat-rank-btns {
-  display: grid;
-  grid-template-columns: var(--calc-rank-btn) var(--calc-rank-val) var(--calc-rank-btn);
-  height: var(--calc-stat-control-h);
-  gap: var(--calc-rank-gap);
-  align-items: center;
-  justify-content: center;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-#page-calc .stat-rank-btns button {
-  display: inline-grid;
-  place-items: center;
-  box-sizing: border-box;
-  width: var(--calc-rank-btn);
-  height: calc(var(--calc-stat-control-h) - 2px);
-  min-height: calc(var(--calc-stat-control-h) - 2px);
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--ui-stat-control-radius);
-  background: #ffffff;
-  color: var(--text-dim);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: clamp(0.68rem, 0.85vw, 0.74rem);
-  font-weight: 900;
-  outline: 0;
-  box-shadow: none;
-  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease, color 0.14s ease;
-}
-
-#page-calc .stat-rank-btns button:hover {
-  border-color: var(--border-bright);
-  background: #f8fafc;
-  color: var(--text);
-}
-
-#page-calc .stat-rank-btns button:focus,
-#page-calc .stat-rank-btns button:focus-visible,
-#page-calc .stat-rank-btns button:active {
-  outline: 0;
-  border-color: var(--border-bright);
-  background: #ffffff;
-  box-shadow: var(--focus-ring);
-}
-
-#page-calc .stat-rank-val {
-  display: grid;
-  box-sizing: border-box;
-  width: var(--calc-rank-val);
-  height: var(--calc-stat-control-h);
-  min-height: var(--calc-stat-control-h);
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--calc-text);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: clamp(0.78rem, 0.9vw, 0.84rem);
-  font-weight: 900;
-  place-items: center;
-  line-height: 1;
-}
-
-#page-calc .stat-rank-empty {
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  height: var(--calc-stat-control-h);
-  min-height: var(--calc-stat-control-h);
-  border: 0;
-  background: transparent;
-}
-
-#page-calc .stat-rank-val.up {
-  color: #dc2626;
-}
-
-#page-calc .stat-rank-val.down {
-  color: #2563eb;
-}
-
-#page-calc .stat-base,
-#page-calc .stat-final {
-  color: var(--calc-text);
-  font-size: 0.94rem;
-  font-weight: 900;
   text-align: center;
 }
 
-#page-calc .stat-base {
+#page-calc .calc-stat-base {
   color: var(--calc-muted);
-  font-size: 0.82rem;
 }
 
-#page-calc .ev-presets {
+#page-calc .calc-stat-preset-menu {
   display: flex;
   flex-direction: column;
   align-self: stretch;
@@ -1120,7 +775,7 @@
   background: var(--calc-control-bg);
 }
 
-#page-calc .ev-preset-popover {
+#page-calc .calc-stat-preset-popover {
   position: absolute;
   left: 0;
   top: 40px;
@@ -1130,16 +785,16 @@
   filter: drop-shadow(0 18px 32px rgb(15 23 42 / 0.18));
 }
 
-#page-calc .ev-preset-shell.is-preset-open .ev-preset-popover {
+#page-calc .calc-stat-preset-shell.is-preset-open .calc-stat-preset-popover {
   display: block;
 }
 
-#page-calc .ev-preset-popover .ev-presets {
+#page-calc .calc-stat-preset-popover .calc-stat-preset-menu {
   border-color: #c7d2fe;
   background: #ffffff;
 }
 
-#page-calc .ev-presets-label {
+#page-calc .calc-stat-preset-label {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1152,11 +807,11 @@
   text-transform: none;
 }
 
-#page-calc .ev-presets-label.secondary {
+#page-calc .calc-stat-preset-label--secondary {
   margin-top: 8px;
 }
 
-#page-calc .ev-presets-label .reset-btn {
+#page-calc .calc-stat-preset-label .calc-stat-reset-button {
   min-height: 26px;
   padding: 0 9px;
   border: 1px solid var(--calc-line);
@@ -1169,29 +824,29 @@
   cursor: pointer;
 }
 
-#page-calc .ev-presets-label .reset-btn:hover {
+#page-calc .calc-stat-preset-label .calc-stat-reset-button:hover {
   border-color: #c7d2fe;
   background: #eef2ff;
   color: #4338ca;
 }
 
-#page-calc .ev-presets-row,
-#page-calc .ev-presets-row.natures {
+#page-calc .calc-stat-preset-row,
+#page-calc .calc-stat-preset-row--natures {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   margin: 0;
 }
 
-#page-calc .ev-presets-row:not(.natures) {
+#page-calc .calc-stat-preset-row:not(.calc-stat-preset-row--natures) {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-#page-calc .ev-presets-row.natures {
+#page-calc .calc-stat-preset-row--natures {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-#page-calc .ev-preset-btn {
+#page-calc .calc-stat-preset-option {
   position: relative;
   min-height: 31px;
   padding: 0 5px;
@@ -1206,19 +861,19 @@
   white-space: nowrap;
 }
 
-#page-calc .ev-preset-btn.nature-btn {
+#page-calc .calc-stat-preset-option.calc-stat-nature-option {
   font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 0.7rem;
   letter-spacing: 0;
 }
 
-#page-calc .ev-presets-row.natures .ev-preset-btn {
+#page-calc .calc-stat-preset-row--natures .calc-stat-preset-option {
   min-height: 30px;
   padding: 0 3px;
   font-size: 0.66rem;
 }
 
-#page-calc .ev-preset-btn[data-tooltip]::after {
+#page-calc .calc-stat-preset-option[data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
   left: 50%;
@@ -1246,283 +901,29 @@
   transition: opacity 0.12s ease, transform 0.12s ease;
 }
 
-#page-calc .ev-preset-btn[data-tooltip]:hover::after,
-#page-calc .ev-preset-btn[data-tooltip]:focus-visible::after {
+#page-calc .calc-stat-preset-option[data-tooltip]:hover::after,
+#page-calc .calc-stat-preset-option[data-tooltip]:focus-visible::after {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
 }
 
-#page-calc .ev-preset-btn:hover {
+#page-calc .calc-stat-preset-option:hover {
   background: #eef2ff;
   color: #4338ca;
 }
 
-#page-calc .ev-preset-btn.active {
+#page-calc .calc-stat-preset-option.active {
   border-color: #c7d2fe;
   background: #eef2ff;
   color: #4338ca;
 }
 
-#page-calc .moves-list {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: 100%;
-  min-width: 0;
-}
-
-#page-calc .move-section {
-  margin-top: 0;
-  padding: 9px;
-  border: 1px solid var(--calc-line-soft);
-  border-radius: 10px;
-  background: #fbfdff;
-}
-
-#page-calc .move-list-header {
-  display: grid;
-  width: 100%;
-  min-width: 0;
-  grid-template-columns: 24px minmax(0, 1fr) clamp(54px, 11%, 64px) clamp(54px, 11%, 64px) clamp(74px, 16%, 96px);
-  column-gap: 6px;
-  align-items: center;
-  min-height: 16px;
-  margin-bottom: -2px;
-  color: var(--calc-muted);
-  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.68rem;
-  font-weight: 900;
-  line-height: 1;
-  user-select: none;
-}
-
-#page-calc .move-list-header span {
-  min-width: 0;
-}
-
-#page-calc .move-list-header span:last-child {
-  grid-column: 5;
-  text-align: center;
-}
-
-#page-calc .move-slot {
-  display: grid;
-  width: 100%;
-  min-width: 0;
-  grid-template-columns: 24px minmax(0, 1fr) clamp(54px, 11%, 64px) clamp(54px, 11%, 64px) clamp(74px, 16%, 96px);
-  grid-template-rows: var(--calc-move-control-h);
-  grid-auto-rows: var(--calc-move-control-h);
-  grid-template-areas: none;
-  column-gap: 6px;
-  row-gap: 0;
-  align-items: center;
-  justify-content: stretch;
-  margin: 0;
-  padding: 0;
-  border-bottom: 0;
-}
-
-#page-calc .move-slot > * {
-  grid-area: auto;
-  min-width: 0;
-  grid-row: 1;
-  align-self: center;
-}
-
-#page-calc .move-slot-num {
-  grid-column: 1;
-}
-
-#page-calc .move-select {
-  grid-column: 2;
-  width: 100%;
-  min-width: 0;
-}
-
-#page-calc .move-type-control {
-  grid-column: 3;
-  width: 100%;
-  min-width: 0;
-}
-
-#page-calc .move-bp-control {
-  grid-column: 4;
-  width: 100%;
-  min-width: 0;
-}
-
-#page-calc .move-stat-info {
-  grid-column: 5;
-  width: 100%;
-  min-width: 0;
-}
-
-#page-calc .move-slot-num {
-  color: var(--calc-muted);
-  font-size: 0.78rem;
-  font-weight: 900;
-  text-align: center;
-}
-
-#page-calc .move-select .cb-input {
-  height: var(--calc-move-control-h) !important;
-  min-height: var(--calc-move-control-h) !important;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-#page-calc .move-type-control {
-  display: inline-flex;
-  align-items: center;
-  height: var(--calc-move-control-h);
-  min-height: var(--calc-move-control-h);
-  border: 0;
-  border-radius: 8px;
-  color: #ffffff;
-}
-
-#page-calc .move-type-control.type-none {
-  border: 1px solid var(--calc-line);
-  background: #f1f5f9;
-  color: var(--calc-muted);
-}
-
-#page-calc .move-type-control .cb-input {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: var(--calc-move-control-h) !important;
-  min-height: var(--calc-move-control-h) !important;
-  padding: 0 16px 0 6px !important;
-  border: 0 !important;
-  border-radius: 8px !important;
-  background: transparent !important;
-  color: inherit !important;
-  box-shadow: none !important;
-  font-size: 13px;
-  font-weight: 900;
-  line-height: 1 !important;
-  text-align: center;
-}
-
-#page-calc .move-type-control .cb-trigger {
-  align-items: center;
-  justify-content: center;
-}
-
-#page-calc .move-type-control::after {
-  top: 50%;
-  right: 6px;
-  transform: translateY(-50%);
-  color: currentColor;
-  opacity: 0.72;
-}
-
-#page-calc .move-type-control .combobox-options {
-  min-width: 92px;
-}
-
-#page-calc .field label.move-bp-control,
-#page-calc .move-bp-control {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: center;
-  justify-content: stretch;
-  gap: 0;
-  width: 100%;
-  min-width: 0;
-  height: var(--calc-move-control-h);
-  min-height: var(--calc-move-control-h);
-  margin: 0;
-  padding: 0 6px;
-  border: 1px solid var(--calc-line);
-  border-radius: 8px;
-  background: var(--calc-control-bg);
-  color: var(--calc-text);
-  line-height: 1;
-}
-
-#page-calc .move-bp-control:focus-within {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.16);
-}
-
-#page-calc .move-bp-control span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  margin: 0;
-  color: var(--calc-muted);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-#page-calc .move-bp-control .move-bp-input {
-  display: block;
-  width: 100% !important;
-  height: calc(var(--calc-move-control-h) - 2px) !important;
-  min-height: 0 !important;
-  min-height: 0;
-  padding: 0 !important;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  color: var(--calc-text);
-  font-family: "Fira Code", "Noto Sans KR", monospace;
-  font-size: 0.86rem !important;
-  font-weight: 800;
-  line-height: calc(var(--calc-move-control-h) - 2px) !important;
-  text-align: center;
-}
-
-#page-calc .move-select .cb-input {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#page-calc .move-bp-control .move-bp-input:focus {
-  box-shadow: none;
-}
-
-#page-calc .move-bp-control .move-bp-input:disabled {
-  color: var(--calc-muted);
-  opacity: 0.65;
-}
-
-#page-calc .move-stat-info {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  justify-self: stretch;
-  overflow: hidden;
-  height: var(--calc-move-control-h);
-  min-height: var(--calc-move-control-h);
-  width: 100%;
-  line-height: 1;
-  color: var(--calc-text);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 0.94rem;
-  font-weight: 900;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#page-calc .move-stat-info b {
-  color: inherit;
-  font: inherit;
-}
-
-#page-calc .move-results {
+#page-calc .calc-result-grid {
   gap: 7px;
 }
 
-#page-calc .move-card {
+#page-calc .calc-result-card {
   height: var(--calc-result-card-height);
   min-height: var(--calc-result-card-height);
   gap: 6px;
@@ -1531,65 +932,66 @@
   overflow: hidden;
 }
 
-#page-calc .move-card-main {
+#page-calc .calc-result-card-main {
   grid-template-rows: auto auto var(--calc-result-info-height);
   gap: 6px;
   min-height: 0;
 }
 
-#page-calc .move-card-top {
+#page-calc .calc-result-card-head {
   min-height: 46px;
   gap: 5px;
   padding-right: 100px;
   padding-bottom: 5px;
 }
 
-#page-calc .move-title-row {
+#page-calc .calc-result-title-row {
   gap: 7px;
 }
 
-#page-calc .move-card .move-slot-num {
+#page-calc .calc-result-card .calc-result-slot {
   width: 22px;
   height: 22px;
   flex-basis: 22px;
 }
 
-#page-calc .move-card .move-name {
+#page-calc .calc-result-card .calc-result-move-name {
   font-size: 14px;
   line-height: 1.22;
 }
 
-#page-calc .move-badges {
+#page-calc .calc-move-badges {
   gap: 3px;
 }
 
-#page-calc .move-badges .type-pill,
-#page-calc .move-badges .cat-badge,
-#page-calc .move-badges .stab-mark,
-#page-calc .move-badges .eff-badge {
+#page-calc .calc-move-badges .type-pill,
+#page-calc .calc-move-badges .cat-badge,
+#page-calc .calc-move-badges .calc-stab-badge,
+#page-calc .calc-move-badges .calc-effectiveness-badge,
+#page-calc .calc-move-badges .calc-move-meta-badge {
   min-height: 20px;
   padding: 0 6px;
 }
 
-#page-calc .dmg-range-box {
+#page-calc .calc-damage-range {
   gap: 5px;
   padding: 6px 7px;
 }
 
-#page-calc .dmg-pct {
+#page-calc .calc-damage-percent {
   font-size: 15px;
 }
 
-#page-calc .dmg-info {
+#page-calc .calc-damage-meta {
   height: var(--calc-result-info-height);
   min-height: var(--calc-result-info-height);
   max-height: var(--calc-result-info-height);
   gap: 3px 4px;
-  line-height: 1.28;
+  line-height: 1;
   overflow: hidden;
 }
 
-#page-calc .hko-badge {
+#page-calc .calc-ko-badge {
   top: 6px;
   right: 6px;
   min-width: 86px;
@@ -1598,17 +1000,17 @@
   padding: 5px 8px;
 }
 
-#page-calc .hko-main {
+#page-calc .calc-ko-main {
   font-size: 13px;
 }
 
-#page-calc .durability-grid {
+#page-calc .calc-stat-bulk-strip {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
-#page-calc .durability-grid.compact {
+#page-calc .calc-stat-bulk-strip--compact {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -1616,26 +1018,27 @@
   margin-top: 8px;
 }
 
-#page-calc .durability-card {
+#page-calc .calc-stat-bulk-card {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   min-width: 0;
-  min-height: 28px;
-  padding: 5px 10px;
+  height: var(--tool-stat-bulk-card-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-bulk-card-height, var(--ui-pokemon-action-height));
+  padding: var(--tool-stat-bulk-card-padding, 0 10px);
   border: 1px solid #e5e7eb;
   border-left: 0;
   border-radius: 999px;
   background: #f8fafc;
 }
 
-#page-calc .durability-card.phys,
-#page-calc .durability-card.spec {
+#page-calc .calc-stat-bulk-card.calc-stat-bulk-phys,
+#page-calc .calc-stat-bulk-card.calc-stat-bulk-spec {
   border-left: 0;
 }
 
-#page-calc .durability-card::before {
+#page-calc .calc-stat-bulk-card::before {
   content: "";
   width: 6px;
   height: 6px;
@@ -1644,157 +1047,88 @@
   background: #9ca3af;
 }
 
-#page-calc .durability-card.phys::before {
+#page-calc .calc-stat-bulk-card.calc-stat-bulk-phys::before {
   background: #b77945;
 }
 
-#page-calc .durability-card.spec::before {
+#page-calc .calc-stat-bulk-card.calc-stat-bulk-spec::before {
   background: #5277a3;
 }
 
-#page-calc .durability-card:nth-child(2) {
+#page-calc .calc-stat-bulk-card:nth-child(2) {
   background: #f8fafc;
 }
 
-#page-calc .durability-label {
+#page-calc .calc-stat-bulk-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--tool-stat-bulk-content-height, 16px);
   color: var(--calc-muted);
   font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 0.78rem;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: var(--tool-stat-bulk-content-height, 16px);
   letter-spacing: 0;
   white-space: nowrap;
 }
 
-#page-calc .durability-value {
+#page-calc .calc-stat-bulk-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--tool-stat-bulk-content-height, 16px);
   margin-top: 0;
   color: #334155;
   font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 0.82rem;
   font-weight: 900;
-  line-height: 1.05;
+  line-height: var(--tool-stat-bulk-content-height, 16px);
   text-align: center;
   white-space: nowrap;
 }
 
 @media (max-width: 1120px) {
-  #page-calc .stat-grid {
+  #page-calc .calc-stat-grid {
     grid-template-columns:
       minmax(54px, 0.62fr)
       minmax(40px, 0.42fr)
-      minmax(132px, 1.58fr)
+      minmax(154px, 1.68fr)
       minmax(52px, 0.56fr)
-      minmax(92px, 1.15fr);
+      minmax(88px, 1.02fr);
   }
 
-  #page-calc .move-slot {
-    grid-template-columns: 20px minmax(0, 1fr) clamp(50px, 11%, 58px) clamp(50px, 11%, 58px) clamp(66px, 16%, 84px);
-    grid-template-rows: var(--calc-move-control-h);
-    grid-auto-rows: var(--calc-move-control-h);
-    grid-template-areas: none;
-    column-gap: 6px;
-    row-gap: 0;
-    justify-content: stretch;
-    padding: 0;
-    border-bottom: 0;
-  }
-
-  #page-calc .move-list-header {
-    grid-template-columns: 20px minmax(0, 1fr) clamp(50px, 11%, 58px) clamp(50px, 11%, 58px) clamp(66px, 16%, 84px);
-  }
-
-  #page-calc .move-slot-num {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  #page-calc .move-select {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  #page-calc .move-bp-control {
-    grid-column: 4;
-    grid-row: 1;
-  }
-
-  #page-calc .move-stat-info {
-    grid-column: 5;
-    grid-row: 1;
-    justify-content: center;
-    height: var(--calc-move-control-h);
-    min-height: var(--calc-move-control-h);
-    padding-left: 0;
+  #page-calc .tool-move-panel {
+    --tool-move-index-width: 20px;
+    --tool-move-type-width: clamp(56px, 11%, 62px);
+    --tool-move-power-width: clamp(50px, 11%, 58px);
+    --tool-move-readout-width: clamp(66px, 16%, 84px);
   }
 }
 
 @media (max-width: 680px) {
-  #page-calc .move-list-header {
-    grid-template-columns: 18px minmax(0, 1fr) 56px 42px minmax(52px, 62px);
-    column-gap: 5px;
-    font-size: 0.62rem;
+  #page-calc .tool-move-panel {
+    --tool-move-index-width: 18px;
+    --tool-move-type-width: 56px;
+    --tool-move-power-width: 42px;
+    --tool-move-readout-width: minmax(52px, 62px);
+    --tool-move-column-gap: 5px;
+    --tool-move-type-input-padding: 0 14px 0 5px;
+    --tool-move-type-arrow-right: 4px;
+    --tool-move-head-font-size: 0.62rem;
+    --tool-move-name-font-size: 0.76rem;
+    --tool-move-type-font-size: 0.68rem;
+    --tool-move-power-font-size: 0.78rem;
+    --tool-move-readout-font-size: 0.76rem;
   }
 
-  #page-calc .move-slot {
-    grid-template-columns: 18px minmax(0, 1fr) 56px 42px minmax(52px, 62px);
-    grid-template-rows: var(--calc-move-control-h);
-    grid-auto-rows: var(--calc-move-control-h);
-    grid-template-areas: none;
-    column-gap: 5px;
-    row-gap: 0;
-    justify-content: stretch;
-    padding: 0;
-    border-bottom: 0;
-  }
-
-  #page-calc .move-select .cb-input {
-    height: var(--calc-move-control-h) !important;
-    min-height: var(--calc-move-control-h) !important;
+  #page-calc .tool-move-input {
     padding-left: 10px;
     padding-right: 22px;
-    font-size: 0.76rem;
   }
 
-  #page-calc .move-type-control {
-    height: var(--calc-move-control-h);
-    min-height: var(--calc-move-control-h);
-  }
-
-  #page-calc .move-type-control .cb-input {
-    height: var(--calc-move-control-h) !important;
-    min-height: var(--calc-move-control-h) !important;
-    padding-left: 5px !important;
-    padding-right: 13px !important;
-    font-size: 0.68rem;
-    line-height: 1 !important;
-  }
-
-  #page-calc .move-type-control::after {
-    top: 50%;
-    right: 4px;
-  }
-
-  #page-calc .move-bp-control {
-    grid-column: 4;
-    grid-row: 1;
-    height: var(--calc-move-control-h);
-    min-height: var(--calc-move-control-h);
+  #page-calc .tool-move-power-control {
     padding: 0 4px;
-  }
-
-  #page-calc .move-bp-control .move-bp-input {
-    width: 100% !important;
-    height: calc(var(--calc-move-control-h) - 2px) !important;
-    line-height: calc(var(--calc-move-control-h) - 2px) !important;
-    font-size: 0.78rem !important;
-  }
-
-  #page-calc .move-stat-info {
-    grid-column: 5;
-    grid-row: 1;
-    height: var(--calc-move-control-h);
-    min-height: var(--calc-move-control-h);
-    font-size: 0.76rem;
   }
 
   #page-calc .pokemon-select .pokemon-option-header,
@@ -1866,7 +1200,7 @@
     grid-template-columns: 1fr;
   }
 
-  #page-calc .swap-sides {
+  #page-calc .calc-side-swap-button {
     position: relative;
     left: auto;
     top: auto;
@@ -1874,8 +1208,8 @@
     transform: rotate(90deg);
   }
 
-  #page-calc .swap-sides:hover,
-  #page-calc .swap-sides:focus-visible {
+  #page-calc .calc-side-swap-button:hover,
+  #page-calc .calc-side-swap-button:focus-visible {
     transform: rotate(90deg) scale(1.04);
   }
 
@@ -1883,49 +1217,37 @@
 
 @media (max-width: 680px) {
   #page-calc {
-    --calc-stat-control-h: 32px;
-    --calc-rank-btn: 22px;
-    --calc-rank-val: 24px;
-    --calc-rank-gap: 3px;
-    --calc-ev-btn: var(--calc-rank-btn);
-    --calc-ev-input: 34px;
-    --calc-ev-gap: var(--calc-rank-gap);
     --calc-move-control-h: var(--ui-control-height-compact);
     --calc-control-label-width: var(--ui-field-label-width-compact);
     --calc-control-gap: var(--ui-field-label-gap-compact);
   }
 
-  #page-calc .battle-grid > .ui-frame > .ui-frame-body {
-    padding: 16px;
-  }
-
-  #page-calc .ev-presets {
+  #page-calc .calc-stat-preset-menu {
     grid-template-columns: 1fr;
   }
 
-  #page-calc .durability-grid {
+  #page-calc .calc-stat-bulk-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
   }
 
-  #page-calc .durability-card {
+  #page-calc .calc-stat-bulk-card {
     gap: 5px;
     min-height: 28px;
     padding: 5px 8px;
   }
 
-  #page-calc .durability-label {
+  #page-calc .calc-stat-bulk-label {
     font-size: 0.72rem;
   }
 
-  #page-calc .durability-value {
+  #page-calc .calc-stat-bulk-value {
     margin-top: 0;
     font-size: 0.76rem;
   }
 
   #page-calc .calc-pair-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--ui-control-grid-gap);
   }
 
   #page-calc .calc-control-label {
@@ -1945,12 +1267,11 @@
     font-size: 0.78rem;
   }
 
-  #page-calc .field-row .field-grid {
+  #page-calc .battle-field-select-frame {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 5px;
   }
 
-  #page-calc .field-row .field-grid .cb-trigger {
+  #page-calc .battle-field-select-frame .cb-trigger {
     height: var(--ui-control-height-compact);
     min-height: var(--ui-control-height-compact);
     padding-left: 8px;
@@ -1977,7 +1298,7 @@
     font-size: 0.78rem;
   }
 
-  #page-calc .hp-status-cell .hp-inline-control span {
+  #page-calc .hp-status-cell .hp-inline-control .ui-inline-number-unit {
     margin-left: 2px;
     font-size: 0.7rem;
   }
@@ -2006,76 +1327,24 @@
     font-size: 0.64rem;
   }
 
-  #page-calc .stat-grid {
+  #page-calc .calc-stat-grid {
     grid-template-columns:
       minmax(46px, 0.62fr)
       minmax(34px, 0.42fr)
-      minmax(104px, 1.55fr)
+      minmax(124px, 1.55fr)
       minmax(42px, 0.56fr)
-      minmax(74px, 1.12fr);
+      minmax(72px, 0.96fr);
     gap: 6px;
     padding: 8px;
   }
 
-  #page-calc .stat-table-head {
+  #page-calc .calc-stat-head {
     min-height: 18px;
-    font-size: 0.64rem;
+    font-size: 0.68rem;
     padding-bottom: 1px;
   }
 
-  #page-calc .ev-input-group {
-    grid-template-columns: var(--calc-ev-btn) var(--calc-ev-input) var(--calc-ev-btn);
-    height: var(--calc-stat-control-h);
-    gap: var(--calc-ev-gap);
-  }
-
-  #page-calc .ev-input-group .ev-quick {
-    width: var(--calc-ev-btn);
-    height: calc(var(--calc-stat-control-h) - 2px);
-    min-height: calc(var(--calc-stat-control-h) - 2px);
-    font-size: 0.66rem;
-  }
-
-  #page-calc .ev-input-group .ev-inline-control {
-    width: var(--calc-ev-input);
-    height: calc(var(--calc-stat-control-h) - 2px);
-    min-height: calc(var(--calc-stat-control-h) - 2px);
-    padding: 0;
-  }
-
-  #page-calc .ev-input {
-    height: 100%;
-    min-height: 0;
-    padding: 0 2px;
-    font-size: 0.72rem;
-    line-height: calc(var(--calc-stat-control-h) - 2px);
-  }
-
-  #page-calc .stat-rank-btns {
-    grid-template-columns: var(--calc-rank-btn) var(--calc-rank-val) var(--calc-rank-btn);
-    height: var(--calc-stat-control-h);
-    gap: var(--calc-rank-gap);
-  }
-
-  #page-calc .stat-rank-btns button,
-  #page-calc .stat-rank-val,
-  #page-calc .stat-rank-empty {
-    height: var(--calc-stat-control-h);
-    min-height: var(--calc-stat-control-h);
-    font-size: 0.72rem;
-  }
-
-  #page-calc .stat-rank-btns button {
-    width: var(--calc-rank-btn);
-    height: calc(var(--calc-stat-control-h) - 2px);
-    min-height: calc(var(--calc-stat-control-h) - 2px);
-  }
-
-  #page-calc .stat-rank-val {
-    width: var(--calc-rank-val);
-  }
-
-  #page-calc .ev-total {
+  #page-calc .calc-stat-total {
     min-width: 96px;
     gap: 7px;
   }
@@ -2135,65 +1404,56 @@
     font-size: 0.54rem;
   }
 
-  #page-calc .stat-grid {
+  #page-calc .calc-stat-grid {
     grid-template-columns:
       minmax(44px, 0.62fr)
       minmax(32px, 0.42fr)
-      minmax(102px, 1.55fr)
+      minmax(122px, 1.55fr)
       minmax(40px, 0.56fr)
-      minmax(72px, 1.12fr);
+      minmax(70px, 0.96fr);
   }
 
-  #page-calc .ev-presets-row,
-  #page-calc .ev-presets-row:not(.natures) {
+  #page-calc .calc-stat-preset-row,
+  #page-calc .calc-stat-preset-row:not(.calc-stat-preset-row--natures) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  #page-calc .ev-presets-row.natures {
+  #page-calc .calc-stat-preset-row--natures {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 420px) {
-  #page-calc {
-    --calc-stat-control-h: 30px;
-    --calc-rank-btn: 20px;
-    --calc-rank-val: 20px;
-    --calc-rank-gap: 2px;
-    --calc-ev-btn: 20px;
-    --calc-ev-input: 32px;
-    --calc-ev-gap: 2px;
-  }
-
-  #page-calc .stat-grid {
+  #page-calc .calc-stat-grid {
+    --calc-stat-name-label-width: 28px;
+    --calc-stat-nature-width: 10px;
+    --calc-stat-name-gap: 1px;
     grid-template-columns:
       minmax(38px, 0.56fr)
       minmax(28px, 0.38fr)
-      minmax(76px, 1.08fr)
+      minmax(94px, 1.08fr)
       minmax(34px, 0.46fr)
-      minmax(64px, 0.82fr);
+      minmax(64px, 0.72fr);
     gap: 5px 3px;
     padding: 7px 6px;
   }
 
-  #page-calc .stat-table-head {
+  #page-calc .calc-stat-head {
     min-height: 16px;
     padding: 0 1px 1px;
-    font-size: 0.58rem;
+    font-size: 0.62rem;
   }
 
-  #page-calc .stat-name {
-    grid-template-columns: 28px 10px;
-    column-gap: 1px;
+  #page-calc .calc-stat-name {
     font-size: 0.7rem;
   }
 
-  #page-calc .stat-name-text {
-    min-width: 28px;
+  #page-calc .calc-stat-name-text {
+    min-width: var(--calc-stat-name-label-width, 28px);
   }
 
   #page-calc .nature-stat-mark {
-    width: 10px;
+    width: var(--calc-stat-nature-width, 10px);
   }
 
   #page-calc .hp-status-cell {
@@ -2210,36 +1470,32 @@
     font-size: 12px !important;
   }
 
-  #page-calc .hp-status-cell .hp-inline-control span {
+  #page-calc .hp-status-cell .hp-inline-control .ui-inline-number-unit {
     margin-left: 1px;
   }
 
-  #page-calc .move-list-header,
-  #page-calc .move-slot {
-    grid-template-columns: 18px minmax(0, 1fr) 38px 40px 38px;
-    column-gap: 4px;
+  #page-calc .tool-move-panel {
+    --tool-move-type-width: 46px;
+    --tool-move-power-width: 38px;
+    --tool-move-readout-width: 42px;
+    --tool-move-column-gap: 4px;
+    --tool-move-type-font-size: 0.64rem;
+    --tool-move-type-input-padding: 0 10px 0 4px;
+    --tool-move-type-arrow-right: 3px;
+    --tool-move-power-input-padding: 0 1px;
+    --tool-move-readout-font-size: 0.68rem;
   }
 
-  #page-calc .move-type-control .cb-trigger {
-    padding-right: 14px;
-    padding-left: 5px;
-    font-size: 0.68rem;
-  }
-
-  #page-calc .move-bp-control {
+  #page-calc .tool-move-power-control {
     padding-right: 2px;
     padding-left: 2px;
-  }
-
-  #page-calc .move-stat-info {
-    font-size: 0.68rem;
   }
 }
 
 /* Dropdown option grids need to be self-contained; the old base CSS used to
    provide some of this sizing before the calculator CSS diet. */
 #page-calc .pokemon-select .combobox-options,
-#page-calc .move-select .combobox-options {
+#page-calc .tool-move-combobox .combobox-options {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
@@ -2271,11 +1527,11 @@
   box-shadow: none;
 }
 
-#page-calc .panel.atk .pokemon-select .combobox-option.pokemon-option.selected {
+#page-calc .ui-panel.atk .pokemon-select .combobox-option.pokemon-option.selected {
   border-left-color: var(--atk);
 }
 
-#page-calc .panel.def .pokemon-select .combobox-option.pokemon-option.selected {
+#page-calc .ui-panel.def .pokemon-select .combobox-option.pokemon-option.selected {
   border-left-color: var(--def);
 }
 
@@ -2365,7 +1621,7 @@
   line-height: 1;
 }
 
-#page-calc .move-select .combobox-options {
+#page-calc .tool-move-combobox .combobox-options {
   left: 0;
   right: auto;
   width: min(330px, calc(100vw - 40px));
@@ -2400,17 +1656,14 @@
 }
 
 #page-calc .pokemon-select .cb-input,
-#page-calc .calc-control-cell .cb-input,
-#page-calc .move-select .cb-input,
-#page-calc .move-type-control .cb-input {
+#page-calc .calc-control-cell .cb-input {
   height: var(--ui-control-height) !important;
   min-height: var(--ui-control-height) !important;
   font-size: 13px;
   font-weight: 700;
 }
 
-#page-calc .hp-percent-input,
-#page-calc .move-bp-control .move-bp-input {
+#page-calc .hp-percent-input {
   font-size: 13px !important;
   font-weight: 700;
 }

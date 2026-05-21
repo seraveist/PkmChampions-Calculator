@@ -141,9 +141,9 @@ expectText(template, 'id="dexDetailBody"', 'template is missing dex modal body')
 expectText(template, 'id="dexDetailActions"', 'template is missing dex modal actions');
 expectText(template, 'id="partyPresetOpen"', 'template is missing party preset open button');
 expectText(template, 'data-party-import-target="matchup"', 'template is missing matchup party import target');
-expectText(calcUiSource, 'data-party-import-target="calc:${sideKey}"', 'damage calculator is missing side party import targets');
-expectText(viewSource, 'data-party-import-target="finetune:my"', 'fine-tune page is missing party import target');
-expectText(viewSource, 'data-party-import-target="revcalc:my"', 'reverse-calc page is missing party import target');
+expectPattern(calcUiSource, /['"]data-party-import-target['"]:\s*`calc:\$\{sideKey\}`/, 'damage calculator is missing side party import targets');
+expectPattern(viewSource, /['"]data-party-import-target['"]:\s*['"]finetune:my['"]/, 'fine-tune page is missing party import target');
+expectPattern(viewSource, /['"]data-party-import-target['"]:\s*['"]revcalc:my['"]/, 'reverse-calc page is missing party import target');
 
 expectPattern(viewSource, /if \(currentDex === 'items'\) openDexDetail\(t, id\);\s*else openDexDetailPage\(t, id\);/s, 'dex row click should route items to modal and other dex rows to full-page detail');
 expectPattern(viewSource, /navigateToDexDetailPage\(link\.dataset\.dexLink, link\.dataset\.id\);/, 'modal cross-links should navigate to detail pages');
