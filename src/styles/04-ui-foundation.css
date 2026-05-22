@@ -2670,6 +2670,10 @@ input[type="radio"]:focus-visible {
   flex: 0 0 auto;
 }
 
+.move-simple-option {
+  min-height: 36px;
+}
+
 .combobox-options::-webkit-scrollbar {
   width: 6px;
 }
@@ -4151,14 +4155,28 @@ body.party-preset-open {
   .party-preset-picker-head {
     align-items: flex-start;
     flex-direction: column;
-    min-height: 56px;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 0;
     padding: 10px 12px;
+    overflow: visible;
   }
 
   .party-preset-modal-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(106px, 1fr));
     width: 100%;
-    flex-wrap: wrap;
-    justify-content: flex-start;
+    gap: 7px;
+  }
+
+  .party-preset-status {
+    grid-column: 1 / -1;
+  }
+
+  .party-preset-action,
+  .party-preset-close {
+    width: 100%;
+    min-width: 0;
   }
 
   .party-preset-backup-note {

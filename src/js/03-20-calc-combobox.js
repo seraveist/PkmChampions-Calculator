@@ -235,6 +235,7 @@ function closeSiblingComboboxOptions(optsEl, control) {
 
 function calcComboboxShouldUsePortal(input, cbParent) {
   const type = input?.dataset?.cbType || '';
+  if (input?.dataset?.cbPortal === 'true') return true;
   return Boolean(cbParent?.closest?.('.tool-move-list-frame') && (type === 'move' || type === 'moveType'));
 }
 
@@ -257,11 +258,16 @@ function calcComboboxPortalWidth(input, type) {
   const rect = input.getBoundingClientRect();
   const viewportWidth = Math.max(240, window.innerWidth || document.documentElement.clientWidth || 0);
   const maxWidth = Math.max(120, viewportWidth - 16);
+  const compact = input?.dataset?.cbPortalSize === 'compact';
   if (type === 'move') {
+    if (compact) return Math.min(Math.max(rect.width, 220), 280, maxWidth);
     return Math.min(Math.max(rect.width, 300), 330, maxWidth);
   }
   if (type === 'moveType') {
     return Math.min(Math.max(rect.width, 92), 140, maxWidth);
+  }
+  if (type === 'pokemon') {
+    return Math.min(Math.max(rect.width, 260), 360, maxWidth);
   }
   return Math.min(rect.width, maxWidth);
 }
@@ -279,12 +285,18 @@ function calcPositionComboboxPortal(input, optsEl, type = '') {
   const width = calcComboboxPortalWidth(input, type);
   const left = Math.max(margin, Math.min(rect.left, viewportWidth - width - margin));
   const top = Math.max(margin, rect.bottom + 4);
-  const maxHeight = Math.max(96, Math.min(280, viewportHeight - top - margin));
+  const maxAllowedHeight = input?.dataset?.cbPortalSize === 'compact' ? 220 : 280;
+  const maxHeight = Math.max(96, Math.min(maxAllowedHeight, viewportHeight - top - margin));
   optsEl.style.left = `${left}px`;
   optsEl.style.top = `${top}px`;
   optsEl.style.right = 'auto';
   optsEl.style.width = `${width}px`;
-  optsEl.style.minWidth = `${Math.min(width, type === 'move' ? 300 : 92)}px`;
+  const minWidth = type === 'move'
+    ? (input?.dataset?.cbPortalSize === 'compact' ? 220 : 300)
+    : type === 'pokemon'
+      ? 240
+      : 92;
+  optsEl.style.minWidth = `${Math.min(width, minWidth)}px`;
   optsEl.style.maxWidth = `${viewportWidth - margin * 2}px`;
   optsEl.style.maxHeight = `${maxHeight}px`;
 }
@@ -321,10 +333,15 @@ function calcMountComboboxPortal(input, cbParent, optsEl) {
   optsEl.dataset.calcPortalSide = input.dataset.side || '';
   optsEl.dataset.calcPortalType = input.dataset.cbType || '';
   optsEl.dataset.calcPortalControl = input.id;
-  optsEl.classList.add(
-    'combobox-options-portal',
-    input.dataset.cbType === 'move' ? 'tool-move-options-portal' : 'tool-move-type-options-portal',
+  optsEl.classList.add('combobox-options-portal');
+  const portalClass = input.dataset.cbPortalClass || (
+    input.dataset.cbType === 'move'
+      ? 'tool-move-options-portal'
+      : input.dataset.cbType === 'moveType'
+        ? 'tool-move-type-options-portal'
+        : ''
   );
+  if (portalClass) optsEl.classList.add(portalClass);
   if (input.dataset.side === 'atk') optsEl.style.setProperty('--tool-combo-selected', 'var(--atk)');
   if (input.dataset.side === 'def') optsEl.style.setProperty('--tool-combo-selected', 'var(--def)');
   document.body.appendChild(optsEl);
@@ -406,6 +423,9 @@ function wireSharedComboboxKeyboard(control, optsEl, { showOptions, onSelect, ge
     optsEl.classList.add('open');
     control.setAttribute('aria-expanded', 'true');
     calcComboboxMarkOpened(control);
+    if (optsEl.classList.contains('combobox-options-portal')) {
+      calcPositionComboboxPortal(control, optsEl, optsEl.dataset.calcPortalType || control.dataset.cbType || '');
+    }
     const options = optionEls();
     options.forEach((option, index) => {
       if (!option.id) option.id = `${optsEl.id}-opt-${index}`;
@@ -528,6 +548,7 @@ function wirePokemonSelectCombobox(input, {
   const optsEl = cb?.querySelector('.combobox-options');
   if (!optsEl) return null;
   if (wiredKey) input.dataset[wiredKey] = '1';
+  const usesPortal = calcMountComboboxPortal(input, cb, optsEl);
 
   const isButtonTrigger = input.tagName === 'BUTTON';
   const currentId = () => getCurrentId(input) || '';
@@ -569,6 +590,10 @@ function wirePokemonSelectCombobox(input, {
     const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : fn => setTimeout(fn, 0);
     schedule(() => {
       if (typeof window === 'undefined' || typeof optsEl.getBoundingClientRect !== 'function') return;
+      if (usesPortal) {
+        calcPositionComboboxPortal(input, optsEl, optsEl.dataset.calcPortalType || input.dataset.cbType || '');
+        return;
+      }
       const rect = optsEl.getBoundingClientRect();
       const overflowRight = rect.right > window.innerWidth - 8;
       optsEl.style.left = overflowRight ? 'auto' : '';
@@ -763,6 +788,20 @@ function calcRenderSimplePokemonOption(option, currentId) {
     <div class="${optionClass}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}">
       <b class="pokemon-simple-option-name matchup-option-name">${escapeHTML(label)}</b>
       <small class="pokemon-simple-option-types matchup-option-types">${typeBadges}</small>
+    </div>
+  `;
+}
+
+function calcRenderSimpleMoveOption(option, currentId) {
+  const id = option?.id || '';
+  const label = option?.label || option?.koName || (id ? mvName(option) : '없음');
+  const selected = String(id) === String(currentId);
+  const optionClass = ['combobox-option', 'ui-option', 'move-simple-option', selected ? 'selected' : '']
+    .filter(Boolean)
+    .join(' ');
+  return `
+    <div class="${optionClass}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}">
+      <b>${escapeHTML(label)}</b>
     </div>
   `;
 }

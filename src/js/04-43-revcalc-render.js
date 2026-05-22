@@ -263,7 +263,7 @@ function renderRevCalcInputs() {
             <input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="100" placeholder="0~100">
           </label>
         </div>
-        <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
+        <div class="rc-side-condition-row rc-toggle-grid rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defReflect" ${revCalcState.observedFields.dealt.defReflect ? 'checked' : ''}> 상대 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.dealt.defLightScreen ? 'checked' : ''}> 상대 빛의장막</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="isCritical" ${revCalcState.observedFields.dealt.isCritical ? 'checked' : ''}> 내 공격 급소</label>
@@ -286,7 +286,7 @@ function renderRevCalcInputs() {
             ${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}
           </label>
         </div>
-        <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
+        <div class="rc-side-condition-row rc-toggle-grid rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defReflect" ${revCalcState.observedFields.received.defReflect ? 'checked' : ''}> 내 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.received.defLightScreen ? 'checked' : ''}> 내 빛의장막</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="isCritical" ${revCalcState.observedFields.received.isCritical ? 'checked' : ''}> 상대 공격 급소</label>
