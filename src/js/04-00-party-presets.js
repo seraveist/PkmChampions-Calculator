@@ -655,6 +655,8 @@ function openPartyPresetModal() {
   if (!modal) return;
   setPartyPresetStatus('');
   modal.hidden = false;
+  modal.scrollTop = 0;
+  document.getElementById('partyPresetBody')?.scrollTo({ top: 0, left: 0 });
   document.body.classList.add('party-preset-open');
 }
 
@@ -747,6 +749,8 @@ function openPartyPresetPicker(target) {
   const modal = document.getElementById('partyPresetPickerModal');
   if (!modal) return;
   modal.hidden = false;
+  modal.scrollTop = 0;
+  document.getElementById('partyPresetPickerBody')?.scrollTo({ top: 0, left: 0 });
   document.body.classList.add('party-preset-open');
 }
 

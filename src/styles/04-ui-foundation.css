@@ -3249,6 +3249,8 @@ input[type="radio"]:focus-visible {
 }
 
 .party-preset-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
   gap: 14px;
   padding: 14px;
@@ -3257,6 +3259,8 @@ input[type="radio"]:focus-visible {
 }
 
 .party-preset-picker-body {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
   gap: 10px;
   overflow-y: auto;
@@ -4142,22 +4146,34 @@ body.party-preset-open {
 
   .party-preset-modal-backdrop,
   .party-preset-picker-backdrop {
+    align-items: start;
+    justify-items: center;
+    place-items: start center;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 8px;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
   }
 
   .party-preset-modal,
   .party-preset-picker {
     width: calc(100vw - 16px);
+    max-height: calc(100svh - 16px);
     max-height: calc(100vh - 16px);
+    max-height: calc(100dvh - 16px);
+    min-height: 0;
   }
 
   .party-preset-modal-head,
   .party-preset-picker-head {
     align-items: flex-start;
     flex-direction: column;
-    flex-wrap: wrap;
-    height: auto;
-    min-height: 0;
+    flex-wrap: nowrap;
+    flex: 0 0 auto;
+    height: max-content;
+    justify-content: flex-start;
+    min-height: max-content;
     padding: 10px 12px;
     overflow: visible;
   }
