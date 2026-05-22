@@ -282,7 +282,7 @@ function renderMoveCard(r) {
         </div>
       </div>
       <div class="calc-ko-badge ui-status-badge ${hkoTone}" title="${hkoTitle}">
-        <div class="calc-ko-main ${r.hko.cls}">
+        <div class="calc-ko-main ${r.hko.cls} ${r.hko.pct ? 'has-percent' : ''}">
           <span class="calc-ko-label">${r.hko.label}</span>
           <span class="calc-ko-turns">${r.hko.turns}</span>
           <span class="calc-ko-percent">${r.hko.pct || ''}</span>

@@ -1212,6 +1212,19 @@ main {
   display: none;
 }
 
+#page-calc .calc-ko-main.has-percent {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+
+#page-calc .calc-ko-main.has-percent .calc-ko-percent {
+  display: inline-flex;
+  flex: 0 0 100%;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+}
+
 #page-calc .calc-ko-sub {
   display: none;
 }
@@ -4029,6 +4042,10 @@ input[type="radio"]:focus-visible {
   flex: 0 0 auto;
 }
 
+.move-simple-option {
+  min-height: 36px;
+}
+
 .combobox-options::-webkit-scrollbar {
   width: 6px;
 }
@@ -5510,14 +5527,28 @@ body.party-preset-open {
   .party-preset-picker-head {
     align-items: flex-start;
     flex-direction: column;
-    min-height: 56px;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 0;
     padding: 10px 12px;
+    overflow: visible;
   }
 
   .party-preset-modal-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(106px, 1fr));
     width: 100%;
-    flex-wrap: wrap;
-    justify-content: flex-start;
+    gap: 7px;
+  }
+
+  .party-preset-status {
+    grid-column: 1 / -1;
+  }
+
+  .party-preset-action,
+  .party-preset-close {
+    width: 100%;
+    min-width: 0;
   }
 
   .party-preset-backup-note {
@@ -9274,8 +9305,8 @@ body.party-preset-open {
 }
 
 #page-matchup .matchup-move-combobox .combobox-options {
-  width: min(330px, calc(100vw - 40px));
-  min-width: min(260px, calc(100vw - 40px));
+  width: min(280px, calc(100vw - 40px));
+  min-width: min(220px, calc(100vw - 40px));
   overflow-x: hidden;
 }
 
@@ -11015,14 +11046,14 @@ body.party-preset-open {
   min-height: 34px;
 }
 
-#page-revcalc .rc-side-condition-row {
+#page-revcalc .rc-toggle-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
   align-content: center;
 }
 
-#page-revcalc .rc-action-block .rc-side-condition-row > .ui-check {
+#page-revcalc .rc-action-block .rc-toggle-grid > .ui-check {
   box-sizing: border-box;
   width: 100%;
   justify-content: center;
@@ -11031,7 +11062,7 @@ body.party-preset-open {
   white-space: nowrap;
 }
 
-#page-revcalc .rc-action-block .rc-side-condition-row > label.ui-check.rc-compact-toggle {
+#page-revcalc .rc-action-block .rc-toggle-grid > label.ui-check.rc-compact-toggle {
   display: inline-flex !important;
   align-items: center !important;
   box-sizing: border-box !important;
@@ -11900,6 +11931,76 @@ body.party-preset-open {
       30px
       minmax(var(--ft-rank-col), var(--ft-rank-col));
     gap: 5px 2px;
+  }
+}
+
+@media (max-width: 760px) {
+  #page-revcalc .rc-toggle-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  #page-revcalc .rc-action-block .rc-toggle-grid > .ui-check {
+    justify-content: flex-start;
+    min-height: 34px;
+    padding-right: 10px;
+    padding-left: 10px;
+    white-space: normal;
+  }
+
+  #page-revcalc .rc-action-block .rc-toggle-grid > label.ui-check.rc-compact-toggle {
+    width: 100% !important;
+    overflow: visible;
+  }
+
+  #page-finetune .ft-stats-column {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #page-finetune .ft-stats-grid {
+    --ft-magic-edge: 30px;
+    --ft-magic-current: 34px;
+    --ft-magic-gap: 3px;
+    --tool-stat-magic-row-height: 34px;
+    grid-template-columns:
+      54px
+      44px
+      minmax(var(--ft-point-col), var(--ft-point-col))
+      minmax(var(--ft-magic-col), var(--ft-magic-col))
+      52px
+      minmax(var(--ft-rank-col), var(--ft-rank-col));
+    width: 640px;
+    min-width: 640px;
+    max-width: none;
+    justify-content: start;
+    gap: 5px 8px;
+  }
+
+  #page-finetune .ft-stats-head > div {
+    font-size: 11px;
+  }
+
+  #page-finetune .ft-stat-name,
+  #page-finetune .ft-stat-base,
+  #page-finetune .ft-stat-final,
+  #page-finetune .ft-magic {
+    height: 34px;
+    min-height: 34px;
+  }
+
+  #page-finetune .ft-magic-prev,
+  #page-finetune .ft-magic-next,
+  #page-finetune .ft-magic-current {
+    padding: 0 4px;
+    border-radius: 6px;
+    font-size: 9px;
+  }
+
+  #page-finetune .ft-magic-current-slot {
+    width: var(--ft-magic-current);
+    min-height: 18px;
   }
 }
 
@@ -16249,6 +16350,7 @@ function closeSiblingComboboxOptions(optsEl, control) {
 
 function calcComboboxShouldUsePortal(input, cbParent) {
   const type = input?.dataset?.cbType || '';
+  if (input?.dataset?.cbPortal === 'true') return true;
   return Boolean(cbParent?.closest?.('.tool-move-list-frame') && (type === 'move' || type === 'moveType'));
 }
 
@@ -16271,11 +16373,16 @@ function calcComboboxPortalWidth(input, type) {
   const rect = input.getBoundingClientRect();
   const viewportWidth = Math.max(240, window.innerWidth || document.documentElement.clientWidth || 0);
   const maxWidth = Math.max(120, viewportWidth - 16);
+  const compact = input?.dataset?.cbPortalSize === 'compact';
   if (type === 'move') {
+    if (compact) return Math.min(Math.max(rect.width, 220), 280, maxWidth);
     return Math.min(Math.max(rect.width, 300), 330, maxWidth);
   }
   if (type === 'moveType') {
     return Math.min(Math.max(rect.width, 92), 140, maxWidth);
+  }
+  if (type === 'pokemon') {
+    return Math.min(Math.max(rect.width, 260), 360, maxWidth);
   }
   return Math.min(rect.width, maxWidth);
 }
@@ -16293,12 +16400,18 @@ function calcPositionComboboxPortal(input, optsEl, type = '') {
   const width = calcComboboxPortalWidth(input, type);
   const left = Math.max(margin, Math.min(rect.left, viewportWidth - width - margin));
   const top = Math.max(margin, rect.bottom + 4);
-  const maxHeight = Math.max(96, Math.min(280, viewportHeight - top - margin));
+  const maxAllowedHeight = input?.dataset?.cbPortalSize === 'compact' ? 220 : 280;
+  const maxHeight = Math.max(96, Math.min(maxAllowedHeight, viewportHeight - top - margin));
   optsEl.style.left = `${left}px`;
   optsEl.style.top = `${top}px`;
   optsEl.style.right = 'auto';
   optsEl.style.width = `${width}px`;
-  optsEl.style.minWidth = `${Math.min(width, type === 'move' ? 300 : 92)}px`;
+  const minWidth = type === 'move'
+    ? (input?.dataset?.cbPortalSize === 'compact' ? 220 : 300)
+    : type === 'pokemon'
+      ? 240
+      : 92;
+  optsEl.style.minWidth = `${Math.min(width, minWidth)}px`;
   optsEl.style.maxWidth = `${viewportWidth - margin * 2}px`;
   optsEl.style.maxHeight = `${maxHeight}px`;
 }
@@ -16335,10 +16448,15 @@ function calcMountComboboxPortal(input, cbParent, optsEl) {
   optsEl.dataset.calcPortalSide = input.dataset.side || '';
   optsEl.dataset.calcPortalType = input.dataset.cbType || '';
   optsEl.dataset.calcPortalControl = input.id;
-  optsEl.classList.add(
-    'combobox-options-portal',
-    input.dataset.cbType === 'move' ? 'tool-move-options-portal' : 'tool-move-type-options-portal',
+  optsEl.classList.add('combobox-options-portal');
+  const portalClass = input.dataset.cbPortalClass || (
+    input.dataset.cbType === 'move'
+      ? 'tool-move-options-portal'
+      : input.dataset.cbType === 'moveType'
+        ? 'tool-move-type-options-portal'
+        : ''
   );
+  if (portalClass) optsEl.classList.add(portalClass);
   if (input.dataset.side === 'atk') optsEl.style.setProperty('--tool-combo-selected', 'var(--atk)');
   if (input.dataset.side === 'def') optsEl.style.setProperty('--tool-combo-selected', 'var(--def)');
   document.body.appendChild(optsEl);
@@ -16420,6 +16538,9 @@ function wireSharedComboboxKeyboard(control, optsEl, { showOptions, onSelect, ge
     optsEl.classList.add('open');
     control.setAttribute('aria-expanded', 'true');
     calcComboboxMarkOpened(control);
+    if (optsEl.classList.contains('combobox-options-portal')) {
+      calcPositionComboboxPortal(control, optsEl, optsEl.dataset.calcPortalType || control.dataset.cbType || '');
+    }
     const options = optionEls();
     options.forEach((option, index) => {
       if (!option.id) option.id = `${optsEl.id}-opt-${index}`;
@@ -16542,6 +16663,7 @@ function wirePokemonSelectCombobox(input, {
   const optsEl = cb?.querySelector('.combobox-options');
   if (!optsEl) return null;
   if (wiredKey) input.dataset[wiredKey] = '1';
+  const usesPortal = calcMountComboboxPortal(input, cb, optsEl);
 
   const isButtonTrigger = input.tagName === 'BUTTON';
   const currentId = () => getCurrentId(input) || '';
@@ -16583,6 +16705,10 @@ function wirePokemonSelectCombobox(input, {
     const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : fn => setTimeout(fn, 0);
     schedule(() => {
       if (typeof window === 'undefined' || typeof optsEl.getBoundingClientRect !== 'function') return;
+      if (usesPortal) {
+        calcPositionComboboxPortal(input, optsEl, optsEl.dataset.calcPortalType || input.dataset.cbType || '');
+        return;
+      }
       const rect = optsEl.getBoundingClientRect();
       const overflowRight = rect.right > window.innerWidth - 8;
       optsEl.style.left = overflowRight ? 'auto' : '';
@@ -16777,6 +16903,20 @@ function calcRenderSimplePokemonOption(option, currentId) {
     <div class="${optionClass}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}">
       <b class="pokemon-simple-option-name matchup-option-name">${escapeHTML(label)}</b>
       <small class="pokemon-simple-option-types matchup-option-types">${typeBadges}</small>
+    </div>
+  `;
+}
+
+function calcRenderSimpleMoveOption(option, currentId) {
+  const id = option?.id || '';
+  const label = option?.label || option?.koName || (id ? mvName(option) : '없음');
+  const selected = String(id) === String(currentId);
+  const optionClass = ['combobox-option', 'ui-option', 'move-simple-option', selected ? 'selected' : '']
+    .filter(Boolean)
+    .join(' ');
+  return `
+    <div class="${optionClass}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}">
+      <b>${escapeHTML(label)}</b>
     </div>
   `;
 }
@@ -18300,7 +18440,7 @@ function renderMoveCard(r) {
         </div>
       </div>
       <div class="calc-ko-badge ui-status-badge ${hkoTone}" title="${hkoTitle}">
-        <div class="calc-ko-main ${r.hko.cls}">
+        <div class="calc-ko-main ${r.hko.cls} ${r.hko.pct ? 'has-percent' : ''}">
           <span class="calc-ko-label">${r.hko.label}</span>
           <span class="calc-ko-turns">${r.hko.turns}</span>
           <span class="calc-ko-percent">${r.hko.pct || ''}</span>
@@ -19272,6 +19412,7 @@ function updatePartyPresetPokemon(partyIndex, slotIndex, pokemonId) {
   const member = partyPresetMember(partyIndex, slotIndex);
   if (!pokemonId) {
     partyPresetData.parties[partyIndex].members[slotIndex] = blankPartyPresetMember();
+    partyPresetExpandedSlots.delete(partyPresetSlotCollapseKey(partyIndex, slotIndex));
     return;
   }
   if (member.pokemon !== pokemonId) {
@@ -19282,6 +19423,8 @@ function updatePartyPresetPokemon(partyIndex, slotIndex, pokemonId) {
       item: partyPresetDefaultItem(pokemonId),
     };
   }
+  partyPresetCollapsedParties.delete(partyIndex);
+  partyPresetExpandedSlots.add(partyPresetSlotCollapseKey(partyIndex, slotIndex));
 }
 
 function updatePartyPresetField(partyIndex, slotIndex, field, value, moveIndex = null) {
@@ -20737,7 +20880,7 @@ function renderMatchupSlots() {
       <div class="matchup-slot ui-control-frame ui-subframe ui-control-grid ${p ? 'filled' : ''}" data-slot="${i}">
         <div class="matchup-slot-num">${i + 1}</div>
         <div class="combobox">
-          <input type="text" class="cb-input matchup-cb-input" data-slot="${i}"
+          <input type="text" class="cb-input matchup-cb-input" data-slot="${i}" data-cb-type="pokemon" data-cb-portal="true" data-field="matchup-pokemon-${i}"
                  value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="포켓몬 검색...">
           <div class="combobox-options"></div>
         </div>
@@ -20814,7 +20957,11 @@ function matchupMoveOptionRows(slot, moveIndex, query) {
   const matches = coverageMovePool(slot).filter(move => matchupMoveMatchesQuery(move, search));
   const currentId = matchupCoverageMoves[slot]?.[moveIndex] || '';
   return [...noneMatches, ...matches]
-    .map(option => calcRenderMoveOption(option, currentId))
+    .map(option => (
+      typeof calcRenderSimpleMoveOption === 'function'
+        ? calcRenderSimpleMoveOption(option, currentId)
+        : calcRenderMoveOption(option, currentId)
+    ))
     .join('');
 }
 
@@ -20834,7 +20981,7 @@ function renderMatchupCoverageInputs() {
         <div class="matchup-move-field ui-control-row">
           <span class="matchup-move-num">${moveIndex + 1}</span>
           <div class="combobox matchup-move-combobox">
-            <input type="text" class="cb-input matchup-move-input" data-slot="${slot}" data-move-index="${moveIndex}"
+            <input type="text" class="cb-input matchup-move-input" data-slot="${slot}" data-move-index="${moveIndex}" data-cb-type="move" data-cb-portal="true" data-cb-portal-size="compact" data-field="matchup-move-${slot}-${moveIndex}"
                    value="${m ? escapeHTML(mvName(m)) : ''}" placeholder="기술 검색">
             <div class="combobox-options"></div>
           </div>
@@ -20867,6 +21014,9 @@ function wireMatchupCoverageInputs() {
     const cbParent = input.closest('.combobox');
     const optsEl = cbParent?.querySelector('.combobox-options');
     if (!optsEl) return;
+    const usesPortal = typeof calcMountComboboxPortal === 'function'
+      ? calcMountComboboxPortal(input, cbParent, optsEl)
+      : false;
 
     let selectingOption = false;
     const selectedMoveId = () => matchupCoverageMoves[slot]?.[moveIndex] || '';
@@ -20881,12 +21031,14 @@ function wireMatchupCoverageInputs() {
     };
     const showMoveOptions = query => {
       const rows = matchupMoveOptionRows(slot, moveIndex, query);
-      const header = typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('move') : '';
       optsEl.innerHTML = rows
-        ? `${header}${rows}`
+        ? rows
         : '<div class="combobox-option empty" aria-disabled="true"><span>\uAC80\uC0C9 \uACB0\uACFC \uC5C6\uC74C</span></div>';
       if (typeof closeSiblingComboboxOptions === 'function') {
         closeSiblingComboboxOptions(optsEl, input);
+      }
+      if (usesPortal && typeof calcPositionComboboxPortal === 'function') {
+        requestAnimationFrame(() => calcPositionComboboxPortal(input, optsEl, optsEl.dataset.calcPortalType || input.dataset.cbType || ''));
       }
     };
     const moveCombo = wireSharedComboboxKeyboard(input, optsEl, {
@@ -24256,7 +24408,7 @@ function renderRevCalcInputs() {
             <input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="100" placeholder="0~100">
           </label>
         </div>
-        <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
+        <div class="rc-side-condition-row rc-toggle-grid rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defReflect" ${revCalcState.observedFields.dealt.defReflect ? 'checked' : ''}> 상대 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.dealt.defLightScreen ? 'checked' : ''}> 상대 빛의장막</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="isCritical" ${revCalcState.observedFields.dealt.isCritical ? 'checked' : ''}> 내 공격 급소</label>
@@ -24279,7 +24431,7 @@ function renderRevCalcInputs() {
             ${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}
           </label>
         </div>
-        <div class="rc-side-condition-row rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
+        <div class="rc-side-condition-row rc-toggle-grid rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defReflect" ${revCalcState.observedFields.received.defReflect ? 'checked' : ''}> 내 리플렉터</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.received.defLightScreen ? 'checked' : ''}> 내 빛의장막</label>
           <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="isCritical" ${revCalcState.observedFields.received.isCritical ? 'checked' : ''}> 상대 공격 급소</label>

@@ -821,6 +821,7 @@ function updatePartyPresetPokemon(partyIndex, slotIndex, pokemonId) {
   const member = partyPresetMember(partyIndex, slotIndex);
   if (!pokemonId) {
     partyPresetData.parties[partyIndex].members[slotIndex] = blankPartyPresetMember();
+    partyPresetExpandedSlots.delete(partyPresetSlotCollapseKey(partyIndex, slotIndex));
     return;
   }
   if (member.pokemon !== pokemonId) {
@@ -831,6 +832,8 @@ function updatePartyPresetPokemon(partyIndex, slotIndex, pokemonId) {
       item: partyPresetDefaultItem(pokemonId),
     };
   }
+  partyPresetCollapsedParties.delete(partyIndex);
+  partyPresetExpandedSlots.add(partyPresetSlotCollapseKey(partyIndex, slotIndex));
 }
 
 function updatePartyPresetField(partyIndex, slotIndex, field, value, moveIndex = null) {

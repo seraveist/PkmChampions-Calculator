@@ -1633,6 +1633,17 @@ assertDeepEqual(
   );
 }
 
+assertDeepEqual(
+  api.hkoLabel(
+    [90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105],
+    100,
+    side('venusaur'),
+    field(),
+  ),
+  { label: '난수', turns: '1타', pct: '37.5%', cls: 'ohko', sub: '' },
+  'hko label exposes random 1HKO probability',
+);
+
 assertMoveFields('bodyslam', { sec: true, tgt: 'normal' });
 assertMoveFields('flareblitz', { sec: true, recoil: [33, 100], tgt: 'normal' });
 assertMoveFields('earthquake', { tgt: 'allAdjacent' });

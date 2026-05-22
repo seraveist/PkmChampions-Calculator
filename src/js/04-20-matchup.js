@@ -147,7 +147,7 @@ function renderMatchupSlots() {
       <div class="matchup-slot ui-control-frame ui-subframe ui-control-grid ${p ? 'filled' : ''}" data-slot="${i}">
         <div class="matchup-slot-num">${i + 1}</div>
         <div class="combobox">
-          <input type="text" class="cb-input matchup-cb-input" data-slot="${i}"
+          <input type="text" class="cb-input matchup-cb-input" data-slot="${i}" data-cb-type="pokemon" data-cb-portal="true" data-field="matchup-pokemon-${i}"
                  value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="포켓몬 검색...">
           <div class="combobox-options"></div>
         </div>
@@ -224,7 +224,11 @@ function matchupMoveOptionRows(slot, moveIndex, query) {
   const matches = coverageMovePool(slot).filter(move => matchupMoveMatchesQuery(move, search));
   const currentId = matchupCoverageMoves[slot]?.[moveIndex] || '';
   return [...noneMatches, ...matches]
-    .map(option => calcRenderMoveOption(option, currentId))
+    .map(option => (
+      typeof calcRenderSimpleMoveOption === 'function'
+        ? calcRenderSimpleMoveOption(option, currentId)
+        : calcRenderMoveOption(option, currentId)
+    ))
     .join('');
 }
 
@@ -244,7 +248,7 @@ function renderMatchupCoverageInputs() {
         <div class="matchup-move-field ui-control-row">
           <span class="matchup-move-num">${moveIndex + 1}</span>
           <div class="combobox matchup-move-combobox">
-            <input type="text" class="cb-input matchup-move-input" data-slot="${slot}" data-move-index="${moveIndex}"
+            <input type="text" class="cb-input matchup-move-input" data-slot="${slot}" data-move-index="${moveIndex}" data-cb-type="move" data-cb-portal="true" data-cb-portal-size="compact" data-field="matchup-move-${slot}-${moveIndex}"
                    value="${m ? escapeHTML(mvName(m)) : ''}" placeholder="기술 검색">
             <div class="combobox-options"></div>
           </div>
@@ -277,6 +281,9 @@ function wireMatchupCoverageInputs() {
     const cbParent = input.closest('.combobox');
     const optsEl = cbParent?.querySelector('.combobox-options');
     if (!optsEl) return;
+    const usesPortal = typeof calcMountComboboxPortal === 'function'
+      ? calcMountComboboxPortal(input, cbParent, optsEl)
+      : false;
 
     let selectingOption = false;
     const selectedMoveId = () => matchupCoverageMoves[slot]?.[moveIndex] || '';
@@ -291,12 +298,14 @@ function wireMatchupCoverageInputs() {
     };
     const showMoveOptions = query => {
       const rows = matchupMoveOptionRows(slot, moveIndex, query);
-      const header = typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('move') : '';
       optsEl.innerHTML = rows
-        ? `${header}${rows}`
+        ? rows
         : '<div class="combobox-option empty" aria-disabled="true"><span>\uAC80\uC0C9 \uACB0\uACFC \uC5C6\uC74C</span></div>';
       if (typeof closeSiblingComboboxOptions === 'function') {
         closeSiblingComboboxOptions(optsEl, input);
+      }
+      if (usesPortal && typeof calcPositionComboboxPortal === 'function') {
+        requestAnimationFrame(() => calcPositionComboboxPortal(input, optsEl, optsEl.dataset.calcPortalType || input.dataset.cbType || ''));
       }
     };
     const moveCombo = wireSharedComboboxKeyboard(input, optsEl, {
