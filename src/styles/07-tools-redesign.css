@@ -291,9 +291,9 @@
 
 #page-matchup .matchup-slot {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) calc((var(--ui-type-chip-width) * 2) + var(--ui-type-strip-gap)) 28px;
+  grid-template-columns: 28px 36px minmax(0, 1fr) calc((var(--ui-type-chip-width) * 2) + var(--ui-type-strip-gap)) 28px;
   align-items: center;
-  min-height: 46px;
+  min-height: 50px;
   padding: 7px 8px;
 }
 
@@ -323,6 +323,10 @@
 #page-matchup .matchup-slot .combobox,
 #page-matchup .matchup-move-combobox {
   min-width: 0;
+}
+
+#page-matchup .matchup-slot-sprite {
+  justify-self: center;
 }
 
 #page-matchup .matchup-slot-types,
@@ -2642,7 +2646,7 @@
   }
 
   #page-matchup .matchup-slot {
-    grid-template-columns: 28px minmax(0, 1fr) 92px 28px;
+    grid-template-columns: 28px 36px minmax(0, 1fr) 92px 28px;
   }
 
   #page-finetune .ft-setup-grid {

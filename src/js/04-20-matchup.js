@@ -146,6 +146,7 @@ function renderMatchupSlots() {
     return `
       <div class="matchup-slot ui-control-frame ui-subframe ui-control-grid ${p ? 'filled' : ''}" data-slot="${i}">
         <div class="matchup-slot-num">${i + 1}</div>
+        ${pokemonSpriteSlot(p, { size: 'md', className: 'matchup-slot-sprite' })}
         <div class="combobox">
           <input type="text" class="cb-input matchup-cb-input" data-slot="${i}" data-cb-type="pokemon" data-cb-portal="true" data-field="matchup-pokemon-${i}"
                  value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="포켓몬 검색...">

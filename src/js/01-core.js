@@ -110,6 +110,55 @@ function toId(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
+const POKEMON_SPRITE_BASE_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork';
+
+function pokemonSpriteUrlById(spriteId) {
+  const id = Number(spriteId || 0);
+  return id > 0 ? `${POKEMON_SPRITE_BASE_URL}/${id}.png` : '';
+}
+
+function pokemonSpriteUrl(pokemon) {
+  return pokemonSpriteUrlById(pokemon?.spriteId || pokemon?.num);
+}
+
+function pokemonSpriteFallbackUrl(pokemon) {
+  const fallbackId = pokemon?.spriteFallbackId;
+  if (!fallbackId || Number(fallbackId) === Number(pokemon?.spriteId)) return '';
+  return pokemonSpriteUrlById(fallbackId);
+}
+
+function handlePokemonSpriteError(img) {
+  if (!img) return;
+  const fallback = img.dataset?.fallbackSrc || '';
+  if (fallback && img.dataset.fallbackUsed !== '1') {
+    img.dataset.fallbackUsed = '1';
+    img.src = fallback;
+    return;
+  }
+  img.removeAttribute('src');
+  img.closest?.('.pokemon-sprite-slot')?.classList.add('is-empty');
+}
+
+function pokemonSpriteSlot(pokemon, { size = 'lg', className = '', alt = '', decorative = true } = {}) {
+  const p = typeof pokemon === 'string' ? PokemonById[pokemon] : pokemon;
+  const sizeClass = size === 'sm' ? 'is-sm' : size === 'md' ? 'is-md' : '';
+  const classes = ['pokemon-sprite-slot', sizeClass, className, p ? '' : 'is-empty'].filter(Boolean).join(' ');
+  if (!p) return `<span class="${classes}" aria-hidden="true"></span>`;
+
+  const src = pokemonSpriteUrl(p);
+  const fallback = pokemonSpriteFallbackUrl(p);
+  if (!src) return `<span class="${classes} is-empty" aria-hidden="true"></span>`;
+
+  const altText = decorative ? '' : (alt || pkName(p));
+  const ariaHidden = decorative ? ' aria-hidden="true"' : '';
+  const fallbackAttr = fallback ? ` data-fallback-src="${escapeHTML(fallback)}"` : '';
+  return `
+    <span class="${classes}">
+      <img ${'src'}="${escapeHTML(src)}" alt="${escapeHTML(altText)}"${ariaHidden} loading="lazy" decoding="async"${fallbackAttr} onerror="handlePokemonSpriteError(this)">
+    </span>
+  `;
+}
+
 // 타입 한국어
 const TYPE_KO = {
   Normal: '노말', Fire: '불꽃', Water: '물', Grass: '풀', Electric: '전기', Ice: '얼음',

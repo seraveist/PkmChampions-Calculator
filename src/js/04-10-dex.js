@@ -415,7 +415,8 @@ function renderPokemonDex(query) {
   if(!tbody) return;
   tbody.innerHTML = data.map(p => {
     const ab = p.ab || {};
-    return `<tr data-dex-id="${p.id}"><td class="dex-name-cell">${pokemonListName(p)}</td><td class="dex-type-cell">${p.types.map(t => dexTypePill(t)).join(' ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num dex-bst">${p.bst}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab[0])}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab[1])}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab.H)}</td></tr>`;
+    const nameCell = `<span class="dex-pokemon-name-wrap">${pokemonSpriteSlot(p, { size: 'md', className: 'dex-list-sprite' })}<span class="dex-pokemon-name-text">${pokemonListName(p)}</span></span>`;
+    return `<tr data-dex-id="${p.id}"><td class="dex-name-cell">${nameCell}</td><td class="dex-type-cell">${p.types.map(t => dexTypePill(t)).join(' ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num dex-bst">${p.bst}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab[0])}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab[1])}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab.H)}</td></tr>`;
   }).join('');
 }
 function renderMovesDex(query) {
@@ -516,10 +517,10 @@ let dexFullPageCtx = { type: null, id: null };
 let dexModalCtx = { type: null, id: null, parent: null };
 
 // 공통: 타입+id 로 표시용 컨텐츠 생성
-function buildDexContent(type, id) {
+function buildDexContent(type, id, options = {}) {
   if (type === 'pokemon') {
     const p = PokemonById[id]; if (!p) return null;
-    const [body, actions] = renderPokemonDetail(p);
+    const [body, actions] = renderPokemonDetail(p, options);
     return { titleKo: pkName(p), titleEn: p.name, body, actions };
   } else if (type === 'move') {
     const m = MoveById[id]; if (!m) return null;
@@ -558,7 +559,7 @@ function openDexDetail(type, id, parentCtx = null) {
 
 // 풀페이지로 상세 열기 (포켓몬/기술/특성 행 클릭)
 function openDexDetailPage(type, id) {
-  const content = buildDexContent(type, id);
+  const content = buildDexContent(type, id, { fullPage: true });
   if (!content) return;
   saveDexViewState(currentDex);
   dexFullPageCtx = { type, id };
@@ -571,15 +572,18 @@ function openDexDetailPage(type, id) {
   const footerActions = type === 'pokemon' || !hasActions
     ? ''
     : `<div class="dex-fullpage-actions" id="dexFullPageActions">${content.actions}</div>`;
-  container.innerHTML = `
-    <div class="dex-fullpage-head">
-      <button type="button" class="dex-fullpage-back" id="dexFullPageBack">뒤로</button>
+  const titleBlock = type === 'pokemon' ? '' : `
       <div class="dex-fullpage-title-block">
         <span class="dex-fullpage-title-line">
           <span class="dex-fullpage-title">${escapeHTML(content.titleKo)}</span>
           ${content.titleEn !== content.titleKo ? `<span class="dex-fullpage-title-en">${escapeHTML(content.titleEn)}</span>` : ''}
         </span>
       </div>
+  `;
+  container.innerHTML = `
+    <div class="dex-fullpage-head">
+      <button type="button" class="dex-fullpage-back" id="dexFullPageBack">뒤로</button>
+      ${titleBlock}
       ${headerActions}
     </div>
     <div class="dex-fullpage-body" id="dexFullPageBody">${content.body}</div>
@@ -627,7 +631,7 @@ function navigateToDexDetailPage(type, id) {
 // 포켓몬 상세 — 모달 내 학습기 타입 필터 상태 (포켓몬 단위로 reset)
 let pokemonDetailTypeFilter = null;
 
-function renderPokemonDetail(p) {
+function renderPokemonDetail(p, { fullPage = false } = {}) {
   pokemonDetailTypeFilter = null; // 새 포켓몬 열 때마다 초기화
   const stats = ['hp','atk','def','spa','spd','spe'];
   const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
@@ -668,14 +672,34 @@ function renderPokemonDetail(p) {
   if (p.mega) flags.push('<span class="dex-detail-token dex-detail-token-mega">메가진화</span>');
   if (p.primal) flags.push('<span class="dex-detail-token dex-detail-token-primal">원시회귀</span>');
   if (p.forme && !p.mega && !p.primal) flags.push(`폼: <b>${escapeHTML(pokemonFormLabel(p))}</b>`);
-  if (p.weightkg) flags.push(`무게: <b>${p.weightkg}</b>kg`);
+  const weightHtml = p.weightkg ? `<span class="dex-detail-weight">무게: <b>${p.weightkg}</b>kg</span>` : '';
+  const modalFlags = [...flags, weightHtml].filter(Boolean);
+  const detailLead = fullPage ? `
+      <div class="dex-modal-row dex-pokemon-detail-row dex-pokemon-detail-row--fullpage">
+        ${pokemonSpriteSlot(p, { className: 'dex-detail-sprite dex-detail-sprite--large', decorative: false })}
+        <span class="dex-detail-identity">
+          <span class="dex-detail-name">
+            <b>${escapeHTML(pkName(p))}</b>
+            ${p.name && p.name !== pkName(p) ? `<small>${escapeHTML(p.name)}</small>` : ''}
+          </span>
+          <span class="dex-detail-meta-row">
+            <span class="dex-detail-types">${p.types.map(t => dexTypePill(t)).join('')}</span>
+            ${weightHtml}
+            ${flags.length ? `<span class="dex-detail-sub">${flags.join(' · ')}</span>` : ''}
+          </span>
+        </span>
+      </div>
+  ` : `
+      <div class="dex-modal-row dex-pokemon-detail-row">
+        ${pokemonSpriteSlot(p, { className: 'dex-detail-sprite', decorative: false })}
+        ${p.types.map(t => dexTypePill(t)).join('')}
+        <span class="dex-detail-sub">${modalFlags.join(' · ')}</span>
+      </div>
+  `;
 
   const body = `
     <div class="dex-modal-section">
-      <div class="dex-modal-row">
-        ${p.types.map(t => dexTypePill(t)).join('')}
-        <span class="dex-detail-sub">${flags.join(' · ')}</span>
-      </div>
+      ${detailLead}
     </div>
     <div class="dex-modal-section">
       <div class="dex-modal-section-title">종족값</div>

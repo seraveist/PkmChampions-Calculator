@@ -81,7 +81,7 @@
   height: 36px;
   border-radius: 5px;
   border-color: var(--calc-line);
-  background: var(--calc-surface-3);
+  background: var(--ui-control-bg);
   color: var(--text);
   font-size: 13px;
 }
@@ -232,7 +232,7 @@
   height: 36px;
   border-radius: 5px;
   border-color: var(--calc-line);
-  background: var(--calc-surface-3);
+  background: var(--ui-control-bg);
 }
 
 #page-calc .calc-stat-total,

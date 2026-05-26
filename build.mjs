@@ -188,6 +188,8 @@ async function build() {
   const fieldMechanics = readJsonFile(path.join(OVERRIDES, 'field-mechanics.json'), {});
   const entryEffects = readJsonFile(path.join(OVERRIDES, 'entry-effects.json'), { effects: {}, blockers: {} });
   const metaThreats = readJsonFile(path.join(OVERRIDES, 'meta-threats.json'), { defensiveThreats: [], coverageChecks: [] });
+  const pokemonSpriteOverrides = readJsonFile(path.join(OVERRIDES, 'pokemon-sprites.json'), { spriteIds: {} });
+  const pokemonSpriteIds = pokemonSpriteOverrides.spriteIds || {};
 
   // 설명 우선순위: 모드 오버라이드 → 베이스 text/ → 빈 문자열
   // text/ 항목엔 desc(긴 설명) 와 shortDesc(짧은 설명) 가 모두 존재. shortDesc 우선.
@@ -255,9 +257,13 @@ async function build() {
       : (ownLearnset || fallbackLearnset);
     const learnset = ls ? Object.keys(ls).filter(moveId => isAvailable(mergedMoves[moveId], 'moves', moveId, dataFilters)) : undefined;
     const formGroup = formGroupByForm.get(id);
+    const spriteId = Number(pokemonSpriteIds[id] || p.num || 0) || undefined;
+    const baseSpriteId = Number(p.num || 0) || undefined;
     finalPokemon.push({
       id,
       num: p.num,
+      spriteId,
+      spriteFallbackId: spriteId && baseSpriteId && spriteId !== baseSpriteId ? baseSpriteId : undefined,
       name: p.name,
       koName: koPokemon[id] || p.name,
       base: p.baseSpecies,

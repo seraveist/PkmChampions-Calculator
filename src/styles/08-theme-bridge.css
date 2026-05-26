@@ -17,7 +17,7 @@
   --calc-field-soft: color-mix(in srgb, var(--ok) 6%, var(--bg-panel));
   --calc-result-soft: var(--ui-action-active-bg);
   --calc-accent: var(--text);
-  --calc-control-bg: var(--bg-input);
+  --calc-control-bg: var(--ui-control-bg);
   --calc-control-hover: var(--bg-muted);
   --calc-surface: var(--bg-panel);
   --calc-surface-2: var(--bg-input);

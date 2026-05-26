@@ -435,6 +435,26 @@
   white-space: nowrap;
 }
 
+#page-dex .dex-pokemon-name-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  vertical-align: middle;
+}
+
+#page-dex .dex-list-sprite {
+  flex: 0 0 36px;
+}
+
+#page-dex .dex-pokemon-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 #page-dex .dex-type-cell {
   min-width: 92px;
   white-space: nowrap;
@@ -470,7 +490,7 @@
 
 #dexTablePokemon th:nth-child(1),
 #dexTablePokemon td:nth-child(1) {
-  width: 12%;
+  width: 15%;
   padding-right: 6px;
 }
 
@@ -490,7 +510,7 @@
 
 #dexTablePokemon th:nth-child(10),
 #dexTablePokemon td:nth-child(10) {
-  width: 16%;
+  width: 13%;
   padding-left: 54px;
   padding-right: 1px;
 }
@@ -965,6 +985,82 @@
   font-weight: 700;
 }
 
+.dex-pokemon-detail-row {
+  align-items: center;
+  gap: 9px;
+}
+
+.dex-pokemon-detail-row--fullpage {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-height: 104px;
+}
+
+.dex-detail-sprite {
+  flex: 0 0 48px;
+}
+
+.dex-detail-sprite--large {
+  flex: 0 0 96px;
+  width: 96px;
+  height: 96px;
+}
+
+.dex-detail-identity {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  min-height: 96px;
+  min-width: 0;
+}
+
+.dex-detail-name {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dex-detail-meta-row {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dex-detail-types {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dex-detail-weight {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.dex-detail-weight b {
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.dex-pokemon-detail-row .dex-detail-sub {
+  min-width: 0;
+}
+
 .dex-modal-row + .dex-modal-row {
   margin-top: 7px;
 }
@@ -985,6 +1081,24 @@
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 13px;
   font-weight: 900;
+  letter-spacing: 0;
+}
+
+#page-dex .dex-pokemon-detail-row--fullpage .dex-detail-name > b {
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 44px;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+#page-dex .dex-pokemon-detail-row--fullpage .dex-detail-name > small {
+  color: var(--text-faint);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
   letter-spacing: 0;
 }
 
