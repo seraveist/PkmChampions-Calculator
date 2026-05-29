@@ -1,8 +1,8 @@
 /* Damage calculator state, options, and shared helpers. */
-function makeSideState(defaultIdx) {
+function makeSideState(defaultIdx = '') {
   const p = PokemonById[defaultIdx];
   return {
-    pokemonIdx: defaultIdx,
+    pokemonIdx: p ? defaultIdx : '',
     evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
     nature: 'hardy',  // 25성격 중 하나 (기본값: 노력 - 보정 없음)
     ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
@@ -28,8 +28,8 @@ function makeSideState(defaultIdx) {
 }
 
 const state = {
-  atk: makeSideState('incineroar'),
-  def: makeSideState('amoonguss'),  // 화뭉시
+  atk: makeSideState(),
+  def: makeSideState(),
   field: {
     weather: "none", terrain: "none", gameType: "Singles",
     isCritical: false, isGravity: false,
@@ -45,20 +45,6 @@ const state = {
     defSpikesLayers: 0,  // 0~3
   }
 };
-
-// 기본 세팅
-state.atk.evs = { hp: 0, atk: 32, def: 0, spa: 0, spd: 2, spe: 32 };
-state.atk.nature = 'adamant';  // 고집 (atk↑/spa↓)
-state.atk.moves = ['flareblitz','knockoff','uturn','earthquake'].filter(id => MoveById[id]);
-state.def.evs = { hp: 32, atk: 0, def: 32, spa: 0, spd: 2, spe: 0 };
-state.def.nature = 'bold';  // 대담 (def↑/atk↓)
-
-// Amoonguss가 없으면 마릴리로 폴백
-if (!PokemonById['amoonguss']) {
-  state.def = makeSideState('azumarill');
-  state.def.evs = { hp: 32, atk: 0, def: 32, spa: 0, spd: 2, spe: 0 };
-  state.def.nature = 'bold';
-}
 
 /* ════════════════════════════════════════════════════════════
    렌더링

@@ -316,13 +316,14 @@ assertIncludes(reverseSource, '속도 미확인', 'Reverse source marks priority
 
 const initialHtml = reverseRenderedHtml();
 assertIncludes(initialHtml, 'data-rc-action="observedMyHp"', 'Reverse rendered HTML uses raw HP action name');
-assertIncludes(initialHtml, 'data-rc-move-picker="moveslot"', 'Reverse move slots render as searchable move comboboxes');
+assertIncludes(initialHtml, 'data-rc-pick="my"', 'Reverse initial render exposes blank Pokemon selection');
 assertNotIncludes(initialHtml, '기술 1', 'Reverse move slots omit numbered move labels');
 for (const stale of ['undefined', 'NaN']) {
   assertNotIncludes(initialHtml, stale, `Reverse initial render does not leak ${stale}`);
 }
 
 configurePrimarinaArchaludon(api, 81);
+assertIncludes(reverseRenderedHtml(), 'data-rc-move-picker="moveslot"', 'Reverse move slots render as searchable move comboboxes after Pokemon selection');
 
 const myMove = api.MoveById.moonblast;
 assertOk(

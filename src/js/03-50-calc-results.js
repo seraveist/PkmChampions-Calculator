@@ -9,7 +9,11 @@ function runCalc() {
 
   const atkP = PokemonById[state.atk.pokemonIdx];
   const defP = PokemonById[state.def.pokemonIdx];
-  if (!atkP || !defP) return;
+  const body = document.getElementById('calc-results-body');
+  if (!atkP || !defP) {
+    if (body) body.innerHTML = '<div class="empty-state ui-empty">공격측과 방어측 포켓몬을 선택하면 계산 결과가 표시됩니다.</div>';
+    return;
+  }
   
   const atkSpe = effectiveSpeed(calcAtk, calcField);
   const defSpe = effectiveSpeed(calcDef, calcField);
@@ -45,7 +49,6 @@ function runCalc() {
   const ignoredAb = moldBreakerActive && MOLD_BREAKER_IGNORED_ABILITIES.includes(defAb)
     ? AbilityById[defAb] : null;
 
-  const body = document.getElementById('calc-results-body');
   body.innerHTML = `
     ${moldBreakerActive ? `
     <div class="calc-mold-breaker-info ui-control-frame ui-subframe ui-meta-row">

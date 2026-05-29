@@ -219,6 +219,7 @@ magic = api.ftMagicNumbers(api.fineTuneState.my, 'atk');
 assertEqual(magic.prev, 5, 'magic number previous point is strictly below current');
 assertOk(magic.next > 6, 'magic number next point is strictly above current');
 
+api.fineTuneState.opp.pokemonIdx = secondPokemon;
 api.fineTuneState.opp.baseSpe = '200';
 const speedRows = api.ftBuildSpeedTable();
 assertOk(speedRows.length > 0, 'speed table still renders comparison cases');
