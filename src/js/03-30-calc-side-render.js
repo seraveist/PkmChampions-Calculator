@@ -66,7 +66,45 @@ function renderSide(sideKey) {
   const container = document.getElementById(`${sideKey}-body`);
   if (typeof calcCleanupComboboxPortals === 'function') calcCleanupComboboxPortals(sideKey);
   const p = PokemonById[side.pokemonIdx];
-  if (!p) { container.innerHTML = '<div class="empty-state ui-empty">\uD3EC\uCF13\uBAAC \uC120\uD0DD \uD544\uC694</div>'; return; }
+  const pokemonPicker = renderToolPokemonSelectSubframe({
+    fieldClass: 'pokemon-field',
+    headClass: 'calc-pokemon-field-head ui-section-head',
+    labelClass: 'ui-section-title',
+    primaryActions: uiButton('불러오기', {
+      class: 'party-load-button ui-label-action ui-field-action',
+      'data-party-import-target': `calc:${sideKey}`,
+    }),
+    titleActions: `
+      <div class="pokemon-actions tool-pokemon-actions tool-pokemon-nav-actions ui-field-actions">
+        <button type="button" class="calc-page-jump-button ui-label-action ui-field-action" data-ft-from-side="${sideKey}" title="fine tune">세부조정</button>
+        <button type="button" class="calc-page-jump-button ui-label-action ui-field-action" data-rc-from-side="${sideKey}" title="reverse calc">역계산</button>
+      </div>
+    `,
+    comboboxAttrs: { 'data-cb': `${sideKey}-poke` },
+    inputAttrs: {
+      'data-cb-type': 'pokemon',
+      'data-side': sideKey,
+      'data-field': 'pokemonIdx',
+      'aria-label': `${sideKey} pokemon select`,
+    },
+    value: p ? pkName(p) : '',
+    placeholder: '포켓몬 검색...',
+    optionsRole: 'listbox',
+    toolbarClass: 'pokemon-meta-row ui-field-meta-row ui-control-row ui-chip-row',
+    toolbarActions: p ? `
+      ${renderTypeControls(sideKey, side)}
+      ${renderFormSwitchControls(sideKey, side)}
+      <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 -->
+    ` : '',
+  });
+  if (!p) {
+    container.innerHTML = `
+      ${pokemonPicker}
+      <div class="empty-state ui-empty">포켓몬 선택 필요</div>
+    `;
+    wireSide(sideKey);
+    return;
+  }
   
   const stats = calcStats(side);
   deriveHpFlags(side);
@@ -135,38 +173,7 @@ function renderSide(sideKey) {
     baseClass: 'calc-stat-base',
     finalClass: 'calc-stat-final',
   });
-  const pokemonPicker = renderToolPokemonSelectSubframe({
-    fieldClass: 'pokemon-field',
-    headClass: 'calc-pokemon-field-head ui-section-head',
-    labelClass: 'ui-section-title',
-    primaryActions: uiButton('불러오기', {
-      class: 'party-load-button ui-label-action ui-field-action',
-      'data-party-import-target': `calc:${sideKey}`,
-    }),
-    titleActions: `
-      <div class="pokemon-actions tool-pokemon-actions tool-pokemon-nav-actions ui-field-actions">
-        <button type="button" class="calc-page-jump-button ui-label-action ui-field-action" data-ft-from-side="${sideKey}" title="fine tune">세부조정</button>
-        <button type="button" class="calc-page-jump-button ui-label-action ui-field-action" data-rc-from-side="${sideKey}" title="reverse calc">역계산</button>
-      </div>
-    `,
-    comboboxAttrs: { 'data-cb': `${sideKey}-poke` },
-    inputAttrs: {
-      'data-cb-type': 'pokemon',
-      'data-side': sideKey,
-      'data-field': 'pokemonIdx',
-      'aria-label': `${sideKey} pokemon select`,
-    },
-    value: pkName(p),
-    placeholder: null,
-    optionsRole: 'listbox',
-    toolbarClass: 'pokemon-meta-row ui-field-meta-row ui-control-row ui-chip-row',
-    toolbarActions: `
-      ${renderTypeControls(sideKey, side)}
-      ${renderFormSwitchControls(sideKey, side)}
-      <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 -->
-    `,
-  });
-  
+
   container.innerHTML = `
     <!-- 포켓몬 선택 -->
     ${pokemonPicker}

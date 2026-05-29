@@ -11,9 +11,9 @@ function rcDefaultField() {
 }
 
 const revCalcState = {
-  my: makeSideState('incineroar'),
+  my: makeSideState(),
   opp: {
-    pokemonIdx: PokemonById['amoonguss'] ? 'amoonguss' : (PokemonById['azumarill'] ? 'azumarill' : Object.keys(PokemonById)[0]),
+    pokemonIdx: '',
     ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
     status: 'none',
   },

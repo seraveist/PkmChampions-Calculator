@@ -15618,10 +15618,10 @@ function firstMover(movePri, atkSpe, defSpe) {
 
 
 /* Damage calculator state, options, and shared helpers. */
-function makeSideState(defaultIdx) {
+function makeSideState(defaultIdx = '') {
   const p = PokemonById[defaultIdx];
   return {
-    pokemonIdx: defaultIdx,
+    pokemonIdx: p ? defaultIdx : '',
     evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
     nature: 'hardy',  // 25성격 중 하나 (기본값: 노력 - 보정 없음)
     ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
@@ -15647,8 +15647,8 @@ function makeSideState(defaultIdx) {
 }
 
 const state = {
-  atk: makeSideState('incineroar'),
-  def: makeSideState('amoonguss'),  // 화뭉시
+  atk: makeSideState(),
+  def: makeSideState(),
   field: {
     weather: "none", terrain: "none", gameType: "Singles",
     isCritical: false, isGravity: false,
@@ -15664,20 +15664,6 @@ const state = {
     defSpikesLayers: 0,  // 0~3
   }
 };
-
-// 기본 세팅
-state.atk.evs = { hp: 0, atk: 32, def: 0, spa: 0, spd: 2, spe: 32 };
-state.atk.nature = 'adamant';  // 고집 (atk↑/spa↓)
-state.atk.moves = ['flareblitz','knockoff','uturn','earthquake'].filter(id => MoveById[id]);
-state.def.evs = { hp: 32, atk: 0, def: 32, spa: 0, spd: 2, spe: 0 };
-state.def.nature = 'bold';  // 대담 (def↑/atk↓)
-
-// Amoonguss가 없으면 마릴리로 폴백
-if (!PokemonById['amoonguss']) {
-  state.def = makeSideState('azumarill');
-  state.def.evs = { hp: 32, atk: 0, def: 32, spa: 0, spd: 2, spe: 0 };
-  state.def.nature = 'bold';
-}
 
 /* ════════════════════════════════════════════════════════════
    렌더링
@@ -17802,7 +17788,45 @@ function renderSide(sideKey) {
   const container = document.getElementById(`${sideKey}-body`);
   if (typeof calcCleanupComboboxPortals === 'function') calcCleanupComboboxPortals(sideKey);
   const p = PokemonById[side.pokemonIdx];
-  if (!p) { container.innerHTML = '<div class="empty-state ui-empty">\uD3EC\uCF13\uBAAC \uC120\uD0DD \uD544\uC694</div>'; return; }
+  const pokemonPicker = renderToolPokemonSelectSubframe({
+    fieldClass: 'pokemon-field',
+    headClass: 'calc-pokemon-field-head ui-section-head',
+    labelClass: 'ui-section-title',
+    primaryActions: uiButton('불러오기', {
+      class: 'party-load-button ui-label-action ui-field-action',
+      'data-party-import-target': `calc:${sideKey}`,
+    }),
+    titleActions: `
+      <div class="pokemon-actions tool-pokemon-actions tool-pokemon-nav-actions ui-field-actions">
+        <button type="button" class="calc-page-jump-button ui-label-action ui-field-action" data-ft-from-side="${sideKey}" title="fine tune">세부조정</button>
+        <button type="button" class="calc-page-jump-button ui-label-action ui-field-action" data-rc-from-side="${sideKey}" title="reverse calc">역계산</button>
+      </div>
+    `,
+    comboboxAttrs: { 'data-cb': `${sideKey}-poke` },
+    inputAttrs: {
+      'data-cb-type': 'pokemon',
+      'data-side': sideKey,
+      'data-field': 'pokemonIdx',
+      'aria-label': `${sideKey} pokemon select`,
+    },
+    value: p ? pkName(p) : '',
+    placeholder: '포켓몬 검색...',
+    optionsRole: 'listbox',
+    toolbarClass: 'pokemon-meta-row ui-field-meta-row ui-control-row ui-chip-row',
+    toolbarActions: p ? `
+      ${renderTypeControls(sideKey, side)}
+      ${renderFormSwitchControls(sideKey, side)}
+      <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 -->
+    ` : '',
+  });
+  if (!p) {
+    container.innerHTML = `
+      ${pokemonPicker}
+      <div class="empty-state ui-empty">포켓몬 선택 필요</div>
+    `;
+    wireSide(sideKey);
+    return;
+  }
   
   const stats = calcStats(side);
   deriveHpFlags(side);
@@ -17871,38 +17895,7 @@ function renderSide(sideKey) {
     baseClass: 'calc-stat-base',
     finalClass: 'calc-stat-final',
   });
-  const pokemonPicker = renderToolPokemonSelectSubframe({
-    fieldClass: 'pokemon-field',
-    headClass: 'calc-pokemon-field-head ui-section-head',
-    labelClass: 'ui-section-title',
-    primaryActions: uiButton('불러오기', {
-      class: 'party-load-button ui-label-action ui-field-action',
-      'data-party-import-target': `calc:${sideKey}`,
-    }),
-    titleActions: `
-      <div class="pokemon-actions tool-pokemon-actions tool-pokemon-nav-actions ui-field-actions">
-        <button type="button" class="calc-page-jump-button ui-label-action ui-field-action" data-ft-from-side="${sideKey}" title="fine tune">세부조정</button>
-        <button type="button" class="calc-page-jump-button ui-label-action ui-field-action" data-rc-from-side="${sideKey}" title="reverse calc">역계산</button>
-      </div>
-    `,
-    comboboxAttrs: { 'data-cb': `${sideKey}-poke` },
-    inputAttrs: {
-      'data-cb-type': 'pokemon',
-      'data-side': sideKey,
-      'data-field': 'pokemonIdx',
-      'aria-label': `${sideKey} pokemon select`,
-    },
-    value: pkName(p),
-    placeholder: null,
-    optionsRole: 'listbox',
-    toolbarClass: 'pokemon-meta-row ui-field-meta-row ui-control-row ui-chip-row',
-    toolbarActions: `
-      ${renderTypeControls(sideKey, side)}
-      ${renderFormSwitchControls(sideKey, side)}
-      <!-- 테라스탈은 챔피언스 모드에서 비활성화됨 -->
-    `,
-  });
-  
+
   container.innerHTML = `
     <!-- 포켓몬 선택 -->
     ${pokemonPicker}
@@ -18504,7 +18497,11 @@ function runCalc() {
 
   const atkP = PokemonById[state.atk.pokemonIdx];
   const defP = PokemonById[state.def.pokemonIdx];
-  if (!atkP || !defP) return;
+  const body = document.getElementById('calc-results-body');
+  if (!atkP || !defP) {
+    if (body) body.innerHTML = '<div class="empty-state ui-empty">공격측과 방어측 포켓몬을 선택하면 계산 결과가 표시됩니다.</div>';
+    return;
+  }
   
   const atkSpe = effectiveSpeed(calcAtk, calcField);
   const defSpe = effectiveSpeed(calcDef, calcField);
@@ -18540,7 +18537,6 @@ function runCalc() {
   const ignoredAb = moldBreakerActive && MOLD_BREAKER_IGNORED_ABILITIES.includes(defAb)
     ? AbilityById[defAb] : null;
 
-  const body = document.getElementById('calc-results-body');
   body.innerHTML = `
     ${moldBreakerActive ? `
     <div class="calc-mold-breaker-info ui-control-frame ui-subframe ui-meta-row">
@@ -22207,9 +22203,9 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
  */
 // 내 측은 makeSideState 와 같은 형태(전체 세팅 보유), 상대는 최소 정보만.
 const fineTuneState = {
-  my: makeSideState('incineroar'),
+  my: makeSideState(),
   opp: {
-    pokemonIdx: PokemonById['amoonguss'] ? 'amoonguss' : (PokemonById['azumarill'] ? 'azumarill' : Object.keys(PokemonById)[0]),
+    pokemonIdx: '',
     scarf: false,
     speRank: 0,  // 상대 스피드 랭크 (-6 ~ +6)
     baseSpe: '',
@@ -22844,22 +22840,13 @@ function renderFineTuneMy() {
   if (!container) return;
   const my = fineTuneState.my;
   const p = PokemonById[my.pokemonIdx];
-  if (!p) {
-    container.innerHTML = '<div class="empty-state ui-empty">포켓몬 선택 필요</div>';
-    return;
-  }
-
-  const stats = calcStats(my);
-  const bulk = ftBulkMetrics(my);
-  const ev = ftEvSummary(my);
-  const rankStats = ['atk','def','spa','spd','spe'];
-  const formControl = renderToolFormCombobox({
+  const formControl = p ? renderToolFormCombobox({
     pokemonId: my.pokemonIdx,
     inputClass: 'ft-cb-input',
     pickAttr: 'data-ft-pick',
     pickValue: 'myForm',
     ariaLabel: '내 포켓몬 폼 선택',
-  });
+  }) : '';
   const pokemonPicker = renderToolPokemonSelectSubframe({
     fieldClass: 'ft-cb-field ft-pokemon-field',
     headClass: 'ft-pokemon-head ui-section-head',
@@ -22876,13 +22863,31 @@ function renderFineTuneMy() {
     `,
     inputClass: 'ft-cb-input',
     inputAttrs: { 'data-ft-pick': 'my' },
-    value: pkName(p),
+    value: p ? pkName(p) : '',
+    placeholder: '포켓몬 검색...',
     toolbarClass: 'ft-pokemon-meta-row pokemon-meta-row ui-field-meta-row ui-control-row ui-chip-row',
-    toolbarActions: `
+    toolbarActions: p ? `
       ${renderToolPokemonTypeStrip({ types: normalizeSideTypes(my), ariaLabel: '타입' })}
       ${formControl}
-    `,
+    ` : '',
   });
+  if (!p) {
+    container.innerHTML = `
+      <div class="ft-setup-grid tool-settings-layout ui-control-grid">
+        <div class="ft-pokemon-main-row ui-control-row">
+          ${pokemonPicker}
+        </div>
+      </div>
+      <div class="empty-state ui-empty">포켓몬 선택 필요</div>
+    `;
+    ftWireMyComboboxes();
+    return;
+  }
+
+  const stats = calcStats(my);
+  const bulk = ftBulkMetrics(my);
+  const ev = ftEvSummary(my);
+  const rankStats = ['atk','def','spa','spd','spe'];
   const speedActivation = ftAbilitySpeedActivation(my.ability);
   const statRows = renderToolStatRows(['hp', ...rankStats].map(stat => {
     const ev = my.evs[stat] || 0;
@@ -23243,9 +23248,9 @@ function rcDefaultField() {
 }
 
 const revCalcState = {
-  my: makeSideState('incineroar'),
+  my: makeSideState(),
   opp: {
-    pokemonIdx: PokemonById['amoonguss'] ? 'amoonguss' : (PokemonById['azumarill'] ? 'azumarill' : Object.keys(PokemonById)[0]),
+    pokemonIdx: '',
     ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
     status: 'none',
   },
@@ -25012,14 +25017,13 @@ function renderRevCalcMy() {
   if (!container) return;
   const my = revCalcState.my;
   const p = PokemonById[my.pokemonIdx];
-  if (!p) { container.innerHTML = '<div class="empty-state ui-empty">포켓몬 선택 필요</div>'; return; }
-  const formControl = renderToolFormCombobox({
+  const formControl = p ? renderToolFormCombobox({
     pokemonId: my.pokemonIdx,
     inputClass: 'rc-cb-input',
     pickAttr: 'data-rc-pick',
     pickValue: 'myForm',
     ariaLabel: '내 포켓몬 폼 선택',
-  });
+  }) : '';
   const pokemonPicker = renderToolPokemonSelectSubframe({
     fieldClass: 'rc-cb-field rc-pokemon-field',
     headClass: 'rc-pokemon-head ui-section-head',
@@ -25028,14 +25032,27 @@ function renderRevCalcMy() {
       class: 'party-load-button ui-label-action ui-field-action',
       'data-party-import-target': 'revcalc:my',
     }),
-    metaActions: `
+    metaActions: p ? `
       ${formControl}
       ${renderToolPokemonTypeStrip({ types: p.types, ariaLabel: '타입' })}
-    `,
+    ` : '',
     inputClass: 'rc-cb-input',
     inputAttrs: { 'data-rc-pick': 'my' },
-    value: pkName(p),
+    value: p ? pkName(p) : '',
+    placeholder: '포켓몬 검색...',
   });
+  if (!p) {
+    container.innerHTML = `
+      <div class="rc-setup-grid tool-settings-layout ui-control-grid">
+        <div class="rc-pokemon-main-row ui-control-row">
+          ${pokemonPicker}
+        </div>
+      </div>
+      <div class="empty-state ui-empty">포켓몬 선택 필요</div>
+    `;
+    rcWireMyComboboxes();
+    return;
+  }
   const stats = calcStats(my);
   const totalEV = ['hp','atk','def','spa','spd','spe'].reduce((a,s) => a + (my.evs[s]||0), 0);
   const overEV = totalEV > 66;

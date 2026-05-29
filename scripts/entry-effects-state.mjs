@@ -134,6 +134,8 @@ const { state } = api;
 
 function resetScenario() {
   api.setAutoEntry(true);
+  state.atk.pokemonIdx = 'charizard';
+  state.def.pokemonIdx = 'venusaur';
   state.atk.ability = 'blaze';
   state.def.ability = 'effectspore';
   state.atk.hpPct = 1;

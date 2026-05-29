@@ -3,9 +3,9 @@
  */
 // 내 측은 makeSideState 와 같은 형태(전체 세팅 보유), 상대는 최소 정보만.
 const fineTuneState = {
-  my: makeSideState('incineroar'),
+  my: makeSideState(),
   opp: {
-    pokemonIdx: PokemonById['amoonguss'] ? 'amoonguss' : (PokemonById['azumarill'] ? 'azumarill' : Object.keys(PokemonById)[0]),
+    pokemonIdx: '',
     scarf: false,
     speRank: 0,  // 상대 스피드 랭크 (-6 ~ +6)
     baseSpe: '',
@@ -640,22 +640,13 @@ function renderFineTuneMy() {
   if (!container) return;
   const my = fineTuneState.my;
   const p = PokemonById[my.pokemonIdx];
-  if (!p) {
-    container.innerHTML = '<div class="empty-state ui-empty">포켓몬 선택 필요</div>';
-    return;
-  }
-
-  const stats = calcStats(my);
-  const bulk = ftBulkMetrics(my);
-  const ev = ftEvSummary(my);
-  const rankStats = ['atk','def','spa','spd','spe'];
-  const formControl = renderToolFormCombobox({
+  const formControl = p ? renderToolFormCombobox({
     pokemonId: my.pokemonIdx,
     inputClass: 'ft-cb-input',
     pickAttr: 'data-ft-pick',
     pickValue: 'myForm',
     ariaLabel: '내 포켓몬 폼 선택',
-  });
+  }) : '';
   const pokemonPicker = renderToolPokemonSelectSubframe({
     fieldClass: 'ft-cb-field ft-pokemon-field',
     headClass: 'ft-pokemon-head ui-section-head',
@@ -672,13 +663,31 @@ function renderFineTuneMy() {
     `,
     inputClass: 'ft-cb-input',
     inputAttrs: { 'data-ft-pick': 'my' },
-    value: pkName(p),
+    value: p ? pkName(p) : '',
+    placeholder: '포켓몬 검색...',
     toolbarClass: 'ft-pokemon-meta-row pokemon-meta-row ui-field-meta-row ui-control-row ui-chip-row',
-    toolbarActions: `
+    toolbarActions: p ? `
       ${renderToolPokemonTypeStrip({ types: normalizeSideTypes(my), ariaLabel: '타입' })}
       ${formControl}
-    `,
+    ` : '',
   });
+  if (!p) {
+    container.innerHTML = `
+      <div class="ft-setup-grid tool-settings-layout ui-control-grid">
+        <div class="ft-pokemon-main-row ui-control-row">
+          ${pokemonPicker}
+        </div>
+      </div>
+      <div class="empty-state ui-empty">포켓몬 선택 필요</div>
+    `;
+    ftWireMyComboboxes();
+    return;
+  }
+
+  const stats = calcStats(my);
+  const bulk = ftBulkMetrics(my);
+  const ev = ftEvSummary(my);
+  const rankStats = ['atk','def','spa','spd','spe'];
   const speedActivation = ftAbilitySpeedActivation(my.ability);
   const statRows = renderToolStatRows(['hp', ...rankStats].map(stat => {
     const ev = my.evs[stat] || 0;

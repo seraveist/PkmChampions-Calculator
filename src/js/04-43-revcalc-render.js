@@ -4,14 +4,13 @@ function renderRevCalcMy() {
   if (!container) return;
   const my = revCalcState.my;
   const p = PokemonById[my.pokemonIdx];
-  if (!p) { container.innerHTML = '<div class="empty-state ui-empty">포켓몬 선택 필요</div>'; return; }
-  const formControl = renderToolFormCombobox({
+  const formControl = p ? renderToolFormCombobox({
     pokemonId: my.pokemonIdx,
     inputClass: 'rc-cb-input',
     pickAttr: 'data-rc-pick',
     pickValue: 'myForm',
     ariaLabel: '내 포켓몬 폼 선택',
-  });
+  }) : '';
   const pokemonPicker = renderToolPokemonSelectSubframe({
     fieldClass: 'rc-cb-field rc-pokemon-field',
     headClass: 'rc-pokemon-head ui-section-head',
@@ -20,14 +19,27 @@ function renderRevCalcMy() {
       class: 'party-load-button ui-label-action ui-field-action',
       'data-party-import-target': 'revcalc:my',
     }),
-    metaActions: `
+    metaActions: p ? `
       ${formControl}
       ${renderToolPokemonTypeStrip({ types: p.types, ariaLabel: '타입' })}
-    `,
+    ` : '',
     inputClass: 'rc-cb-input',
     inputAttrs: { 'data-rc-pick': 'my' },
-    value: pkName(p),
+    value: p ? pkName(p) : '',
+    placeholder: '포켓몬 검색...',
   });
+  if (!p) {
+    container.innerHTML = `
+      <div class="rc-setup-grid tool-settings-layout ui-control-grid">
+        <div class="rc-pokemon-main-row ui-control-row">
+          ${pokemonPicker}
+        </div>
+      </div>
+      <div class="empty-state ui-empty">포켓몬 선택 필요</div>
+    `;
+    rcWireMyComboboxes();
+    return;
+  }
   const stats = calcStats(my);
   const totalEV = ['hp','atk','def','spa','spd','spe'].reduce((a,s) => a + (my.evs[s]||0), 0);
   const overEV = totalEV > 66;
