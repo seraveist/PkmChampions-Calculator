@@ -1304,9 +1304,10 @@
   }
 
   #page-calc .combobox:has(.cb-input[data-cb-type="nature"]) .combobox-options {
+    left: auto;
     right: 0;
-    width: 100%;
-    min-width: 0;
+    width: min(188px, calc(100vw - 24px));
+    min-width: min(168px, calc(100vw - 24px));
   }
 
   #page-calc .nature-option-header,

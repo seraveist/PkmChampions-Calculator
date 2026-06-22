@@ -206,6 +206,105 @@ let calcComboboxLastPointerAt = 0;
 let calcComboboxLastOpenedControl = null;
 let calcComboboxLastOpenedAt = 0;
 let calcComboboxPortalListenersBound = false;
+const CALC_COMBOBOX_TOUCH_TAP_SLOP = 10;
+const CALC_PAGE_PORTAL_COMBOBOX_TYPES = new Set([
+  'pokemon',
+  'move',
+  'moveType',
+  'ability',
+  'item',
+  'nature',
+  'status',
+  'type1',
+  'type2',
+  'form',
+  'weather',
+  'terrain',
+  'gameType',
+  'spikesLayers',
+]);
+const CALC_COMBOBOX_PORTAL_WIDTHS = {
+  pokemon: { min: 420, max: 540, minWidth: 360 },
+  move: { min: 300, max: 330, minWidth: 300, compactMin: 220, compactMax: 280, compactMinWidth: 220 },
+  moveType: { min: 92, max: 140, minWidth: 92 },
+  type1: { min: 116, max: 160, minWidth: 104 },
+  type2: { min: 116, max: 160, minWidth: 104 },
+  nature: { min: 188, max: 220, minWidth: 168 },
+  status: { min: 180, max: 220, minWidth: 160 },
+  ability: { min: 220, max: 300, minWidth: 200 },
+  item: { min: 220, max: 300, minWidth: 200 },
+  form: { min: 180, max: 280, minWidth: 160 },
+  weather: { min: 128, max: 180, minWidth: 116 },
+  terrain: { min: 128, max: 180, minWidth: 116 },
+  gameType: { min: 128, max: 180, minWidth: 116 },
+  spikesLayers: { min: 112, max: 150, minWidth: 104 },
+};
+
+function calcComboboxTouchPoint(event) {
+  const touch = event?.changedTouches?.[0] || event?.touches?.[0] || null;
+  return touch ? { x: touch.clientX, y: touch.clientY } : null;
+}
+
+function calcWireComboboxTouchOptions(optsEl, selectOption) {
+  let touchStart = null;
+  let lastTouchSelectAt = 0;
+
+  const shouldIgnoreMouseEvent = event => (
+    (event.type === 'mousedown' || event.type === 'click')
+    && lastTouchSelectAt
+    && Date.now() - lastTouchSelectAt < 700
+  );
+
+  const handleTouchStart = event => {
+    const option = event.target?.closest?.('.combobox-option:not(.empty)');
+    if (!option || !optsEl.contains(option)) {
+      touchStart = null;
+      return;
+    }
+    const point = calcComboboxTouchPoint(event);
+    touchStart = point ? { option, x: point.x, y: point.y, moved: false } : null;
+  };
+
+  const handleTouchMove = event => {
+    if (!touchStart) return;
+    const point = calcComboboxTouchPoint(event);
+    if (!point) {
+      touchStart.moved = true;
+      return;
+    }
+    if (
+      Math.abs(point.x - touchStart.x) > CALC_COMBOBOX_TOUCH_TAP_SLOP
+      || Math.abs(point.y - touchStart.y) > CALC_COMBOBOX_TOUCH_TAP_SLOP
+    ) {
+      touchStart.moved = true;
+    }
+  };
+
+  const handleTouchEnd = event => {
+    if (!touchStart) return;
+    const start = touchStart;
+    touchStart = null;
+    const point = calcComboboxTouchPoint(event);
+    const moved = start.moved || (
+      point && (
+        Math.abs(point.x - start.x) > CALC_COMBOBOX_TOUCH_TAP_SLOP
+        || Math.abs(point.y - start.y) > CALC_COMBOBOX_TOUCH_TAP_SLOP
+      )
+    );
+    if (moved || !optsEl.contains(start.option)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    lastTouchSelectAt = Date.now();
+    selectOption(start.option, event);
+  };
+
+  optsEl.addEventListener('touchstart', handleTouchStart, { passive: true });
+  optsEl.addEventListener('touchmove', handleTouchMove, { passive: true });
+  optsEl.addEventListener('touchend', handleTouchEnd, { passive: false });
+  optsEl.addEventListener('touchcancel', () => { touchStart = null; }, { passive: true });
+
+  return { shouldIgnoreMouseEvent };
+}
 
 function calcComboboxTrackPointerTarget(event) {
   calcComboboxLastPointerTarget = event.target?.closest?.('.combobox') || null;
@@ -236,6 +335,7 @@ function closeSiblingComboboxOptions(optsEl, control) {
 function calcComboboxShouldUsePortal(input, cbParent) {
   const type = input?.dataset?.cbType || '';
   if (input?.dataset?.cbPortal === 'true') return true;
+  if (input?.closest?.('#page-calc') && CALC_PAGE_PORTAL_COMBOBOX_TYPES.has(type)) return true;
   return Boolean(cbParent?.closest?.('.tool-move-list-frame') && (type === 'move' || type === 'moveType'));
 }
 
@@ -259,17 +359,22 @@ function calcComboboxPortalWidth(input, type) {
   const viewportWidth = Math.max(240, window.innerWidth || document.documentElement.clientWidth || 0);
   const maxWidth = Math.max(120, viewportWidth - 16);
   const compact = input?.dataset?.cbPortalSize === 'compact';
-  if (type === 'move') {
-    if (compact) return Math.min(Math.max(rect.width, 220), 280, maxWidth);
-    return Math.min(Math.max(rect.width, 300), 330, maxWidth);
-  }
-  if (type === 'moveType') {
-    return Math.min(Math.max(rect.width, 92), 140, maxWidth);
-  }
-  if (type === 'pokemon') {
-    return Math.min(Math.max(rect.width, 260), 360, maxWidth);
+  const sizing = CALC_COMBOBOX_PORTAL_WIDTHS[type];
+  if (sizing) {
+    const min = compact && sizing.compactMin ? sizing.compactMin : sizing.min;
+    const max = compact && sizing.compactMax ? sizing.compactMax : sizing.max;
+    return Math.min(Math.max(rect.width, min), max, maxWidth);
   }
   return Math.min(rect.width, maxWidth);
+}
+
+function calcComboboxPortalMinWidth(type, width, input) {
+  const compact = input?.dataset?.cbPortalSize === 'compact';
+  const sizing = CALC_COMBOBOX_PORTAL_WIDTHS[type];
+  const fallback = Math.min(width, 120);
+  if (!sizing) return fallback;
+  const minWidth = compact && sizing.compactMinWidth ? sizing.compactMinWidth : sizing.minWidth;
+  return Math.min(width, minWidth || fallback);
 }
 
 function calcPositionComboboxPortal(input, optsEl, type = '') {
@@ -280,25 +385,28 @@ function calcPositionComboboxPortal(input, optsEl, type = '') {
   ) return;
   const rect = input.getBoundingClientRect();
   const margin = 8;
+  const gap = 4;
   const viewportWidth = Math.max(240, window.innerWidth || document.documentElement.clientWidth || 0);
   const viewportHeight = Math.max(240, window.innerHeight || document.documentElement.clientHeight || 0);
   const width = calcComboboxPortalWidth(input, type);
   const left = Math.max(margin, Math.min(rect.left, viewportWidth - width - margin));
-  const top = Math.max(margin, rect.bottom + 4);
-  const maxAllowedHeight = input?.dataset?.cbPortalSize === 'compact' ? 220 : 280;
-  const maxHeight = Math.max(96, Math.min(maxAllowedHeight, viewportHeight - top - margin));
+  const preferredMaxHeight = input?.dataset?.cbPortalSize === 'compact' ? 220 : 280;
+  const minUsefulHeight = 72;
+  const spaceBelow = viewportHeight - rect.bottom - gap - margin;
+  const spaceAbove = rect.top - gap - margin;
+  const openAbove = spaceBelow < minUsefulHeight && spaceAbove > spaceBelow;
+  const availableHeight = Math.max(minUsefulHeight, openAbove ? spaceAbove : spaceBelow);
+  const maxHeight = Math.min(preferredMaxHeight, availableHeight);
+  const rawTop = openAbove ? rect.top - gap - maxHeight : rect.bottom + gap;
+  const top = Math.max(margin, Math.min(rawTop, viewportHeight - maxHeight - margin));
   optsEl.style.left = `${left}px`;
   optsEl.style.top = `${top}px`;
   optsEl.style.right = 'auto';
   optsEl.style.width = `${width}px`;
-  const minWidth = type === 'move'
-    ? (input?.dataset?.cbPortalSize === 'compact' ? 220 : 300)
-    : type === 'pokemon'
-      ? 240
-      : 92;
-  optsEl.style.minWidth = `${Math.min(width, minWidth)}px`;
+  optsEl.style.minWidth = `${calcComboboxPortalMinWidth(type, width, input)}px`;
   optsEl.style.maxWidth = `${viewportWidth - margin * 2}px`;
   optsEl.style.maxHeight = `${maxHeight}px`;
+  optsEl.dataset.calcPortalPlacement = openAbove ? 'top' : 'bottom';
 }
 
 function calcPositionOpenComboboxPortals() {
@@ -339,7 +447,9 @@ function calcMountComboboxPortal(input, cbParent, optsEl) {
       ? 'tool-move-options-portal'
       : input.dataset.cbType === 'moveType'
         ? 'tool-move-type-options-portal'
-        : ''
+        : CALC_PAGE_PORTAL_COMBOBOX_TYPES.has(input.dataset.cbType || '')
+          ? 'calc-page-options-portal'
+          : ''
   );
   if (portalClass) optsEl.classList.add(portalClass);
   if (input.dataset.side === 'atk') optsEl.style.setProperty('--tool-combo-selected', 'var(--atk)');
@@ -612,6 +722,7 @@ function wirePokemonSelectCombobox(input, {
     getQuery: () => isButtonTrigger ? '' : input.value || '',
     onInvalidInput: restoreInput,
   });
+  const touchOptions = calcWireComboboxTouchOptions(optsEl, option => combo?.select(option));
 
   input.addEventListener('focus', () => {
     if (isButtonTrigger) return;
@@ -659,6 +770,11 @@ function wirePokemonSelectCombobox(input, {
   });
 
   const handleOptionSelect = e => {
+    if (touchOptions.shouldIgnoreMouseEvent(e)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     const opt = e.target.closest('.combobox-option');
     if (!opt || opt.classList.contains('empty')) return;
     e.preventDefault();
@@ -668,7 +784,6 @@ function wirePokemonSelectCombobox(input, {
 
   optsEl.addEventListener('mousedown', handleOptionSelect);
   optsEl.addEventListener('click', handleOptionSelect);
-  optsEl.addEventListener('touchstart', handleOptionSelect, { passive: false });
   optsEl.addEventListener('scroll', calcHideOptionTooltip);
 
   return combo;
@@ -994,7 +1109,6 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
 
   const cbType = input.dataset.cbType;
   const side = input.dataset.side || null;
-  const usesPortal = calcMountComboboxPortal(input, cbParent, optsEl);
   if (cbType === 'pokemon') {
     return wirePokemonSelectCombobox(input, {
       getOptions: () => calcDatasetForCombobox(side, 'pokemon'),
@@ -1006,6 +1120,7 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
     });
   }
 
+  const usesPortal = calcMountComboboxPortal(input, cbParent, optsEl);
   const filter = filterFn || makeCombobox(side, cbType);
   const isButtonTrigger = input.tagName === 'BUTTON';
   let activeIndex = -1;
@@ -1152,6 +1267,7 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
     closeOptions();
     if (onSelect) onSelect(id, opt);
   }
+  const touchOptions = calcWireComboboxTouchOptions(optsEl, option => selectOption(option));
 
   function findExactOptionForInput() {
     const query = queryValue();
@@ -1250,6 +1366,11 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
   });
 
   function handleOptionSelect(e) {
+    if (touchOptions.shouldIgnoreMouseEvent(e)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     const opt = e.target.closest('.combobox-option');
     if (!opt || opt.classList.contains('empty')) return;
     e.preventDefault();
@@ -1263,7 +1384,6 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
     if (!isButtonTrigger) return;
     handleOptionSelect(e);
   });
-  optsEl.addEventListener('touchstart', handleOptionSelect, { passive: false });
   optsEl.addEventListener('mouseover', e => {
     const opt = e.target.closest('.tooltip-option[data-tooltip]');
     if (opt && optsEl.contains(opt)) showOptionTooltip(opt);

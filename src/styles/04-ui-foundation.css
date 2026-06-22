@@ -2547,6 +2547,9 @@ input[type="radio"]:focus-visible {
   max-height: 280px;
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   display: none;
   z-index: 120;
   border: 1px solid var(--border-bright);
@@ -2556,12 +2559,17 @@ input[type="radio"]:focus-visible {
 }
 
 .combobox-options.combobox-options-portal {
+  box-sizing: border-box;
   position: fixed;
   top: auto;
   right: auto;
   bottom: auto;
   left: auto;
   z-index: 10020;
+}
+
+.combobox-options.calc-page-options-portal {
+  max-width: calc(100vw - 16px);
 }
 
 .combobox-options.tool-move-options-portal {

@@ -217,6 +217,28 @@ function ftSearchMatches(query, option) {
     .some(value => String(value || '').toLowerCase().includes(q));
 }
 
+function ftRenderOpponentPokemonOption(option, currentId) {
+  const pokemon = option?.raw || option || {};
+  const id = option?.id || pokemon.id || '';
+  const label = option?.label || pkName(pokemon);
+  const types = pokemon.types || option?.types || [];
+  const speed = pokemon.bs?.spe || option?.bs?.spe || 0;
+  const typeBadges = types.map(type => (
+    `<span class="type-pill pokemon-simple-type-pill ft-opp-pokemon-type-pill t-${escapeHTML(type)}">${escapeHTML(TYPE_KO[type] || type)}</span>`
+  )).join('');
+  const selected = String(id) === String(currentId);
+  const optionClass = ['combobox-option', 'ui-option', 'pokemon-simple-option', 'ft-opp-pokemon-option', selected ? 'selected' : '']
+    .filter(Boolean)
+    .join(' ');
+  return `
+    <div class="${optionClass}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}">
+      <b class="pokemon-simple-option-name ft-opp-pokemon-name">${escapeHTML(label)}</b>
+      <small class="pokemon-simple-option-types ft-opp-pokemon-types">${typeBadges}</small>
+      <span class="ft-opp-pokemon-speed" title="SPE ${escapeHTML(speed)}">${escapeHTML(speed)}</span>
+    </div>
+  `;
+}
+
 function ftApplyPokemonToFineTune(pokemonId) {
   const pokemon = PokemonById[pokemonId];
   if (!pokemon) return;
@@ -275,7 +297,9 @@ function ftWireComboboxes(rootId) {
     if (input.dataset.ftWired === '1') return;
     const target = input.dataset.ftPick;
     if (target === 'my' || target === 'opp') {
-      const useSimplePokemonOption = target === 'opp' && typeof calcRenderSimplePokemonOption === 'function';
+      const renderPokemonOption = target === 'opp'
+        ? ftRenderOpponentPokemonOption
+        : null;
       wirePokemonSelectCombobox(input, {
         wiredKey: 'ftWired',
         getOptions: () => ftComboData(target),
@@ -287,8 +311,8 @@ function ftWireComboboxes(rootId) {
         },
         searchLimit: 80,
         closeDelay: 180,
-        renderOption: useSimplePokemonOption ? calcRenderSimplePokemonOption : null,
-        renderHeader: useSimplePokemonOption ? '' : null,
+        renderOption: renderPokemonOption,
+        renderHeader: renderPokemonOption ? '' : null,
       });
       return;
     }

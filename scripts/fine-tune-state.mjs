@@ -121,6 +121,7 @@ function loadFineTuneApi() {
         ftOpponentBaseSpeed,
         ftMagicNumbers,
         ftComboData,
+        ftRenderOpponentPokemonOption,
         renderFineTuneMy,
         renderFineTuneOpp,
         renderFineTuneAll,
@@ -171,6 +172,9 @@ const api = loadFineTuneApi();
 const fineTunePokemonOptions = api.ftComboData('opp');
 assertEqual(fineTunePokemonOptions.length, api.POKEMON.length, 'fine-tune pokemon dropdown includes all filtered pokemon');
 assertOk(fineTunePokemonOptions.every((option, index, arr) => index === 0 || (arr[index - 1].raw.bs?.spe || 0) >= (option.raw.bs?.spe || 0)), 'fine-tune pokemon dropdown sorts by base Speed descending');
+const opponentOptionHtml = api.ftRenderOpponentPokemonOption(fineTunePokemonOptions[0], fineTunePokemonOptions[0].id);
+assertOk(opponentOptionHtml.includes('ft-opp-pokemon-speed'), 'fine-tune opponent pokemon dropdown renders speed column');
+assertOk(opponentOptionHtml.includes(`>${fineTunePokemonOptions[0].raw.bs?.spe || 0}</span>`), 'fine-tune opponent pokemon dropdown renders base Speed value');
 
 const secondPokemon = api.PokemonById.amoonguss ? 'amoonguss' : Object.keys(api.PokemonById).find(id => id !== api.fineTuneState.my.pokemonIdx);
 api.fineTuneState.my = api.makeSideState('incineroar');
