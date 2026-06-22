@@ -36,6 +36,66 @@ function stripVarDeclTypes(src) {
   return out;
 }
 
+function replaceOutsideLiterals(src, re, replacement) {
+  let out = '';
+  let codeStart = 0;
+  let i = 0;
+
+  function appendCode(end) {
+    re.lastIndex = 0;
+    out += src.slice(codeStart, end).replace(re, replacement);
+  }
+
+  function appendProtected(end) {
+    out += src.slice(i, end);
+    i = end;
+    codeStart = i;
+  }
+
+  while (i < src.length) {
+    const c = src[i];
+    const next = src[i + 1];
+
+    if (c === '"' || c === "'" || c === '`') {
+      appendCode(i);
+      const quote = c;
+      let pos = i + 1;
+      while (pos < src.length) {
+        if (src[pos] === '\\') {
+          pos += 2;
+          continue;
+        }
+        if (src[pos] === quote) {
+          pos++;
+          break;
+        }
+        pos++;
+      }
+      appendProtected(pos);
+      continue;
+    }
+
+    if (c === '/' && next === '/') {
+      appendCode(i);
+      const newline = src.indexOf('\n', i + 2);
+      appendProtected(newline === -1 ? src.length : newline + 1);
+      continue;
+    }
+
+    if (c === '/' && next === '*') {
+      appendCode(i);
+      const commentEnd = src.indexOf('*/', i + 2);
+      appendProtected(commentEnd === -1 ? src.length : commentEnd + 2);
+      continue;
+    }
+
+    i++;
+  }
+
+  appendCode(src.length);
+  return out;
+}
+
 function stripTypeScript(src) {
   // 1. type-only / 일반 import 제거 (data 파일은 외부 심볼을 실제로 참조하지 않음)
   src = src.replace(/^\s*import\s+type\b[^;]*;\s*$/gm, '');
@@ -46,13 +106,13 @@ function stripTypeScript(src) {
   src = src.replace(/(export\s+const\s+\w+)\s*:\s*[^=]+(\s*=)/g, '$1$2');
 
   // 3. `as ( ... ) => ReturnType` 형태의 함수 타입 캐스팅 제거
-  src = src.replace(/\s+as\s+\([^)]*\)\s*=>\s*[A-Za-z_][\w<>\[\].|\s,]*/g, '');
+  src = replaceOutsideLiterals(src, /\s+as\s+\([^)]*\)\s*=>\s*[A-Za-z_][\w<>\[\].|\s,]*/g, '');
 
   // 4. 일반 `as Type` 캐스팅 제거 (`as any`, `as Pokemon[]`, `as 'foo' | 'bar'`, `as false | null` 등)
   // 첫 토큰은 PascalCase / 원시 키워드 / 리터럴(true/false/null/undefined/string-literal/number) 모두 허용.
   const AS_TYPE_FIRST = String.raw`(?:[A-Z][\w]*|string|number|boolean|void|any|never|unknown|object|null|undefined|true|false|'[^']*'|"[^"]*"|\d+)(?:\s*<[^<>]*>)?(?:\s*\[\s*\])*`;
   const AS_TYPE_FULL = `${AS_TYPE_FIRST}(?:\\s*\\|\\s*${AS_TYPE_FIRST})*`;
-  src = src.replace(new RegExp(String.raw`\s+as\s+${AS_TYPE_FULL}`, 'g'), '');
+  src = replaceOutsideLiterals(src, new RegExp(String.raw`\s+as\s+${AS_TYPE_FULL}`, 'g'), '');
 
   // 5. 변수 선언의 타입 어노테이션 제거.
   // const/let/var 선언은 `:` 다음에 타입이 와야 하므로 안전하게 제거 가능.

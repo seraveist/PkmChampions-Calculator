@@ -40,8 +40,8 @@ jobs:
         run: node scripts/fetch-ko.mjs
         continue-on-error: true   # PokéAPI 일시 장애 시에도 빌드는 진행
 
-      - name: Build (regression check)
-        run: npm run build
+      - name: Run regression suite
+        run: npm test
 
       - name: Detect changes
         id: changes

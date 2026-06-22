@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readCalcUiSource } from './source-utils.mjs';
@@ -319,5 +319,6 @@ const out = [
   tableFor('필드/상태 매트릭스', fieldCandidates),
 ].join('\n');
 
+mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
 writeFileSync(OUTPUT_PATH, `${out.trim()}\n`, 'utf8');
 console.log(`Wrote ${path.relative(ROOT, OUTPUT_PATH)}`);
