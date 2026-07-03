@@ -19,12 +19,10 @@ function wireFieldComboboxes() {
       filterFn: makeCombobox(null, cbType),
       onSelect(id) {
         if (field === 'weather') {
-          markManualAutoFieldOverride('weather');
-          state.field.weather = id || 'none';
+          setManualCalcField('weather', id || 'none');
           setComboboxValue('weather', state.field.weather, 'weather');
         } else if (field === 'terrain') {
-          markManualAutoFieldOverride('terrain');
-          state.field.terrain = id || 'none';
+          setManualCalcField('terrain', id || 'none');
           setComboboxValue('terrain', state.field.terrain, 'terrain');
         } else if (field === 'gameType') {
           state.field.gameType = id || 'Singles';
@@ -57,7 +55,6 @@ function syncSpikesLayerControl(enabled = false) {
   }
 }
 
-document.getElementById('critHit').addEventListener('change', e => { state.field.isCritical = e.target.checked; triggerCalc(); });
 document.getElementById('defReflect').addEventListener('change', e => { state.field.defReflect = e.target.checked; triggerCalc(); });
 document.getElementById('defLightScreen').addEventListener('change', e => { state.field.defLightScreen = e.target.checked; triggerCalc(); });
 document.getElementById('atkHelpingHand').addEventListener('change', e => { state.field.atkHelpingHand = e.target.checked; triggerCalc(); });
@@ -79,8 +76,8 @@ document.getElementById('defSpikes').addEventListener('change', e => {
 document.getElementById('gravity').addEventListener('change', e => { state.field.isGravity = e.target.checked; triggerCalc(); });
 // 자동 진입 효과 토글
 document.getElementById('autoEntry').addEventListener('change', e => {
-  autoEntryEffects = e.target.checked;
-  lastAutoEntry = emptyEntryMeta();
+  setAutoEntryEffectsEnabled(e.target.checked);
+  syncFieldControls(state.field);
   triggerCalc();
 });
 syncSpikesLayerControl(document.getElementById('defSpikes')?.checked);
@@ -115,6 +112,7 @@ function swapCalcSides() {
   const tmp = state.atk;
   state.atk = state.def;
   state.def = tmp;
+  swapAutoEntryFieldOwners();
   document.getElementById('page-calc')?.classList.toggle('sides-swapped');
   lastAutoEntry = emptyEntryMeta();
   renderSide('atk');

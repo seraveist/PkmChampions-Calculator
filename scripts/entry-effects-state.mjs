@@ -70,6 +70,7 @@ function loadUiApi() {
 
   const source = [
     readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8'),
+    readFileSync(path.join(ROOT, 'src', 'js', '01-20-html-structure.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '02-engine.js'), 'utf8'),
     readCalcUiSource(ROOT),
     `
@@ -89,9 +90,17 @@ function loadUiApi() {
         markManualAutoFieldOverride,
         resetManualAutoFieldOverrides,
         manualAutoFieldOverrides,
+        autoEntryFieldState,
+        entryFieldEffectForSide,
+        applyEntryFieldsFromSide,
+        setManualCalcField,
+        setAutoEntryEffectsEnabled,
+        swapAutoEntryFieldOwners,
+        resetAutoEntryFieldState,
         resetSideManualValues,
         defaultPokemonAbilityId,
-        setAutoEntry(value) { autoEntryEffects = value; },
+        renderMoveList,
+        setAutoEntry(value) { return setAutoEntryEffectsEnabled(value); },
         refresh() {
           const calc = makeCalcState();
           lastAutoEntry = calc.entryMeta;
@@ -157,6 +166,10 @@ function resetScenario() {
   state.def.damageBlockActive = false;
   state.atk.ranks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
   state.def.ranks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  state.atk.moves = [];
+  state.def.moves = [];
+  state.atk.moveCriticalOverrides = [false, false, false, false];
+  state.def.moveCriticalOverrides = [false, false, false, false];
   state.field.weather = 'none';
   state.field.terrain = 'none';
   state.field.ruinSword = false;
@@ -166,6 +179,7 @@ function resetScenario() {
   for (const key of Object.keys(api.manualAutoFieldOverrides)) {
     api.manualAutoFieldOverrides[key] = null;
   }
+  api.resetAutoEntryFieldState();
   api.refresh();
 }
 
@@ -223,41 +237,129 @@ resetScenario();
 state.atk.item = 'charcoal';
 state.atk.moves = ['flareblitz'];
 state.atk.moveBpOverrides = [120, null, null, null];
+state.atk.moveCriticalOverrides = [true, false, false, false];
 api.applyPokemonToCalcSide('atk', state.atk.pokemonIdx);
 assertEqual(state.atk.item, 'charcoal', 'same pokemon apply keeps custom item');
 assertDeepEqual(state.atk.moves, ['flareblitz'], 'same pokemon apply keeps selected moves');
 assertDeepEqual(state.atk.moveBpOverrides, [120, null, null, null], 'same pokemon apply keeps manual move power');
+assertDeepEqual(state.atk.moveCriticalOverrides, [true, false, false, false], 'same pokemon apply keeps move critical override');
+
+resetScenario();
+state.atk.moves = ['flowertrick', 'thunderbolt', '', ''];
+state.atk.moveCriticalOverrides = [false, true, false, false];
+const criticalMoveHtml = api.renderMoveList('atk', state.atk);
+assertEqual((criticalMoveHtml.match(/data-action="moveCritical"/g) || []).length, 4, 'attacker renders four move critical controls');
+assertEqual(/data-slot="0"[^>]*checked[^>]*disabled/.test(criticalMoveHtml), true, 'willCrit move renders checked and disabled');
+assertEqual(/data-slot="1"[^>]*checked/.test(criticalMoveHtml), true, 'manual move critical renders independently checked');
+assertEqual(api.renderMoveList('def', state.def).includes('data-action="moveCritical"'), false, 'defender move list omits critical controls');
+const criticalCalcState = api.refresh();
+criticalCalcState.atk.moveCriticalOverrides[1] = false;
+assertEqual(state.atk.moveCriticalOverrides[1], true, 'calc state clones move critical overrides');
 
 resetScenario();
 state.atk.ability = 'drought';
-api.refresh();
-api.markManualAutoFieldOverride('weather');
-state.field.weather = 'Rain';
+api.applyEntryFieldsFromSide('atk');
 state.atk.moves = ['flareblitz'];
 state.atk.moveBpOverrides = [120, null, null, null];
 const alternatePokemon = Object.keys(api.PokemonById).find(id => id !== state.atk.pokemonIdx);
 api.applyPokemonToCalcSide('atk', alternatePokemon);
-assertEqual(state.field.weather, 'none', 'pokemon helper resets manual auto weather on species change');
+assertEqual(state.field.weather, 'none', 'pokemon helper restores weather base on owner species change');
 assertDeepEqual(state.atk.moves, [], 'pokemon helper clears attacker moves on species change');
 assertDeepEqual(state.atk.moveBpOverrides, [null, null, null, null], 'pokemon helper clears manual move power on species change');
+assertDeepEqual(state.atk.moveCriticalOverrides, [false, false, false, false], 'pokemon helper clears move critical overrides on species change');
 
 resetScenario();
 state.atk.ability = 'drought';
+api.applyEntryFieldsFromSide('atk');
 calc = api.refresh();
 assertEqual(calc.field.weather, 'Sun', 'drought weather is derived');
-assertEqual(state.field.weather, 'none', 'drought does not mutate source weather');
+assertEqual(state.field.weather, 'Sun', 'drought updates final source weather');
+assertDeepEqual(api.autoEntryFieldState.weather, { owner: 'atk', base: 'none' }, 'drought records weather owner and base');
 
-api.markManualAutoFieldOverride('weather');
-state.field.weather = 'Rain';
+api.setManualCalcField('weather', 'Rain');
 calc = api.refresh();
 assertEqual(calc.field.weather, 'Rain', 'manual weather overrides auto weather');
-assertEqual(api.manualAutoFieldOverrides.weather.prev, 'none', 'manual weather remembers pre-auto source value');
+assertDeepEqual(api.autoEntryFieldState.weather, { owner: null, base: 'Rain' }, 'manual weather clears owner and becomes base');
 
 state.atk.ability = 'blaze';
-api.resetManualAutoFieldOverrides();
+api.applyEntryFieldsFromSide('atk');
 calc = api.refresh();
-assertEqual(state.field.weather, 'none', 'pokemon change reset restores source weather');
-assertEqual(calc.field.weather, 'none', 'non-weather pokemon leaves weather at source value');
+assertEqual(state.field.weather, 'Rain', 'non-owner change keeps manual weather');
+assertEqual(calc.field.weather, 'Rain', 'calculation keeps manual weather');
+
+resetScenario();
+state.atk.ability = 'drought';
+api.applyEntryFieldsFromSide('atk');
+state.def.ability = 'drizzle';
+api.applyEntryFieldsFromSide('def');
+assertEqual(state.field.weather, 'Rain', 'last weather side wins');
+assertEqual(api.autoEntryFieldState.weather.owner, 'def', 'last weather side becomes owner');
+state.atk.ability = 'blaze';
+api.applyEntryFieldsFromSide('atk');
+assertEqual(state.field.weather, 'Rain', 'non-owner replacement keeps weather');
+state.def.ability = 'effectspore';
+api.applyEntryFieldsFromSide('def');
+assertEqual(state.field.weather, 'none', 'owner replacement restores base without fallback');
+assertEqual(api.autoEntryFieldState.weather.owner, null, 'owner clears without fallback');
+
+resetScenario();
+api.setManualCalcField('weather', 'Sand');
+state.atk.ability = 'drought';
+api.applyEntryFieldsFromSide('atk');
+assertEqual(state.field.weather, 'Sun', 'automatic weather replaces manual base');
+state.atk.ability = 'blaze';
+api.applyEntryFieldsFromSide('atk');
+assertEqual(state.field.weather, 'Sand', 'owner removal restores manual base');
+
+resetScenario();
+state.atk.ability = 'drought';
+api.applyEntryFieldsFromSide('atk');
+state.def.ability = 'drought';
+api.applyEntryFieldsFromSide('def');
+assertEqual(api.autoEntryFieldState.weather.owner, 'def', 'same weather still updates owner');
+state.def.ability = 'effectspore';
+api.applyEntryFieldsFromSide('def');
+assertEqual(state.field.weather, 'Sun', 'same-weather owner removal falls back to other side');
+assertEqual(api.autoEntryFieldState.weather.owner, 'atk', 'fallback side becomes owner');
+
+resetScenario();
+state.atk.ability = 'drought';
+api.applyEntryFieldsFromSide('atk');
+api.setAutoEntry(false);
+assertEqual(state.field.weather, 'none', 'auto entry off restores base weather');
+state.def.ability = 'drizzle';
+api.applyEntryFieldsFromSide('def');
+assertEqual(api.autoEntryFieldState.weather.owner, 'def', 'off state still updates owner candidate');
+assertEqual(state.field.weather, 'none', 'off state does not apply candidate weather');
+api.setAutoEntry(true);
+assertEqual(state.field.weather, 'Rain', 'auto entry on reapplies current owner');
+
+resetScenario();
+state.atk.ability = 'electricsurge';
+api.applyEntryFieldsFromSide('atk');
+state.def.ability = 'grassysurge';
+api.applyEntryFieldsFromSide('def');
+assertEqual(state.field.terrain, 'Grassy', 'terrain uses independent last-owner state');
+assertEqual(api.autoEntryFieldState.terrain.owner, 'def', 'terrain owner tracks independently');
+
+resetScenario();
+state.atk.ability = 'drought';
+state.def.ability = 'drizzle';
+api.resetAutoEntryFieldState();
+assertEqual(state.field.weather, 'Rain', 'full reset evaluates attacker then defender deterministically');
+assertEqual(api.autoEntryFieldState.weather.owner, 'def', 'full reset records deterministic owner');
+
+resetScenario();
+state.atk.ability = 'drought';
+api.applyEntryFieldsFromSide('atk');
+const swapTemp = state.atk;
+state.atk = state.def;
+state.def = swapTemp;
+api.swapAutoEntryFieldOwners();
+assertEqual(api.autoEntryFieldState.weather.owner, 'def', 'side swap moves weather owner');
+state.def.ability = 'blaze';
+api.applyEntryFieldsFromSide('def');
+assertEqual(state.field.weather, 'none', 'swapped owner removal restores base');
 
 resetScenario();
 state.atk.ability = 'intimidate';

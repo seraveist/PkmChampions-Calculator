@@ -630,7 +630,9 @@ function resolveDamagePreludeStage(ctx) {
     ? move.overrideDefensiveStat === 'def'
     : isPhysical;
   const criticalOnStatus = atkAbilityData?.criticalOnTargetStatus;
-  let isCritical = !!field.isCritical || (criticalOnStatus === 'poison' && isPoisonStatus(defSide.status));
+  let isCritical = !!move.willCrit
+    || !!field.isCritical
+    || (criticalOnStatus === 'poison' && isPoisonStatus(defSide.status));
   if (isCritical && defAbilityData?.blocksCritical) {
     isCritical = false;
     mods.push('급소 차단');

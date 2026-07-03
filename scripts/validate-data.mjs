@@ -188,6 +188,9 @@ for (const move of finalData.moves) {
   }
   if (original.recoil && !move.recoil) fail(`move.${move.id} is missing recoil data`);
   if (original.target && move.tgt !== original.target) fail(`move.${move.id} has mismatched tgt`);
+  if (original.willCrit === true && move.willCrit !== true) {
+    fail(`move.${move.id} is missing willCrit flag`);
+  }
 }
 
 for (const abilityId of Object.keys(entryEffects.effects || {})) {

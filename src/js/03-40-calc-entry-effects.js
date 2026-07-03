@@ -2,12 +2,16 @@
 let lastAutoEntry = emptyEntryMeta();
 
 const manualAutoFieldOverrides = {
-  weather: null,
-  terrain: null,
   ruinSword: null,
   ruinTablet: null,
   ruinBeads: null,
   ruinVessel: null,
+};
+
+const AUTO_ENTRY_FIELD_KEYS = ['weather', 'terrain'];
+const autoEntryFieldState = {
+  weather: { owner: null, base: 'none' },
+  terrain: { owner: null, base: 'none' },
 };
 
 function defaultAutoFieldValue(fieldKey) {
@@ -32,6 +36,7 @@ function cloneSideForCalc(side) {
     moves: Array.isArray(side.moves) ? [...side.moves] : [],
     moveBpOverrides: Array.isArray(side.moveBpOverrides) ? [...side.moveBpOverrides] : [null, null, null, null],
     moveTypeOverrides: Array.isArray(side.moveTypeOverrides) ? [...side.moveTypeOverrides] : [null, null, null, null],
+    moveCriticalOverrides: Array.isArray(side.moveCriticalOverrides) ? [...side.moveCriticalOverrides] : [false, false, false, false],
   });
 }
 
@@ -60,28 +65,102 @@ function sideEntryLabel(sideKey) {
   return sideKey === 'atk' ? '공격측' : '방어측';
 }
 
-function applyAutoField(calcState, meta, fieldKey, value, sideKey, label) {
-  if (manualAutoFieldOverrides[fieldKey]) return false;
-  if (calcState.field[fieldKey] === value) return false;
-  calcState.field[fieldKey] = value;
-  meta.fields[fieldKey] = { sideKey, value, label };
-  meta.logs.push(`${sideEntryLabel(sideKey)} 진입: ${label}`);
+function otherCalcSideKey(sideKey) {
+  return sideKey === 'atk' ? 'def' : 'atk';
+}
+
+function entryFieldEffectForSide(sideKey, fieldKey) {
+  const side = state[sideKey];
+  const effect = side ? ENTRY_EFFECTS[side.ability] : null;
+  const value = effect?.[fieldKey];
+  return value ? { sideKey, value, label: effect.label } : null;
+}
+
+function setAppliedEntryField(fieldKey, value) {
+  if (state.field[fieldKey] === value) return false;
+  state.field[fieldKey] = value;
   return true;
 }
 
-function applyEntryEffectsToCalcState(calcState) {
-  const meta = emptyEntryMeta();
-  if (!autoEntryEffects) return meta;
+function applyEntryFieldsFromSide(sideKey) {
+  let changed = false;
+  for (const fieldKey of AUTO_ENTRY_FIELD_KEYS) {
+    const tracked = autoEntryFieldState[fieldKey];
+    const effect = entryFieldEffectForSide(sideKey, fieldKey);
+    if (effect) {
+      tracked.owner = sideKey;
+      if (autoEntryEffects) changed = setAppliedEntryField(fieldKey, effect.value) || changed;
+      continue;
+    }
+    if (tracked.owner !== sideKey) continue;
 
+    const otherKey = otherCalcSideKey(sideKey);
+    const fallback = entryFieldEffectForSide(otherKey, fieldKey);
+    tracked.owner = fallback ? otherKey : null;
+    if (autoEntryEffects) {
+      changed = setAppliedEntryField(fieldKey, fallback?.value ?? tracked.base) || changed;
+    }
+  }
+  return changed;
+}
+
+function setManualCalcField(fieldKey, value) {
+  if (!AUTO_ENTRY_FIELD_KEYS.includes(fieldKey)) return false;
+  const nextValue = value || 'none';
+  const tracked = autoEntryFieldState[fieldKey];
+  tracked.owner = null;
+  tracked.base = nextValue;
+  return setAppliedEntryField(fieldKey, nextValue);
+}
+
+function setAutoEntryEffectsEnabled(enabled) {
+  const nextEnabled = !!enabled;
+  let changed = autoEntryEffects !== nextEnabled;
+  autoEntryEffects = nextEnabled;
+  for (const fieldKey of AUTO_ENTRY_FIELD_KEYS) {
+    const tracked = autoEntryFieldState[fieldKey];
+    const effect = tracked.owner ? entryFieldEffectForSide(tracked.owner, fieldKey) : null;
+    const nextValue = nextEnabled && effect ? effect.value : tracked.base;
+    changed = setAppliedEntryField(fieldKey, nextValue) || changed;
+  }
+  lastAutoEntry = emptyEntryMeta();
+  return changed;
+}
+
+function swapAutoEntryFieldOwners() {
+  for (const fieldKey of AUTO_ENTRY_FIELD_KEYS) {
+    const tracked = autoEntryFieldState[fieldKey];
+    if (tracked.owner) tracked.owner = otherCalcSideKey(tracked.owner);
+  }
+}
+
+function resetAutoEntryFieldState() {
+  for (const fieldKey of AUTO_ENTRY_FIELD_KEYS) {
+    autoEntryFieldState[fieldKey].owner = null;
+    autoEntryFieldState[fieldKey].base = state.field[fieldKey] || 'none';
+  }
+  applyEntryFieldsFromSide('atk');
+  applyEntryFieldsFromSide('def');
+}
+
+function appendActiveEntryFieldMeta(meta) {
+  if (!autoEntryEffects) return;
+  for (const fieldKey of AUTO_ENTRY_FIELD_KEYS) {
+    const owner = autoEntryFieldState[fieldKey].owner;
+    const effect = owner ? entryFieldEffectForSide(owner, fieldKey) : null;
+    if (!effect || state.field[fieldKey] !== effect.value) continue;
+    meta.fields[fieldKey] = effect;
+    meta.logs.push(`${sideEntryLabel(owner)} 진입: ${effect.label}`);
+  }
+}
+
+function applyDerivedEntryRankEffects(calcState, meta) {
   for (const sideKey of ['atk', 'def']) {
     const side = calcState[sideKey];
-    const otherKey = sideKey === 'atk' ? 'def' : 'atk';
+    const otherKey = otherCalcSideKey(sideKey);
     const other = calcState[otherKey];
     const effect = ENTRY_EFFECTS[side.ability];
     if (!effect) continue;
-
-    if (effect.weather) applyAutoField(calcState, meta, 'weather', effect.weather, sideKey, effect.label);
-    if (effect.terrain) applyAutoField(calcState, meta, 'terrain', effect.terrain, sideKey, effect.label);
 
     if (effect.selfBoost) {
       let changed = false;
@@ -113,7 +192,14 @@ function applyEntryEffectsToCalcState(calcState) {
         meta.logs.push(`${sideEntryLabel(sideKey)} 다운로드: 자기 ${STAT_LABEL[stat]} +1`);
       }
     }
+  }
+}
 
+function applyContinuousAbilityEffects(calcState, meta) {
+  for (const sideKey of ['atk', 'def']) {
+    const side = calcState[sideKey];
+    const effect = ENTRY_EFFECTS[side.ability];
+    if (!effect) continue;
     if (effect.ruin) {
       const RUIN_MAP = { spd: 'ruinBeads', atk: 'ruinTablet', def: 'ruinSword', spa: 'ruinVessel' };
       const fieldKey = RUIN_MAP[effect.ruin];
@@ -124,7 +210,15 @@ function applyEntryEffectsToCalcState(calcState) {
       }
     }
   }
+}
 
+function applyEntryEffectsToCalcState(calcState) {
+  const meta = emptyEntryMeta();
+  if (!autoEntryEffects) return meta;
+
+  appendActiveEntryFieldMeta(meta);
+  applyDerivedEntryRankEffects(calcState, meta);
+  applyContinuousAbilityEffects(calcState, meta);
   return meta;
 }
 
@@ -175,7 +269,6 @@ function syncFieldControls(fieldState = null) {
   setComboboxValue('weather', f.weather, 'weather');
   setComboboxValue('terrain', f.terrain, 'terrain');
   setComboboxValue('gameType', f.gameType || state.field.gameType, 'gameType');
-  setChecked('critHit', f.isCritical);
   setChecked('defReflect', f.defReflect);
   setChecked('defLightScreen', f.defLightScreen);
   setChecked('atkHelpingHand', f.atkHelpingHand);

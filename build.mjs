@@ -318,6 +318,7 @@ async function build() {
         recoil: m.recoil || undefined,
         damage: m.damage || undefined,
         ohko: m.ohko || undefined,
+        willCrit: m.willCrit || undefined,
         fixedDamageKind: mechanicFlags.fixedDamageKind,
         breaksProtect: m.breaksProtect || undefined,
         hasCrashDamage: m.hasCrashDamage || undefined,

@@ -33,7 +33,11 @@ function runCalc() {
     if (move.cat === 'Status') {
       return { empty: true, slot: i+1, move, statusMove: true };
     }
-    const result = calculateDamage(calcAtk, calcDef, move, calcField);
+    const moveField = {
+      ...calcField,
+      isCritical: !!calcAtk.moveCriticalOverrides?.[i],
+    };
+    const result = calculateDamage(calcAtk, calcDef, move, moveField);
     if (!result) return { empty: true, slot: i+1, move };
     const hko = hkoLabel(result.damages, result.defHP, calcDef, calcField);
     const defStartHp = Math.max(1, sideCurrentHp(result.defHP, calcDef) - calcHazardDamage(calcDef, calcField));
