@@ -23,7 +23,8 @@ function makeSideState(defaultIdx = '') {
     damageBlockActive: false,
     moves: [],
     moveBpOverrides: [null, null, null, null],
-    moveTypeOverrides: [null, null, null, null]
+    moveTypeOverrides: [null, null, null, null],
+    moveCriticalOverrides: [false, false, false, false]
   };
 }
 
@@ -522,7 +523,12 @@ function applyPokemonToCalcSide(sideKey, pokemonId, options = {}) {
       side.moves = [];
       side.moveBpOverrides = [null, null, null, null];
       side.moveTypeOverrides = [null, null, null, null];
+      side.moveCriticalOverrides = [false, false, false, false];
     }
+  }
+
+  if (!options.deferEntryEffects) {
+    resetAutoFields = applyEntryFieldsFromSide(sideKey) || resetAutoFields;
   }
 
   return { applied: true, changed, resetAutoFields };
@@ -754,6 +760,7 @@ function resetSideManualValues(sideKey) {
   if (sideKey === 'atk') {
     side.moveBpOverrides = [null, null, null, null];
     side.moveTypeOverrides = [null, null, null, null];
+    side.moveCriticalOverrides = [false, false, false, false];
   }
   deriveHpFlags(side);
 }
@@ -779,6 +786,7 @@ function resetCalcManualValues() {
   resetSideManualValues('atk');
   resetSideManualValues('def');
   resetFieldManualValues();
+  resetAutoEntryFieldState();
   lastAutoEntry = emptyEntryMeta();
   renderSide('atk');
   renderSide('def');

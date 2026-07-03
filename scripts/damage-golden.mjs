@@ -1645,6 +1645,10 @@ assertDeepEqual(
 );
 
 assertMoveFields('bodyslam', { sec: true, tgt: 'normal' });
+assertMoveFields('flowertrick', { willCrit: true });
+assertMoveFields('frostbreath', { willCrit: true });
+assertOptionalMoveFields('surgingstrikes', { willCrit: true });
+assertOptionalMoveFields('wickedblow', { willCrit: true });
 assertMoveFields('flareblitz', { sec: true, recoil: [33, 100], tgt: 'normal' });
 assertMoveFields('earthquake', { tgt: 'allAdjacent' });
 assertMoveFields('bulletseed', { mh: [2, 5], tgt: 'normal' });
@@ -1741,6 +1745,87 @@ for (const testCase of cases) {
     assertDeepEqual(actual, testCase.expected, testCase.name);
   }
 }
+
+const fixedCriticalBase = {
+  atk: side('incineroar', { evs: { atk: 32 }, nature: 'adamant' }),
+  def: side('venusaur', { evs: { hp: 32, def: 32 }, nature: 'impish' }),
+  move: 'flowertrick',
+};
+const fixedCritical = runCase({ ...fixedCriticalBase, field: field() });
+const manualCritical = runCase({ ...fixedCriticalBase, field: field({ isCritical: true }) });
+const nonCritical = runCase({
+  ...fixedCriticalBase,
+  moveOverride: { willCrit: false },
+  field: field(),
+});
+assertDeepEqual(fixedCritical.damages, manualCritical.damages, 'willCrit matches manual critical damage');
+assertOk(fixedCritical.maxPct > nonCritical.maxPct, 'willCrit applies critical damage without manual field');
+const fixedCriticalThroughReflect = runCase({
+  ...fixedCriticalBase,
+  field: field({ defReflect: true }),
+});
+assertDeepEqual(fixedCriticalThroughReflect.damages, fixedCritical.damages, 'willCrit ignores reflect');
+const fixedCriticalThroughRanks = runCase({
+  ...fixedCriticalBase,
+  atk: side('incineroar', { ranks: { atk: -2 }, evs: { atk: 32 }, nature: 'adamant' }),
+  def: side('venusaur', { ranks: { def: 2 }, evs: { hp: 32, def: 32 }, nature: 'impish' }),
+  field: field(),
+});
+assertDeepEqual(
+  fixedCriticalThroughRanks.damages,
+  fixedCritical.damages,
+  'willCrit ignores negative attack and positive defense ranks',
+);
+
+const shellArmorDefender = side('torkoal', {
+  ability: 'shellarmor',
+  evs: { hp: 32, def: 32 },
+  nature: 'impish',
+});
+const blockedFixedCritical = runCase({
+  ...fixedCriticalBase,
+  def: shellArmorDefender,
+  field: field(),
+});
+const shellArmorBaseline = runCase({
+  ...fixedCriticalBase,
+  def: shellArmorDefender,
+  moveOverride: { willCrit: false },
+  field: field(),
+});
+assertDeepEqual(blockedFixedCritical.damages, shellArmorBaseline.damages, 'shell armor blocks willCrit');
+
+const moldBreakerFixedCritical = runCase({
+  ...fixedCriticalBase,
+  atk: side('incineroar', { ability: 'moldbreaker', evs: { atk: 32 }, nature: 'adamant' }),
+  def: shellArmorDefender,
+  field: field(),
+});
+assertOk(
+  moldBreakerFixedCritical.maxPct > blockedFixedCritical.maxPct,
+  'mold breaker bypasses critical blocking ability for willCrit',
+);
+
+const sniperFixedCritical = runCase({
+  ...fixedCriticalBase,
+  atk: side('incineroar', { ability: 'sniper', evs: { atk: 32 }, nature: 'adamant' }),
+  field: field(),
+});
+assertOk(sniperFixedCritical.maxPct > fixedCritical.maxPct, 'sniper boosts willCrit damage');
+
+const surgingStrikesBase = {
+  atk: side('incineroar', { evs: { atk: 32 }, nature: 'adamant' }),
+  def: side('torkoal', { evs: { hp: 32, def: 32 }, nature: 'impish' }),
+  move: 'bulletseed',
+  moveOverride: { willCrit: true },
+};
+const surgingStrikesCritical = runCase({ ...surgingStrikesBase, field: field() });
+const surgingStrikesManual = runCase({ ...surgingStrikesBase, field: field({ isCritical: true }) });
+assertDeepEqual(
+  surgingStrikesCritical.damages,
+  surgingStrikesManual.damages,
+  'multi-hit willCrit applies critical to every hit',
+);
 
 const disguiseOff = runCase({
   name: 'disguise off does not block damage',

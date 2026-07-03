@@ -660,6 +660,7 @@ function partyPresetApplyMemberToSideState(side, member) {
   side.moves = partyPresetMemberMoves(data);
   side.moveBpOverrides = [null, null, null, null];
   side.moveTypeOverrides = [null, null, null, null];
+  side.moveCriticalOverrides = [false, false, false, false];
   setSideDamageBlockActive?.(side, false);
   return true;
 }
@@ -668,8 +669,13 @@ function partyPresetApplyMemberToCalc(sideKey, member) {
   const side = state?.[sideKey];
   const pokemonId = member?.pokemon;
   if (!side || !PokemonById[pokemonId]) return false;
-  const result = applyPokemonToCalcSide(sideKey, pokemonId, { forceDefaults: true, resetMoves: false });
+  const result = applyPokemonToCalcSide(sideKey, pokemonId, {
+    forceDefaults: true,
+    resetMoves: false,
+    deferEntryEffects: true,
+  });
   partyPresetApplyMemberToSideState(side, member);
+  result.resetAutoFields = applyEntryFieldsFromSide(sideKey) || result.resetAutoFields;
   renderSide(sideKey);
   if (result?.resetAutoFields) syncFieldControls?.();
   triggerCalc?.();

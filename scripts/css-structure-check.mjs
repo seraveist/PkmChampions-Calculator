@@ -259,6 +259,16 @@ check(
 check(cssByFile.has('08-theme-bridge.css'), 'theme bridge loads after page styles');
 check(allCss.includes(':root[data-theme="dark"]'), 'dark theme token block exists');
 
+const calcLayoutCss = cssByFile.get('05-calc-sample-layout.css') || '';
+check(
+  /\.tool-move-list--critical\s+\.tool-move-power-readout\s*\{[^}]*grid-column:\s*6/s.test(calcLayoutCss),
+  'calculator critical layout places power readout in sixth column'
+);
+check(
+  /\.tool-move-list--critical\s*\{[^}]*--tool-move-readout-width:\s*clamp\(96px,\s*18%,\s*116px\)/s.test(calcLayoutCss),
+  'calculator critical layout reserves readable power width'
+);
+
 if (existsSync(GENERATED)) {
   const generated = read(GENERATED);
   ['ui-frame', 'ui-frame-head', 'ui-frame-body', 'ui-control-frame', 'ui-action-row'].forEach(className => {

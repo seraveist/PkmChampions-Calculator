@@ -1678,3 +1678,61 @@
   background: transparent !important;
   box-shadow: none !important;
 }
+
+#page-calc .tool-move-list--critical {
+  --tool-move-critical-width: 40px;
+  --tool-move-readout-width: clamp(96px, 18%, 116px);
+  --tool-move-grid-template:
+    var(--tool-move-index-width)
+    var(--tool-move-name-width)
+    var(--tool-move-type-width)
+    var(--tool-move-power-width)
+    var(--tool-move-critical-width)
+    var(--tool-move-readout-width);
+}
+
+#page-calc .tool-move-list--critical .tool-move-power-readout {
+  grid-column: 6;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+#page-calc .tool-move-col-critical {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  text-align: center;
+}
+
+#page-calc .calc-move-critical-input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+#page-calc .calc-move-critical-input:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+@media (max-width: 680px) {
+  #page-calc .tool-move-list--critical {
+    --tool-move-critical-width: 34px;
+    --tool-move-readout-width: 80px;
+  }
+}
+
+@media (max-width: 430px) {
+  #page-calc .tool-move-list--critical {
+    --tool-move-critical-width: 30px;
+    --tool-move-readout-width: 72px;
+  }
+
+  #page-calc .calc-move-critical-input {
+    width: 15px;
+    height: 15px;
+  }
+}

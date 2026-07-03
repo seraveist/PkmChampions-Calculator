@@ -29,6 +29,9 @@ function renderMoveList(sideKey, side) {
     const targetSide = state[sideKey === 'atk' ? 'def' : 'atk'];
     const moveForCalc = move ? moveWithManualBp(move, manualBp, manualType) : null;
     const power = moveForCalc ? estimateMovePower(side, moveForCalc, targetSide) : null;
+    const fixedCritical = !!move?.willCrit;
+    const manualCritical = !!side.moveCriticalOverrides?.[i];
+    const criticalDisabled = !move || move.cat === 'Status' || fixedCritical;
     return {
       index: i + 1,
       attrs: { 'data-move-slot': i },
@@ -49,15 +52,24 @@ function renderMoveList(sideKey, side) {
           <input type="text" class="tool-move-power-input ui-inline-number-input" data-action="moveBp" data-side="${sideKey}" data-slot="${i}" value="${move ? slotBp : ''}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} move ${i+1} power" ${move ? '' : 'disabled'}>
         </label>
       `,
+      critical: `
+        <span class="tool-move-col-critical">
+          <input type="checkbox" class="calc-move-critical-input" data-action="moveCritical" data-side="${sideKey}" data-slot="${i}" aria-label="${i + 1}번 기술 급소" title="${fixedCritical ? '확정 급소 기술' : '이 기술을 급소로 계산'}" ${fixedCritical || manualCritical ? 'checked' : ''} ${criticalDisabled ? 'disabled' : ''}>
+        </span>
+      `,
       readoutHtml: move
         ? `<span class="tool-move-power-readout ui-stat-readout"><b>${typeof power.eff === 'number' ? power.eff.toLocaleString() : power.eff}</b></span>`
         : '<span class="tool-move-power-readout empty ui-stat-readout">-</span>',
     };
   });
 
+  const showCritical = sideKey === 'atk';
   return renderToolMoveList(rows, {
-    className: 'tool-move-list--full',
-    columns: ['index', 'name', 'type', 'power', 'readout'],
+    className: `tool-move-list--full${showCritical ? ' tool-move-list--critical' : ''}`,
+    columns: showCritical
+      ? ['index', 'name', 'type', 'power', 'critical', 'readout']
+      : ['index', 'name', 'type', 'power', 'readout'],
+    labels: { critical: '급소' },
   });
 }
 
@@ -305,6 +317,7 @@ function wireSide(sideKey) {
         } else if (field === 'ability') {
           state[side].ability = id || '';
           setSideDamageBlockActive(state[side], false);
+          resetAutoFields = applyEntryFieldsFromSide(side) || resetAutoFields;
         } else if (field === 'item') {
           state[side].item = id || '';
         } else if (field === 'types.0') {
@@ -313,6 +326,7 @@ function wireSide(sideKey) {
           setSideType(side, 1, id);
         } else if (field === 'formIdx') {
           applyPokemonFormToCalcSide(side, id);
+          resetAutoFields = applyEntryFieldsFromSide(side) || resetAutoFields;
         } else if (field === 'nature') {
           state[side].nature = id || 'hardy';
         } else if (field === 'status') {
@@ -323,6 +337,8 @@ function wireSide(sideKey) {
           state[side].moveBpOverrides[idx] = null;
           if (!Array.isArray(state[side].moveTypeOverrides)) state[side].moveTypeOverrides = [null, null, null, null];
           state[side].moveTypeOverrides[idx] = null;
+          if (!Array.isArray(state[side].moveCriticalOverrides)) state[side].moveCriticalOverrides = [false, false, false, false];
+          state[side].moveCriticalOverrides[idx] = false;
         } else if (field.startsWith('moveTypes.')) {
           const idx = parseInt(field.split('.')[1], 10);
           applyMoveTypeOverride(side, idx, id);
@@ -341,6 +357,17 @@ function wireSide(sideKey) {
     if (action === 'moveBp') {
       el.addEventListener('input', () => applyMoveBpInput(el));
       el.addEventListener('change', () => applyMoveBpInput(el, true));
+      return;
+    }
+    if (action === 'moveCritical') {
+      el.addEventListener('change', () => {
+        const side = state[el.dataset.side];
+        const slot = parseInt(el.dataset.slot, 10);
+        if (!side || !Number.isInteger(slot)) return;
+        if (!Array.isArray(side.moveCriticalOverrides)) side.moveCriticalOverrides = [false, false, false, false];
+        side.moveCriticalOverrides[slot] = !!el.checked;
+        triggerCalc();
+      });
       return;
     }
     if (el.dataset.toolStatPointInput && action === 'ev') {
