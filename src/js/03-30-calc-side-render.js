@@ -3,6 +3,46 @@ const calcEvPresetProgress = {
   atk: { evPreset: null, nature: null },
   def: { evPreset: null, nature: null },
 };
+const calcDetailExpanded = { atk: false, def: false };
+let calcDetailTogglesBound = false;
+
+function syncCalcDetailState(sideKey) {
+  const expanded = !!calcDetailExpanded[sideKey];
+  const body = document.getElementById(`${sideKey}-body`);
+  const button = document.querySelector(`[data-calc-detail-toggle="${sideKey}"]`);
+  body?.classList.toggle('is-detail-expanded', expanded);
+  if (button) {
+    button.classList.toggle('active', expanded);
+    button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    button.textContent = expanded ? '접기' : '상세';
+  }
+}
+
+function initCalcDetailToggles() {
+  if (calcDetailTogglesBound) return;
+  calcDetailTogglesBound = true;
+  document.querySelectorAll('[data-calc-detail-toggle]').forEach(button => {
+    button.addEventListener('click', () => {
+      const sideKey = button.dataset.calcDetailToggle;
+      if (!Object.prototype.hasOwnProperty.call(calcDetailExpanded, sideKey)) return;
+      calcDetailExpanded[sideKey] = !calcDetailExpanded[sideKey];
+      syncCalcDetailState(sideKey);
+    });
+  });
+}
+
+function renderCalcCompactStats(stats) {
+  return `
+    <div class="calc-compact-stats ui-control-frame ui-subframe" aria-label="현재 능력치">
+      ${STATS.map(stat => `
+        <span class="calc-compact-stat">
+          <span>${escapeHTML(STAT_LABEL[stat])}</span>
+          <b>${escapeHTML(String(stats[stat]))}</b>
+        </span>
+      `).join('')}
+    </div>
+  `;
+}
 
 function renderDurabilityStrip(side) {
   const dStats = calcStats(side);
@@ -114,6 +154,7 @@ function renderSide(sideKey) {
       ${pokemonPicker}
       <div class="empty-state ui-empty">포켓몬 선택 필요</div>
     `;
+    syncCalcDetailState(sideKey);
     wireSide(sideKey);
     return;
   }
@@ -236,6 +277,8 @@ function renderSide(sideKey) {
       </div>
     </div>
 
+    ${renderCalcCompactStats(stats)}
+
     <!-- ?ㅽ꺈 (?λ젰?ъ씤??+ ??겕 + ?ㅼ닔移? -->
     <div class="calc-stat-panel calc-stat-preset-shell tool-stat-panel tool-stat-set tool-stat-set--calc tool-stat-has-preset tool-stat-has-bulk tool-stat-has-nature ui-control-frame ui-subframe ui-subframe-stack ui-field" data-calc-stat-preset-side="${sideKey}">
       <div class="calc-stat-panel-head tool-stat-panel-head ui-section-head">
@@ -295,7 +338,8 @@ function renderSide(sideKey) {
     </div>
 
   `;
-  
+
+  syncCalcDetailState(sideKey);
   wireSide(sideKey);
 }
 

@@ -376,6 +376,7 @@ function activateMainPage(pageKey, options = {}) {
   const activePage = document.getElementById(`page-${pageKey}`);
   if (!tab || !activePage) return false;
 
+  if (typeof ensureMainPageInitialized === 'function') ensureMainPageInitialized(pageKey);
   syncUiTabs(document.querySelectorAll('.nav-tab'), tab);
   syncUiPanels(document.querySelectorAll('.page'), activePage);
 

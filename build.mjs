@@ -467,13 +467,76 @@ async function build() {
     const files = fs.readdirSync(dir).filter(f => f.endsWith(ext) && !f.startsWith('.')).sort();
     return files.map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n\n');
   }
-  const inlineCss = concatDir(path.join(ROOT, 'src', 'styles'), '.css');
-  const inlineJs = concatDir(path.join(ROOT, 'src', 'js'), '.js');
-  console.log(`  styles: ${inlineCss.length} bytes, js: ${inlineJs.length} bytes`);
+  function compactCssForInline(source) {
+    return source
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean)
+      .join('\n');
+  }
+  function reverseWorkerSource(jsDir) {
+    const workerFiles = [
+      '01-core.js',
+      '02-engine.js',
+      '03-10-calc-state.js',
+      '04-40-revcalc-state.js',
+      '04-41-revcalc-scoring.js',
+      '04-42-revcalc-candidates.js',
+    ];
+    const workerBody = workerFiles
+      .map(file => fs.readFileSync(path.join(jsDir, file), 'utf8'))
+      .join('\n\n');
+    return `
+function createReverseAnalyzer(dataScripts) {
+  const document = {
+    getElementById(id) {
+      const value = dataScripts[id];
+      return value === undefined ? null : { textContent: JSON.stringify(value) };
+    },
+  };
+  ${workerBody}
+  return function analyzeReverseState(snapshot) {
+    Object.assign(revCalcState, cloneCalcValue(snapshot));
+    return rcAnalyzeCached();
+  };
+}
+
+let reverseAnalyze = null;
+self.onmessage = event => {
+  const message = event.data || {};
+  if (message.type === 'init') {
+    try {
+      reverseAnalyze = createReverseAnalyzer(message.dataScripts || {});
+      self.postMessage({ type: 'ready' });
+    } catch (error) {
+      self.postMessage({ type: 'error', id: message.id, message: error?.message || String(error) });
+    }
+    return;
+  }
+  if (message.type !== 'analyze') return;
+  try {
+    if (!reverseAnalyze) throw new Error('역계산 Worker가 초기화되지 않았습니다.');
+    const result = reverseAnalyze(message.state || {});
+    self.postMessage({ type: 'result', id: message.id, result });
+  } catch (error) {
+    self.postMessage({ type: 'error', id: message.id, message: error?.message || String(error) });
+  }
+};
+`;
+  }
+
+  const styleSource = concatDir(path.join(ROOT, 'src', 'styles'), '.css');
+  const inlineCss = compactCssForInline(styleSource);
+  const jsDir = path.join(ROOT, 'src', 'js');
+  const inlineJs = concatDir(jsDir, '.js');
+  const reverseWorker = JSON.stringify(reverseWorkerSource(jsDir)).replace(/</g, '\\u003c');
+  console.log(`  styles: ${styleSource.length} -> ${inlineCss.length} bytes, js: ${inlineJs.length} bytes`);
 
   const replacements = {
     '/* __INLINE_CSS__ */': inlineCss,
     '// __INLINE_JS__': inlineJs,
+    '__REVERSE_WORKER_SOURCE__': reverseWorker,
     '__POKEMON_DATA__': JSON.stringify(finalPokemon),
     '__MOVES_DATA__': JSON.stringify(finalMoves),
     '__ABILITIES_DATA__': JSON.stringify(finalAbilities),

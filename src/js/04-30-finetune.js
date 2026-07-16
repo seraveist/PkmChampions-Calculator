@@ -44,13 +44,7 @@ function ftSetEv(stat, requested) {
 }
 
 function ftDefaultField() {
-  return {
-    weather: 'none',
-    terrain: 'none',
-    gameType: state?.field?.gameType || 'Singles',
-    isCritical: false,
-    isGravity: false,
-  };
+  return makeFieldState({ gameType: state?.field?.gameType || 'Singles' });
 }
 
 function ftAbilitySpeedActivation(abilityId) {
@@ -75,7 +69,7 @@ function ftSpeedFieldFor(side) {
 }
 
 function ftSpeedSideFor(side) {
-  const out = JSON.parse(JSON.stringify(side || {}));
+  const out = cloneCalcValue(side || {});
   const activation = fineTuneState.weatherAbilityActive ? ftAbilitySpeedActivation(out.ability) : null;
   if (activation?.side) Object.assign(out, activation.side);
   if (!out.ranks) out.ranks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
@@ -1020,7 +1014,7 @@ function ftApplyToCalc(targetSide) {
   // targetSide: 'atk' | 'def' (내 포켓몬이 들어갈 자리)
   const otherSide = targetSide === 'atk' ? 'def' : 'atk';
   // 내 풀세팅을 deep clone 해서 적용
-  state[targetSide] = JSON.parse(JSON.stringify(fineTuneState.my));
+  state[targetSide] = cloneCalcValue(fineTuneState.my);
   // 상대 포켓몬을 반대편에. 다른 세팅(EV/성격 등)은 새로 makeSideState 로 default.
   const oppP = PokemonById[fineTuneState.opp.pokemonIdx];
   if (oppP) {
@@ -1043,7 +1037,7 @@ function ftApplyToCalc(targetSide) {
 // renderSide 가 만든 패널 헤더에 "🔧 세부조정" 버튼이 추가되어, 클릭 시 이 함수 호출.
 function loadSideToFineTune(sideKey) {
   const src = state[sideKey];
-  fineTuneState.my = JSON.parse(JSON.stringify(src));
+  fineTuneState.my = cloneCalcValue(src);
   // 상대 자리는 계산기의 반대편 포켓몬으로
   const otherKey = sideKey === 'atk' ? 'def' : 'atk';
   fineTuneState.opp.pokemonIdx = state[otherKey].pokemonIdx;

@@ -19,9 +19,6 @@
 <meta name="twitter:title" content="포켓몬 챔피언스 랩">
 <meta name="twitter:description" content="챔피언스 룰 기반 대미지 계산, 형태 역계산, 세부조정, 상성표, 도감을 제공하는 정적 웹앱입니다.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23f4f6f8'/%3E%3Cpath d='M8 32a24 24 0 1 1 48 0H8Z' fill='%23d64c56'/%3E%3Cpath d='M8 32a24 24 0 1 0 48 0H8Z' fill='%23ffffff'/%3E%3Cpath d='M8 31h48v4H8z' fill='%2317202a'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%2317202a'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23ffffff'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Fira+Code:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
 (function () {
   try {
@@ -37,7 +34,7 @@
 <body>
 <a class="skip-link" href="#appContent">본문으로 건너뛰기</a>
 
-<header class="app-header" role="banner">
+<header class="app-header">
   <div class="header-top">
     <div class="header-brand">
       <div class="brand-sub">POKEMON CHAMPIONS LAB</div>
@@ -71,11 +68,15 @@
   <main id="appContent" class="app-content" tabindex="-1">
     <!-- 대미지 계산기 -->
     <section id="page-calc" class="page page-frame active" role="tabpanel" aria-labelledby="nav-calc" aria-hidden="false">
+      <button type="button" class="calc-mobile-summary" id="calcMobileSummary" aria-live="polite" aria-label="계산 결과로 이동" hidden></button>
       <div class="battle-grid ui-frame-row">
         <section class="ui-frame atk ui-panel">
           <div class="ui-frame-head ui-panel-head">
-            <div class="ui-panel-title" role="heading" aria-level="2">공격측</div>
-            <span class="ui-panel-tag">ATK</span>
+            <h2 class="ui-panel-title">공격측</h2>
+            <div class="calc-side-head-actions ui-panel-actions">
+              <span class="ui-panel-tag">ATK</span>
+              <button type="button" class="calc-detail-toggle ui-label-action" data-calc-detail-toggle="atk" aria-controls="atk-body" aria-expanded="false">상세</button>
+            </div>
           </div>
           <div class="calc-side-body ui-frame-body ui-panel-body ui-subframe-stack" id="atk-body"></div>
         </section>
@@ -87,8 +88,11 @@
 
         <section class="ui-frame def ui-panel">
           <div class="ui-frame-head ui-panel-head">
-            <div class="ui-panel-title" role="heading" aria-level="2">방어측</div>
-            <span class="ui-panel-tag">DEF</span>
+            <h2 class="ui-panel-title">방어측</h2>
+            <div class="calc-side-head-actions ui-panel-actions">
+              <span class="ui-panel-tag">DEF</span>
+              <button type="button" class="calc-detail-toggle ui-label-action" data-calc-detail-toggle="def" aria-controls="def-body" aria-expanded="false">상세</button>
+            </div>
           </div>
           <div class="calc-side-body ui-frame-body ui-panel-body ui-subframe-stack" id="def-body"></div>
         </section>
@@ -97,7 +101,7 @@
       <div class="calc-field-row ui-frame-row">
         <section class="ui-frame collapsible collapsed ui-panel" id="calc-field-panel">
           <div class="ui-frame-head ui-panel-head" id="calc-field-head">
-            <div class="ui-panel-title" role="heading" aria-level="2">필드 · 부가 효과</div>
+            <h2 class="ui-panel-title">필드 · 부가 효과</h2>
             <div class="ui-action-row ui-panel-actions">
               <label class="calc-field-auto-toggle">
                 <input type="checkbox" id="autoEntry" checked>
@@ -154,7 +158,7 @@
 
       <section class="calc-results-panel ui-frame ui-panel">
         <div class="calc-results-head ui-frame-head ui-panel-head">
-          <div class="calc-results-title ui-panel-title" role="heading" aria-level="2">결과</div>
+          <h2 class="calc-results-title ui-panel-title">결과</h2>
           <div class="calc-results-actions ui-action-row ui-panel-actions">
             <button class="btn-calculate ui-btn ui-btn-primary" id="btnSwapSidesResult" type="button">공수교대</button>
             <button class="btn-secondary ui-btn ui-btn-secondary" id="btnCalculate" type="button">계산 재실행</button>
@@ -170,14 +174,14 @@
       <div class="rc-grid ui-frame-row">
         <section class="ui-frame rc-my ui-panel">
           <div class="ui-frame-head ui-panel-head">
-            <div class="ui-panel-title" role="heading" aria-level="2">내 포켓몬</div>
+            <h2 class="ui-panel-title">내 포켓몬</h2>
           </div>
           <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-my-body"></div>
         </section>
 
         <section class="ui-frame rc-opp ui-panel">
           <div class="ui-frame-head ui-panel-head">
-            <div class="ui-panel-title" role="heading" aria-level="2">상대 포켓몬</div>
+            <h2 class="ui-panel-title">상대 포켓몬</h2>
           </div>
           <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-opp-body"></div>
         </section>
@@ -185,16 +189,16 @@
 
       <section class="ui-frame ui-panel">
         <div class="ui-frame-head ui-panel-head">
-          <div class="ui-panel-title" role="heading" aria-level="2">관측 데이터</div>
+          <h2 class="ui-panel-title">관측 데이터</h2>
         </div>
         <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-input-body"></div>
       </section>
 
       <section class="ui-frame ui-panel">
         <div class="ui-frame-head ui-panel-head">
-          <div class="ui-panel-title" role="heading" aria-level="2">형태 분석 결과</div>
+          <h2 class="ui-panel-title">형태 분석 결과</h2>
           <div class="ui-action-row ui-panel-actions">
-            <button type="button" class="btn-calculate rc-analyze-btn ui-btn ui-btn-primary" id="rcAnalyze">형태 분석</button>
+            <button type="button" class="btn-calculate rc-analyze-btn ui-btn ui-btn-primary" id="rcAnalyze" aria-controls="rc-results-body" aria-pressed="false">형태 분석</button>
           </div>
         </div>
         <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-results-body">
@@ -209,7 +213,7 @@
         <section class="ui-frame ft-editor ui-panel">
           <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="ui-panel-title" role="heading" aria-level="2">세부조정</div>
+              <h2 class="ui-panel-title">세부조정</h2>
             </div>
           </div>
           <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="ft-my-body"></div>
@@ -218,7 +222,7 @@
         <aside class="ui-frame ft-hp-panel ui-panel">
           <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="ui-panel-title" role="heading" aria-level="2">HP 브레이크포인트</div>
+              <h2 class="ui-panel-title">HP 브레이크포인트</h2>
               <div class="ft-panel-subtitle">HP 기준점 · 조정 포인트</div>
             </div>
           </div>
@@ -228,7 +232,7 @@
         <section class="ui-frame ft-speed-panel ui-panel">
           <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="ui-panel-title" role="heading" aria-level="2">상대 / 스피드</div>
+              <h2 class="ui-panel-title">상대 / 스피드</h2>
             </div>
           </div>
           <div class="ui-frame-body ft-speed-panel-body ui-panel-body ui-control-grid">
@@ -255,7 +259,7 @@
     <section id="page-matchup" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-matchup" aria-hidden="true" hidden>
       <section class="panel ui-frame ui-panel">
         <div class="panel-head ui-frame-head ui-panel-head">
-          <div class="panel-title ui-panel-title" role="heading" aria-level="2">상성표</div>
+          <h2 class="panel-title ui-panel-title">상성표</h2>
         </div>
         <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack">
           <div class="matchup-control-row ui-action-row ui-control-frame ui-subframe">
@@ -272,7 +276,7 @@
 
       <section class="panel ui-frame matchup-results-panel ui-panel">
         <div class="panel-head ui-frame-head ui-panel-head">
-          <div class="panel-title ui-panel-title" role="heading" aria-level="2">결과</div>
+          <h2 class="panel-title ui-panel-title">결과</h2>
         </div>
         <div class="panel-body ui-frame-body ui-panel-body">
           <div class="matchup-result-layout ui-control-grid">
@@ -430,6 +434,7 @@
 <script id="data-typechart" type="application/json">__TYPECHART_DATA__</script>
 <script id="data-rules" type="application/json">__CHAMP_RULES__</script>
 <script id="data-meta-threats" type="application/json">__META_THREATS_DATA__</script>
+<script id="reverse-worker-source" type="application/json">__REVERSE_WORKER_SOURCE__</script>
 
 <script>
 "use strict";

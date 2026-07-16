@@ -39,6 +39,11 @@ check(buttonWithoutTypeCount(generatedStaticDom) === 0, 'generated static DOM bu
 check((template.match(/<main\b/g) || []).length === 1, 'template exposes a single main landmark');
 check(template.includes('<main id="appContent" class="app-content"'), 'app content owns the main landmark');
 check(template.includes('class="skip-link"') && template.includes('href="#appContent"'), 'template provides skip link to app content');
+check(!template.includes('fonts.googleapis.com') && !template.includes('fonts.gstatic.com'), 'template has no external webfont dependency');
+check(!template.includes('role="heading"'), 'template uses native heading elements');
+check((template.match(/<h2\b/g) || []).length >= 10, 'template exposes semantic section headings');
+check(template.includes('id="reverse-worker-source"'), 'template embeds the reverse analysis worker source');
+check((template.match(/data-calc-detail-toggle=/g) || []).length === 2, 'calculator exposes one mobile detail toggle per side');
 
 let lastPageIndex = -1;
 for (const page of PAGES) {

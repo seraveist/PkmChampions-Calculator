@@ -28,23 +28,35 @@ function makeSideState(defaultIdx = '') {
   };
 }
 
+function makeFieldState(overrides = {}) {
+  return {
+    weather: 'none',
+    terrain: 'none',
+    gameType: 'Singles',
+    isCritical: false,
+    isGravity: false,
+    defReflect: false,
+    defLightScreen: false,
+    atkHelpingHand: false,
+    ruinSword: false,
+    ruinTablet: false,
+    ruinBeads: false,
+    ruinVessel: false,
+    defStealthRock: false,
+    defSpikesLayers: 0,
+    ...overrides,
+  };
+}
+
+function cloneCalcValue(value) {
+  if (typeof structuredClone === 'function') return structuredClone(value);
+  return JSON.parse(JSON.stringify(value));
+}
+
 const state = {
   atk: makeSideState(),
   def: makeSideState(),
-  field: {
-    weather: "none", terrain: "none", gameType: "Singles",
-    isCritical: false, isGravity: false,
-    defReflect: false, defLightScreen: false,
-    atkHelpingHand: false,
-    // 재앙 시리즈 (수동 토글, 진입 효과로도 자동 활성화 가능)
-    ruinSword: false,    // 검의재앙 (방어측 방어 0.75×)
-    ruinTablet: false,   // 목간의재앙 (방어측 공격 0.75×) ← 공격측 입장에선 자기 공격 0.75×
-    ruinBeads: false,    // 구슬의재앙 (방어측 특방 0.75×)
-    ruinVessel: false,   // 그릇의재앙 (방어측 특공 0.75×)
-    // 진입 위험 (방어측이 교체 진입 시 받는 데미지). HKO 시뮬레이션의 시작 HP 에 반영.
-    defStealthRock: false,
-    defSpikesLayers: 0,  // 0~3
-  }
+  field: makeFieldState(),
 };
 
 /* ════════════════════════════════════════════════════════════
