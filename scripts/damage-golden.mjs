@@ -50,7 +50,8 @@ function loadCalcApi() {
     `
       globalThis.__calcApi = {
         PokemonById, MoveById, AbilityById, ItemById, RULES,
-        calculateDamage, hkoLabel, calcStats, effectiveTypes, isTeraActive
+        calculateDamage, hkoLabel, simulateMoveKoDistribution,
+        calcStats, effectiveTypes, isTeraActive
       };
     `,
   ].join('\n');
@@ -1633,6 +1634,59 @@ assertDeepEqual(
   );
 }
 
+{
+  const atk = side('pikachu');
+  const def = side('venusaur');
+  const baseResult = api.calculateDamage(atk, def, api.MoveById.gyroball, field());
+  const ironBallResult = api.calculateDamage(
+    side('pikachu', { item: 'ironball' }),
+    def,
+    api.MoveById.gyroball,
+    field(),
+  );
+  assertDeepEqual(
+    { baseBp: baseResult.bp, ironBallBp: ironBallResult.bp },
+    { baseBp: 23, ironBallBp: 46 },
+    'gyro ball uses effective speed and the canonical +1 power step',
+  );
+}
+
+{
+  const def = side('azumarill');
+  const baseResult = api.calculateDamage(side('pikachu'), def, api.MoveById.electroball, field());
+  const scarfResult = api.calculateDamage(
+    side('pikachu', { item: 'choicescarf' }),
+    def,
+    api.MoveById.electroball,
+    field(),
+  );
+  assertDeepEqual(
+    { baseBp: baseResult.bp, choiceScarfBp: scarfResult.bp },
+    { baseBp: 60, choiceScarfBp: 80 },
+    'electro ball uses item-adjusted effective speed',
+  );
+}
+
+{
+  const def = side('venusaur', { ability: 'klutz', item: 'sitrusberry' });
+  const result = api.calculateDamage(
+    side('charizard'),
+    def,
+    api.MoveById.flamethrower,
+    field(),
+  );
+  assertDeepEqual(
+    result.koContext,
+    { defAbility: 'klutz', defItem: '' },
+    'damage result carries the resolved defender KO context',
+  );
+  assertDeepEqual(
+    api.hkoLabel(new Array(16).fill(40), 100, def, field(), result.koContext),
+    { label: '확정', turns: '3타', pct: '', cls: '', sub: '' },
+    'hko label does not re-enable an item suppressed in the damage context',
+  );
+}
+
 assertDeepEqual(
   api.hkoLabel(
     [90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105],
@@ -1643,6 +1697,77 @@ assertDeepEqual(
   { label: '난수', turns: '1타', pct: '37.5%', cls: 'ohko', sub: '' },
   'hko label exposes random 1HKO probability',
 );
+
+{
+  const focusSashDef = side('venusaur', { item: 'focussash' });
+  const twoHitProfile = {
+    kind: 'multiHit',
+    variants: [{
+      weight: 1,
+      hitDamages: [new Array(16).fill(60), new Array(16).fill(60)],
+    }],
+  };
+  assertDeepEqual(
+    api.hkoLabel(new Array(16).fill(120), 100, focusSashDef, field(), null, twoHitProfile),
+    { label: '확정', turns: '1타', pct: '', cls: 'ohko', sub: '기합의띠 타격별 반영' },
+    'multi-hit KO consumes focus sash on the first hit and finishes on the second',
+  );
+}
+
+{
+  const result = api.calculateDamage(
+    side('kangaskhanmega', { ability: 'parentalbond' }),
+    side('azumarill'),
+    api.MoveById.icepunch,
+    field(),
+  );
+  assertDeepEqual(
+    {
+      finite: result.damages.every(Number.isFinite),
+      composed: result.damages.every((damage, index) => damage === result.rawDamages[index] + Math.floor(result.rawDamages[index] / 4)),
+      hits: result.hitProfile?.variants?.[0]?.hitDamages?.length,
+    },
+    { finite: true, composed: true, hits: 2 },
+    'parental bond keeps the primary hit and adds a quarter-strength second hit',
+  );
+}
+
+{
+  const sitrusDef = side('venusaur', { item: 'sitrusberry' });
+  const twoHitProfile = {
+    kind: 'multiHit',
+    variants: [{
+      weight: 1,
+      hitDamages: [new Array(16).fill(55), new Array(16).fill(55)],
+    }],
+  };
+  assertDeepEqual(
+    api.hkoLabel(new Array(16).fill(110), 100, sitrusDef, field(), null, twoHitProfile),
+    { label: '확정', turns: '2타', pct: '', cls: 'ohko', sub: '자뭉 타격별 반영' },
+    'multi-hit KO applies sitrus recovery between hits',
+  );
+}
+
+{
+  const variableHitProfile = {
+    kind: 'multiHit',
+    variants: [
+      { weight: 1, hitDamages: new Array(3).fill(null).map(() => new Array(16).fill(30)) },
+      { weight: 1, hitDamages: new Array(4).fill(null).map(() => new Array(16).fill(30)) },
+    ],
+  };
+  const distribution = api.simulateMoveKoDistribution(variableHitProfile, 100, 100);
+  assertDeepEqual(
+    {
+      cumulative: distribution.cumulative,
+      oneMoveKoChance: distribution.oneMoveKoChance,
+      possibleTurn: distribution.possibleTurn,
+      guaranteedTurn: distribution.guaranteedTurn,
+    },
+    { cumulative: [0.5, 1], oneMoveKoChance: 0.5, possibleTurn: 1, guaranteedTurn: 2 },
+    'multi-hit KO distribution carries variable hit counts across repeated move uses',
+  );
+}
 
 assertMoveFields('bodyslam', { sec: true, tgt: 'normal' });
 assertMoveFields('flowertrick', { willCrit: true });

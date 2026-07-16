@@ -206,6 +206,8 @@ let calcComboboxLastPointerAt = 0;
 let calcComboboxLastOpenedControl = null;
 let calcComboboxLastOpenedAt = 0;
 let calcComboboxPortalListenersBound = false;
+const calcComboboxOutsideClosers = new Map();
+let calcComboboxOutsideListenerBound = false;
 const CALC_COMBOBOX_TOUCH_TAP_SLOP = 10;
 const CALC_PAGE_PORTAL_COMBOBOX_TYPES = new Set([
   'pokemon',
@@ -316,6 +318,35 @@ function calcComboboxMarkOpened(control) {
   calcComboboxLastOpenedAt = Date.now();
 }
 
+function calcHandleComboboxOutsidePointer(event) {
+  for (const [optsEl, entry] of calcComboboxOutsideClosers) {
+    const { control, close } = entry;
+    if (control?.isConnected === false || optsEl?.isConnected === false) {
+      calcComboboxOutsideClosers.delete(optsEl);
+      continue;
+    }
+    if (control?.contains?.(event.target) || optsEl?.contains?.(event.target)) continue;
+    close();
+  }
+}
+
+function calcPruneComboboxOutsideClosers() {
+  for (const [optsEl, entry] of calcComboboxOutsideClosers) {
+    if (entry.control?.isConnected === false || optsEl?.isConnected === false) {
+      calcComboboxOutsideClosers.delete(optsEl);
+    }
+  }
+}
+
+function calcRegisterComboboxOutsideClose(control, optsEl, close) {
+  if (!control || !optsEl || typeof close !== 'function') return;
+  calcPruneComboboxOutsideClosers();
+  calcComboboxOutsideClosers.set(optsEl, { control, close });
+  if (calcComboboxOutsideListenerBound || typeof document?.addEventListener !== 'function') return;
+  calcComboboxOutsideListenerBound = true;
+  document.addEventListener('mousedown', calcHandleComboboxOutsidePointer);
+}
+
 if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
   document.addEventListener('pointerdown', calcComboboxTrackPointerTarget, true);
   document.addEventListener('mousedown', calcComboboxTrackPointerTarget, true);
@@ -350,8 +381,12 @@ function calcComboboxPortalKey(input) {
 function calcCleanupComboboxPortals(sideKey = null) {
   if (typeof document?.querySelectorAll !== 'function') return;
   document.querySelectorAll('.combobox-options.combobox-options-portal').forEach(el => {
-    if (!sideKey || el.dataset.calcPortalSide === sideKey) el.remove();
+    if (!sideKey || el.dataset.calcPortalSide === sideKey) {
+      calcComboboxOutsideClosers.delete(el);
+      el.remove();
+    }
   });
+  calcPruneComboboxOutsideClosers();
 }
 
 function calcComboboxPortalWidth(input, type) {
@@ -615,10 +650,7 @@ function wireSharedComboboxKeyboard(control, optsEl, { showOptions, onSelect, ge
     const index = optionEls().indexOf(option);
     if (index >= 0 && index !== activeIndex) setActive(index, false);
   });
-  document.addEventListener('mousedown', e => {
-    if (control.contains(e.target) || optsEl.contains(e.target)) return;
-    close();
-  });
+  calcRegisterComboboxOutsideClose(control, optsEl, close);
   return { open, close, select, commitTyped, commitExact: commitTyped, commitActive };
 }
 

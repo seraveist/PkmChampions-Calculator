@@ -1,13 +1,6 @@
 /* Reverse calculator state, field, move picker, item, ability, and speed helpers. */
 function rcDefaultField() {
-  return {
-    weather: 'none', terrain: 'none', isCritical: false,
-    defReflect: false, defLightScreen: false, gameType: 'Singles',
-    isGravity: false,
-    ruinSword: false, ruinTablet: false, ruinBeads: false, ruinVessel: false,
-    defStealthRock: false, defSpikesLayers: 0,
-    atkHelpingHand: false,
-  };
+  return makeFieldState();
 }
 
 const revCalcState = {
@@ -42,6 +35,7 @@ const revCalcState = {
   itemCandidatesOpen: false,
   results: null,
   analyzing: false,
+  analysisRunId: 0,
 };
 
 function rcAnalysisField() {

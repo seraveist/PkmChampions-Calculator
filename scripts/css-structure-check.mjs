@@ -28,6 +28,11 @@ const cssFiles = existsSync(STYLE_DIR)
   : [];
 const cssByFile = new Map(cssFiles.map(file => [file, read(path.join(STYLE_DIR, file))]));
 const allCss = [...cssByFile.values()].join('\n');
+const importantCount = (allCss.match(/!important/g) || []).length;
+const mediaQueryCount = (allCss.match(/@media/g) || []).length;
+
+check(importantCount <= 70, `CSS important budget (${importantCount}/70)`);
+check(mediaQueryCount <= 36, `CSS media-query budget (${mediaQueryCount}/36)`);
 
 [
   '.page-frame',

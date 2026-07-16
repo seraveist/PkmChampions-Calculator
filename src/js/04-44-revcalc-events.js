@@ -980,21 +980,33 @@ document.getElementById('page-revcalc')?.addEventListener('click', e => {
 
 // 분석 시작
 document.getElementById('rcAnalyze')?.addEventListener('click', async () => {
+  if (revCalcState.analyzing) {
+    revCalcState.analysisRunId++;
+    rcCancelAnalysis();
+    revCalcState.analyzing = false;
+    renderRevCalcResults();
+    return;
+  }
+
   rcSyncInputsFromDom();
+  const runId = ++revCalcState.analysisRunId;
   revCalcState.analyzing = true;
   renderRevCalcResults();
-  // UI 업데이트 후 분석 (heavy → 다음 frame)
-  await new Promise(resolve => setTimeout(resolve, 30));
   try {
-    revCalcState.results = rcAnalyze();
+    const result = await rcAnalyzeCachedAsync();
+    if (runId !== revCalcState.analysisRunId) return;
+    revCalcState.results = result;
     revCalcState.selectedResultIndex = 0;
     revCalcState.openResultIndexes = [];
     if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
   } catch (e) {
+    if (runId !== revCalcState.analysisRunId || e?.message === 'RC_ANALYSIS_CANCELLED') return;
     revCalcState.results = { error: '분석 실패: ' + e.message };
+  } finally {
+    if (runId !== revCalcState.analysisRunId) return;
+    revCalcState.analyzing = false;
+    renderRevCalcResults();
   }
-  revCalcState.analyzing = false;
-  renderRevCalcResults();
 });
 
 // 결과 spread 를 계산기 방어측에 적용
@@ -1017,7 +1029,7 @@ function rcApplyResultToCalc(idx) {
   defState.status = revCalcState.opp.status || 'none';
   // 적용
   state.def = defState;
-  state.atk = JSON.parse(JSON.stringify(revCalcState.my));
+  state.atk = cloneCalcValue(revCalcState.my);
   // 필드 상태 적용
   Object.assign(state.field, revCalcState.field);
   renderSide('atk');
@@ -1030,7 +1042,7 @@ function rcApplyResultToCalc(idx) {
 // 계산기 → 형태 역계산 sync
 function loadSideToRevCalc(sideKey) {
   const src = state[sideKey];
-  revCalcState.my = JSON.parse(JSON.stringify(src));
+  revCalcState.my = cloneCalcValue(src);
   revCalcState.nextMyRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(src.ranks || {}) };
   revCalcState.myMoveSet = [...(src.moves || [])].slice(0, RC_MOVESET_SIZE);
   while (revCalcState.myMoveSet.length < RC_MOVESET_SIZE) revCalcState.myMoveSet.push('');

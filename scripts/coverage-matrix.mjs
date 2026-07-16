@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readCalcUiSource } from './source-utils.mjs';
@@ -319,6 +319,17 @@ const out = [
   tableFor('필드/상태 매트릭스', fieldCandidates),
 ].join('\n');
 
-mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
-writeFileSync(OUTPUT_PATH, `${out.trim()}\n`, 'utf8');
-console.log(`Wrote ${path.relative(ROOT, OUTPUT_PATH)}`);
+const finalOutput = `${out.trim()}\n`;
+if (process.argv.includes('--check')) {
+  const current = existsSync(OUTPUT_PATH) ? readFileSync(OUTPUT_PATH, 'utf8') : '';
+  if (current !== finalOutput) {
+    console.error(`Coverage matrix is stale: ${path.relative(ROOT, OUTPUT_PATH)}`);
+    console.error('Run npm run coverage:matrix and commit the generated document.');
+    process.exit(1);
+  }
+  console.log(`Coverage matrix is current: ${path.relative(ROOT, OUTPUT_PATH)}`);
+} else {
+  mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
+  writeFileSync(OUTPUT_PATH, finalOutput, 'utf8');
+  console.log(`Wrote ${path.relative(ROOT, OUTPUT_PATH)}`);
+}

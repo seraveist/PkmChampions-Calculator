@@ -341,8 +341,21 @@ function renderRevCalcInputs() {
 function renderRevCalcResults() {
   const container = document.getElementById('rc-results-body');
   if (!container) return;
+  const analyzeButton = document.getElementById('rcAnalyze');
+  if (analyzeButton) {
+    analyzeButton.textContent = revCalcState.analyzing ? '분석 취소' : '형태 분석';
+    analyzeButton.classList.toggle('is-analyzing', !!revCalcState.analyzing);
+    analyzeButton.setAttribute('aria-pressed', revCalcState.analyzing ? 'true' : 'false');
+  }
+  container.setAttribute('aria-busy', revCalcState.analyzing ? 'true' : 'false');
   if (revCalcState.analyzing) {
-    container.innerHTML = '<div class="empty-state ui-empty">형태 분석 중...</div>';
+    container.innerHTML = `
+      <div class="rc-analysis-progress ui-control-frame ui-subframe" role="status" aria-live="polite">
+        <span class="rc-analysis-spinner" aria-hidden="true"></span>
+        <span class="rc-analysis-copy"><strong>형태 분석 중</strong><span>후보 조합을 계산하고 있습니다.</span></span>
+        <span class="rc-analysis-track" aria-hidden="true"><span></span></span>
+      </div>
+    `;
     return;
   }
   const r = revCalcState.results;

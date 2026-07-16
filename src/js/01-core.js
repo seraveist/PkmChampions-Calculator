@@ -110,7 +110,7 @@ function toId(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
-const POKEMON_SPRITE_BASE_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork';
+const POKEMON_SPRITE_BASE_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
 
 function pokemonSpriteUrlById(spriteId) {
   const id = Number(spriteId || 0);
@@ -151,9 +151,10 @@ function pokemonSpriteSlot(pokemon, { size = 'lg', className = '', alt = '', dec
 
   const altText = decorative ? '' : (alt || pkName(p));
   const ariaHidden = decorative ? ' aria-hidden="true"' : '';
+  const fallbackLabel = String(pkName(p) || p.name || '?').trim().slice(0, 1).toUpperCase();
   const fallbackAttr = fallback ? ` data-fallback-src="${escapeHTML(fallback)}"` : '';
   return `
-    <span class="${classes}">
+    <span class="${classes}" data-fallback-label="${escapeHTML(fallbackLabel)}">
       <img ${'src'}="${escapeHTML(src)}" alt="${escapeHTML(altText)}"${ariaHidden} loading="lazy" decoding="async"${fallbackAttr} onerror="handlePokemonSpriteError(this)">
     </span>
   `;
