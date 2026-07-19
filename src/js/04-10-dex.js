@@ -611,7 +611,9 @@ function openDexDetail(type, id, parentCtx = null) {
   dexModalCtx = { type, id, parent: parentCtx };
   document.getElementById('dexDetailTitle').textContent = content.titleKo;
   document.getElementById('dexDetailTitleEn').textContent = content.titleEn !== content.titleKo ? content.titleEn : '';
-  document.getElementById('dexDetailBody').innerHTML = content.body;
+  const detailBody = document.getElementById('dexDetailBody');
+  detailBody.innerHTML = content.body;
+  applyDexDynamicStyles(detailBody);
   const actionsEl = document.getElementById('dexDetailActions');
   const actions = (content.actions || '').trim();
   actionsEl.innerHTML = actions;
@@ -651,6 +653,7 @@ function openDexDetailPage(type, id) {
     <div class="dex-fullpage-body" id="dexFullPageBody">${content.body}</div>
     ${footerActions}
   `;
+  applyDexDynamicStyles(container);
   syncUiPanels(document.querySelectorAll('.dex-content'), container);
   setDexFullPageMode(true);
 }
@@ -693,6 +696,13 @@ function navigateToDexDetailPage(type, id) {
 // 포켓몬 상세 — 모달 내 학습기 타입 필터 상태 (포켓몬 단위로 reset)
 let pokemonDetailTypeFilter = null;
 
+function applyDexDynamicStyles(root) {
+  root?.querySelectorAll('[data-stat-percent]').forEach((bar) => {
+    const percent = Math.max(0, Math.min(100, Number(bar.dataset.statPercent) || 0));
+    bar.style.width = `${percent}%`;
+  });
+}
+
 function renderPokemonDetail(p, { fullPage = false } = {}) {
   pokemonDetailTypeFilter = null; // 새 포켓몬 열 때마다 초기화
   const stats = ['hp','atk','def','spa','spd','spe'];
@@ -701,7 +711,7 @@ function renderPokemonDetail(p, { fullPage = false } = {}) {
   const statRows = stats.map(s => {
     const v = p.bs[s];
     const pct = Math.round(v / Math.max(maxStat, 200) * 100);
-    return `<div class="stat-name">${STAT_KO[s]}</div><div class="stat-bar"><div class="stat-bar-fill" style="width:${pct}%"></div></div><div class="stat-val">${v}</div>`;
+    return `<div class="stat-name">${STAT_KO[s]}</div><div class="stat-bar"><div class="stat-bar-fill" data-stat-percent="${pct}"></div></div><div class="stat-val">${v}</div>`;
   }).join('');
   const totalRow = `<div class="total"><div class="stat-name">합계</div></div><div></div><div class="total"><div class="stat-val">${p.bst}</div></div>`;
 

@@ -108,6 +108,10 @@ function runCalc() {
       ${moveResults.map(r => renderMoveCard(r)).join('')}
     </div>
   `;
+  body.querySelectorAll('[data-meter-percent]').forEach((meter) => {
+    const percent = Math.max(0, Math.min(100, Number(meter.dataset.meterPercent) || 0));
+    meter.style.width = `${percent}%`;
+  });
 }
 
 function calcMoveRecommendationRank(result) {
@@ -319,8 +323,8 @@ function renderMoveCard(r) {
             <span class="calc-hp-remain"><span class="calc-hp-remain-label">잔여 HP</span><b class="calc-hp-remain-value">${hpRemMin}-${hpRemMax} / ${r.defHP}</b></span>
           </div>
           <div class="calc-damage-meter ui-meter">
-            <div class="calc-damage-meter-fill ui-meter-fill" style="width: ${barMax}%"></div>
-            <div class="calc-damage-meter-fill min ui-meter-fill" style="width: ${barMin}%"></div>
+            <div class="calc-damage-meter-fill ui-meter-fill" data-meter-percent="${barMax}"></div>
+            <div class="calc-damage-meter-fill min ui-meter-fill" data-meter-percent="${barMin}"></div>
           </div>
         </div>
         <div class="calc-damage-meta ui-meta-row">

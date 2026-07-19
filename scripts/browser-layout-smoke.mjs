@@ -1,11 +1,53 @@
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const HTML_PATH = path.join(ROOT, 'pokemon-champions-calculator-v3.html');
+const PUBLIC_MODE = process.argv.includes('--public');
+const PUBLIC_ROOT = path.join(ROOT, 'dist');
+const HTML_PATH = PUBLIC_MODE
+  ? path.join(PUBLIC_ROOT, 'index.html')
+  : path.join(ROOT, 'pokemon-champions-calculator-v3.html');
+
+function contentType(file) {
+  const extension = path.extname(file).toLowerCase();
+  if (extension === '.html') return 'text/html; charset=utf-8';
+  if (extension === '.css') return 'text/css; charset=utf-8';
+  if (extension === '.js') return 'text/javascript; charset=utf-8';
+  if (extension === '.json') return 'application/json; charset=utf-8';
+  return 'text/plain; charset=utf-8';
+}
+
+async function startPublicServer() {
+  const headersSource = readFileSync(path.join(PUBLIC_ROOT, '_headers'), 'utf8');
+  const csp = headersSource.match(/^\s*Content-Security-Policy:\s*(.+)$/m)?.[1]?.trim();
+  if (!csp) throw new Error('Public build CSP header was not found.');
+
+  const server = createServer((request, response) => {
+    const pathname = decodeURIComponent(new URL(request.url || '/', 'http://127.0.0.1').pathname);
+    const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+    const file = path.resolve(PUBLIC_ROOT, relative);
+    if (!file.startsWith(`${path.resolve(PUBLIC_ROOT)}${path.sep}`) || !existsSync(file)) {
+      response.writeHead(404).end('Not found');
+      return;
+    }
+    response.writeHead(200, {
+      'Content-Type': contentType(file),
+      'Content-Security-Policy': csp,
+      'X-Content-Type-Options': 'nosniff',
+    });
+    response.end(readFileSync(file));
+  });
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', resolve);
+  });
+  const address = server.address();
+  return { server, url: `http://127.0.0.1:${address.port}/` };
+}
 
 function chromeCandidates() {
   const home = os.homedir();
@@ -82,13 +124,18 @@ class CdpClient {
     this.url = url;
     this.nextId = 1;
     this.pending = new Map();
+    this.listeners = new Map();
   }
 
   async connect() {
     this.socket = new WebSocket(this.url);
     this.socket.addEventListener('message', event => {
       const message = JSON.parse(event.data);
-      if (!message.id || !this.pending.has(message.id)) return;
+      if (!message.id) {
+        for (const listener of this.listeners.get(message.method) || []) listener(message.params || {});
+        return;
+      }
+      if (!this.pending.has(message.id)) return;
       const { resolve, reject } = this.pending.get(message.id);
       this.pending.delete(message.id);
       if (message.error) reject(new Error(message.error.message));
@@ -98,6 +145,12 @@ class CdpClient {
       this.socket.addEventListener('open', resolve, { once: true });
       this.socket.addEventListener('error', reject, { once: true });
     });
+  }
+
+  on(method, listener) {
+    const listeners = this.listeners.get(method) || [];
+    listeners.push(listener);
+    this.listeners.set(method, listeners);
   }
 
   send(method, params = {}) {
@@ -153,16 +206,17 @@ async function captureScreenshot(client, name) {
 }
 
 async function main() {
-  check(existsSync(HTML_PATH), 'generated HTML exists');
+  check(existsSync(HTML_PATH), `${PUBLIC_MODE ? 'public index' : 'generated HTML'} exists`);
   const chrome = findChrome();
   if (!chrome) {
     console.log('[SKIP] Chrome/Edge executable was not found; browser layout smoke did not run.');
     return;
   }
 
+  const publicServer = PUBLIC_MODE ? await startPublicServer() : null;
   const userDataDir = mkdtempSync(path.join(os.tmpdir(), 'pkmchampions-ui-'));
   const activePortFile = path.join(userDataDir, 'DevToolsActivePort');
-  const url = `${pathToFileURL(HTML_PATH).href}#calc`;
+  const url = `${publicServer?.url || pathToFileURL(HTML_PATH).href}#calc`;
   const browser = spawn(chrome, [
     '--headless=new',
     '--disable-gpu',
@@ -192,9 +246,26 @@ async function main() {
 
     client = new CdpClient(target.webSocketDebuggerUrl);
     await client.connect();
+    const browserErrors = [];
+    client.on('Runtime.exceptionThrown', ({ exceptionDetails }) => {
+      browserErrors.push(exceptionDetails?.exception?.description || exceptionDetails?.text || 'Runtime exception');
+    });
+    client.on('Log.entryAdded', ({ entry }) => {
+      if (entry?.level === 'error') browserErrors.push(entry.text);
+    });
     await client.send('Runtime.enable');
     await client.send('Page.enable');
+    await client.send('Log.enable');
+    if (PUBLIC_MODE) {
+      await client.send('Page.navigate', { url });
+      await sleep(200);
+    }
     await waitFor(() => client.evaluate(`document.readyState === 'complete'`));
+    const appReady = await waitFor(
+      () => client.evaluate(`typeof applyPokemonToCalcSide === 'function'`),
+      3000,
+    ).catch(() => false);
+    check(appReady, `${PUBLIC_MODE ? 'public' : 'standalone'} app runtime initializes`, browserErrors.join(' | '));
 
     await setViewport(client, 1440, 1000);
     const desktop = await client.evaluate(`(() => {
@@ -390,6 +461,7 @@ async function main() {
     browser.kill();
     await Promise.race([browserExited, sleep(1500)]);
     await removeTempProfile(userDataDir);
+    if (publicServer) await new Promise(resolve => publicServer.server.close(resolve));
   }
 }
 

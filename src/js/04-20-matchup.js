@@ -510,6 +510,17 @@ function wireMatchupScrollHint() {
   wrap.addEventListener('scroll', updateMatchupScrollHint, { passive: true });
 }
 
+function replaceMatchupColgroup(table, widths) {
+  table.querySelector('colgroup')?.remove();
+  const colgroup = document.createElement('colgroup');
+  widths.forEach((width) => {
+    const col = document.createElement('col');
+    col.style.width = `${width}px`;
+    colgroup.appendChild(col);
+  });
+  table.insertBefore(colgroup, table.firstChild);
+}
+
 function renderDefenseMatchupTable() {
   const tbl = document.getElementById('matchupTable');
   const head = document.getElementById('matchupHead');
@@ -522,14 +533,11 @@ function renderDefenseMatchupTable() {
 
   // colgroup 으로 고정 열 너비 강제 (table-layout: fixed 와 함께)
   // 슬롯 채워지든 비어 있든 동일한 폭을 유지한다.
-  const oldCG = tbl.querySelector('colgroup');
-  if (oldCG) oldCG.remove();
-  const cg = document.createElement('colgroup');
-  cg.innerHTML =
-    `<col style="width:${MATCHUP_COL.type}px">` +
-    pokes.map(() => `<col style="width:${MATCHUP_COL.slot}px">`).join('') +
-    `<col style="width:${MATCHUP_COL.score}px">`;
-  tbl.insertBefore(cg, tbl.firstChild);
+  replaceMatchupColgroup(tbl, [
+    MATCHUP_COL.type,
+    ...pokes.map(() => MATCHUP_COL.slot),
+    MATCHUP_COL.score,
+  ]);
 
   // 헤더: 공격 타입 컬럼 + 6 슬롯 + 무효/약점 요약
   head.innerHTML = `
@@ -580,14 +588,11 @@ function renderCoverageMatchupTable() {
 
   const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
   const valid = pokes.filter(Boolean);
-  const oldCG = tbl.querySelector('colgroup');
-  if (oldCG) oldCG.remove();
-  const cg = document.createElement('colgroup');
-  cg.innerHTML =
-    `<col style="width:${MATCHUP_COL.type}px">` +
-    pokes.map(() => `<col style="width:${MATCHUP_COL.slot}px">`).join('') +
-    `<col style="width:${MATCHUP_COL.coverageSummary}px">`;
-  tbl.insertBefore(cg, tbl.firstChild);
+  replaceMatchupColgroup(tbl, [
+    MATCHUP_COL.type,
+    ...pokes.map(() => MATCHUP_COL.slot),
+    MATCHUP_COL.coverageSummary,
+  ]);
 
   head.innerHTML = `
     <tr>

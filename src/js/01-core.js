@@ -139,6 +139,15 @@ function handlePokemonSpriteError(img) {
   img.closest?.('.pokemon-sprite-slot')?.classList.add('is-empty');
 }
 
+if (typeof document.addEventListener === 'function') {
+  document.addEventListener('error', (event) => {
+    const image = event.target;
+    if (image instanceof HTMLImageElement && image.closest('.pokemon-sprite-slot')) {
+      handlePokemonSpriteError(image);
+    }
+  }, true);
+}
+
 function pokemonSpriteSlot(pokemon, { size = 'lg', className = '', alt = '', decorative = true } = {}) {
   const p = typeof pokemon === 'string' ? PokemonById[pokemon] : pokemon;
   const sizeClass = size === 'sm' ? 'is-sm' : size === 'md' ? 'is-md' : '';
@@ -155,7 +164,7 @@ function pokemonSpriteSlot(pokemon, { size = 'lg', className = '', alt = '', dec
   const fallbackAttr = fallback ? ` data-fallback-src="${escapeHTML(fallback)}"` : '';
   return `
     <span class="${classes}" data-fallback-label="${escapeHTML(fallbackLabel)}">
-      <img ${'src'}="${escapeHTML(src)}" alt="${escapeHTML(altText)}"${ariaHidden} loading="lazy" decoding="async"${fallbackAttr} onerror="handlePokemonSpriteError(this)">
+      <img ${'src'}="${escapeHTML(src)}" alt="${escapeHTML(altText)}"${ariaHidden} loading="lazy" decoding="async"${fallbackAttr}>
     </span>
   `;
 }

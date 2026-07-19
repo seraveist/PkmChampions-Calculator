@@ -102,3 +102,26 @@ git diff --check
 
 이번 단계에서는 위 검증이 모두 통과했다. 브라우저 검사는 데스크톱/모바일 가로 넘침, 계산 결과,
 모바일 상세 토글과 드롭다운, 라이트/다크 semantic token, 역계산 Worker 응답성을 확인한다.
+
+### 공개 배포와 standalone 빌드 분리
+
+- `build:standalone`은 기존 오프라인용 단일 HTML 산출물을 그대로 생성한다.
+- `build:public`은 HTML, CSS, 테마 초기화 코드, 데이터, 애플리케이션 코드를 분리된 정적 자산으로 생성한다.
+- 공개 자산 파일명에 SHA-256 기반 content hash를 적용하고 `/assets/*`에 immutable cache 정책을 추가했다.
+- `build:pages`는 같은 정적 빌더의 비공개 테스트 모드를 사용해 광고 rail을 제거하고 검색 색인을 차단한다.
+- 공개 HTML의 inline script, inline style, inline event handler를 제거하고 CSP에서 `unsafe-inline`을 제거했다.
+- 이미지 오류 처리는 inline `onerror` 대신 document-level error listener로 옮겼다.
+- 결과 meter, 도감 stat bar, 상성표 colgroup의 동적 값은 CSP가 허용하는 DOM style property로 적용한다.
+- `public:ready`와 `pages:ready`가 hashed asset, CSP, cache, robots, manifest 계약을 각각 검증한다.
+- `ui:browser:public`은 로컬 HTTP 서버에서 실제 CSP 헤더를 적용하고 기존 전체 브라우저 회귀 시나리오를 재사용한다.
+
+현재 배포 명령은 다음과 같다.
+
+```bash
+npm run build:standalone
+npm run build:public
+npm run build:pages
+npm run public:ready
+npm run pages:ready
+npm run ui:browser:public
+```
