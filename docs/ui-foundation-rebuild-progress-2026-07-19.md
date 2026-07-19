@@ -72,5 +72,12 @@ git diff --check
 - The layouts layer now owns header navigation, page visibility, the centered content grid, and ad rails.
 - CSS structure checks prevent the legacy mixed stylesheet from returning and verify both new owners.
 
+### Calculator page ownership
+
+- Moved the calculator visual base to `pages/calculator-base.css`.
+- Moved the calculator layout and responsive rules to `pages/calculator.css`.
+- Removed the legacy `03-calc-redesign.css` and `05-calc-sample-layout.css` build mappings.
+- Updated CSS ownership and mobile dropdown contracts to read the page-owned styles directly.
+
 이번 단계에서는 위 검증이 모두 통과했다. 브라우저 검사는 데스크톱/모바일 가로 넘침, 계산 결과,
 모바일 상세 토글과 드롭다운, 라이트/다크 semantic token, 역계산 Worker 응답성을 확인한다.

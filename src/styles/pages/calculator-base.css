@@ -1,6 +1,6 @@
-/* Damage calculator redesign layer.
+/* Damage calculator visual base.
  * This file is intentionally scoped to #page-calc where possible.
- * It preserves the current calculation DOM and replaces the visual system.
+ * It preserves the calculation DOM while owning the page visual system.
  */
 
 #page-calc {

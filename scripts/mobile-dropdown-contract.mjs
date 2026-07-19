@@ -6,7 +6,7 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const GENERATED = path.join(ROOT, 'pokemon-champions-calculator-v3.html');
 const COMBOBOX_JS = path.join(ROOT, 'src', 'js', '03-20-calc-combobox.js');
 const COMBOBOX_CSS = path.join(ROOT, 'src', 'styles', 'components', 'combobox.css');
-const CALC_CSS = path.join(ROOT, 'src', 'styles', '05-calc-sample-layout.css');
+const CALC_CSS = path.join(ROOT, 'src', 'styles', 'pages', 'calculator.css');
 
 let failed = false;
 
