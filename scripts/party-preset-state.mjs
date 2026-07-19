@@ -44,7 +44,8 @@ function loadPartyPresetApi() {
     setSideDamageBlockActive() {},
   });
 
-  const source = `${readFileSync(path.join(ROOT, 'src', 'js', '04-00-party-presets.js'), 'utf8')}
+  const source = `${readFileSync(path.join(ROOT, 'src', 'js', '04-00-party-presets-state.js'), 'utf8')}
+    ${readFileSync(path.join(ROOT, 'src', 'js', '04-02-party-presets-integration.js'), 'utf8')}
     globalThis.__partyApi = {
       normalizePartyPresetEvs,
       normalizePartyPresetMember,

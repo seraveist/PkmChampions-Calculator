@@ -536,6 +536,10 @@ textarea {
     min-width: 620px;
   }
 
+  #page-matchup .matchup-table.matchup-table-compact {
+    min-width: 0;
+  }
+
   #page-matchup .matchup-table th:first-child,
   #page-matchup .matchup-table td:first-child {
     position: sticky;
@@ -606,8 +610,10 @@ textarea {
 
   #page-dex .dex-table-wrap {
     max-height: 68vh;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    padding: 8px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    background: var(--bg-muted);
   }
 
   #page-dex :where(#dexTablePokemon, #dexTableMoves, #dexTableAbilities, #dexTableItems) {
@@ -616,42 +622,115 @@ textarea {
     table-layout: auto;
   }
 
-  #dexTablePokemon :is(th, td):nth-child(4),
-  #dexTablePokemon :is(th, td):nth-child(5),
-  #dexTablePokemon :is(th, td):nth-child(6),
-  #dexTablePokemon :is(th, td):nth-child(7),
-  #dexTablePokemon :is(th, td):nth-child(10),
-  #dexTablePokemon :is(th, td):nth-child(11),
-  #dexTablePokemon :is(th, td):nth-child(12),
-  #dexTableMoves :is(th, td):nth-child(5),
-  #dexTableMoves :is(th, td):nth-child(6),
-  #dexTableMoves :is(th, td):nth-child(7),
-  #dexTableAbilities :is(th, td):nth-child(2),
-  #dexTableItems :is(th, td):nth-child(2),
-  #dexTableItems :is(th, td):nth-child(4) {
+  #page-dex .dex-table thead {
     display: none;
   }
 
-  #page-dex .dex-table th,
+  #page-dex .dex-table tbody {
+    display: grid;
+    gap: 8px;
+  }
+
+  #page-dex .dex-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    background: var(--bg-panel);
+    box-shadow: var(--surface-shadow-soft);
+  }
+
   #page-dex .dex-table td {
-    height: 44px;
-    padding: 6px;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    height: auto;
+    min-height: 28px;
+    padding: 0;
+    border: 0;
   }
 
+  #page-dex .dex-table td::before {
+    flex: 0 0 auto;
+    margin-right: 6px;
+    color: var(--text-faint);
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 900;
+  }
+
+  #page-dex .dex-table .dex-name-cell {
+    grid-column: 1 / -1;
+    min-width: 0;
+    font-size: 15px;
+  }
+
+  #page-dex .dex-table .dex-name-cell::before {
+    display: none;
+  }
+
+  #page-dex .dex-table .dex-row-open {
+    width: 100%;
+    min-height: 36px;
+  }
+
+  #page-dex .dex-table .dex-type-cell {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  #page-dex .dex-table td.num {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-height: 46px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-input);
+    font-weight: 900;
+    text-align: center;
+  }
+
+  #page-dex .dex-table td.num::before {
+    margin-right: 0;
+  }
+
+  #dexTablePokemon tbody tr {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  #dexTablePokemon .dex-type-cell,
   #dexTablePokemon .dex-name-cell {
-    min-width: 118px;
+    grid-column: 1 / -1;
   }
 
-  #dexTablePokemon .dex-type-cell {
-    min-width: 74px;
+  #dexTablePokemon .dex-ability-cell {
+    grid-column: span 2;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
   }
 
+  #dexTablePokemon .dex-ability-cell:last-child {
+    grid-column: span 3;
+  }
+
+  #dexTableMoves .desc-cell,
   #dexTableAbilities .desc-cell,
   #dexTableItems .desc-cell {
+    grid-column: 1 / -1;
     min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    max-width: none;
+    align-items: flex-start;
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+  }
+
+  #dexTableAbilities .dex-en-cell,
+  #dexTableItems .dex-en-cell {
+    grid-column: 1 / -1;
   }
 }
 
@@ -707,7 +786,7 @@ textarea {
     flex-direction: column;
   }
 
-  #page-matchup .matchup-table {
+  #page-matchup .matchup-table:not(.matchup-table-compact) {
     min-width: 560px;
   }
 

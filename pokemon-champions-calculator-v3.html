@@ -4395,6 +4395,8 @@ color: inherit;
 #page-revcalc .ui-empty.error {
 color: var(--tool-danger);
 }
+}
+@layer pages {
 #page-matchup {
 display: none;
 --matchup-accent: #789b86;
@@ -4854,11 +4856,11 @@ font-weight: 900;
 color: var(--tool-good);
 }
 #page-matchup .matchup-table td.summary.score.caution {
-color: var(--tool-warn);
+color: color-mix(in srgb, var(--tool-warn) 72%, var(--text));
 }
 #page-matchup .matchup-table td.summary.score.danger,
 #page-matchup .matchup-table td.summary.score.max {
-color: var(--tool-danger);
+color: color-mix(in srgb, var(--tool-danger) 72%, var(--text));
 }
 #page-matchup .matchup-score-main {
 font-size: 13px;
@@ -4971,6 +4973,8 @@ border-color: var(--tool-line-soft);
 background: var(--matchup-eff-zero-bg);
 color: var(--tool-muted);
 }
+}
+@layer pages {
 #page-finetune {
 display: none;
 --ft-accent: #8f7cc8;
@@ -5848,6 +5852,8 @@ min-height: 36px;
 #page-revcalc .rc-opp-stat-base {
 min-height: 36px;
 }
+}
+@layer pages {
 #page-revcalc {
 display: none;
 --tool-combo-selected: #8f7cc8;
@@ -11441,6 +11447,9 @@ overscroll-behavior-x: contain;
 #page-matchup .matchup-table {
 min-width: 620px;
 }
+#page-matchup .matchup-table.matchup-table-compact {
+min-width: 0;
+}
 #page-matchup .matchup-table th:first-child,
 #page-matchup .matchup-table td:first-child {
 position: sticky;
@@ -11499,46 +11508,109 @@ flex: 1 0 78px;
 }
 #page-dex .dex-table-wrap {
 max-height: 68vh;
-border: 1px solid var(--border);
-border-radius: 6px;
+padding: 8px;
+border: 1px solid var(--border-soft);
+border-radius: var(--radius-lg);
+background: var(--bg-muted);
 }
 #page-dex :where(#dexTablePokemon, #dexTableMoves, #dexTableAbilities, #dexTableItems) {
 width: 100%;
 min-width: 0;
 table-layout: auto;
 }
-#dexTablePokemon :is(th, td):nth-child(4),
-#dexTablePokemon :is(th, td):nth-child(5),
-#dexTablePokemon :is(th, td):nth-child(6),
-#dexTablePokemon :is(th, td):nth-child(7),
-#dexTablePokemon :is(th, td):nth-child(10),
-#dexTablePokemon :is(th, td):nth-child(11),
-#dexTablePokemon :is(th, td):nth-child(12),
-#dexTableMoves :is(th, td):nth-child(5),
-#dexTableMoves :is(th, td):nth-child(6),
-#dexTableMoves :is(th, td):nth-child(7),
-#dexTableAbilities :is(th, td):nth-child(2),
-#dexTableItems :is(th, td):nth-child(2),
-#dexTableItems :is(th, td):nth-child(4) {
+#page-dex .dex-table thead {
 display: none;
 }
-#page-dex .dex-table th,
+#page-dex .dex-table tbody {
+display: grid;
+gap: 8px;
+}
+#page-dex .dex-table tbody tr {
+display: grid;
+grid-template-columns: repeat(4, minmax(0, 1fr));
+gap: 8px;
+padding: 12px;
+border: 1px solid var(--border-soft);
+border-radius: var(--radius-md);
+background: var(--bg-panel);
+box-shadow: var(--surface-shadow-soft);
+}
 #page-dex .dex-table td {
-height: 44px;
-padding: 6px;
+display: flex;
+align-items: center;
+min-width: 0;
+height: auto;
+min-height: 28px;
+padding: 0;
+border: 0;
 }
+#page-dex .dex-table td::before {
+flex: 0 0 auto;
+margin-right: 6px;
+color: var(--text-faint);
+content: attr(data-label);
+font-size: 10px;
+font-weight: 900;
+}
+#page-dex .dex-table .dex-name-cell {
+grid-column: 1 / -1;
+min-width: 0;
+font-size: 15px;
+}
+#page-dex .dex-table .dex-name-cell::before {
+display: none;
+}
+#page-dex .dex-table .dex-row-open {
+width: 100%;
+min-height: 36px;
+}
+#page-dex .dex-table .dex-type-cell {
+grid-column: 1 / -1;
+min-width: 0;
+}
+#page-dex .dex-table td.num {
+flex-direction: column;
+justify-content: center;
+gap: 2px;
+min-height: 46px;
+border-radius: var(--radius-sm);
+background: var(--bg-input);
+font-weight: 900;
+text-align: center;
+}
+#page-dex .dex-table td.num::before {
+margin-right: 0;
+}
+#dexTablePokemon tbody tr {
+grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+#dexTablePokemon .dex-type-cell,
 #dexTablePokemon .dex-name-cell {
-min-width: 118px;
+grid-column: 1 / -1;
 }
-#dexTablePokemon .dex-type-cell {
-min-width: 74px;
+#dexTablePokemon .dex-ability-cell {
+grid-column: span 2;
+flex-direction: column;
+align-items: flex-start;
+gap: 2px;
 }
+#dexTablePokemon .dex-ability-cell:last-child {
+grid-column: span 3;
+}
+#dexTableMoves .desc-cell,
 #dexTableAbilities .desc-cell,
 #dexTableItems .desc-cell {
+grid-column: 1 / -1;
 min-width: 0;
-overflow: hidden;
-white-space: nowrap;
-text-overflow: ellipsis;
+max-width: none;
+align-items: flex-start;
+overflow: visible;
+white-space: normal;
+text-overflow: clip;
+}
+#dexTableAbilities .dex-en-cell,
+#dexTableItems .dex-en-cell {
+grid-column: 1 / -1;
 }
 }
 @media (max-width: 430px) {
@@ -11582,7 +11654,7 @@ width: 100%;
 align-items: stretch;
 flex-direction: column;
 }
-#page-matchup .matchup-table {
+#page-matchup .matchup-table:not(.matchup-table-compact) {
 min-width: 560px;
 }
 #page-dex .dex-pokemon-name-wrap {
@@ -18795,6 +18867,7 @@ document.getElementById('btnSwapSidesResult')?.addEventListener('click', swapCal
    ════════════════════════════════════════════════════════════ */
 
 
+/* Party presets: state and persistence. */
 const PARTY_PRESET_STORAGE_KEY = 'pkmChampions.partyPresets.v1';
 const PARTY_PRESET_MAX_PARTIES = 10;
 const PARTY_PRESET_MAX_MEMBERS = 6;
@@ -19083,6 +19156,8 @@ function partyPresetFilenamePart(text, fallback = 'party') {
   return safe || fallback;
 }
 
+
+/* Party presets: image export. */
 function partyPresetExportTheme() {
   return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
 }
@@ -19482,6 +19557,8 @@ async function exportPartyPresetSummaryImage(partyIndex) {
   setPartyPresetStatus(`${PARTY_PRESET_LABELS.imageExport} \uC644\uB8CC`, 'success');
 }
 
+
+/* Party presets: tool integration and Showdown format. */
 function partyPresetMemberMoves(member) {
   return Array.from({ length: 4 }, (_, index) => {
     const moveId = member?.moves?.[index] || '';
@@ -19743,6 +19820,8 @@ function importPartyPresetShowdownText(partyIndex, text) {
   return true;
 }
 
+
+/* Party presets: modal UI and events. */
 function partyPresetMovePool(pokemonId) {
   const pokemon = PokemonById[pokemonId];
   const pool = pokemon?.ls?.length ? pokemon.ls.map(id => MoveById[id]).filter(Boolean) : MOVES;
@@ -20926,7 +21005,7 @@ function renderPokemonDex(query) {
   tbody.innerHTML = pageData.items.map(p => {
     const ab = p.ab || {};
     const nameCell = `<span class="dex-pokemon-name-wrap">${pokemonSpriteSlot(p, { size: 'md', className: 'dex-list-sprite' })}<span class="dex-pokemon-name-text">${pokemonListName(p)}</span></span>`;
-    return `<tr data-dex-id="${p.id}"><td class="dex-name-cell">${dexRowOpenButton(pkName(p), nameCell)}</td><td class="dex-type-cell">${p.types.map(t => dexTypePill(t)).join(' ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num dex-bst">${p.bst}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab[0])}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab[1])}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab.H)}</td></tr>`;
+    return `<tr data-dex-id="${p.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(pkName(p), nameCell)}</td><td class="dex-type-cell" data-label="타입">${p.types.map(t => dexTypePill(t)).join(' ')}</td><td class="num" data-label="HP">${p.bs.hp}</td><td class="num" data-label="공격">${p.bs.atk}</td><td class="num" data-label="방어">${p.bs.def}</td><td class="num" data-label="특공">${p.bs.spa}</td><td class="num" data-label="특방">${p.bs.spd}</td><td class="num" data-label="스피드">${p.bs.spe}</td><td class="num dex-bst" data-label="합계">${p.bst}</td><td class="dim dex-ability-cell" data-label="특성 1">${dexAbilityLabel(ab[0])}</td><td class="dim dex-ability-cell" data-label="특성 2">${dexAbilityLabel(ab[1])}</td><td class="dim dex-ability-cell" data-label="숨겨진 특성">${dexAbilityLabel(ab.H)}</td></tr>`;
   }).join('');
   renderDexPagination('pokemon', pageData);
 }
@@ -20941,7 +21020,7 @@ function renderMovesDex(query) {
   tbody.innerHTML = pageData.items.map(m => {
     const powerLabel = movePowerLabel(m);
     const variableBadge = VARIABLE_BP_NOTE[m.id] && powerLabel !== '가변' ? '<span class="dex-var-badge">가변</span>' : '';
-    return `<tr data-dex-id="${m.id}"><td class="dex-name-cell">${dexRowOpenButton(mvName(m), escapeHTML(mvName(m)))}</td><td class="dex-type-cell">${dexTypePill(m.type)}</td><td>${dexMoveCategoryBadge(m.cat)}</td><td class="num">${powerLabel}${variableBadge}</td><td class="num">${moveAccuracyLabel(m)}</td><td class="num">${m.pri || 0}</td><td class="desc-cell">${escapeHTML(m.desc || '')}</td></tr>`;
+    return `<tr data-dex-id="${m.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(mvName(m), escapeHTML(mvName(m)))}</td><td class="dex-type-cell" data-label="타입">${dexTypePill(m.type)}</td><td data-label="분류">${dexMoveCategoryBadge(m.cat)}</td><td class="num" data-label="위력">${powerLabel}${variableBadge}</td><td class="num" data-label="명중">${moveAccuracyLabel(m)}</td><td class="num" data-label="우선도">${m.pri || 0}</td><td class="desc-cell" data-label="설명">${escapeHTML(m.desc || '')}</td></tr>`;
   }).join('');
   renderDexPagination('moves', pageData);
 }
@@ -20952,7 +21031,7 @@ function renderAbilitiesDex(query) {
   const tbody = document.getElementById('dexBodyAbilities');
   if(!tbody) return;
   const pageData = paginateDex(data, 'abilities');
-  tbody.innerHTML = pageData.items.map(a => `<tr data-dex-id="${a.id}"><td class="dex-name-cell">${dexRowOpenButton(abName(a), escapeHTML(abName(a)))}</td><td class="dim dex-en-cell">${escapeHTML(a.name)}</td><td class="desc-cell">${escapeHTML(a.desc || '')}</td></tr>`).join('');
+  tbody.innerHTML = pageData.items.map(a => `<tr data-dex-id="${a.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(abName(a), escapeHTML(abName(a)))}</td><td class="dim dex-en-cell" data-label="영문명">${escapeHTML(a.name)}</td><td class="desc-cell" data-label="설명">${escapeHTML(a.desc || '')}</td></tr>`).join('');
   renderDexPagination('abilities', pageData);
 }
 function renderItemsDex(query) {
@@ -20984,7 +21063,7 @@ function renderItemsDex(query) {
       : (i.isChoice ? dexTag('고집계', 'choice')
         : i.isGem ? dexTag('젬', 'gem')
         : dexTag('장착형', 'equip'));
-    rows.push(`<tr data-dex-id="${i.id}"><td class="dex-name-cell">${dexRowOpenButton(itName(i), escapeHTML(itName(i)))}</td><td class="dim dex-en-cell">${escapeHTML(i.name)}</td><td class="desc-cell">${escapeHTML(i.desc || '')}</td><td>${tag}</td></tr>`);
+    rows.push(`<tr data-dex-id="${i.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(itName(i), escapeHTML(itName(i)))}</td><td class="dim dex-en-cell" data-label="영문명">${escapeHTML(i.name)}</td><td class="desc-cell" data-label="설명">${escapeHTML(i.desc || '')}</td><td data-label="분류">${tag}</td></tr>`);
   }
   tbody.innerHTML = rows.join('');
   renderDexPagination('items', pageData);
@@ -22161,42 +22240,53 @@ function replaceMatchupColgroup(table, widths) {
   table.insertBefore(colgroup, table.firstChild);
 }
 
+function selectedMatchupEntries() {
+  return matchupSlots
+    .map((id, slot) => ({ slot, pokemon: id ? PokemonById[id] : null }))
+    .filter(entry => entry.pokemon);
+}
+
+function configureMatchupTable(table, entries, summaryWidth) {
+  replaceMatchupColgroup(table, [
+    MATCHUP_COL.type,
+    ...entries.map(() => MATCHUP_COL.slot),
+    summaryWidth,
+  ]);
+  table.dataset.selectedCount = String(entries.length);
+  table.classList.toggle('matchup-table-compact', entries.length <= 3);
+}
+
 function renderDefenseMatchupTable() {
   const tbl = document.getElementById('matchupTable');
   const head = document.getElementById('matchupHead');
   const body = document.getElementById('matchupBody');
   if (!tbl || !head || !body) return;
 
-  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
-  const valid = pokes.filter(Boolean);
+  const entries = selectedMatchupEntries();
+  const valid = entries.map(entry => entry.pokemon);
   renderMatchupMeta('defensiveThreats', { pokes: valid });
 
   // colgroup 으로 고정 열 너비 강제 (table-layout: fixed 와 함께)
   // 슬롯 채워지든 비어 있든 동일한 폭을 유지한다.
-  replaceMatchupColgroup(tbl, [
-    MATCHUP_COL.type,
-    ...pokes.map(() => MATCHUP_COL.slot),
-    MATCHUP_COL.score,
-  ]);
+  configureMatchupTable(tbl, entries, MATCHUP_COL.score);
 
   // 헤더: 공격 타입 컬럼 + 6 슬롯 + 무효/약점 요약
   head.innerHTML = `
     <tr>
       <th class="matchup-type-head">타입</th>
-      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span class="matchup-empty-slot">슬롯 ${i+1}</span>`}</th>`).join('')}
+      ${entries.map(({ pokemon }) => `<th title="${escapeHTML(pkName(pokemon))}">${escapeHTML(pkName(pokemon))}</th>`).join('')}
       <th class="summary">일관성</th>
     </tr>
   `;
 
   if (valid.length < 3) {
-    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하면 방어 상성 진단을 표시합니다.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="${entries.length + 2}" class="empty-state-cell">3마리 이상 선택하면 방어 상성 진단을 표시합니다.</td></tr>`;
     return;
   }
 
   // 본문: 18 행 × 6 셀 + 요약
   body.innerHTML = BATTLE_TYPES.map(t => {
-    const cells = pokes.map(p => {
-      if (!p) return `<td class="empty">—</td>`;
+    const cells = entries.map(({ pokemon: p }) => {
       const eff = typeEff(t, p.types);
       const sym = EFF_SYMBOL[eff] !== undefined ? EFF_SYMBOL[eff] : eff + '×';
       const cls = EFF_CLASS[eff] || '';
@@ -22226,30 +22316,25 @@ function renderCoverageMatchupTable() {
   if (!tbl || !head || !body) return;
   renderMatchupMeta('coverageChecks');
 
-  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
-  const valid = pokes.filter(Boolean);
-  replaceMatchupColgroup(tbl, [
-    MATCHUP_COL.type,
-    ...pokes.map(() => MATCHUP_COL.slot),
-    MATCHUP_COL.coverageSummary,
-  ]);
+  const entries = selectedMatchupEntries();
+  const valid = entries.map(entry => entry.pokemon);
+  configureMatchupTable(tbl, entries, MATCHUP_COL.coverageSummary);
 
   head.innerHTML = `
     <tr>
       <th class="matchup-type-head">타입</th>
-      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span class="matchup-empty-slot">슬롯 ${i+1}</span>`}</th>`).join('')}
+      ${entries.map(({ pokemon }) => `<th title="${escapeHTML(pkName(pokemon))}">${escapeHTML(pkName(pokemon))}</th>`).join('')}
       <th class="summary">커버</th>
     </tr>
   `;
 
   if (valid.length < 3) {
-    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하고 타점 체크에서 기술을 입력하면 진단을 표시합니다.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="${entries.length + 2}" class="empty-state-cell">3마리 이상 선택하고 타점 체크에서 기술을 입력하면 진단을 표시합니다.</td></tr>`;
     return;
   }
 
   body.innerHTML = BATTLE_TYPES.map(t => {
-    const cells = pokes.map((p, slot) => {
-      if (!p) return '<td class="empty">-</td>';
+    const cells = entries.map(({ slot }) => {
       const count = coverageCountByType(t, slot);
       return `<td class="${count ? 'coverage-hit' : 'coverage-miss'}">${count || ''}</td>`;
     }).join('');

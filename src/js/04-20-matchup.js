@@ -521,42 +521,53 @@ function replaceMatchupColgroup(table, widths) {
   table.insertBefore(colgroup, table.firstChild);
 }
 
+function selectedMatchupEntries() {
+  return matchupSlots
+    .map((id, slot) => ({ slot, pokemon: id ? PokemonById[id] : null }))
+    .filter(entry => entry.pokemon);
+}
+
+function configureMatchupTable(table, entries, summaryWidth) {
+  replaceMatchupColgroup(table, [
+    MATCHUP_COL.type,
+    ...entries.map(() => MATCHUP_COL.slot),
+    summaryWidth,
+  ]);
+  table.dataset.selectedCount = String(entries.length);
+  table.classList.toggle('matchup-table-compact', entries.length <= 3);
+}
+
 function renderDefenseMatchupTable() {
   const tbl = document.getElementById('matchupTable');
   const head = document.getElementById('matchupHead');
   const body = document.getElementById('matchupBody');
   if (!tbl || !head || !body) return;
 
-  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
-  const valid = pokes.filter(Boolean);
+  const entries = selectedMatchupEntries();
+  const valid = entries.map(entry => entry.pokemon);
   renderMatchupMeta('defensiveThreats', { pokes: valid });
 
   // colgroup 으로 고정 열 너비 강제 (table-layout: fixed 와 함께)
   // 슬롯 채워지든 비어 있든 동일한 폭을 유지한다.
-  replaceMatchupColgroup(tbl, [
-    MATCHUP_COL.type,
-    ...pokes.map(() => MATCHUP_COL.slot),
-    MATCHUP_COL.score,
-  ]);
+  configureMatchupTable(tbl, entries, MATCHUP_COL.score);
 
   // 헤더: 공격 타입 컬럼 + 6 슬롯 + 무효/약점 요약
   head.innerHTML = `
     <tr>
       <th class="matchup-type-head">타입</th>
-      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span class="matchup-empty-slot">슬롯 ${i+1}</span>`}</th>`).join('')}
+      ${entries.map(({ pokemon }) => `<th title="${escapeHTML(pkName(pokemon))}">${escapeHTML(pkName(pokemon))}</th>`).join('')}
       <th class="summary">일관성</th>
     </tr>
   `;
 
   if (valid.length < 3) {
-    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하면 방어 상성 진단을 표시합니다.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="${entries.length + 2}" class="empty-state-cell">3마리 이상 선택하면 방어 상성 진단을 표시합니다.</td></tr>`;
     return;
   }
 
   // 본문: 18 행 × 6 셀 + 요약
   body.innerHTML = BATTLE_TYPES.map(t => {
-    const cells = pokes.map(p => {
-      if (!p) return `<td class="empty">—</td>`;
+    const cells = entries.map(({ pokemon: p }) => {
       const eff = typeEff(t, p.types);
       const sym = EFF_SYMBOL[eff] !== undefined ? EFF_SYMBOL[eff] : eff + '×';
       const cls = EFF_CLASS[eff] || '';
@@ -586,30 +597,25 @@ function renderCoverageMatchupTable() {
   if (!tbl || !head || !body) return;
   renderMatchupMeta('coverageChecks');
 
-  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
-  const valid = pokes.filter(Boolean);
-  replaceMatchupColgroup(tbl, [
-    MATCHUP_COL.type,
-    ...pokes.map(() => MATCHUP_COL.slot),
-    MATCHUP_COL.coverageSummary,
-  ]);
+  const entries = selectedMatchupEntries();
+  const valid = entries.map(entry => entry.pokemon);
+  configureMatchupTable(tbl, entries, MATCHUP_COL.coverageSummary);
 
   head.innerHTML = `
     <tr>
       <th class="matchup-type-head">타입</th>
-      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span class="matchup-empty-slot">슬롯 ${i+1}</span>`}</th>`).join('')}
+      ${entries.map(({ pokemon }) => `<th title="${escapeHTML(pkName(pokemon))}">${escapeHTML(pkName(pokemon))}</th>`).join('')}
       <th class="summary">커버</th>
     </tr>
   `;
 
   if (valid.length < 3) {
-    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하고 타점 체크에서 기술을 입력하면 진단을 표시합니다.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="${entries.length + 2}" class="empty-state-cell">3마리 이상 선택하고 타점 체크에서 기술을 입력하면 진단을 표시합니다.</td></tr>`;
     return;
   }
 
   body.innerHTML = BATTLE_TYPES.map(t => {
-    const cells = pokes.map((p, slot) => {
-      if (!p) return '<td class="empty">-</td>';
+    const cells = entries.map(({ slot }) => {
       const count = coverageCountByType(t, slot);
       return `<td class="${count ? 'coverage-hit' : 'coverage-miss'}">${count || ''}</td>`;
     }).join('');

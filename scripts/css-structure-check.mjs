@@ -40,6 +40,12 @@ const cssByFile = new Map(cssFiles.map(file => [
   file,
   read(path.join(STYLE_DIR, ...file.split('/'))),
 ]));
+const TOOL_PAGE_FILES = [
+  'pages/00-tool-pages.css',
+  'pages/01-matchup.css',
+  'pages/02-finetune.css',
+  'pages/03-reverse.css',
+];
 const allCss = [...cssByFile.values()].join('\n');
 const importantCount = (allCss.match(/!important/g) || []).length;
 const mediaQueryCount = (allCss.match(/@media/g) || []).length;
@@ -310,7 +316,7 @@ check(allCss.includes('#page-calc .ui-stat-readout'), 'calculator stat readouts 
 check(!allCss.includes('--calc-radius'), 'calculator panels do not define a legacy radius token');
 check(!allCss.includes('--calc-shadow'), 'calculator panels do not define a legacy shadow token');
 
-const pageCss = ['pages/00-tool-pages.css', 'pages/calculator-base.css', 'pages/calculator.css', 'pages/dex.css']
+const pageCss = [...TOOL_PAGE_FILES, 'pages/calculator-base.css', 'pages/calculator.css', 'pages/dex.css']
   .map(file => cssByFile.get(file) || '')
   .join('\n');
 check(!pageCss.includes('--panel-point-height'), 'page CSS does not override panel point height');
@@ -325,7 +331,7 @@ const structuralSpacingSelectorRe = /(battle-grid|calc-field-row|calc-results-bo
 const structuralSpacingPropRe = /(?:^|\n)\s*(margin(?:-top|-bottom|-left|-right)?|gap|row-gap|column-gap)\s*:/;
 const structuralSpacingHits = [];
 for (const [file, css] of cssByFile) {
-  if (!['pages/00-tool-pages.css', 'pages/calculator-base.css', 'pages/calculator.css'].includes(file)) continue;
+  if (![...TOOL_PAGE_FILES, 'pages/calculator-base.css', 'pages/calculator.css'].includes(file)) continue;
   const blockRe = /([^{}]+)\{([^{}]*)\}/g;
   let match;
   while ((match = blockRe.exec(css))) {
@@ -362,13 +368,21 @@ check(allCss.includes(':root[data-theme="dark"]'), 'dark theme token block exist
 const calcLayoutCss = cssByFile.get('pages/calculator.css') || '';
 const calcBaseCss = cssByFile.get('pages/calculator-base.css') || '';
 const dexPageCss = cssByFile.get('pages/dex.css') || '';
-const toolPageCss = cssByFile.get('pages/00-tool-pages.css') || '';
+const toolPageCss = TOOL_PAGE_FILES.map(file => cssByFile.get(file) || '').join('\n');
 const responsiveCss = cssByFile.get('responsive.css') || '';
 check(Boolean(calcLayoutCss), 'calculator page stylesheet exists');
 check(Boolean(calcBaseCss), 'calculator page visual base stylesheet exists');
 check(!cssByFile.has('05-calc-sample-layout.css'), 'legacy calculator layout stylesheet is removed');
 check(!cssByFile.has('03-calc-redesign.css'), 'legacy calculator redesign stylesheet is removed');
 check(Boolean(dexPageCss), 'dex page stylesheet exists');
+check(Boolean(cssByFile.get('pages/00-tool-pages.css')), 'shared tool page stylesheet exists');
+check(Boolean(cssByFile.get('pages/01-matchup.css')), 'matchup page stylesheet exists');
+check(Boolean(cssByFile.get('pages/02-finetune.css')), 'fine-tune page stylesheet exists');
+check(Boolean(cssByFile.get('pages/03-reverse.css')), 'reverse calculator page stylesheet exists');
+check(
+  (cssByFile.get('pages/00-tool-pages.css') || '').length < 8000,
+  'shared tool page stylesheet stays focused on cross-page rules'
+);
 check(!cssByFile.has('06-dex-redesign.css'), 'legacy dex redesign stylesheet is removed');
 check(
   dexPageCss.includes('.dex-pagination') && dexPageCss.includes('.dex-page-button'),

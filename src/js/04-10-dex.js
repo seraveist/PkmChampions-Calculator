@@ -478,7 +478,7 @@ function renderPokemonDex(query) {
   tbody.innerHTML = pageData.items.map(p => {
     const ab = p.ab || {};
     const nameCell = `<span class="dex-pokemon-name-wrap">${pokemonSpriteSlot(p, { size: 'md', className: 'dex-list-sprite' })}<span class="dex-pokemon-name-text">${pokemonListName(p)}</span></span>`;
-    return `<tr data-dex-id="${p.id}"><td class="dex-name-cell">${dexRowOpenButton(pkName(p), nameCell)}</td><td class="dex-type-cell">${p.types.map(t => dexTypePill(t)).join(' ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num dex-bst">${p.bst}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab[0])}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab[1])}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab.H)}</td></tr>`;
+    return `<tr data-dex-id="${p.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(pkName(p), nameCell)}</td><td class="dex-type-cell" data-label="타입">${p.types.map(t => dexTypePill(t)).join(' ')}</td><td class="num" data-label="HP">${p.bs.hp}</td><td class="num" data-label="공격">${p.bs.atk}</td><td class="num" data-label="방어">${p.bs.def}</td><td class="num" data-label="특공">${p.bs.spa}</td><td class="num" data-label="특방">${p.bs.spd}</td><td class="num" data-label="스피드">${p.bs.spe}</td><td class="num dex-bst" data-label="합계">${p.bst}</td><td class="dim dex-ability-cell" data-label="특성 1">${dexAbilityLabel(ab[0])}</td><td class="dim dex-ability-cell" data-label="특성 2">${dexAbilityLabel(ab[1])}</td><td class="dim dex-ability-cell" data-label="숨겨진 특성">${dexAbilityLabel(ab.H)}</td></tr>`;
   }).join('');
   renderDexPagination('pokemon', pageData);
 }
@@ -493,7 +493,7 @@ function renderMovesDex(query) {
   tbody.innerHTML = pageData.items.map(m => {
     const powerLabel = movePowerLabel(m);
     const variableBadge = VARIABLE_BP_NOTE[m.id] && powerLabel !== '가변' ? '<span class="dex-var-badge">가변</span>' : '';
-    return `<tr data-dex-id="${m.id}"><td class="dex-name-cell">${dexRowOpenButton(mvName(m), escapeHTML(mvName(m)))}</td><td class="dex-type-cell">${dexTypePill(m.type)}</td><td>${dexMoveCategoryBadge(m.cat)}</td><td class="num">${powerLabel}${variableBadge}</td><td class="num">${moveAccuracyLabel(m)}</td><td class="num">${m.pri || 0}</td><td class="desc-cell">${escapeHTML(m.desc || '')}</td></tr>`;
+    return `<tr data-dex-id="${m.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(mvName(m), escapeHTML(mvName(m)))}</td><td class="dex-type-cell" data-label="타입">${dexTypePill(m.type)}</td><td data-label="분류">${dexMoveCategoryBadge(m.cat)}</td><td class="num" data-label="위력">${powerLabel}${variableBadge}</td><td class="num" data-label="명중">${moveAccuracyLabel(m)}</td><td class="num" data-label="우선도">${m.pri || 0}</td><td class="desc-cell" data-label="설명">${escapeHTML(m.desc || '')}</td></tr>`;
   }).join('');
   renderDexPagination('moves', pageData);
 }
@@ -504,7 +504,7 @@ function renderAbilitiesDex(query) {
   const tbody = document.getElementById('dexBodyAbilities');
   if(!tbody) return;
   const pageData = paginateDex(data, 'abilities');
-  tbody.innerHTML = pageData.items.map(a => `<tr data-dex-id="${a.id}"><td class="dex-name-cell">${dexRowOpenButton(abName(a), escapeHTML(abName(a)))}</td><td class="dim dex-en-cell">${escapeHTML(a.name)}</td><td class="desc-cell">${escapeHTML(a.desc || '')}</td></tr>`).join('');
+  tbody.innerHTML = pageData.items.map(a => `<tr data-dex-id="${a.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(abName(a), escapeHTML(abName(a)))}</td><td class="dim dex-en-cell" data-label="영문명">${escapeHTML(a.name)}</td><td class="desc-cell" data-label="설명">${escapeHTML(a.desc || '')}</td></tr>`).join('');
   renderDexPagination('abilities', pageData);
 }
 function renderItemsDex(query) {
@@ -536,7 +536,7 @@ function renderItemsDex(query) {
       : (i.isChoice ? dexTag('고집계', 'choice')
         : i.isGem ? dexTag('젬', 'gem')
         : dexTag('장착형', 'equip'));
-    rows.push(`<tr data-dex-id="${i.id}"><td class="dex-name-cell">${dexRowOpenButton(itName(i), escapeHTML(itName(i)))}</td><td class="dim dex-en-cell">${escapeHTML(i.name)}</td><td class="desc-cell">${escapeHTML(i.desc || '')}</td><td>${tag}</td></tr>`);
+    rows.push(`<tr data-dex-id="${i.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(itName(i), escapeHTML(itName(i)))}</td><td class="dim dex-en-cell" data-label="영문명">${escapeHTML(i.name)}</td><td class="desc-cell" data-label="설명">${escapeHTML(i.desc || '')}</td><td data-label="분류">${tag}</td></tr>`);
   }
   tbody.innerHTML = rows.join('');
   renderDexPagination('items', pageData);

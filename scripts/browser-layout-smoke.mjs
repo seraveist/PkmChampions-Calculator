@@ -496,12 +496,15 @@ async function main() {
         firstId,
         secondId: secondPageRows[0]?.dataset.dexId || '',
         pageLabel: document.querySelector('#dexPagination-pokemon .dex-page-current')?.textContent?.trim() || '',
+        cardDisplay: getComputedStyle(secondPageRows[0]).display,
+        labeledStats: secondPageRows[0]?.querySelectorAll('td.num[data-label]').length || 0,
       };
     })()`, true);
     check(dex.overflow <= 1, 'mobile dex has no horizontal page overflow', String(dex.overflow));
     check(dex.firstCount > 0 && dex.firstCount <= 50, 'dex limits the initial Pokemon DOM to 50 rows', JSON.stringify(dex));
     check(dex.secondCount > 0 && dex.secondCount <= 50 && dex.secondId !== dex.firstId, 'dex pagination renders the next Pokemon slice', JSON.stringify(dex));
     check(dex.pageLabel.startsWith('2 / '), 'dex pagination exposes the current page', dex.pageLabel);
+    check(dex.cardDisplay === 'grid' && dex.labeledStats === 7, 'mobile dex renders labeled information cards', JSON.stringify(dex));
     const dexKeyboard = await client.evaluate(`(() => {
       const sortButton = document.querySelector('#dexTablePokemon th[data-sort="hp"] .dex-sort-button');
       sortButton.focus();
@@ -544,6 +547,7 @@ async function main() {
 
     const matchup = await client.evaluate(`(async () => {
       document.querySelector('.nav-tab[data-page="matchup"]')?.click();
+      matchupSlots.fill(null);
       matchupSlots[0] = 'charizard';
       renderMatchupSlots();
       renderMatchupTable();
@@ -554,17 +558,30 @@ async function main() {
         .filter(Boolean)
         .map(rect => Math.round(rect.top + (rect.height / 2)));
       const hint = document.getElementById('matchupScrollHint');
+      const compactHeaders = document.querySelectorAll('#matchupHead th').length;
+      const compact = document.getElementById('matchupTable').classList.contains('matchup-table-compact');
+      const compactHintVisible = !hint.hidden && getComputedStyle(hint).display !== 'none';
+      ['charizard', 'blastoise', 'venusaur', 'pikachu', 'gengar', 'dragonite'].forEach((id, index) => {
+        matchupSlots[index] = id;
+      });
+      renderMatchupTable();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         slotHeight: slot.getBoundingClientRect().height,
         centerSpread: Math.max(...centers) - Math.min(...centers),
         spriteDisplay: getComputedStyle(slot.querySelector('.matchup-slot-sprite')).display,
-        hintVisible: !hint.hidden && getComputedStyle(hint).display !== 'none',
+        compactHeaders,
+        compact,
+        compactHintVisible,
+        fullHeaders: document.querySelectorAll('#matchupHead th').length,
+        fullHintVisible: !hint.hidden && getComputedStyle(hint).display !== 'none',
       };
     })()`, true);
     check(matchup.overflow <= 1, 'mobile matchup has no horizontal page overflow', String(matchup.overflow));
     check(matchup.slotHeight <= 60 && matchup.centerSpread <= 4 && matchup.spriteDisplay === 'none', 'mobile matchup uses compact single-row party slots', JSON.stringify(matchup));
-    check(matchup.hintVisible, 'mobile matchup announces horizontal table scrolling', JSON.stringify(matchup));
+    check(matchup.compact && matchup.compactHeaders === 3 && !matchup.compactHintVisible, 'mobile matchup omits empty comparison columns', JSON.stringify(matchup));
+    check(matchup.fullHeaders === 8 && matchup.fullHintVisible, 'mobile matchup announces scrolling only for a full comparison', JSON.stringify(matchup));
     await checkAxe(client, 'matchup');
 
     const reverse = await client.evaluate(`(async () => {

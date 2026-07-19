@@ -324,7 +324,10 @@ columns: ['index', 'name', 'type', 'power', 'critical', 'readout']
 - `src/js/03-40-calc-entry-effects.js`
 - `src/js/03-50-calc-results.js`
 - `src/js/03-60-calc-events.js`
-- `src/js/04-00-party-presets.js`
+- `src/js/04-00-party-presets-state.js`
+- `src/js/04-01-party-presets-image.js`
+- `src/js/04-02-party-presets-integration.js`
+- `src/js/04-03-party-presets-ui.js`
 - `src/js/04-10-dex.js` 또는 공통 선택 헬퍼
 - `src/styles/04-ui-foundation.css`
 - `src/styles/05-calc-sample-layout.css`

@@ -21,13 +21,13 @@ const DATA_IDS = [
   'data-meta-threats',
 ];
 const ASSET_BUDGETS = {
-  theme: { sizeBytes: 16 * 1024, gzipBytes: 8 * 1024 },
-  style: { sizeBytes: 420 * 1024, gzipBytes: 80 * 1024 },
-  data: { sizeBytes: 1100 * 1024, gzipBytes: 230 * 1024 },
-  app: { sizeBytes: 800 * 1024, gzipBytes: 190 * 1024 },
-  worker: { sizeBytes: 300 * 1024, gzipBytes: 80 * 1024 },
+  theme: { sizeBytes: 1024, gzipBytes: 1024 },
+  style: { sizeBytes: 360 * 1024, gzipBytes: 55 * 1024 },
+  data: { sizeBytes: 950 * 1024, gzipBytes: 170 * 1024 },
+  app: { sizeBytes: 650 * 1024, gzipBytes: 155 * 1024 },
+  worker: { sizeBytes: 220 * 1024, gzipBytes: 55 * 1024 },
 };
-const TOTAL_GZIP_BUDGET = 520 * 1024;
+const TOTAL_GZIP_BUDGET = 430 * 1024;
 
 let failed = false;
 
