@@ -53,11 +53,58 @@ let partyPresetData = loadPartyPresetData();
 let partyPresetModalReady = false;
 let partyPresetTextState = { partyIndex: 0, mode: 'import' };
 let partyPresetPickerTarget = '';
+let partyPresetModalReturnFocus = null;
+let partyPresetPickerReturnFocus = null;
+let partyPresetTextReturnFocus = null;
 const partyPresetCollapsedParties = new Set(Array.from({ length: PARTY_PRESET_MAX_PARTIES }, (_, index) => index));
 const partyPresetExpandedSlots = new Set();
 
 function partyPresetSlotCollapseKey(partyIndex, slotIndex) {
   return `${partyIndex}:${slotIndex}`;
+}
+
+function partyPresetFocusableElements(container) {
+  if (!container) return [];
+  const selector = [
+    'button:not([disabled])',
+    'a[href]',
+    'input:not([disabled]):not([type="hidden"])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+  ].join(',');
+  return [...container.querySelectorAll(selector)].filter(element => element.getAttribute('aria-hidden') !== 'true');
+}
+
+function partyPresetFocusLayer(container, preferred = null) {
+  requestAnimationFrame(() => {
+    const target = preferred || partyPresetFocusableElements(container)[0];
+    target?.focus?.();
+  });
+}
+
+function partyPresetRestoreFocus(target) {
+  if (!target || typeof target.focus !== 'function' || target.isConnected === false) return;
+  requestAnimationFrame(() => target.focus());
+}
+
+function partyPresetTrapFocus(event, container) {
+  if (event.key !== 'Tab' || !container) return;
+  const focusable = partyPresetFocusableElements(container);
+  if (!focusable.length) {
+    event.preventDefault();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+  if (event.shiftKey && (active === first || !container.contains(active))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (active === last || !container.contains(active))) {
+    event.preventDefault();
+    first.focus();
+  }
 }
 
 function partyPresetDefaultName(partyIndex) {
@@ -1105,7 +1152,7 @@ function ensurePartyPresetModal() {
         프리셋은 현재 브라우저에 저장됩니다. 기기 변경이나 브라우저 초기화 전에 JSON 내보내기로 백업하세요.
       </div>
       <div class="party-preset-modal-body ui-frame-body ui-subframe-stack" id="partyPresetBody"></div>
-      <div class="party-preset-text-dialog" id="partyPresetTextDialog" hidden>
+      <div class="party-preset-text-dialog" id="partyPresetTextDialog" role="dialog" aria-modal="true" aria-labelledby="partyPresetTextTitle" hidden>
         <div class="party-preset-text-card ui-frame">
           <div class="party-preset-text-head">
             <h3 id="partyPresetTextTitle">Showdown 텍스트</h3>
@@ -1127,19 +1174,24 @@ function openPartyPresetModal() {
   renderPartyPresetModal();
   const modal = document.getElementById('partyPresetModal');
   if (!modal) return;
+  partyPresetModalReturnFocus = document.activeElement;
   setPartyPresetStatus('');
   modal.hidden = false;
   modal.scrollTop = 0;
   document.getElementById('partyPresetBody')?.scrollTo({ top: 0, left: 0 });
   document.body.classList.add('party-preset-open');
+  partyPresetFocusLayer(modal.querySelector('.party-preset-modal'), document.getElementById('partyPresetClose'));
 }
 
 function closePartyPresetModal() {
   const modal = document.getElementById('partyPresetModal');
   if (!modal) return;
-  closePartyPresetTextDialog();
+  closePartyPresetTextDialog({ restoreFocus: false });
   modal.hidden = true;
   document.body.classList.remove('party-preset-open');
+  const returnFocus = partyPresetModalReturnFocus;
+  partyPresetModalReturnFocus = null;
+  partyPresetRestoreFocus(returnFocus);
 }
 
 function ensurePartyPresetPickerModal() {
@@ -1222,6 +1274,7 @@ function renderPartyPresetPicker() {
 
 function openPartyPresetPicker(target) {
   ensurePartyPresetPickerModal();
+  partyPresetPickerReturnFocus = document.activeElement;
   partyPresetPickerTarget = target || '';
   renderPartyPresetPicker();
   const modal = document.getElementById('partyPresetPickerModal');
@@ -1230,6 +1283,7 @@ function openPartyPresetPicker(target) {
   modal.scrollTop = 0;
   document.getElementById('partyPresetPickerBody')?.scrollTo({ top: 0, left: 0 });
   document.body.classList.add('party-preset-open');
+  partyPresetFocusLayer(modal.querySelector('.party-preset-picker'), document.getElementById('partyPresetPickerClose'));
 }
 
 function closePartyPresetPicker() {
@@ -1239,6 +1293,9 @@ function closePartyPresetPicker() {
   if (document.getElementById('partyPresetModal')?.hidden !== false) {
     document.body.classList.remove('party-preset-open');
   }
+  const returnFocus = partyPresetPickerReturnFocus;
+  partyPresetPickerReturnFocus = null;
+  partyPresetRestoreFocus(returnFocus);
 }
 
 function applyPartyPresetPickerSelection(partyIndex, slotIndex = null) {
@@ -1262,6 +1319,7 @@ function openPartyPresetTextDialog(partyIndex, mode) {
   const copyButton = document.getElementById('partyPresetTextCopy');
   if (!dialog || !title || !area) return;
 
+  partyPresetTextReturnFocus = document.activeElement;
   partyPresetTextState = { partyIndex, mode };
   const partyName = partyPresetData.parties?.[partyIndex]?.name || `파티 ${partyIndex + 1}`;
   const isExport = mode === 'export';
@@ -1278,9 +1336,12 @@ function openPartyPresetTextDialog(partyIndex, mode) {
   });
 }
 
-function closePartyPresetTextDialog() {
+function closePartyPresetTextDialog({ restoreFocus = true } = {}) {
   const dialog = document.getElementById('partyPresetTextDialog');
   if (dialog) dialog.hidden = true;
+  const returnFocus = partyPresetTextReturnFocus;
+  partyPresetTextReturnFocus = null;
+  if (restoreFocus) partyPresetRestoreFocus(returnFocus);
 }
 
 function applyPartyPresetTextImport() {
@@ -1559,7 +1620,30 @@ function initPartyPresets() {
   window.addEventListener('keydown', event => {
     const modal = document.getElementById('partyPresetModal');
     const picker = document.getElementById('partyPresetPickerModal');
-    if (event.key === 'Escape' && modal && !modal.hidden) closePartyPresetModal();
-    if (event.key === 'Escape' && picker && !picker.hidden) closePartyPresetPicker();
+    const textDialog = document.getElementById('partyPresetTextDialog');
+    if (event.key === 'Escape') {
+      if (textDialog && !textDialog.hidden) {
+        event.preventDefault();
+        closePartyPresetTextDialog();
+        return;
+      }
+      if (picker && !picker.hidden) {
+        event.preventDefault();
+        closePartyPresetPicker();
+        return;
+      }
+      if (modal && !modal.hidden) {
+        event.preventDefault();
+        closePartyPresetModal();
+      }
+      return;
+    }
+    if (textDialog && !textDialog.hidden) {
+      partyPresetTrapFocus(event, textDialog.querySelector('.party-preset-text-card'));
+    } else if (picker && !picker.hidden) {
+      partyPresetTrapFocus(event, picker.querySelector('.party-preset-picker'));
+    } else if (modal && !modal.hidden) {
+      partyPresetTrapFocus(event, modal.querySelector('.party-preset-modal'));
+    }
   });
 }

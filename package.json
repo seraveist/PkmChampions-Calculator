@@ -32,6 +32,7 @@
     "fetch-ko": "node scripts/fetch-ko.mjs"
   },
   "devDependencies": {
+    "axe-core": "^4.12.1",
     "ws": "^8.21.1"
   }
 }

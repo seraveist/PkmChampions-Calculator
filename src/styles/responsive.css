@@ -234,7 +234,7 @@ textarea {
   }
 
   #page-calc .calc-compact-stat span {
-    color: var(--text-faint);
+    color: var(--text-dim);
     font-size: 10px;
     font-weight: 800;
   }

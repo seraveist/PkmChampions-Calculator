@@ -122,12 +122,12 @@
 
 #page-calc .battle-grid > .ui-panel.atk .ui-panel-tag,
 #page-calc.sides-swapped .battle-grid > .ui-panel.def .ui-panel-tag {
-  background: var(--calc-attacker);
+  background: var(--atk-deep);
 }
 
 #page-calc .battle-grid > .ui-panel.def .ui-panel-tag,
 #page-calc.sides-swapped .battle-grid > .ui-panel.atk .ui-panel-tag {
-  background: var(--calc-defender);
+  background: var(--def-deep);
 }
 
 #page-calc .calc-side-swap-button {
@@ -502,7 +502,6 @@
   height: 26px;
   border: 0;
   border-radius: 4px;
-  color: #ffffff;
 }
 
 #page-calc .tool-pokemon-meta-actions .type-pill-combobox.type-none {

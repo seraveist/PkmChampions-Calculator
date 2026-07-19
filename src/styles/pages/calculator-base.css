@@ -1050,7 +1050,7 @@
 }
 
 #page-calc .calc-ko-main.ohko {
-  color: var(--atk);
+  color: var(--atk-deep);
 }
 
 @media (max-width: 1280px) {

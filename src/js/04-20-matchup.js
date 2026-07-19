@@ -149,7 +149,7 @@ function renderMatchupSlots() {
         ${pokemonSpriteSlot(p, { size: 'md', className: 'matchup-slot-sprite' })}
         <div class="combobox">
           <input type="text" class="cb-input matchup-cb-input" data-slot="${i}" data-cb-type="pokemon" data-cb-portal="true" data-field="matchup-pokemon-${i}"
-                 value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="포켓몬 검색...">
+                 value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="포켓몬 검색..." aria-label="${i + 1}번 슬롯 포켓몬 선택" aria-expanded="false">
           <div class="combobox-options"></div>
         </div>
         <div class="matchup-slot-types">

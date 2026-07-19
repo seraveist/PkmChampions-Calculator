@@ -1,11 +1,13 @@
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
+import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import WebSocket from 'ws';
 
+const require = createRequire(import.meta.url);
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PUBLIC_MODE = process.argv.includes('--public');
 const REQUIRE_BROWSER = process.argv.includes('--require-browser') || process.env.CI === 'true';
@@ -14,6 +16,7 @@ const PUBLIC_ROOT = path.join(ROOT, 'dist');
 const HTML_PATH = PUBLIC_MODE
   ? path.join(PUBLIC_ROOT, 'index.html')
   : path.join(ROOT, 'pokemon-champions-calculator-v3.html');
+const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 
 function contentType(file) {
   const extension = path.extname(file).toLowerCase();
@@ -251,6 +254,27 @@ async function captureScreenshot(client, name) {
   writeFileSync(path.join(outputDir, `${name}.png`), Buffer.from(result.data, 'base64'));
 }
 
+async function installAxe(client) {
+  await client.evaluate(AXE_SOURCE);
+  check(await client.evaluate(`typeof axe?.run === 'function'`), 'axe accessibility runtime is available');
+}
+
+async function checkAxe(client, label) {
+  const violations = await client.evaluate(`axe.run(document, { resultTypes: ['violations'] }).then(result => (
+    result.violations
+      .filter(violation => violation.impact === 'critical' || violation.impact === 'serious')
+      .map(violation => ({
+        id: violation.id,
+        impact: violation.impact,
+        nodes: violation.nodes.slice(0, 3).map(node => ({
+          target: node.target.join(' '),
+          summary: node.failureSummary,
+        })),
+      }))
+  ))`, true);
+  check(violations.length === 0, `${label} has no critical or serious accessibility violations`, JSON.stringify(violations));
+}
+
 async function main() {
   check(existsSync(HTML_PATH), `${PUBLIC_MODE ? 'public index' : 'generated HTML'} exists`);
   const chrome = findChrome();
@@ -323,6 +347,7 @@ async function main() {
       3000,
     ).catch(() => false);
     check(appReady, `${PUBLIC_MODE ? 'public' : 'standalone'} app runtime initializes`, browserErrors.join(' | '));
+    await installAxe(client);
 
     await setViewport(client, 1440, 1000);
     const desktop = await client.evaluate(`(() => {
@@ -393,6 +418,7 @@ async function main() {
       'legacy UI aliases resolve through semantic theme tokens',
       JSON.stringify(themeTokens)
     );
+    await checkAxe(client, 'calculator');
     await captureScreenshot(client, 'calculator-desktop-1440');
 
     await setViewport(client, 375, 812);
@@ -438,6 +464,22 @@ async function main() {
     `);
     await captureScreenshot(client, 'calculator-mobile-375');
 
+    const partyModalFocus = await client.evaluate(`(async () => {
+      const trigger = document.getElementById('partyPresetOpen');
+      trigger.focus();
+      trigger.click();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      return document.activeElement?.id || '';
+    })()`, true);
+    check(partyModalFocus === 'partyPresetClose', 'party preset modal receives initial focus', partyModalFocus);
+    await checkAxe(client, 'party preset modal');
+    const partyModalReturnFocus = await client.evaluate(`(async () => {
+      document.getElementById('partyPresetClose')?.click();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      return document.activeElement?.id || '';
+    })()`, true);
+    check(partyModalReturnFocus === 'partyPresetOpen', 'party preset modal restores trigger focus', partyModalReturnFocus);
+
     const dex = await client.evaluate(`(async () => {
       document.querySelector('.nav-tab[data-page="dex"]')?.click();
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
@@ -460,6 +502,22 @@ async function main() {
     check(dex.firstCount > 0 && dex.firstCount <= 50, 'dex limits the initial Pokemon DOM to 50 rows', JSON.stringify(dex));
     check(dex.secondCount > 0 && dex.secondCount <= 50 && dex.secondId !== dex.firstId, 'dex pagination renders the next Pokemon slice', JSON.stringify(dex));
     check(dex.pageLabel.startsWith('2 / '), 'dex pagination exposes the current page', dex.pageLabel);
+    const dexKeyboard = await client.evaluate(`(() => {
+      const sortButton = document.querySelector('#dexTablePokemon th[data-sort="hp"] .dex-sort-button');
+      sortButton.focus();
+      sortButton.click();
+      const header = sortButton.closest('th');
+      const rowButton = document.querySelector('#dexBodyPokemon .dex-row-open');
+      return {
+        activeTag: document.activeElement?.tagName || '',
+        ariaSort: header?.getAttribute('aria-sort') || '',
+        rowButtonTag: rowButton?.tagName || '',
+        rowButtonLabel: rowButton?.getAttribute('aria-label') || '',
+      };
+    })()`);
+    check(dexKeyboard.activeTag === 'BUTTON' && ['ascending', 'descending'].includes(dexKeyboard.ariaSort), 'dex sorting exposes keyboard and aria-sort state', JSON.stringify(dexKeyboard));
+    check(dexKeyboard.rowButtonTag === 'BUTTON' && dexKeyboard.rowButtonLabel.endsWith('상세 보기'), 'dex rows expose a keyboard detail action', JSON.stringify(dexKeyboard));
+    await checkAxe(client, 'dex');
 
     const stagedTools = await client.evaluate(`(() => {
       revCalcState.my = makeSideState('');
@@ -507,6 +565,7 @@ async function main() {
     check(matchup.overflow <= 1, 'mobile matchup has no horizontal page overflow', String(matchup.overflow));
     check(matchup.slotHeight <= 60 && matchup.centerSpread <= 4 && matchup.spriteDisplay === 'none', 'mobile matchup uses compact single-row party slots', JSON.stringify(matchup));
     check(matchup.hintVisible, 'mobile matchup announces horizontal table scrolling', JSON.stringify(matchup));
+    await checkAxe(client, 'matchup');
 
     const reverse = await client.evaluate(`(async () => {
       revCalcState.my = makeSideState('primarina');

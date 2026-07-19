@@ -2,6 +2,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTsModule, applyModOverrides } from './ts-loader.mjs';
+import { PS_FILES, PS_REF, PS_REPOSITORY } from './ps-data-source.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const DATA = path.join(ROOT, 'data');
@@ -100,6 +101,21 @@ let failed = false;
 function fail(message) {
   failed = true;
   console.error(`data invalid: ${message}`);
+}
+
+const upstream = readJson(path.join(DATA, 'upstream.json'), null);
+if (!upstream) {
+  fail('upstream.json is missing');
+} else {
+  if (upstream.repository !== PS_REPOSITORY) fail(`upstream.repository must be ${PS_REPOSITORY}`);
+  if (upstream.ref !== PS_REF) fail(`upstream.ref must be ${PS_REF}`);
+  if (!/^[0-9a-f]{40}$/.test(upstream.commit || '')) fail('upstream.commit must be a 40-character Git SHA');
+  if (JSON.stringify(upstream.files) !== JSON.stringify(PS_FILES)) {
+    fail('upstream.files does not match the sync source manifest');
+  }
+  for (const relPath of Array.isArray(upstream.files) ? upstream.files : []) {
+    if (!existsSync(path.join(ROOT, relPath))) fail(`upstream file is missing locally: ${relPath}`);
+  }
 }
 
 for (const [kind, entries] of Object.entries(finalData)) {

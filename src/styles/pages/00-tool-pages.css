@@ -724,7 +724,7 @@
 }
 
 #page-matchup .matchup-empty-slot {
-  color: var(--tool-faint);
+  color: var(--tool-muted);
 }
 
 #page-matchup .matchup-table-type {

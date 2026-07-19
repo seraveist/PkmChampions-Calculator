@@ -31,6 +31,9 @@ jobs:
       - name: Run regression suite
         run: npm test
 
+      - name: Verify generated artifacts are committed
+        run: git diff --exit-code -- pokemon-champions-calculator-v3.html docs/damage-calculator-coverage-matrix.md
+
       - name: Run public browser smoke
         run: npm run ui:browser:public -- --require-browser --disable-browser-sandbox
 

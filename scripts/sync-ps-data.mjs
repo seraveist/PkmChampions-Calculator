@@ -13,48 +13,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PS_FILES, PS_REF, PS_REPOSITORY } from './ps-data-source.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const DATA = path.join(ROOT, 'data');
-const PS_REPOSITORY = 'smogon/pokemon-showdown';
-const PS_REF = 'master';
 const PS_COMMIT_API = `https://api.github.com/repos/${PS_REPOSITORY}/commits/${PS_REF}`;
 const PS_RAW_ROOT = `https://raw.githubusercontent.com/${PS_REPOSITORY}`;
 const UPSTREAM_META_PATH = path.join(DATA, 'upstream.json');
 
 // 챔피언스 빌드에 필요한 모든 ts 파일.
 // 신규 파일이 PS 에서 추가되면 여기에만 추가하면 됨.
-const FILES = [
-  'data/pokedex.ts',
-  'data/moves.ts',
-  'data/abilities.ts',
-  'data/items.ts',
-  'data/learnsets.ts',
-  'data/typechart.ts',
-  'data/natures.ts',
-  'data/formats-data.ts',
-  'data/conditions.ts',
-  'data/aliases.ts',
-  'data/tags.ts',
-  'data/rulesets.ts',
-  'data/scripts.ts',
-  'data/pokemongo.ts',
+const FILES = PS_FILES;
+/* Legacy inline comment retained from the original encoded source.
   // text/ 한국어/영문 서술문
   'data/text/pokedex.ts',
-  'data/text/moves.ts',
-  'data/text/abilities.ts',
-  'data/text/items.ts',
-  // mods/champions
-  'data/mods/champions/formats-data.ts',
-  'data/mods/champions/moves.ts',
-  'data/mods/champions/abilities.ts',
-  'data/mods/champions/items.ts',
-  'data/mods/champions/learnsets.ts',
-  'data/mods/champions/scripts.ts',
-  'data/mods/champions/conditions.ts',
-  'data/mods/champions/rulesets.ts',
-];
-
+*/
 const dryRun = process.argv.includes('--dry-run');
 
 async function fetchText(url) {

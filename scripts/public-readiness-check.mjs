@@ -19,8 +19,15 @@ const DATA_IDS = [
   'data-typechart',
   'data-rules',
   'data-meta-threats',
-  'reverse-worker-source',
 ];
+const ASSET_BUDGETS = {
+  theme: { sizeBytes: 16 * 1024, gzipBytes: 8 * 1024 },
+  style: { sizeBytes: 420 * 1024, gzipBytes: 80 * 1024 },
+  data: { sizeBytes: 1100 * 1024, gzipBytes: 230 * 1024 },
+  app: { sizeBytes: 800 * 1024, gzipBytes: 190 * 1024 },
+  worker: { sizeBytes: 300 * 1024, gzipBytes: 80 * 1024 },
+};
+const TOTAL_GZIP_BUDGET = 520 * 1024;
 
 let failed = false;
 
@@ -72,15 +79,18 @@ check(!/__[A-Z0-9_]+__/.test(index), 'public index has no unresolved build place
 
 const stylesheetHrefs = [...index.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map((match) => match[1]);
 const scriptSrcs = [...index.matchAll(/<script\s+src="([^"]+)"\s*><\/script>/g)].map((match) => match[1]);
+const workerSourceMatch = index.match(/<script id="reverse-worker-source" type="application\/json" data-worker-src="([^"]+)"><\/script>/);
+const workerSource = workerSourceMatch?.[1] || '';
 const executableInlineScripts = [...index.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)]
   .filter((match) => !/type="application\/json"/.test(match[1]) && !/\ssrc=/.test(match[1]) && match[2].trim());
 
 check(stylesheetHrefs.length === 1, 'public index loads one external stylesheet');
 check(scriptSrcs.length === 3, 'public index loads theme, data, and app scripts externally');
+check(Boolean(workerSource), 'public index references a lazy reverse-analysis worker');
 check(executableInlineScripts.length === 0, 'public index has no executable inline scripts');
 
-const referencedAssets = [...stylesheetHrefs, ...scriptSrcs];
-check(referencedAssets.every((source) => /^\.\/assets\/[a-z]+\.[a-f0-9]{12}\.(?:css|js)$/.test(source)), 'public assets use content-hashed filenames');
+const referencedAssets = [...stylesheetHrefs, ...scriptSrcs, workerSource].filter(Boolean);
+check(referencedAssets.every((source) => /^\.\/assets\/[a-z-]+\.[a-f0-9]{12}\.(?:css|js)$/.test(source)), 'public assets use content-hashed filenames');
 for (const source of referencedAssets) {
   const assetPath = path.join(DIST, source.replace(/^\.\//, ''));
   check(existsSync(assetPath) && statSync(assetPath).size > 0, `${source} exists and is non-empty`);
@@ -93,7 +103,7 @@ for (const id of DATA_IDS) {
 check(!headers.includes("'unsafe-inline'"), 'CSP does not allow unsafe-inline scripts or styles');
 check(headers.includes("script-src 'self'"), 'CSP limits scripts to same-origin assets');
 check(headers.includes("style-src 'self'"), 'CSP limits styles to same-origin assets');
-check(headers.includes('worker-src blob:'), 'CSP permits the reverse calculator blob worker');
+check(headers.includes("worker-src 'self' blob:"), 'CSP permits same-origin and standalone reverse calculator workers');
 check(headers.includes("object-src 'none'"), 'CSP blocks object embeds');
 check(headers.includes('max-age=31536000, immutable'), 'hashed assets have immutable cache headers');
 if (PRIVATE_TEST) {
@@ -109,7 +119,19 @@ if (manifest) {
   check(manifest.mode === (PRIVATE_TEST ? 'private-test' : 'public'), `deploy manifest records ${PRIVATE_TEST ? 'private test' : 'public'} mode`);
   check(manifest.artifact === 'index.html', 'deploy manifest records index artifact');
   check(manifest.sizeBytes === statSync(INDEX).size, 'deploy manifest records the current index size');
-  check(Object.keys(manifest.assets || {}).sort().join(',') === 'app,data,style,theme', 'deploy manifest records all asset roles');
+  check(Object.keys(manifest.assets || {}).sort().join(',') === 'app,data,style,theme,worker', 'deploy manifest records all asset roles');
+  let totalGzipBytes = 0;
+  for (const [role, budget] of Object.entries(ASSET_BUDGETS)) {
+    const entry = manifest.assets?.[role];
+    if (!entry) continue;
+    const assetPath = path.join(DIST, 'assets', entry.file);
+    check(entry.sizeBytes === statSync(assetPath).size, `${role} manifest size matches the emitted asset`);
+    check(Number.isInteger(entry.gzipBytes) && entry.gzipBytes > 0, `${role} manifest records gzip size`);
+    check(entry.sizeBytes <= budget.sizeBytes, `${role} raw size stays within budget (${entry.sizeBytes}/${budget.sizeBytes})`);
+    check(entry.gzipBytes <= budget.gzipBytes, `${role} gzip size stays within budget (${entry.gzipBytes}/${budget.gzipBytes})`);
+    totalGzipBytes += entry.gzipBytes || 0;
+  }
+  check(totalGzipBytes <= TOTAL_GZIP_BUDGET, `total asset gzip size stays within budget (${totalGzipBytes}/${TOTAL_GZIP_BUDGET})`);
 }
 
 if (failed) process.exit(1);

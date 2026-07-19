@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { gzipSync } from 'node:zlib';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -18,7 +19,6 @@ const DATA_IDS = [
   'data-typechart',
   'data-rules',
   'data-meta-threats',
-  'reverse-worker-source',
 ];
 const RAIL_PATTERNS = [
   /\s*<aside class="ad-rail[^"]*"[\s\S]*?<\/aside>\s*/g,
@@ -67,7 +67,12 @@ function asset(name, extension, content) {
   const normalized = content.endsWith('\n') ? content : `${content}\n`;
   const file = `${name}.${hash(normalized)}.${extension}`;
   writeFileSync(path.join(ASSETS, file), normalized, 'utf8');
-  return { file, path: `./assets/${file}`, sizeBytes: Buffer.byteLength(normalized) };
+  return {
+    file,
+    path: `./assets/${file}`,
+    sizeBytes: Buffer.byteLength(normalized),
+    gzipBytes: gzipSync(normalized).byteLength,
+  };
 }
 
 function writeStaticFile(name, content) {
@@ -89,7 +94,7 @@ function extractInlineScript(source, predicate, label) {
 
 function buildDataBootstrap(dataScripts) {
   const payload = dataScripts
-    .map(({ id, raw }) => `    ${JSON.stringify(id)}: ${raw}`)
+    .map(({ id, raw }) => `    ${JSON.stringify(id)}: ${JSON.stringify(raw)}`)
     .join(',\n');
   return `(() => {
   const payloads = {
@@ -98,7 +103,7 @@ ${payload}
   for (const [id, value] of Object.entries(payloads)) {
     const node = document.getElementById(id);
     if (!node) throw new Error(\`Missing embedded data target: \${id}\`);
-    node.textContent = JSON.stringify(value);
+    node.textContent = value;
   }
 })();`;
 }
@@ -119,6 +124,15 @@ const dataScripts = DATA_IDS.map((id) => {
   JSON.parse(match[1]);
   return { id, match, raw: match[1] };
 });
+const reverseWorkerMatch = requiredMatch(
+  html,
+  /<script id="reverse-worker-source" type="application\/json">([\s\S]*?)<\/script>/,
+  'reverse analysis worker',
+);
+const reverseWorkerSource = JSON.parse(reverseWorkerMatch[1]);
+if (typeof reverseWorkerSource !== 'string' || !reverseWorkerSource.trim()) {
+  throw new Error('Reverse analysis worker source is empty.');
+}
 
 if (PRIVATE_TEST) {
   const original = html;
@@ -134,12 +148,17 @@ const themeAsset = asset('theme', 'js', themeMatch[2].trim());
 const styleAsset = asset('app', 'css', cssSource);
 const dataAsset = asset('data', 'js', buildDataBootstrap(dataScripts));
 const appAsset = asset('app', 'js', appMatch[2].trim());
+const workerAsset = asset('reverse-worker', 'js', reverseWorkerSource);
 
 html = html.replace(themeMatch[0], `<script src="${themeAsset.path}"></script>`);
 html = html.replace(styleMatch[0], `<link rel="stylesheet" href="${styleAsset.path}">`);
 for (const { id, match } of dataScripts) {
   html = html.replace(match[0], `<script id="${id}" type="application/json"></script>`);
 }
+html = html.replace(
+  reverseWorkerMatch[0],
+  `<script id="reverse-worker-source" type="application/json" data-worker-src="${workerAsset.path}"></script>`,
+);
 html = html.replace(
   appMatch[0],
   `<script src="${dataAsset.path}"></script>\n<script src="${appAsset.path}"></script>`,
@@ -161,13 +180,13 @@ ${indexingHeaders}  X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://raw.githubusercontent.com; font-src 'self' data:; connect-src 'none'; worker-src blob:; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://raw.githubusercontent.com; font-src 'self' data:; connect-src 'none'; worker-src 'self' blob:; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 `);
 
-const assets = { theme: themeAsset, style: styleAsset, data: dataAsset, app: appAsset };
+const assets = { theme: themeAsset, style: styleAsset, data: dataAsset, app: appAsset, worker: workerAsset };
 const manifest = {
   artifact: 'index.html',
   source: path.basename(SOURCE_HTML),
@@ -179,7 +198,7 @@ const manifest = {
   assets,
   notes: [
     'The offline standalone artifact remains pokemon-champions-calculator-v3.html.',
-    'HTML, CSS, application code, and embedded data are emitted as separate static assets.',
+    'HTML, CSS, application code, embedded data, and the lazy reverse-analysis worker are emitted as separate static assets.',
     'Hashed assets are safe to cache immutably.',
     PRIVATE_TEST
       ? 'Search indexing and advertising rails are disabled for the private test deployment.'

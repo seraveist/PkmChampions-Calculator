@@ -90,20 +90,25 @@ function rcTerminateAnalysisWorker(reason = null) {
 
 function rcCreateAnalysisWorker() {
   if (rcAnalysisWorker) return rcAnalysisWorker;
-  if (typeof Worker !== 'function' || typeof Blob !== 'function' || typeof URL?.createObjectURL !== 'function') return null;
+  if (typeof Worker !== 'function') return null;
   const sourceElement = document.getElementById('reverse-worker-source');
-  if (!sourceElement?.textContent) return null;
+  if (!sourceElement) return null;
 
-  let source = '';
-  try {
-    source = JSON.parse(sourceElement.textContent);
-  } catch (_) {
-    return null;
+  const externalUrl = sourceElement.dataset.workerSrc || '';
+  if (externalUrl) {
+    rcAnalysisWorker = new Worker(externalUrl, { name: 'pkmchampions-reverse-analysis' });
+  } else {
+    if (!sourceElement.textContent || typeof Blob !== 'function' || typeof URL?.createObjectURL !== 'function') return null;
+    let source = '';
+    try {
+      source = JSON.parse(sourceElement.textContent);
+    } catch (_) {
+      return null;
+    }
+    if (!source) return null;
+    rcAnalysisWorkerUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
+    rcAnalysisWorker = new Worker(rcAnalysisWorkerUrl, { name: 'pkmchampions-reverse-analysis' });
   }
-  if (!source) return null;
-
-  rcAnalysisWorkerUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
-  rcAnalysisWorker = new Worker(rcAnalysisWorkerUrl, { name: 'pkmchampions-reverse-analysis' });
   rcAnalysisWorker.addEventListener('message', event => {
     const message = event.data || {};
     const pending = rcAnalysisWorkerPending;

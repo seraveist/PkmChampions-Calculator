@@ -283,7 +283,7 @@
           <div class="matchup-result-layout ui-control-grid">
             <div class="matchup-main">
               <div class="matchup-scroll-hint" id="matchupScrollHint" role="status" hidden>표를 좌우로 밀어 전체 내용을 확인하세요.</div>
-              <div class="matchup-table-wrap">
+              <div class="matchup-table-wrap" role="region" aria-label="상성 결과 표" tabindex="0">
                 <table class="matchup-table" id="matchupTable">
                   <thead id="matchupHead"></thead>
                   <tbody id="matchupBody"></tbody>
@@ -331,15 +331,15 @@
           <table class="dex-table" id="dexTablePokemon">
             <thead>
               <tr>
-                <th class="sortable" data-sort="koName">이름</th>
-                <th class="sortable" data-sort="type">타입</th>
-                <th class="sortable num" data-sort="hp">HP</th>
-                <th class="sortable num" data-sort="atk">공격</th>
-                <th class="sortable num" data-sort="def">방어</th>
-                <th class="sortable num" data-sort="spa">특공</th>
-                <th class="sortable num" data-sort="spd">특방</th>
-                <th class="sortable num" data-sort="spe">속도</th>
-                <th class="sortable num" data-sort="bst">합계</th>
+                <th class="sortable" data-sort="koName" aria-sort="none"><button type="button" class="dex-sort-button">이름</button></th>
+                <th class="sortable" data-sort="type" aria-sort="none"><button type="button" class="dex-sort-button">타입</button></th>
+                <th class="sortable num" data-sort="hp" aria-sort="none"><button type="button" class="dex-sort-button">HP</button></th>
+                <th class="sortable num" data-sort="atk" aria-sort="none"><button type="button" class="dex-sort-button">공격</button></th>
+                <th class="sortable num" data-sort="def" aria-sort="none"><button type="button" class="dex-sort-button">방어</button></th>
+                <th class="sortable num" data-sort="spa" aria-sort="none"><button type="button" class="dex-sort-button">특공</button></th>
+                <th class="sortable num" data-sort="spd" aria-sort="none"><button type="button" class="dex-sort-button">특방</button></th>
+                <th class="sortable num" data-sort="spe" aria-sort="none"><button type="button" class="dex-sort-button">속도</button></th>
+                <th class="sortable num" data-sort="bst" aria-sort="none"><button type="button" class="dex-sort-button">합계</button></th>
                 <th>특성 1</th>
                 <th>특성 2</th>
                 <th>숨겨진 특성</th>
@@ -356,12 +356,12 @@
           <table class="dex-table" id="dexTableMoves">
             <thead>
               <tr>
-                <th class="sortable" data-sort="koName">이름</th>
-                <th class="sortable" data-sort="type">타입</th>
-                <th class="sortable" data-sort="cat">분류</th>
-                <th class="sortable num" data-sort="bp">위력</th>
-                <th class="sortable num" data-sort="acc">명중</th>
-                <th class="sortable num" data-sort="pri">우선</th>
+                <th class="sortable" data-sort="koName" aria-sort="none"><button type="button" class="dex-sort-button">이름</button></th>
+                <th class="sortable" data-sort="type" aria-sort="none"><button type="button" class="dex-sort-button">타입</button></th>
+                <th class="sortable" data-sort="cat" aria-sort="none"><button type="button" class="dex-sort-button">분류</button></th>
+                <th class="sortable num" data-sort="bp" aria-sort="none"><button type="button" class="dex-sort-button">위력</button></th>
+                <th class="sortable num" data-sort="acc" aria-sort="none"><button type="button" class="dex-sort-button">명중</button></th>
+                <th class="sortable num" data-sort="pri" aria-sort="none"><button type="button" class="dex-sort-button">우선</button></th>
                 <th>설명</th>
               </tr>
             </thead>
@@ -376,7 +376,7 @@
           <table class="dex-table" id="dexTableAbilities">
             <thead>
               <tr>
-                <th class="sortable" data-sort="koName">이름</th>
+                <th class="sortable" data-sort="koName" aria-sort="none"><button type="button" class="dex-sort-button">이름</button></th>
                 <th>영문명</th>
                 <th>설명</th>
               </tr>
@@ -392,7 +392,7 @@
           <table class="dex-table" id="dexTableItems">
             <thead>
               <tr>
-                <th class="sortable" data-sort="koName">이름</th>
+                <th class="sortable" data-sort="koName" aria-sort="none"><button type="button" class="dex-sort-button">이름</button></th>
                 <th>영문명</th>
                 <th>설명</th>
                 <th>상태</th>
