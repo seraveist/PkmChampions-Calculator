@@ -624,7 +624,12 @@ function renderFineTuneHp() {
   const container = document.getElementById('ft-hp-body');
   if (!container) return;
   const my = fineTuneState.my;
-  if (!PokemonById[my.pokemonIdx]) {
+  const hasPokemon = !!PokemonById[my.pokemonIdx];
+  const panel = document.getElementById('ft-hp-panel');
+  const layout = document.getElementById('ft-layout');
+  if (panel) panel.hidden = !hasPokemon;
+  layout?.classList.toggle('has-hp-results', hasPokemon);
+  if (!hasPokemon) {
     container.innerHTML = '';
     return;
   }

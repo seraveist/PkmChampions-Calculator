@@ -243,6 +243,19 @@ function renderRevCalcInputs() {
   const container = document.getElementById('rc-input-body');
   if (!container) return;
   const my = revCalcState.my;
+  const myP = PokemonById[my.pokemonIdx];
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+
+  if (!myP || !oppP) {
+    const missing = !myP && !oppP ? '내 포켓몬과 상대 포켓몬' : (!myP ? '내 포켓몬' : '상대 포켓몬');
+    container.innerHTML = `
+      <div class="rc-prerequisite empty-state ui-empty" role="status">
+        <strong>${missing}을 먼저 선택해 주세요.</strong>
+        <span>참가 포켓몬이 준비되면 관측 데이터 입력이 열립니다.</span>
+      </div>
+    `;
+    return;
+  }
 
   // 내 관측 기술은 입력한 기술폭 4개 안에서 선택하고, 상대 기술은 변화기 관측까지 허용한다.
   rcNormalizeObservedMyMove();
@@ -342,10 +355,14 @@ function renderRevCalcResults() {
   const container = document.getElementById('rc-results-body');
   if (!container) return;
   const analyzeButton = document.getElementById('rcAnalyze');
+  const participantsReady = !!PokemonById[revCalcState.my.pokemonIdx]
+    && !!PokemonById[revCalcState.opp.pokemonIdx];
   if (analyzeButton) {
     analyzeButton.textContent = revCalcState.analyzing ? '분석 취소' : '형태 분석';
     analyzeButton.classList.toggle('is-analyzing', !!revCalcState.analyzing);
     analyzeButton.setAttribute('aria-pressed', revCalcState.analyzing ? 'true' : 'false');
+    analyzeButton.disabled = !participantsReady && !revCalcState.analyzing;
+    analyzeButton.title = participantsReady ? '' : '내 포켓몬과 상대 포켓몬을 먼저 선택해 주세요.';
   }
   container.setAttribute('aria-busy', revCalcState.analyzing ? 'true' : 'false');
   if (revCalcState.analyzing) {
@@ -360,7 +377,9 @@ function renderRevCalcResults() {
   }
   const r = revCalcState.results;
   if (!r) {
-    container.innerHTML = '<div class="empty-state ui-empty">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>';
+    container.innerHTML = participantsReady
+      ? '<div class="empty-state ui-empty">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>'
+      : '<div class="empty-state ui-empty">참가 포켓몬을 선택하면 형태 분석을 준비합니다.</div>';
     return;
   }
   if (r.error) {

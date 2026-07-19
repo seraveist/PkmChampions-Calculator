@@ -886,6 +886,13 @@
 
 #page-finetune .ft-layout {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "editor"
+    "speed";
+}
+
+#page-finetune .ft-layout.has-hp-results {
   grid-template-columns: minmax(660px, 1.35fr) minmax(330px, 0.65fr);
   grid-template-areas:
     "editor hp"
@@ -898,6 +905,10 @@
 
 #page-finetune .ft-hp-panel {
   grid-area: hp;
+}
+
+#page-finetune .ft-hp-panel[hidden] {
+  display: none;
 }
 
 #page-finetune .ft-speed-panel {
@@ -944,6 +955,28 @@
   color: #ffffff;
   transform: none;
   box-shadow: none;
+}
+
+#page-revcalc .rc-analyze-btn:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.35);
+  opacity: 0.56;
+}
+
+#page-revcalc .rc-prerequisite {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-height: 96px;
+}
+
+#page-revcalc .rc-prerequisite strong {
+  color: var(--tool-text);
+}
+
+#page-revcalc .rc-prerequisite span {
+  color: var(--tool-muted);
+  font-size: 12px;
 }
 
 #page-finetune .ft-setup-grid {
@@ -2620,7 +2653,7 @@
     grid-template-columns: 1fr;
   }
 
-  #page-finetune .ft-layout {
+  #page-finetune .ft-layout.has-hp-results {
     grid-template-areas:
       "editor"
       "hp"

@@ -358,6 +358,8 @@ check(allCss.includes(':root[data-theme="dark"]'), 'dark theme token block exist
 const calcLayoutCss = cssByFile.get('pages/calculator.css') || '';
 const calcBaseCss = cssByFile.get('pages/calculator-base.css') || '';
 const dexPageCss = cssByFile.get('pages/dex.css') || '';
+const toolPageCss = cssByFile.get('07-tools-redesign.css') || '';
+const legacyPolishCss = cssByFile.get('09-product-polish.css') || '';
 check(Boolean(calcLayoutCss), 'calculator page stylesheet exists');
 check(Boolean(calcBaseCss), 'calculator page visual base stylesheet exists');
 check(!cssByFile.has('05-calc-sample-layout.css'), 'legacy calculator layout stylesheet is removed');
@@ -367,6 +369,15 @@ check(!cssByFile.has('06-dex-redesign.css'), 'legacy dex redesign stylesheet is 
 check(
   dexPageCss.includes('.dex-pagination') && dexPageCss.includes('.dex-page-button'),
   'dex page owns paginated list controls'
+);
+check(
+  toolPageCss.includes('.ft-hp-panel[hidden]')
+    && toolPageCss.includes('.rc-prerequisite'),
+  'tool page styles own staged empty and result states'
+);
+check(
+  !legacyPolishCss.includes('.ft-hp-panel:has(#ft-hp-body:empty)'),
+  'legacy polish releases fine-tune empty panel ownership'
 );
 check(
   /\.tool-move-list--critical\s+\.tool-move-power-readout\s*\{[^}]*grid-column:\s*6/s.test(calcLayoutCss),

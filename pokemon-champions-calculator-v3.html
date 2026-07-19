@@ -4241,6 +4241,12 @@ max-width: 100%;
 }
 #page-finetune .ft-layout {
 display: grid;
+grid-template-columns: minmax(0, 1fr);
+grid-template-areas:
+"editor"
+"speed";
+}
+#page-finetune .ft-layout.has-hp-results {
 grid-template-columns: minmax(660px, 1.35fr) minmax(330px, 0.65fr);
 grid-template-areas:
 "editor hp"
@@ -4251,6 +4257,9 @@ grid-area: editor;
 }
 #page-finetune .ft-hp-panel {
 grid-area: hp;
+}
+#page-finetune .ft-hp-panel[hidden] {
+display: none;
 }
 #page-finetune .ft-speed-panel {
 grid-area: speed;
@@ -4289,6 +4298,24 @@ background: linear-gradient(135deg, #df4f55, #eab85e);
 color: #ffffff;
 transform: none;
 box-shadow: none;
+}
+#page-revcalc .rc-analyze-btn:disabled {
+cursor: not-allowed;
+filter: grayscale(0.35);
+opacity: 0.56;
+}
+#page-revcalc .rc-prerequisite {
+display: grid;
+justify-items: start;
+gap: 4px;
+min-height: 96px;
+}
+#page-revcalc .rc-prerequisite strong {
+color: var(--tool-text);
+}
+#page-revcalc .rc-prerequisite span {
+color: var(--tool-muted);
+font-size: 12px;
 }
 #page-finetune .ft-setup-grid {
 display: grid;
@@ -5738,7 +5765,7 @@ grid-template-columns: 1fr;
 #page-revcalc .rc-grid {
 grid-template-columns: 1fr;
 }
-#page-finetune .ft-layout {
+#page-finetune .ft-layout.has-hp-results {
 grid-template-areas:
 "editor"
 "hp"
@@ -7172,14 +7199,6 @@ box-shadow: 1px 0 0 var(--border);
 #page-matchup .matchup-table thead th:first-child {
 z-index: 3;
 background: var(--bg-muted);
-}
-#page-finetune .ft-layout:has(#ft-hp-body:empty) {
-grid-template-areas:
-"editor"
-"speed";
-}
-#page-finetune .ft-hp-panel:has(#ft-hp-body:empty) {
-display: none;
 }
 #page-finetune .ft-settings-grid,
 #page-revcalc .rc-settings-grid,
@@ -12249,7 +12268,7 @@ font-size: 12px;
 
     <!-- 세부조정 -->
     <section id="page-finetune" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-finetune" aria-hidden="true" hidden>
-      <div class="finetune-grid ft-layout ui-frame-row">
+      <div class="finetune-grid ft-layout ui-frame-row" id="ft-layout">
         <section class="ui-frame ft-editor ui-panel">
           <div class="ui-frame-head ui-panel-head">
             <div>
@@ -12259,7 +12278,7 @@ font-size: 12px;
           <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="ft-my-body"></div>
         </section>
 
-        <aside class="ui-frame ft-hp-panel ui-panel">
+        <aside class="ui-frame ft-hp-panel ui-panel" id="ft-hp-panel" hidden>
           <div class="ui-frame-head ui-panel-head">
             <div>
               <h2 class="ui-panel-title">HP 브레이크포인트</h2>
@@ -22662,7 +22681,12 @@ function renderFineTuneHp() {
   const container = document.getElementById('ft-hp-body');
   if (!container) return;
   const my = fineTuneState.my;
-  if (!PokemonById[my.pokemonIdx]) {
+  const hasPokemon = !!PokemonById[my.pokemonIdx];
+  const panel = document.getElementById('ft-hp-panel');
+  const layout = document.getElementById('ft-layout');
+  if (panel) panel.hidden = !hasPokemon;
+  layout?.classList.toggle('has-hp-results', hasPokemon);
+  if (!hasPokemon) {
     container.innerHTML = '';
     return;
   }
@@ -25256,6 +25280,19 @@ function renderRevCalcInputs() {
   const container = document.getElementById('rc-input-body');
   if (!container) return;
   const my = revCalcState.my;
+  const myP = PokemonById[my.pokemonIdx];
+  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+
+  if (!myP || !oppP) {
+    const missing = !myP && !oppP ? '내 포켓몬과 상대 포켓몬' : (!myP ? '내 포켓몬' : '상대 포켓몬');
+    container.innerHTML = `
+      <div class="rc-prerequisite empty-state ui-empty" role="status">
+        <strong>${missing}을 먼저 선택해 주세요.</strong>
+        <span>참가 포켓몬이 준비되면 관측 데이터 입력이 열립니다.</span>
+      </div>
+    `;
+    return;
+  }
 
   // 내 관측 기술은 입력한 기술폭 4개 안에서 선택하고, 상대 기술은 변화기 관측까지 허용한다.
   rcNormalizeObservedMyMove();
@@ -25355,10 +25392,14 @@ function renderRevCalcResults() {
   const container = document.getElementById('rc-results-body');
   if (!container) return;
   const analyzeButton = document.getElementById('rcAnalyze');
+  const participantsReady = !!PokemonById[revCalcState.my.pokemonIdx]
+    && !!PokemonById[revCalcState.opp.pokemonIdx];
   if (analyzeButton) {
     analyzeButton.textContent = revCalcState.analyzing ? '분석 취소' : '형태 분석';
     analyzeButton.classList.toggle('is-analyzing', !!revCalcState.analyzing);
     analyzeButton.setAttribute('aria-pressed', revCalcState.analyzing ? 'true' : 'false');
+    analyzeButton.disabled = !participantsReady && !revCalcState.analyzing;
+    analyzeButton.title = participantsReady ? '' : '내 포켓몬과 상대 포켓몬을 먼저 선택해 주세요.';
   }
   container.setAttribute('aria-busy', revCalcState.analyzing ? 'true' : 'false');
   if (revCalcState.analyzing) {
@@ -25373,7 +25414,9 @@ function renderRevCalcResults() {
   }
   const r = revCalcState.results;
   if (!r) {
-    container.innerHTML = '<div class="empty-state ui-empty">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>';
+    container.innerHTML = participantsReady
+      ? '<div class="empty-state ui-empty">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>'
+      : '<div class="empty-state ui-empty">참가 포켓몬을 선택하면 형태 분석을 준비합니다.</div>';
     return;
   }
   if (r.error) {

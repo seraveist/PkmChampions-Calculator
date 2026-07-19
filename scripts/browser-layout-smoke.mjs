@@ -313,6 +313,29 @@ async function main() {
     check(dex.secondCount > 0 && dex.secondCount <= 50 && dex.secondId !== dex.firstId, 'dex pagination renders the next Pokemon slice', JSON.stringify(dex));
     check(dex.pageLabel.startsWith('2 / '), 'dex pagination exposes the current page', dex.pageLabel);
 
+    const stagedTools = await client.evaluate(`(() => {
+      revCalcState.my = makeSideState('');
+      revCalcState.opp = { pokemonIdx: '', ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: 'none' };
+      revCalcState.results = null;
+      renderRevCalcAll();
+      const reverse = {
+        gated: !!document.querySelector('#rc-input-body .rc-prerequisite'),
+        hasObservation: !!document.querySelector('#rc-input-body [data-rc-action="observedMyHp"]'),
+        analyzeDisabled: document.getElementById('rcAnalyze').disabled,
+      };
+      fineTuneState.my = makeSideState('');
+      renderFineTuneAll();
+      const hpPanel = document.getElementById('ft-hp-panel');
+      const finetune = {
+        hidden: hpPanel.hidden,
+        display: getComputedStyle(hpPanel).display,
+        hasHpColumn: document.getElementById('ft-layout').classList.contains('has-hp-results'),
+      };
+      return { reverse, finetune };
+    })()`);
+    check(stagedTools.reverse.gated && !stagedTools.reverse.hasObservation && stagedTools.reverse.analyzeDisabled, 'reverse observations wait for both participants', JSON.stringify(stagedTools.reverse));
+    check(stagedTools.finetune.hidden && stagedTools.finetune.display === 'none' && !stagedTools.finetune.hasHpColumn, 'fine-tune hides empty HP results on mobile', JSON.stringify(stagedTools.finetune));
+
     const reverse = await client.evaluate(`(async () => {
       revCalcState.my = makeSideState('primarina');
       revCalcState.opp = { pokemonIdx: 'archaludon', ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: 'none' };

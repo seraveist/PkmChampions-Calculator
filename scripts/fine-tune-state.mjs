@@ -169,6 +169,10 @@ function assertOk(value, label) {
 
 const api = loadFineTuneApi();
 
+api.renderFineTuneAll();
+assertOk(api.elements.get('ft-hp-panel').hidden, 'fine-tune hides HP breakpoints before Pokemon selection');
+assertOk(!api.elements.get('ft-layout').classList.contains('has-hp-results'), 'fine-tune initial layout omits the empty HP column');
+
 const fineTunePokemonOptions = api.ftComboData('opp');
 assertEqual(fineTunePokemonOptions.length, api.POKEMON.length, 'fine-tune pokemon dropdown includes all filtered pokemon');
 assertOk(fineTunePokemonOptions.every((option, index, arr) => index === 0 || (arr[index - 1].raw.bs?.spe || 0) >= (option.raw.bs?.spe || 0)), 'fine-tune pokemon dropdown sorts by base Speed descending');
@@ -232,6 +236,8 @@ assertEqual(api.ftOppSpeedCase(api.fineTuneState.opp, 0, 'hardy'), 220, 'opponen
 
 api.renderFineTuneAll();
 const ftMyHtml = api.elements.get('ft-my-body').innerHTML;
+assertOk(!api.elements.get('ft-hp-panel').hidden, 'fine-tune reveals HP breakpoints after Pokemon selection');
+assertOk(api.elements.get('ft-layout').classList.contains('has-hp-results'), 'fine-tune selected layout reserves the HP results column');
 assertOk(!ftMyHtml.includes('ft-summary-body'), 'fine-tune render omits standalone EV summary panel');
 assertOk(ftMyHtml.includes('ft-stat-total tool-stat-total'), 'fine-tune render uses the common stat total badge');
 assertOk(ftMyHtml.includes('<span>총합</span>'), 'fine-tune stat total badge labels point total');

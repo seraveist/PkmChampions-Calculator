@@ -544,16 +544,6 @@ textarea {
     background: var(--bg-muted);
   }
 
-  #page-finetune .ft-layout:has(#ft-hp-body:empty) {
-    grid-template-areas:
-      "editor"
-      "speed";
-  }
-
-  #page-finetune .ft-hp-panel:has(#ft-hp-body:empty) {
-    display: none;
-  }
-
   #page-finetune .ft-settings-grid,
   #page-revcalc .rc-settings-grid,
   #page-revcalc .rc-opp-settings-grid {

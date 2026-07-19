@@ -86,5 +86,12 @@ git diff --check
 - Preserved each dex tab's query, filters, page, and scroll position while switching tabs or opening details.
 - Extended browser smoke coverage to verify the 50-row DOM limit, next-page data, and mobile overflow.
 
+### Staged reverse and fine-tune states
+
+- Reverse observation controls now open only after both participating Pokemon are selected.
+- The reverse analyze action stays disabled until the participant prerequisite is satisfied.
+- Fine-tune HP breakpoints are hidden before Pokemon selection and no longer reserve an empty desktop column.
+- Removed the mobile-only `:has(...:empty)` polish override in favor of explicit application state.
+
 이번 단계에서는 위 검증이 모두 통과했다. 브라우저 검사는 데스크톱/모바일 가로 넘침, 계산 결과,
 모바일 상세 토글과 드롭다운, 라이트/다크 semantic token, 역계산 Worker 응답성을 확인한다.
