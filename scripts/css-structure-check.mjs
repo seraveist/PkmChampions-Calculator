@@ -63,6 +63,8 @@ check(cssByFile.has('00-tokens.css'), 'semantic token stylesheet exists');
 
 const panelComponentCss = cssByFile.get('components/panels.css') || '';
 const buttonComponentCss = cssByFile.get('components/buttons.css') || '';
+const fieldComponentCss = cssByFile.get('components/fields.css') || '';
+const comboboxComponentCss = cssByFile.get('components/combobox.css') || '';
 const legacyFoundationCss = cssByFile.get('04-ui-foundation.css') || '';
 check(Boolean(panelComponentCss), 'panel component stylesheet exists');
 check(
@@ -85,6 +87,28 @@ check(
   !legacyFoundationCss.includes('.ui-btn-primary')
     && !legacyFoundationCss.includes('.ui-btn-secondary.active'),
   'legacy foundation releases shared button ownership'
+);
+check(Boolean(fieldComponentCss), 'field component stylesheet exists');
+check(
+  fieldComponentCss.includes('.ui-field-label')
+    && fieldComponentCss.includes('.ui-inline-number-input'),
+  'field component owns labels, controls, and inline numbers'
+);
+check(
+  !legacyFoundationCss.includes('.ui-field-head .ui-field-label')
+    && !legacyFoundationCss.includes('.ui-inline-number-input'),
+  'legacy foundation releases shared field ownership'
+);
+check(Boolean(comboboxComponentCss), 'combobox component stylesheet exists');
+check(
+  comboboxComponentCss.includes('.combobox-options.combobox-options-portal')
+    && comboboxComponentCss.includes('.combobox-option.selected'),
+  'combobox component owns portal, option, and selection states'
+);
+check(
+  !legacyFoundationCss.includes('.combobox-options.combobox-options-portal')
+    && !legacyFoundationCss.includes('.combobox-option.ui-option.selected'),
+  'legacy foundation releases shared combobox ownership'
 );
 
 [

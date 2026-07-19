@@ -2657,36 +2657,6 @@ border: 1px solid var(--border);
 border-radius: var(--radius-md);
 background: var(--bg-panel);
 }
-.ui-field-label,
-.field-label {
-color: var(--text-dim);
-font-size: var(--ui-label-font-size);
-font-weight: var(--ui-label-font-weight);
-line-height: var(--ui-label-line-height);
-letter-spacing: 0;
-text-transform: none;
-}
-.ui-field-head {
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: var(--ui-field-label-gap);
-min-height: var(--ui-field-head-height);
-margin-bottom: var(--ui-field-stack-gap);
-}
-.ui-field-head .ui-field-label,
-.ui-field-head .field-label {
-display: flex;
-align-items: center;
-min-height: var(--ui-field-head-height);
-margin-bottom: 0;
-}
-.ui-field-actions {
-display: flex;
-flex: 0 0 auto;
-align-items: center;
-gap: var(--ui-field-stack-gap);
-}
 .party-load-head-actions {
 display: flex;
 min-width: 0;
@@ -2696,80 +2666,6 @@ gap: var(--ui-field-stack-gap);
 }
 .party-load-button {
 flex: 0 0 auto;
-}
-.ui-field-action {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-min-height: var(--ui-field-action-height);
-padding: var(--ui-field-action-padding);
-}
-.ui-label-action,
-.ui-popover-trigger {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-box-sizing: border-box;
-gap: 6px;
-min-height: var(--ui-label-action-height);
-padding: var(--ui-label-action-padding);
-border: 1px solid var(--ui-action-border);
-border-radius: var(--ui-label-action-radius);
-background: var(--ui-action-bg);
-color: var(--text-dim);
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-label-action-font-size);
-font-weight: var(--ui-label-action-font-weight);
-line-height: 1;
-letter-spacing: 0;
-text-decoration: none;
-white-space: nowrap;
-}
-button.ui-label-action,
-button.ui-popover-trigger {
-cursor: pointer;
-}
-button.ui-label-action:hover,
-button.ui-label-action:focus-visible,
-button.ui-popover-trigger:hover,
-button.ui-popover-trigger:focus-visible {
-border-color: var(--ui-action-hover-border);
-background: var(--ui-action-hover-bg);
-color: var(--ui-action-hover-text);
-outline: 0;
-}
-.ui-label-action.is-static {
-cursor: default;
-background: var(--bg-input);
-}
-.ui-field-meta-row {
-display: flex;
-align-items: center;
-justify-content: flex-start;
-flex-wrap: wrap;
-gap: var(--ui-control-grid-gap) var(--ui-field-label-gap);
-min-height: var(--ui-field-meta-min-height);
-margin-top: var(--ui-field-meta-margin-top);
-}
-select,
-input[type="number"],
-input[type="text"],
-textarea,
-.cb-input {
-width: 100%;
-box-sizing: border-box;
-min-height: var(--ui-control-height);
-padding: 6px 10px;
-border: 1px solid var(--border);
-border-radius: var(--ui-control-radius);
-background: var(--ui-control-bg);
-color: var(--text);
-font-family: inherit;
-font-size: var(--ui-control-font-size);
-font-weight: var(--ui-control-font-weight);
-outline: none;
-box-shadow: none;
-transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
 }
 .pokemon-select .cb-input {
 height: var(--ui-control-height);
@@ -2980,94 +2876,6 @@ border-left: 3px solid transparent;
 :is(#page-calc, #page-revcalc, #page-finetune) .tool-form-combobox .combobox-option.selected {
 border-left-color: var(--warn);
 box-shadow: none;
-}
-select:hover,
-input[type="number"]:hover,
-input[type="text"]:hover,
-textarea:hover,
-.cb-input:hover {
-border-color: var(--border-bright);
-}
-select:focus,
-input[type="number"]:focus,
-input[type="text"]:focus,
-textarea:focus,
-.cb-input[aria-expanded="true"] {
-border-color: var(--warn);
-box-shadow: var(--focus-ring);
-}
-button:focus-visible,
-input[type="checkbox"]:focus-visible,
-input[type="radio"]:focus-visible {
-outline: none;
-box-shadow: var(--focus-ring);
-}
-.ui-inline-number {
-display: grid;
-grid-template-columns: minmax(0, 1fr) auto;
-align-items: center;
-box-sizing: border-box;
-height: var(--ui-control-height);
-min-height: var(--ui-control-height);
-margin: 0;
-padding: 0 10px;
-border: var(--ui-control-border);
-border-radius: var(--ui-control-radius);
-background: var(--ui-control-bg);
-color: var(--text);
-line-height: 1;
-transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
-}
-.ui-inline-number:hover {
-border-color: var(--ui-control-hover-border);
-}
-.ui-inline-number:focus-within {
-border-color: var(--ui-control-focus-border);
-box-shadow: var(--ui-control-focus-ring);
-}
-.ui-inline-number.is-plain {
-grid-template-columns: minmax(0, 1fr);
-}
-.ui-inline-number-input {
-display: block;
-width: 100%;
-height: calc(var(--ui-control-height) - 2px);
-min-height: 0;
-padding: 0 !important;
-border: 0 !important;
-border-radius: 0;
-outline: 0 !important;
-background: transparent !important;
-box-shadow: none !important;
-color: inherit;
-font-family: var(--ui-number-font);
-font-size: var(--ui-number-font-size);
-font-weight: var(--ui-number-font-weight);
-line-height: 1;
-text-align: center;
-}
-.ui-inline-number-input:hover,
-.ui-inline-number-input:focus,
-.ui-inline-number-input:focus-visible,
-.ui-inline-number-input:active {
-border: 0 !important;
-outline: 0 !important;
-background: transparent !important;
-box-shadow: none !important;
-}
-.ui-inline-number-input:disabled {
-cursor: not-allowed;
-opacity: 0.65;
-}
-.ui-inline-number-unit {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-margin-left: 4px;
-color: var(--text-dim);
-font-size: var(--ui-number-unit-size);
-font-weight: 800;
-line-height: 1;
 }
 .ui-stat-button {
 display: inline-grid;
@@ -3375,175 +3183,6 @@ margin: var(--ui-divider-margin);
 padding: 0;
 border: 0;
 background: var(--ui-divider-color);
-}
-.combobox {
-position: relative;
-min-width: 0;
-}
-.combobox::after {
-content: '▾';
-position: absolute;
-top: 50%;
-right: 10px;
-transform: translateY(-50%);
-color: var(--text-faint);
-font-size: 10px;
-line-height: 1;
-pointer-events: none;
-}
-.combobox .cb-input {
-width: 100%;
-padding-right: 28px;
-}
-.combobox-options {
-position: absolute;
-top: calc(100% + 4px);
-left: 0;
-right: 0;
-width: 100%;
-min-width: 0;
-max-height: 280px;
-overflow-x: hidden;
-overflow-y: auto;
-overscroll-behavior: contain;
--webkit-overflow-scrolling: touch;
-touch-action: pan-y;
-display: none;
-z-index: 120;
-border: 1px solid var(--border-bright);
-border-radius: var(--radius-md);
-background: var(--bg-elev);
-box-shadow: var(--surface-shadow);
-}
-.combobox-options.combobox-options-portal {
-box-sizing: border-box;
-position: fixed;
-top: auto;
-right: auto;
-bottom: auto;
-left: auto;
-z-index: 10020;
-}
-.combobox-options.calc-page-options-portal {
-max-width: calc(100vw - 16px);
-}
-.combobox-options.tool-move-options-portal {
-width: min(330px, calc(100vw - 16px));
-min-width: min(300px, calc(100vw - 16px));
-}
-.combobox-options.tool-move-type-options-portal {
-min-width: min(92px, calc(100vw - 16px));
-}
-.combobox-options.combobox-options-portal .combobox-option.move-option.selected {
-border-left-color: var(--tool-combo-selected, var(--warn));
-}
-.combobox-options::after {
-content: none;
-}
-.combobox-options.open {
-display: block;
-}
-.combobox-option {
-display: flex;
-align-items: center;
-gap: 8px;
-min-width: 0;
-min-height: var(--ui-option-height);
-padding: 8px 10px;
-border-bottom: 1px solid var(--border-soft);
-color: var(--text);
-font-size: var(--ui-option-font-size);
-font-weight: var(--ui-option-font-weight);
-overflow: hidden;
-cursor: pointer;
-transition: background 0.12s, color 0.12s;
-}
-.combobox-option > b,
-.combobox-option > span {
-min-width: 0;
-font-weight: var(--ui-option-font-weight);
-overflow: hidden;
-text-overflow: ellipsis;
-white-space: nowrap;
-}
-.combobox-option:last-child {
-border-bottom: none;
-}
-.combobox-option:hover,
-.combobox-option.active {
-background: var(--ui-option-hover-bg);
-}
-.combobox-option.selected {
-background: var(--ui-option-selected-bg);
-color: var(--text);
-box-shadow: none;
-}
-.combobox-option.ui-option {
-border-left: 3px solid transparent;
-padding-left: calc(10px - 3px);
-}
-.combobox-option.ui-option.selected {
-border-left-color: var(--tool-combo-selected, var(--warn));
-}
-.ui-panel.atk .combobox-option.selected,
-.ui-panel.def .combobox-option.selected {
-box-shadow: none;
-}
-.combobox-option small {
-flex: 1 1 auto;
-min-width: 0;
-margin-left: auto;
-color: var(--text-faint);
-font-size: 10px;
-font-weight: var(--ui-option-font-weight);
-overflow: hidden;
-text-overflow: ellipsis;
-white-space: nowrap;
-}
-.combobox-option.pokemon-simple-option {
-display: grid;
-grid-template-columns: minmax(78px, 1fr) calc((var(--ui-type-chip-width) * 2) + var(--ui-type-strip-gap));
-align-items: center;
-gap: var(--ui-control-grid-gap);
-width: 100%;
-}
-.pokemon-simple-option-name {
-min-width: 0;
-overflow: hidden;
-text-overflow: ellipsis;
-white-space: nowrap;
-}
-.pokemon-simple-option-types {
-display: flex;
-align-items: center;
-justify-content: flex-start;
-gap: var(--ui-type-strip-gap);
-min-width: 0;
-margin-left: 0;
-}
-.pokemon-simple-option-types .type-pill {
-flex: 0 0 auto;
-}
-.move-simple-option {
-min-height: 36px;
-}
-.combobox-options::-webkit-scrollbar {
-width: 6px;
-}
-.combobox-options::-webkit-scrollbar-thumb {
-border-radius: 3px;
-background: var(--border-bright);
-}
-.combobox-option.empty {
-cursor: default;
-background: transparent;
-color: var(--text-faint);
-box-shadow: none;
-}
-.ui-field,
-.field {
-min-width: 0;
-margin: 0;
 }
 .types-display {
 display: flex;
@@ -11873,6 +11512,371 @@ background: #fff7e9;
 border-color: rgba(183, 121, 31, 0.36);
 color: #6f4815;
 box-shadow: inset 0 -2px 0 rgba(183, 121, 31, 0.28);
+}
+}
+@layer components {
+.combobox {
+position: relative;
+min-width: 0;
+}
+.combobox::after {
+content: '▾';
+position: absolute;
+top: 50%;
+right: 10px;
+transform: translateY(-50%);
+color: var(--text-faint);
+font-size: 10px;
+line-height: 1;
+pointer-events: none;
+}
+.combobox .cb-input {
+width: 100%;
+padding-right: 28px;
+}
+.combobox-options {
+position: absolute;
+top: calc(100% + 4px);
+left: 0;
+right: 0;
+width: 100%;
+min-width: 0;
+max-height: 280px;
+overflow-x: hidden;
+overflow-y: auto;
+overscroll-behavior: contain;
+-webkit-overflow-scrolling: touch;
+touch-action: pan-y;
+display: none;
+z-index: 120;
+border: 1px solid var(--border-bright);
+border-radius: var(--radius-md);
+background: var(--bg-elev);
+box-shadow: var(--surface-shadow);
+}
+.combobox-options.combobox-options-portal {
+box-sizing: border-box;
+position: fixed;
+top: auto;
+right: auto;
+bottom: auto;
+left: auto;
+z-index: 10020;
+}
+.combobox-options.calc-page-options-portal {
+max-width: calc(100vw - 16px);
+}
+.combobox-options.tool-move-options-portal {
+width: min(330px, calc(100vw - 16px));
+min-width: min(300px, calc(100vw - 16px));
+}
+.combobox-options.tool-move-type-options-portal {
+min-width: min(92px, calc(100vw - 16px));
+}
+.combobox-options.combobox-options-portal .combobox-option.move-option.selected {
+border-left-color: var(--tool-combo-selected, var(--warn));
+}
+.combobox-options::after {
+content: none;
+}
+.combobox-options.open {
+display: block;
+}
+.combobox-option {
+display: flex;
+align-items: center;
+gap: 8px;
+min-width: 0;
+min-height: var(--ui-option-height);
+padding: 8px 10px;
+border-bottom: 1px solid var(--border-soft);
+color: var(--text);
+font-size: var(--ui-option-font-size);
+font-weight: var(--ui-option-font-weight);
+overflow: hidden;
+cursor: pointer;
+transition: background 0.12s, color 0.12s;
+}
+.combobox-option > b,
+.combobox-option > span {
+min-width: 0;
+font-weight: var(--ui-option-font-weight);
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.combobox-option:last-child {
+border-bottom: none;
+}
+.combobox-option:hover,
+.combobox-option.active {
+background: var(--ui-option-hover-bg);
+}
+.combobox-option.selected {
+background: var(--ui-option-selected-bg);
+color: var(--text);
+box-shadow: none;
+}
+.combobox-option.ui-option {
+border-left: 3px solid transparent;
+padding-left: calc(10px - 3px);
+}
+.combobox-option.ui-option.selected {
+border-left-color: var(--tool-combo-selected, var(--warn));
+}
+.ui-panel.atk .combobox-option.selected,
+.ui-panel.def .combobox-option.selected {
+box-shadow: none;
+}
+.combobox-option small {
+flex: 1 1 auto;
+min-width: 0;
+margin-left: auto;
+color: var(--text-faint);
+font-size: 10px;
+font-weight: var(--ui-option-font-weight);
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.combobox-option.pokemon-simple-option {
+display: grid;
+grid-template-columns: minmax(78px, 1fr) calc((var(--ui-type-chip-width) * 2) + var(--ui-type-strip-gap));
+align-items: center;
+gap: var(--ui-control-grid-gap);
+width: 100%;
+}
+.pokemon-simple-option-name {
+min-width: 0;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.pokemon-simple-option-types {
+display: flex;
+align-items: center;
+justify-content: flex-start;
+gap: var(--ui-type-strip-gap);
+min-width: 0;
+margin-left: 0;
+}
+.pokemon-simple-option-types .type-pill {
+flex: 0 0 auto;
+}
+.move-simple-option {
+min-height: 36px;
+}
+.combobox-options::-webkit-scrollbar {
+width: 6px;
+}
+.combobox-options::-webkit-scrollbar-thumb {
+border-radius: 3px;
+background: var(--border-bright);
+}
+.combobox-option.empty {
+cursor: default;
+background: transparent;
+color: var(--text-faint);
+box-shadow: none;
+}
+}
+@layer components {
+.ui-field,
+.field {
+min-width: 0;
+margin: 0;
+}
+.ui-field-label,
+.field-label {
+color: var(--text-dim);
+font-size: var(--ui-label-font-size);
+font-weight: var(--ui-label-font-weight);
+line-height: var(--ui-label-line-height);
+letter-spacing: 0;
+text-transform: none;
+}
+.ui-field-head {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: var(--ui-field-label-gap);
+min-height: var(--ui-field-head-height);
+margin-bottom: var(--ui-field-stack-gap);
+}
+.ui-field-head .ui-field-label,
+.ui-field-head .field-label {
+display: flex;
+align-items: center;
+min-height: var(--ui-field-head-height);
+margin-bottom: 0;
+}
+.ui-field-actions {
+display: flex;
+flex: 0 0 auto;
+align-items: center;
+gap: var(--ui-field-stack-gap);
+}
+.ui-field-action {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+min-height: var(--ui-field-action-height);
+padding: var(--ui-field-action-padding);
+}
+.ui-label-action,
+.ui-popover-trigger {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+box-sizing: border-box;
+gap: 6px;
+min-height: var(--ui-label-action-height);
+padding: var(--ui-label-action-padding);
+border: 1px solid var(--ui-action-border);
+border-radius: var(--ui-label-action-radius);
+background: var(--ui-action-bg);
+color: var(--text-dim);
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-label-action-font-size);
+font-weight: var(--ui-label-action-font-weight);
+line-height: 1;
+letter-spacing: 0;
+text-decoration: none;
+white-space: nowrap;
+}
+button.ui-label-action,
+button.ui-popover-trigger {
+cursor: pointer;
+}
+button.ui-label-action:hover,
+button.ui-label-action:focus-visible,
+button.ui-popover-trigger:hover,
+button.ui-popover-trigger:focus-visible {
+border-color: var(--ui-action-hover-border);
+background: var(--ui-action-hover-bg);
+color: var(--ui-action-hover-text);
+outline: 0;
+}
+.ui-label-action.is-static {
+cursor: default;
+background: var(--bg-input);
+}
+.ui-field-meta-row {
+display: flex;
+align-items: center;
+justify-content: flex-start;
+flex-wrap: wrap;
+gap: var(--ui-control-grid-gap) var(--ui-field-label-gap);
+min-height: var(--ui-field-meta-min-height);
+margin-top: var(--ui-field-meta-margin-top);
+}
+select,
+input[type="number"],
+input[type="text"],
+textarea,
+.cb-input {
+width: 100%;
+box-sizing: border-box;
+min-height: var(--ui-control-height);
+padding: 6px 10px;
+border: 1px solid var(--border);
+border-radius: var(--ui-control-radius);
+background: var(--ui-control-bg);
+color: var(--text);
+font-family: inherit;
+font-size: var(--ui-control-font-size);
+font-weight: var(--ui-control-font-weight);
+outline: none;
+box-shadow: none;
+transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
+}
+select:hover,
+input[type="number"]:hover,
+input[type="text"]:hover,
+textarea:hover,
+.cb-input:hover {
+border-color: var(--border-bright);
+}
+select:focus,
+input[type="number"]:focus,
+input[type="text"]:focus,
+textarea:focus,
+.cb-input[aria-expanded="true"] {
+border-color: var(--warn);
+box-shadow: var(--focus-ring);
+}
+button:focus-visible,
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+outline: none;
+box-shadow: var(--focus-ring);
+}
+.ui-inline-number {
+display: grid;
+grid-template-columns: minmax(0, 1fr) auto;
+align-items: center;
+box-sizing: border-box;
+height: var(--ui-control-height);
+min-height: var(--ui-control-height);
+margin: 0;
+padding: 0 10px;
+border: var(--ui-control-border);
+border-radius: var(--ui-control-radius);
+background: var(--ui-control-bg);
+color: var(--text);
+line-height: 1;
+transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
+}
+.ui-inline-number:hover {
+border-color: var(--ui-control-hover-border);
+}
+.ui-inline-number:focus-within {
+border-color: var(--ui-control-focus-border);
+box-shadow: var(--ui-control-focus-ring);
+}
+.ui-inline-number.is-plain {
+grid-template-columns: minmax(0, 1fr);
+}
+.ui-inline-number-input {
+display: block;
+width: 100%;
+height: calc(var(--ui-control-height) - 2px);
+min-height: 0;
+padding: 0 !important;
+border: 0 !important;
+border-radius: 0;
+outline: 0 !important;
+background: transparent !important;
+box-shadow: none !important;
+color: inherit;
+font-family: var(--ui-number-font);
+font-size: var(--ui-number-font-size);
+font-weight: var(--ui-number-font-weight);
+line-height: 1;
+text-align: center;
+}
+.ui-inline-number-input:hover,
+.ui-inline-number-input:focus,
+.ui-inline-number-input:focus-visible,
+.ui-inline-number-input:active {
+border: 0 !important;
+outline: 0 !important;
+background: transparent !important;
+box-shadow: none !important;
+}
+.ui-inline-number-input:disabled {
+cursor: not-allowed;
+opacity: 0.65;
+}
+.ui-inline-number-unit {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+margin-left: 4px;
+color: var(--text-dim);
+font-size: var(--ui-number-unit-size);
+font-weight: 800;
+line-height: 1;
 }
 }
 @layer components {

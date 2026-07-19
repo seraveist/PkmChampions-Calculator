@@ -1,0 +1,191 @@
+.combobox {
+  position: relative;
+  min-width: 0;
+}
+
+.combobox::after {
+  content: '▾';
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+  font-size: 10px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.combobox .cb-input {
+  width: 100%;
+  padding-right: 28px;
+}
+
+.combobox-options {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  min-width: 0;
+  max-height: 280px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  display: none;
+  z-index: 120;
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-md);
+  background: var(--bg-elev);
+  box-shadow: var(--surface-shadow);
+}
+
+.combobox-options.combobox-options-portal {
+  box-sizing: border-box;
+  position: fixed;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  z-index: 10020;
+}
+
+.combobox-options.calc-page-options-portal {
+  max-width: calc(100vw - 16px);
+}
+
+.combobox-options.tool-move-options-portal {
+  width: min(330px, calc(100vw - 16px));
+  min-width: min(300px, calc(100vw - 16px));
+}
+
+.combobox-options.tool-move-type-options-portal {
+  min-width: min(92px, calc(100vw - 16px));
+}
+
+.combobox-options.combobox-options-portal .combobox-option.move-option.selected {
+  border-left-color: var(--tool-combo-selected, var(--warn));
+}
+
+.combobox-options::after {
+  content: none;
+}
+
+.combobox-options.open {
+  display: block;
+}
+
+.combobox-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: var(--ui-option-height);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text);
+  font-size: var(--ui-option-font-size);
+  font-weight: var(--ui-option-font-weight);
+  overflow: hidden;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.combobox-option > b,
+.combobox-option > span {
+  min-width: 0;
+  font-weight: var(--ui-option-font-weight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combobox-option:last-child {
+  border-bottom: none;
+}
+
+.combobox-option:hover,
+.combobox-option.active {
+  background: var(--ui-option-hover-bg);
+}
+
+.combobox-option.selected {
+  background: var(--ui-option-selected-bg);
+  color: var(--text);
+  box-shadow: none;
+}
+
+.combobox-option.ui-option {
+  border-left: 3px solid transparent;
+  padding-left: calc(10px - 3px);
+}
+
+.combobox-option.ui-option.selected {
+  border-left-color: var(--tool-combo-selected, var(--warn));
+}
+
+.ui-panel.atk .combobox-option.selected,
+.ui-panel.def .combobox-option.selected {
+  box-shadow: none;
+}
+
+.combobox-option small {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: auto;
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: var(--ui-option-font-weight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combobox-option.pokemon-simple-option {
+  display: grid;
+  grid-template-columns: minmax(78px, 1fr) calc((var(--ui-type-chip-width) * 2) + var(--ui-type-strip-gap));
+  align-items: center;
+  gap: var(--ui-control-grid-gap);
+  width: 100%;
+}
+
+.pokemon-simple-option-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pokemon-simple-option-types {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ui-type-strip-gap);
+  min-width: 0;
+  margin-left: 0;
+}
+
+.pokemon-simple-option-types .type-pill {
+  flex: 0 0 auto;
+}
+
+.move-simple-option {
+  min-height: 36px;
+}
+
+.combobox-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.combobox-options::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: var(--border-bright);
+}
+
+.combobox-option.empty {
+  cursor: default;
+  background: transparent;
+  color: var(--text-faint);
+  box-shadow: none;
+}
