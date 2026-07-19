@@ -461,8 +461,8 @@ async function build() {
   const template = fs.readFileSync(templatePath, 'utf8');
 
   // 분할된 src/styles/*.css, src/js/*.js 를 알파벳순으로 concat 한다.
-  // CSS 는 페이지 단위 이전을 지원하도록 명시적인 cascade layer 로 감싼다.
-  // legacy layer 는 현재 파일 간 우선순위를 그대로 보존하며, 이전이 끝나면 제거한다.
+  // CSS 는 소유권별 우선순위를 보장하도록 명시적인 cascade layer 로 감싼다.
+  // legacy-foundation 은 남은 공통 규칙의 컴포넌트 이전이 끝나면 제거한다.
   function concatDir(dir, ext) {
     if (!fs.existsSync(dir)) return '';
     const files = fs.readdirSync(dir).filter(f => f.endsWith(ext) && !f.startsWith('.')).sort();
@@ -472,21 +472,18 @@ async function build() {
     'reset',
     'tokens',
     'base',
-    'legacy-pages',
     'legacy-foundation',
     'components',
     'layouts',
     'pages',
     'utilities',
     'themes',
-    'legacy-polish',
+    'responsive',
   ];
-  const CSS_LEGACY_LAYERS = new Map([
+  const CSS_FILE_LAYERS = new Map([
     ['02-pages.css', 'base'],
     ['04-ui-foundation.css', 'legacy-foundation'],
-    ['07-tools-redesign.css', 'pages'],
-    ['08-theme-bridge.css', 'themes'],
-    ['09-product-polish.css', 'legacy-polish'],
+    ['responsive.css', 'responsive'],
   ]);
   function listFilesRecursive(dir, ext, relativeDir = '') {
     if (!fs.existsSync(dir)) return [];
@@ -510,7 +507,9 @@ async function build() {
     if (relativePath.startsWith('pages/')) return 'pages';
     if (relativePath === 'utilities.css') return 'utilities';
     if (relativePath === 'themes.css') return 'themes';
-    return CSS_LEGACY_LAYERS.get(relativePath) || 'legacy-polish';
+    const mappedLayer = CSS_FILE_LAYERS.get(relativePath);
+    if (mappedLayer) return mappedLayer;
+    throw new Error(`CSS layer ownership is not declared: ${relativePath}`);
   }
   function concatStyles(dir) {
     const files = listFilesRecursive(dir, '.css');

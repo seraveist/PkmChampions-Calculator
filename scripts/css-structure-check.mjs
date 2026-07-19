@@ -44,8 +44,8 @@ const allCss = [...cssByFile.values()].join('\n');
 const importantCount = (allCss.match(/!important/g) || []).length;
 const mediaQueryCount = (allCss.match(/@media/g) || []).length;
 
-check(importantCount <= 70, `CSS important budget (${importantCount}/70)`);
-check(mediaQueryCount <= 36, `CSS media-query budget (${mediaQueryCount}/36)`);
+check(importantCount <= 47, `CSS important budget (${importantCount}/47)`);
+check(mediaQueryCount <= 35, `CSS media-query budget (${mediaQueryCount}/35)`);
 check(cssByFile.has('00-tokens.css'), 'semantic token stylesheet exists');
 
 [
@@ -310,7 +310,7 @@ check(allCss.includes('#page-calc .ui-stat-readout'), 'calculator stat readouts 
 check(!allCss.includes('--calc-radius'), 'calculator panels do not define a legacy radius token');
 check(!allCss.includes('--calc-shadow'), 'calculator panels do not define a legacy shadow token');
 
-const pageCss = ['pages/calculator-base.css', 'pages/calculator.css', 'pages/dex.css', '07-tools-redesign.css']
+const pageCss = ['pages/00-tool-pages.css', 'pages/calculator-base.css', 'pages/calculator.css', 'pages/dex.css']
   .map(file => cssByFile.get(file) || '')
   .join('\n');
 check(!pageCss.includes('--panel-point-height'), 'page CSS does not override panel point height');
@@ -325,7 +325,7 @@ const structuralSpacingSelectorRe = /(battle-grid|calc-field-row|calc-results-bo
 const structuralSpacingPropRe = /(?:^|\n)\s*(margin(?:-top|-bottom|-left|-right)?|gap|row-gap|column-gap)\s*:/;
 const structuralSpacingHits = [];
 for (const [file, css] of cssByFile) {
-  if (!['pages/calculator-base.css', 'pages/calculator.css', '07-tools-redesign.css'].includes(file)) continue;
+  if (!['pages/00-tool-pages.css', 'pages/calculator-base.css', 'pages/calculator.css'].includes(file)) continue;
   const blockRe = /([^{}]+)\{([^{}]*)\}/g;
   let match;
   while ((match = blockRe.exec(css))) {
@@ -352,14 +352,18 @@ check(
   legacyStructureSelectors.length === 0,
   `page CSS uses ui-* structure selectors${legacyStructureSelectors.length ? ` (${legacyStructureSelectors.join(', ')})` : ''}`
 );
-check(cssByFile.has('08-theme-bridge.css'), 'theme bridge loads after page styles');
+check(cssByFile.has('themes.css'), 'theme stylesheet loads after page styles');
+check(cssByFile.has('responsive.css'), 'responsive interaction stylesheet exists');
+check(!cssByFile.has('07-tools-redesign.css'), 'legacy tool redesign stylesheet is removed');
+check(!cssByFile.has('08-theme-bridge.css'), 'legacy theme bridge stylesheet is removed');
+check(!cssByFile.has('09-product-polish.css'), 'legacy product polish stylesheet is removed');
 check(allCss.includes(':root[data-theme="dark"]'), 'dark theme token block exists');
 
 const calcLayoutCss = cssByFile.get('pages/calculator.css') || '';
 const calcBaseCss = cssByFile.get('pages/calculator-base.css') || '';
 const dexPageCss = cssByFile.get('pages/dex.css') || '';
-const toolPageCss = cssByFile.get('07-tools-redesign.css') || '';
-const legacyPolishCss = cssByFile.get('09-product-polish.css') || '';
+const toolPageCss = cssByFile.get('pages/00-tool-pages.css') || '';
+const responsiveCss = cssByFile.get('responsive.css') || '';
 check(Boolean(calcLayoutCss), 'calculator page stylesheet exists');
 check(Boolean(calcBaseCss), 'calculator page visual base stylesheet exists');
 check(!cssByFile.has('05-calc-sample-layout.css'), 'legacy calculator layout stylesheet is removed');
@@ -376,12 +380,12 @@ check(
   'tool page styles own staged empty and result states'
 );
 check(
-  !legacyPolishCss.includes('.ft-hp-panel:has(#ft-hp-body:empty)'),
-  'legacy polish releases fine-tune empty panel ownership'
+  !responsiveCss.includes('.ft-hp-panel:has(#ft-hp-body:empty)'),
+  'responsive layer does not infer fine-tune state from empty markup'
 );
 check(
   toolPageCss.includes('.matchup-scroll-hint[hidden]')
-    && legacyPolishCss.includes('grid-template-areas: "number input types clear"'),
+    && responsiveCss.includes('grid-template-areas: "number input types clear"'),
   'matchup page provides a scroll hint and compact single-row mobile slots'
 );
 check(
@@ -396,10 +400,10 @@ check(
 if (existsSync(GENERATED)) {
   const generated = read(GENERATED);
   check(
-    generated.includes('@layer reset, tokens, base, legacy-pages, legacy-foundation, components, layouts, pages, utilities, themes, legacy-polish;'),
+    generated.includes('@layer reset, tokens, base, legacy-foundation, components, layouts, pages, utilities, themes, responsive;'),
     'generated CSS declares deterministic cascade layer order'
   );
-  ['tokens', 'legacy-foundation', 'pages', 'themes', 'legacy-polish'].forEach(layer => {
+  ['tokens', 'legacy-foundation', 'pages', 'themes', 'responsive'].forEach(layer => {
     check(generated.includes(`@layer ${layer} {`), `generated CSS contains ${layer} layer`);
   });
   ['ui-frame', 'ui-frame-head', 'ui-frame-body', 'ui-control-frame', 'ui-action-row'].forEach(className => {

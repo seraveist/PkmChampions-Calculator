@@ -1,4 +1,4 @@
-/* Tool pages redesign: matchup, fine-tune, and reverse calculator. */
+/* Tool-page styles shared by matchup, fine-tune, and reverse calculator. */
 
 .tool-page {
   --tool-line: #d9e1ea;
@@ -2235,15 +2235,15 @@
   width: 100%;
   justify-content: center;
   align-self: center;
-  min-width: 0 !important;
+  min-width: 0;
   white-space: nowrap;
 }
 
 #page-revcalc .rc-action-block .rc-toggle-grid > label.ui-check.rc-compact-toggle {
-  display: inline-flex !important;
-  align-items: center !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -2671,7 +2671,7 @@
   }
 
   #page-matchup .matchup-meta {
-    max-height: none !important;
+    max-height: none;
     overflow-y: visible;
   }
 
@@ -3126,7 +3126,7 @@
   }
 
   #page-revcalc .rc-action-block .rc-toggle-grid > label.ui-check.rc-compact-toggle {
-    width: 100% !important;
+    width: 100%;
     overflow: visible;
   }
 

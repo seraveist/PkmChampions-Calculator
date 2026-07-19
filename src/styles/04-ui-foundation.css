@@ -1374,8 +1374,8 @@ header {
 
 .tool-move-combobox .tool-move-input,
 .tool-move-type-control .tool-move-type-input {
-  height: var(--tool-move-control-height) !important;
-  min-height: var(--tool-move-control-height) !important;
+  height: var(--tool-move-control-height);
+  min-height: var(--tool-move-control-height);
   overflow: hidden;
   font-size: var(--tool-move-name-font-size);
   font-weight: 700;
@@ -1388,15 +1388,15 @@ header {
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: var(--tool-move-type-input-padding) !important;
-  border: 0 !important;
-  border-radius: var(--tool-move-control-radius) !important;
-  background: transparent !important;
-  color: inherit !important;
-  box-shadow: none !important;
+  padding: var(--tool-move-type-input-padding);
+  border: 0;
+  border-radius: var(--tool-move-control-radius);
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
   font-size: var(--tool-move-type-font-size);
   font-weight: var(--tool-move-type-font-weight);
-  line-height: 1 !important;
+  line-height: 1;
   text-align: center;
 }
 
@@ -1421,18 +1421,18 @@ header {
 
 .tool-move-power-control .tool-move-power-input {
   display: block;
-  width: 100% !important;
-  height: calc(var(--tool-move-control-height) - 2px) !important;
-  min-height: 0 !important;
-  padding: var(--tool-move-power-input-padding) !important;
+  width: 100%;
+  height: calc(var(--tool-move-control-height) - 2px);
+  min-height: 0;
+  padding: var(--tool-move-power-input-padding);
   border: 0;
   background: transparent;
   box-shadow: none;
   color: var(--tool-move-text);
   font-family: var(--ui-number-font);
-  font-size: var(--tool-move-power-font-size) !important;
+  font-size: var(--tool-move-power-font-size);
   font-weight: 700;
-  line-height: calc(var(--tool-move-control-height) - 2px) !important;
+  line-height: calc(var(--tool-move-control-height) - 2px);
   text-align: center;
 }
 

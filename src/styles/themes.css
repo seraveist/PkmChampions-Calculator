@@ -1,8 +1,4 @@
-/* Theme bridge.
- * This file loads after page-specific styles and maps legacy page scopes back
- * to the shared ui token system. It keeps the current light UI intact while
- * making future dark-mode work a token change instead of a per-menu rewrite.
- */
+/* Application themes and page-level semantic token mappings. */
 
 #page-calc {
   --calc-bg: var(--bg);

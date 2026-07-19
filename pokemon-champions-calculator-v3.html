@@ -28,7 +28,7 @@
 })();
 </script>
 <style>
-@layer reset, tokens, base, legacy-pages, legacy-foundation, components, layouts, pages, utilities, themes, legacy-polish;
+@layer reset, tokens, base, legacy-foundation, components, layouts, pages, utilities, themes, responsive;
 @layer tokens {
 :root {
 color-scheme: light;
@@ -1379,8 +1379,8 @@ white-space: nowrap;
 }
 .tool-move-combobox .tool-move-input,
 .tool-move-type-control .tool-move-type-input {
-height: var(--tool-move-control-height) !important;
-min-height: var(--tool-move-control-height) !important;
+height: var(--tool-move-control-height);
+min-height: var(--tool-move-control-height);
 overflow: hidden;
 font-size: var(--tool-move-name-font-size);
 font-weight: 700;
@@ -1392,15 +1392,15 @@ display: flex;
 align-items: center;
 justify-content: center;
 width: 100%;
-padding: var(--tool-move-type-input-padding) !important;
-border: 0 !important;
-border-radius: var(--tool-move-control-radius) !important;
-background: transparent !important;
-color: inherit !important;
-box-shadow: none !important;
+padding: var(--tool-move-type-input-padding);
+border: 0;
+border-radius: var(--tool-move-control-radius);
+background: transparent;
+color: inherit;
+box-shadow: none;
 font-size: var(--tool-move-type-font-size);
 font-weight: var(--tool-move-type-font-weight);
-line-height: 1 !important;
+line-height: 1;
 text-align: center;
 }
 .tool-move-type-control.type-none {
@@ -1421,18 +1421,18 @@ min-width: 92px;
 }
 .tool-move-power-control .tool-move-power-input {
 display: block;
-width: 100% !important;
-height: calc(var(--tool-move-control-height) - 2px) !important;
-min-height: 0 !important;
-padding: var(--tool-move-power-input-padding) !important;
+width: 100%;
+height: calc(var(--tool-move-control-height) - 2px);
+min-height: 0;
+padding: var(--tool-move-power-input-padding);
 border: 0;
 background: transparent;
 box-shadow: none;
 color: var(--tool-move-text);
 font-family: var(--ui-number-font);
-font-size: var(--tool-move-power-font-size) !important;
+font-size: var(--tool-move-power-font-size);
 font-weight: 700;
-line-height: calc(var(--tool-move-control-height) - 2px) !important;
+line-height: calc(var(--tool-move-control-height) - 2px);
 text-align: center;
 }
 .tool-move-power-control .tool-move-power-input:focus {
@@ -3475,6 +3475,740 @@ padding: 0;
 }
 }
 }
+@layer components {
+.ui-btn,
+.btn-calculate,
+.btn-secondary,
+.rc-analyze-btn,
+.dex-tab,
+.matchup-mode-btn,
+.type-filter-btn,
+.dex-modal-close {
+border-radius: var(--radius-md);
+cursor: pointer;
+font-family: "Noto Sans KR", sans-serif;
+font-weight: 900;
+letter-spacing: 0;
+line-height: 1;
+transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s, transform 0.15s;
+}
+.dex-modal-btn,
+.rc-analyze-btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+min-height: var(--ui-action-height-sm);
+padding: var(--ui-action-padding-sm);
+border: 1px solid var(--ui-action-border);
+border-radius: var(--radius-md);
+background: var(--ui-action-bg);
+color: var(--text-dim);
+font-family: "Noto Sans KR", sans-serif;
+font-size: 12px;
+font-weight: 900;
+letter-spacing: 0;
+line-height: 1;
+cursor: pointer;
+transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s, transform 0.15s;
+}
+.dex-modal-btn:hover,
+.rc-analyze-btn:hover {
+border-color: var(--ui-action-hover-border);
+background: var(--ui-action-hover-bg);
+color: var(--ui-action-hover-text);
+}
+.dex-modal-btn.atk {
+border-color: var(--atk);
+background: var(--atk);
+color: #ffffff;
+}
+.dex-modal-btn.atk:hover {
+border-color: #bd3541;
+background: #bd3541;
+color: #ffffff;
+}
+.dex-modal-btn.def {
+border-color: var(--def);
+background: var(--def);
+color: #ffffff;
+}
+.dex-modal-btn.def:hover {
+border-color: #0f6f94;
+background: #0f6f94;
+color: #ffffff;
+}
+.ft-rank-btn {
+display: inline-grid;
+place-items: center;
+width: var(--ui-stat-control-size);
+height: var(--ui-stat-control-size);
+border: var(--ui-control-border);
+border-radius: var(--ui-stat-control-radius);
+background: var(--ui-control-bg);
+color: var(--text-dim);
+font-family: "Fira Code", "JetBrains Mono", monospace;
+font-size: 12px;
+font-weight: 900;
+cursor: pointer;
+transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.ft-rank-btn:hover {
+border-color: var(--ui-control-hover-border);
+background: var(--bg-elev);
+color: var(--text);
+}
+.matchup-slot-clear,
+.matchup-move-clear,
+.dex-modal-close {
+display: inline-grid;
+place-items: center;
+padding: 0;
+line-height: 1;
+}
+.matchup-slot-clear,
+.matchup-move-clear {
+appearance: none;
+}
+.ui-btn-primary,
+.ui-btn-secondary,
+.btn-calculate,
+.btn-secondary {
+min-height: 46px;
+padding: 12px 18px;
+font-family: inherit;
+font-size: 13px;
+}
+.ui-btn-primary,
+.btn-calculate,
+.rc-analyze-btn {
+background: linear-gradient(180deg, #d95761, var(--atk));
+border: 1px solid rgba(159, 40, 52, 0.28);
+color: #ffffff;
+box-shadow: 0 10px 22px rgba(214, 76, 86, 0.18);
+}
+.ui-btn-primary:hover,
+.btn-calculate:hover,
+.rc-analyze-btn:hover {
+transform: translateY(-1px);
+box-shadow: 0 14px 28px rgba(214, 76, 86, 0.23);
+}
+.ui-btn-secondary,
+.btn-secondary,
+.type-filter-btn,
+.dex-tab,
+.matchup-mode-btn {
+background: var(--ui-action-bg);
+border: 1px solid var(--border);
+color: var(--text-dim);
+}
+.ui-btn-secondary:hover,
+.btn-secondary:hover,
+.type-filter-btn:hover,
+.dex-tab:hover,
+.matchup-mode-btn:hover {
+border-color: var(--border-bright);
+background: var(--ui-action-hover-bg);
+color: var(--text);
+}
+.ui-btn-secondary.active,
+.btn-secondary.active,
+.dex-tab.active,
+.matchup-mode-btn.active,
+.type-filter-btn.active {
+background: #fff7e9;
+border-color: rgba(183, 121, 31, 0.36);
+color: #6f4815;
+box-shadow: inset 0 -2px 0 rgba(183, 121, 31, 0.28);
+}
+}
+@layer components {
+.combobox {
+position: relative;
+min-width: 0;
+}
+.combobox::after {
+content: '▾';
+position: absolute;
+top: 50%;
+right: 10px;
+transform: translateY(-50%);
+color: var(--text-faint);
+font-size: 10px;
+line-height: 1;
+pointer-events: none;
+}
+.combobox .cb-input {
+width: 100%;
+padding-right: 28px;
+}
+.combobox-options {
+position: absolute;
+top: calc(100% + 4px);
+left: 0;
+right: 0;
+width: 100%;
+min-width: 0;
+max-height: 280px;
+overflow-x: hidden;
+overflow-y: auto;
+overscroll-behavior: contain;
+-webkit-overflow-scrolling: touch;
+touch-action: pan-y;
+display: none;
+z-index: 120;
+border: 1px solid var(--border-bright);
+border-radius: var(--radius-md);
+background: var(--bg-elev);
+box-shadow: var(--surface-shadow);
+}
+.combobox-options.combobox-options-portal {
+box-sizing: border-box;
+position: fixed;
+top: auto;
+right: auto;
+bottom: auto;
+left: auto;
+z-index: 10020;
+}
+.combobox-options.calc-page-options-portal {
+max-width: calc(100vw - 16px);
+}
+.combobox-options.tool-move-options-portal {
+width: min(330px, calc(100vw - 16px));
+min-width: min(300px, calc(100vw - 16px));
+}
+.combobox-options.tool-move-type-options-portal {
+min-width: min(92px, calc(100vw - 16px));
+}
+.combobox-options.combobox-options-portal .combobox-option.move-option.selected {
+border-left-color: var(--tool-combo-selected, var(--warn));
+}
+.combobox-options::after {
+content: none;
+}
+.combobox-options.open {
+display: block;
+}
+.combobox-option {
+display: flex;
+align-items: center;
+gap: 8px;
+min-width: 0;
+min-height: var(--ui-option-height);
+padding: 8px 10px;
+border-bottom: 1px solid var(--border-soft);
+color: var(--text);
+font-size: var(--ui-option-font-size);
+font-weight: var(--ui-option-font-weight);
+overflow: hidden;
+cursor: pointer;
+transition: background 0.12s, color 0.12s;
+}
+.combobox-option > b,
+.combobox-option > span {
+min-width: 0;
+font-weight: var(--ui-option-font-weight);
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.combobox-option:last-child {
+border-bottom: none;
+}
+.combobox-option:hover,
+.combobox-option.active {
+background: var(--ui-option-hover-bg);
+}
+.combobox-option.selected {
+background: var(--ui-option-selected-bg);
+color: var(--text);
+box-shadow: none;
+}
+.combobox-option.ui-option {
+border-left: 3px solid transparent;
+padding-left: calc(10px - 3px);
+}
+.combobox-option.ui-option.selected {
+border-left-color: var(--tool-combo-selected, var(--warn));
+}
+.ui-panel.atk .combobox-option.selected,
+.ui-panel.def .combobox-option.selected {
+box-shadow: none;
+}
+.combobox-option small {
+flex: 1 1 auto;
+min-width: 0;
+margin-left: auto;
+color: var(--text-faint);
+font-size: 10px;
+font-weight: var(--ui-option-font-weight);
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.combobox-option.pokemon-simple-option {
+display: grid;
+grid-template-columns: minmax(78px, 1fr) calc((var(--ui-type-chip-width) * 2) + var(--ui-type-strip-gap));
+align-items: center;
+gap: var(--ui-control-grid-gap);
+width: 100%;
+}
+.pokemon-simple-option-name {
+min-width: 0;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.pokemon-simple-option-types {
+display: flex;
+align-items: center;
+justify-content: flex-start;
+gap: var(--ui-type-strip-gap);
+min-width: 0;
+margin-left: 0;
+}
+.pokemon-simple-option-types .type-pill {
+flex: 0 0 auto;
+}
+.move-simple-option {
+min-height: 36px;
+}
+.combobox-options::-webkit-scrollbar {
+width: 6px;
+}
+.combobox-options::-webkit-scrollbar-thumb {
+border-radius: 3px;
+background: var(--border-bright);
+}
+.combobox-option.empty {
+cursor: default;
+background: transparent;
+color: var(--text-faint);
+box-shadow: none;
+}
+}
+@layer components {
+.ui-field,
+.field {
+min-width: 0;
+margin: 0;
+}
+.ui-field-label,
+.field-label {
+color: var(--text-dim);
+font-size: var(--ui-label-font-size);
+font-weight: var(--ui-label-font-weight);
+line-height: var(--ui-label-line-height);
+letter-spacing: 0;
+text-transform: none;
+}
+.ui-field-head {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: var(--ui-field-label-gap);
+min-height: var(--ui-field-head-height);
+margin-bottom: var(--ui-field-stack-gap);
+}
+.ui-field-head .ui-field-label,
+.ui-field-head .field-label {
+display: flex;
+align-items: center;
+min-height: var(--ui-field-head-height);
+margin-bottom: 0;
+}
+.ui-field-actions {
+display: flex;
+flex: 0 0 auto;
+align-items: center;
+gap: var(--ui-field-stack-gap);
+}
+.ui-field-action {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+min-height: var(--ui-field-action-height);
+padding: var(--ui-field-action-padding);
+}
+.ui-label-action,
+.ui-popover-trigger {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+box-sizing: border-box;
+gap: 6px;
+min-height: var(--ui-label-action-height);
+padding: var(--ui-label-action-padding);
+border: 1px solid var(--ui-action-border);
+border-radius: var(--ui-label-action-radius);
+background: var(--ui-action-bg);
+color: var(--text-dim);
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-label-action-font-size);
+font-weight: var(--ui-label-action-font-weight);
+line-height: 1;
+letter-spacing: 0;
+text-decoration: none;
+white-space: nowrap;
+}
+button.ui-label-action,
+button.ui-popover-trigger {
+cursor: pointer;
+}
+button.ui-label-action:hover,
+button.ui-label-action:focus-visible,
+button.ui-popover-trigger:hover,
+button.ui-popover-trigger:focus-visible {
+border-color: var(--ui-action-hover-border);
+background: var(--ui-action-hover-bg);
+color: var(--ui-action-hover-text);
+outline: 0;
+}
+.ui-label-action.is-static {
+cursor: default;
+background: var(--bg-input);
+}
+.ui-field-meta-row {
+display: flex;
+align-items: center;
+justify-content: flex-start;
+flex-wrap: wrap;
+gap: var(--ui-control-grid-gap) var(--ui-field-label-gap);
+min-height: var(--ui-field-meta-min-height);
+margin-top: var(--ui-field-meta-margin-top);
+}
+select,
+input[type="number"],
+input[type="text"],
+textarea,
+.cb-input {
+width: 100%;
+box-sizing: border-box;
+min-height: var(--ui-control-height);
+padding: 6px 10px;
+border: 1px solid var(--border);
+border-radius: var(--ui-control-radius);
+background: var(--ui-control-bg);
+color: var(--text);
+font-family: inherit;
+font-size: var(--ui-control-font-size);
+font-weight: var(--ui-control-font-weight);
+outline: none;
+box-shadow: none;
+transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
+}
+select:hover,
+input[type="number"]:hover,
+input[type="text"]:hover,
+textarea:hover,
+.cb-input:hover {
+border-color: var(--border-bright);
+}
+select:focus,
+input[type="number"]:focus,
+input[type="text"]:focus,
+textarea:focus,
+.cb-input[aria-expanded="true"] {
+border-color: var(--warn);
+box-shadow: var(--focus-ring);
+}
+button:focus-visible,
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+outline: none;
+box-shadow: var(--focus-ring);
+}
+.ui-inline-number {
+display: grid;
+grid-template-columns: minmax(0, 1fr) auto;
+align-items: center;
+box-sizing: border-box;
+height: var(--ui-control-height);
+min-height: var(--ui-control-height);
+margin: 0;
+padding: 0 10px;
+border: var(--ui-control-border);
+border-radius: var(--ui-control-radius);
+background: var(--ui-control-bg);
+color: var(--text);
+line-height: 1;
+transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
+}
+.ui-inline-number:hover {
+border-color: var(--ui-control-hover-border);
+}
+.ui-inline-number:focus-within {
+border-color: var(--ui-control-focus-border);
+box-shadow: var(--ui-control-focus-ring);
+}
+.ui-inline-number.is-plain {
+grid-template-columns: minmax(0, 1fr);
+}
+.ui-inline-number-input {
+display: block;
+width: 100%;
+height: calc(var(--ui-control-height) - 2px);
+min-height: 0;
+padding: 0 !important;
+border: 0 !important;
+border-radius: 0;
+outline: 0 !important;
+background: transparent !important;
+box-shadow: none !important;
+color: inherit;
+font-family: var(--ui-number-font);
+font-size: var(--ui-number-font-size);
+font-weight: var(--ui-number-font-weight);
+line-height: 1;
+text-align: center;
+}
+.ui-inline-number-input:hover,
+.ui-inline-number-input:focus,
+.ui-inline-number-input:focus-visible,
+.ui-inline-number-input:active {
+border: 0 !important;
+outline: 0 !important;
+background: transparent !important;
+box-shadow: none !important;
+}
+.ui-inline-number-input:disabled {
+cursor: not-allowed;
+opacity: 0.65;
+}
+.ui-inline-number-unit {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+margin-left: 4px;
+color: var(--text-dim);
+font-size: var(--ui-number-unit-size);
+font-weight: 800;
+line-height: 1;
+}
+}
+@layer components {
+.ui-frame {
+overflow: visible;
+}
+.ui-frame-head {
+flex-wrap: nowrap;
+}
+.ui-frame.ui-panel {
+--panel-point-height: var(--ui-panel-point-height);
+}
+.ui-panel,
+.dex-modal,
+.ui-frame {
+background: var(--ui-frame-bg);
+border: var(--ui-frame-border);
+border-color: var(--panel-border-color, var(--border));
+border-top-color: var(--panel-point-color, var(--panel-border-color, var(--border)));
+border-top-width: var(--panel-point-height, 1px);
+border-radius: var(--ui-frame-radius);
+box-shadow: var(--ui-frame-shadow);
+}
+.ui-panel.atk {
+--panel-border-color: var(--ui-atk-border);
+}
+.ui-panel.def {
+--panel-border-color: var(--ui-def-border);
+}
+.ui-panel-head,
+.dex-modal-head,
+.ui-frame-head {
+position: relative;
+display: flex;
+align-items: center;
+align-content: center;
+justify-content: space-between;
+gap: var(--ui-panel-head-gap);
+height: var(--ui-panel-head-min-height);
+min-height: var(--ui-panel-head-min-height);
+padding: var(--ui-panel-head-padding);
+background: var(--ui-panel-head-bg);
+border-bottom: 1px solid var(--border);
+border-radius: var(--ui-frame-radius) var(--ui-frame-radius) 0 0;
+}
+.ui-panel-actions {
+display: inline-flex;
+flex: 0 0 auto;
+align-items: center;
+align-content: center;
+align-self: stretch;
+justify-content: flex-end;
+flex-wrap: nowrap;
+gap: var(--ui-panel-actions-gap);
+min-height: 0;
+margin-left: auto;
+}
+.ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .rc-analyze-btn, .dex-modal-btn, .calc-field-auto-toggle) {
+box-sizing: border-box;
+display: inline-flex;
+flex: 0 0 auto;
+align-items: center;
+justify-content: center;
+height: var(--ui-panel-action-height);
+min-height: var(--ui-panel-action-height);
+max-height: var(--ui-panel-action-height);
+padding: var(--ui-panel-action-padding);
+font-size: var(--ui-panel-action-font-size);
+line-height: 1;
+white-space: nowrap;
+}
+.ui-panel-head > :not(.ui-panel-actions) {
+min-width: 0;
+}
+.ui-panel.atk .ui-panel-head {
+background:
+linear-gradient(90deg, rgba(214, 76, 86, 0.13), transparent 56%),
+#f8fafc;
+}
+.ui-panel.def .ui-panel-head {
+background:
+linear-gradient(90deg, rgba(22, 127, 165, 0.13), transparent 56%),
+#f8fafc;
+}
+.ui-panel-title,
+.ui-panel-tag,
+.dex-modal-title {
+display: flex;
+align-items: center;
+}
+.ui-panel-title,
+.dex-modal-title {
+font-family: 'Noto Sans KR', sans-serif;
+font-size: var(--ui-panel-title-size);
+font-weight: var(--ui-panel-title-weight);
+line-height: var(--ui-panel-title-line-height);
+letter-spacing: 0;
+color: var(--text);
+}
+.ui-panel-tag {
+box-sizing: border-box;
+flex: 0 0 auto;
+justify-content: center;
+height: var(--ui-panel-action-height);
+min-height: var(--ui-panel-action-height);
+max-height: var(--ui-panel-action-height);
+border-radius: var(--radius-sm);
+padding: var(--ui-panel-action-padding);
+font-size: var(--ui-panel-action-font-size);
+font-weight: var(--ui-panel-action-font-weight);
+line-height: 1;
+letter-spacing: 0.08em;
+white-space: nowrap;
+}
+.ui-panel-body,
+.dex-modal-body,
+.ui-frame-body {
+padding: var(--ui-frame-body-padding);
+}
+.ui-panel-body.ui-subframe-stack,
+.ui-frame-body.ui-subframe-stack {
+gap: var(--ui-panel-body-stack-gap);
+}
+@media (max-width: 560px) {
+.ui-panel-head,
+.dex-modal-head,
+.ui-frame-head {
+--ui-panel-action-height: 30px;
+--ui-panel-action-padding: 0 10px;
+--ui-panel-action-font-size: 11px;
+gap: 8px;
+padding: var(--ui-panel-head-padding-compact);
+}
+.ui-panel-actions {
+gap: 5px;
+}
+}
+}
+@layer layouts {
+header > .header-top,
+header > .main-nav {
+width: 100%;
+max-width: var(--app-shell-max);
+margin-right: auto;
+margin-left: auto;
+}
+.header-top {
+display: flex;
+flex-wrap: wrap;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+}
+.header-brand h1 {
+margin: 0;
+line-height: 1.2;
+}
+.brand-sub {
+margin-top: 2px;
+font-family: 'JetBrains Mono', monospace;
+}
+.main-nav {
+display: flex;
+}
+.nav-tab {
+font-family: 'Noto Sans KR', sans-serif;
+cursor: pointer;
+}
+.page {
+display: none;
+}
+.page.active {
+display: block;
+}
+.site-shell {
+width: 100%;
+margin: 0 auto;
+display: grid;
+grid-template-columns: var(--ad-rail-width) minmax(0, var(--app-content-max)) var(--ad-rail-width);
+align-items: start;
+}
+.app-content,
+.ad-rail {
+min-width: 0;
+}
+.ad-rail {
+display: flex;
+justify-content: center;
+}
+.ad-slot {
+width: var(--ad-rail-width);
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+}
+.ad-slot-rail {
+min-height: 600px;
+position: sticky;
+top: 18px;
+}
+.ad-slot span {
+writing-mode: vertical-rl;
+transform: rotate(180deg);
+}
+main {
+width: 100%;
+max-width: none;
+margin: 0;
+padding: 0;
+}
+@media (max-width: 1759px) {
+.site-shell {
+max-width: calc(var(--app-content-max) + (var(--app-shell-gutter) * 2));
+grid-template-columns: minmax(0, var(--app-content-max));
+}
+.ad-rail {
+display: none;
+}
+header > .header-top,
+header > .main-nav {
+max-width: var(--app-content-max);
+}
+}
+}
 @layer pages {
 .tool-page {
 --tool-line: #d9e1ea;
@@ -5403,14 +6137,14 @@ box-sizing: border-box;
 width: 100%;
 justify-content: center;
 align-self: center;
-min-width: 0 !important;
+min-width: 0;
 white-space: nowrap;
 }
 #page-revcalc .rc-action-block .rc-toggle-grid > label.ui-check.rc-compact-toggle {
-display: inline-flex !important;
-align-items: center !important;
-box-sizing: border-box !important;
-width: 100% !important;
+display: inline-flex;
+align-items: center;
+box-sizing: border-box;
+width: 100%;
 overflow: hidden;
 }
 #page-revcalc .rc-opp-item-combobox .combobox-options {
@@ -5780,7 +6514,7 @@ grid-template-columns: repeat(2, minmax(0, 1fr));
 grid-template-columns: 1fr;
 }
 #page-matchup .matchup-meta {
-max-height: none !important;
+max-height: none;
 overflow-y: visible;
 }
 #page-revcalc .rc-my-build-row {
@@ -6160,7 +6894,7 @@ padding-left: 10px;
 white-space: normal;
 }
 #page-revcalc .rc-action-block .rc-toggle-grid > label.ui-check.rc-compact-toggle {
-width: 100% !important;
+width: 100%;
 overflow: visible;
 }
 #page-finetune .ft-stats-column {
@@ -6206,1903 +6940,6 @@ font-size: 9px;
 #page-finetune .ft-magic-current-slot {
 width: var(--ft-magic-current);
 min-height: 18px;
-}
-}
-}
-@layer themes {
-#page-calc {
---calc-bg: var(--bg);
---calc-line: var(--border);
---calc-line-soft: var(--border-soft);
---calc-text: var(--text);
---calc-muted: var(--text-dim);
---calc-attacker: var(--atk);
---calc-attacker-soft: color-mix(in srgb, var(--atk) 9%, var(--bg-panel));
---calc-defender: var(--def);
---calc-defender-soft: color-mix(in srgb, var(--def) 9%, var(--bg-panel));
---calc-field-soft: color-mix(in srgb, var(--ok) 6%, var(--bg-panel));
---calc-result-soft: var(--ui-action-active-bg);
---calc-accent: var(--text);
---calc-control-bg: var(--ui-control-bg);
---calc-control-hover: var(--bg-muted);
---calc-surface: var(--bg-panel);
---calc-surface-2: var(--bg-input);
---calc-surface-3: var(--bg-muted);
-}
-:root[data-theme="dark"] #page-finetune {
---ft-speed-chip-bg: var(--bg-input);
---ft-speed-neutral-fast: var(--def);
---ft-speed-need-bg: color-mix(in srgb, var(--ok) 13%, var(--bg-input));
---ft-speed-impossible-bg: color-mix(in srgb, var(--atk) 13%, var(--bg-input));
---ft-tag-bg: var(--bg-input);
---ft-breakpoint-bg: var(--bg-input);
---ft-breakpoint-active-bg: color-mix(in srgb, var(--ok) 12%, var(--bg-input));
---ft-breakpoint-delta-bg: color-mix(in srgb, var(--bg-input) 86%, var(--text) 14%);
-}
-:root[data-theme="dark"] #page-matchup {
---matchup-accent: var(--ok);
---matchup-accent-text: var(--ok);
---matchup-accent-contrast: var(--bg);
---matchup-accent-soft: color-mix(in srgb, var(--ok) 9%, var(--bg-panel));
---matchup-active-bg: var(--bg-input);
---matchup-active-border: color-mix(in srgb, var(--ok) 34%, var(--border));
---matchup-active-shadow: none;
---matchup-soft-bg: var(--bg-input);
---matchup-card-bg: var(--bg-input);
---matchup-table-head-bg: var(--bg-muted);
---matchup-table-summary-bg: var(--bg-input);
---matchup-cell-neutral-bg: var(--bg-input);
---matchup-delete-hover-border: color-mix(in srgb, var(--atk) 34%, transparent);
---matchup-delete-hover-bg: color-mix(in srgb, var(--atk) 12%, var(--bg-input));
---matchup-eff-4-bg: color-mix(in srgb, var(--atk) 24%, var(--bg-input));
---matchup-eff-4-text: color-mix(in srgb, var(--atk) 86%, var(--text));
---matchup-eff-2-bg: color-mix(in srgb, var(--atk) 15%, var(--bg-input));
---matchup-eff-2-text: color-mix(in srgb, var(--atk) 78%, var(--text));
---matchup-eff-resist-bg: color-mix(in srgb, var(--ok) 12%, var(--bg-input));
---matchup-eff-quarter-bg: color-mix(in srgb, var(--ok) 18%, var(--bg-input));
---matchup-eff-zero-bg: var(--bg-muted);
---matchup-coverage-hit-bg: color-mix(in srgb, var(--ok) 13%, var(--bg-input));
---matchup-coverage-miss-bg: color-mix(in srgb, var(--atk) 12%, var(--bg-input));
-}
-.tool-page {
---tool-line: var(--border);
---tool-line-soft: var(--border-soft);
---tool-surface: var(--bg-panel);
---tool-surface-soft: var(--bg-input);
---tool-muted: var(--text-dim);
---tool-faint: var(--text-faint);
---tool-text: var(--text);
---tool-accent: var(--warn);
---tool-good: var(--ok);
---tool-warn: var(--warn);
---tool-danger: var(--atk);
---tool-info: var(--def);
---tool-shadow: var(--surface-shadow-soft);
-}
-#page-dex {
---dex-surface: var(--bg-panel);
---dex-surface-soft: var(--bg-input);
---dex-muted: var(--text-dim);
---dex-faint: var(--text-faint);
---dex-text: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex) {
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-card, .ui-summary-card, .ui-meter-card) {
-background: var(--ui-frame-bg);
-border-color: var(--border);
-box-shadow: var(--ui-frame-shadow);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-subframe) {
-background: var(--ui-subframe-bg);
-border-color: var(--border);
-box-shadow: var(--ui-frame-shadow);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-frame-head, .ui-panel-head, .dex-modal-head) {
-align-items: center;
-align-content: center;
-flex-wrap: nowrap;
-height: var(--ui-panel-head-min-height);
-min-height: var(--ui-panel-head-min-height);
-background: var(--ui-panel-head-bg);
-border-bottom-color: var(--border);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-frame-body, .ui-panel-body, .ui-card-body, .dex-modal-body) {
-color: var(--text);
-}
-#page-calc .ui-section-title,
-#page-calc .ui-control-label,
-#page-calc .ui-stat-head,
-#page-calc .ui-chip-label {
-color: var(--text-dim);
-}
-#page-calc .ui-stat-readout,
-#page-calc .ui-chip-value,
-#page-calc .ui-index {
-color: var(--text);
-}
-#page-calc .ui-metric-chip,
-#page-calc .ui-status-badge {
-border-color: var(--border);
-background: var(--bg-input);
-color: var(--text);
-}
-#page-calc .ui-table-head-row,
-#page-calc .ui-meta-row {
-color: var(--text-dim);
-}
-#page-calc .ui-meter {
-background: var(--bg-muted);
-}
-:root[data-theme="dark"] #page-calc :is(select, input[type="number"]:not(.tool-stat-point-input), input[type="text"], textarea, .cb-input, .form-switch-btn) {
-border-color: var(--border);
-background: var(--ui-control-bg);
-color: var(--text);
-}
-:root[data-theme="dark"] #page-calc .calc-result-card.ui-card {
-border-color: var(--border);
-background: var(--bg-panel);
-color: var(--text);
-box-shadow: var(--surface-shadow-soft);
-}
-:root[data-theme="dark"] #page-calc #calc-field-panel > .ui-panel-head {
-background: linear-gradient(
-135deg,
-color-mix(in srgb, var(--ok) 16%, var(--bg-elev)) 0%,
-var(--bg-input) 100%
-);
-}
-:root[data-theme="dark"] #page-calc .calc-results-panel > .ui-panel-head {
-background: linear-gradient(
-135deg,
-color-mix(in srgb, var(--calc-result) 18%, var(--bg-elev)) 0%,
-var(--bg-input) 100%
-);
-}
-:root[data-theme="dark"] #page-calc .calc-stat-preset-toggle.ui-popover-trigger,
-:root[data-theme="dark"] #page-calc .calc-stat-total.ui-metric-chip {
-border-color: var(--border);
-background: var(--bg-input);
-color: var(--text-dim);
-}
-:root[data-theme="dark"] #page-calc .calc-stat-total.ui-metric-chip b {
-color: var(--text);
-}
-:root[data-theme="dark"] :is(#page-calc, #page-finetune) .tool-stat-bulk-card,
-:root[data-theme="dark"] #page-calc .calc-stat-bulk-card.ui-metric-chip,
-:root[data-theme="dark"] #page-calc .calc-stat-bulk-card:nth-child(2).ui-metric-chip {
-border-color: var(--border);
-background: var(--bg-input);
-color: var(--text);
-}
-:root[data-theme="dark"] :is(#page-calc, #page-finetune) .tool-stat-bulk-label,
-:root[data-theme="dark"] #page-calc .calc-stat-bulk-label.ui-chip-label {
-color: var(--text-dim);
-}
-:root[data-theme="dark"] :is(#page-calc, #page-finetune) .tool-stat-bulk-value,
-:root[data-theme="dark"] #page-calc .calc-stat-bulk-value.ui-chip-value {
-color: var(--text);
-}
-:root[data-theme="dark"] #page-calc .tool-pokemon-meta-actions .type-reset-btn {
-border-color: var(--border);
-background: var(--bg-input);
-color: var(--text-dim);
-}
-:root[data-theme="dark"] #page-calc .tool-pokemon-meta-actions .type-reset-btn:hover,
-:root[data-theme="dark"] #page-calc .tool-pokemon-meta-actions .type-reset-btn:focus-visible {
-border-color: var(--ui-action-hover-border);
-background: var(--ui-action-hover-bg);
-color: var(--ui-action-hover-text);
-}
-:root[data-theme="dark"] #page-calc .calc-page-jump-button {
-border-color: var(--border);
-background: var(--bg-input);
-color: var(--text-dim);
-}
-:root[data-theme="dark"] #page-calc .calc-page-jump-button:hover,
-:root[data-theme="dark"] #page-calc .calc-page-jump-button:focus-visible {
-border-color: var(--ui-action-hover-border);
-background: var(--ui-action-hover-bg);
-color: var(--ui-action-hover-text);
-}
-:root[data-theme="dark"] #page-calc .calc-side-swap-button {
-border-color: var(--border-bright);
-background: linear-gradient(
-180deg,
-color-mix(in srgb, var(--bg-elev) 84%, var(--text) 16%) 0%,
-var(--bg-input) 100%
-);
-color: var(--text);
-box-shadow:
-0 0 0 1px color-mix(in srgb, var(--text) 8%, transparent),
-0 12px 22px -14px rgb(0 0 0 / 0.85);
-}
-:root[data-theme="dark"] #page-calc .calc-side-swap-button:hover,
-:root[data-theme="dark"] #page-calc .calc-side-swap-button:focus-visible {
-border-color: color-mix(in srgb, var(--warn) 62%, var(--border-bright));
-background: linear-gradient(
-180deg,
-color-mix(in srgb, var(--bg-elev) 72%, var(--warn) 28%) 0%,
-color-mix(in srgb, var(--bg-input) 82%, var(--warn) 18%) 100%
-);
-color: var(--warn);
-box-shadow:
-0 0 0 2px color-mix(in srgb, var(--warn) 24%, transparent),
-0 14px 26px -14px rgb(0 0 0 / 0.92);
-}
-:root[data-theme="dark"] #page-calc .calc-result-card.none.compact.ui-card {
-background: var(--bg-input);
-}
-:root[data-theme="dark"] #page-calc .calc-result-card-head.ui-card-head {
-border-bottom-color: var(--border-soft);
-}
-:root[data-theme="dark"] #page-calc .calc-result-card .calc-result-slot.ui-index {
-border-color: var(--border);
-background: var(--bg-input);
-color: var(--text-dim);
-}
-:root[data-theme="dark"] #page-calc .calc-speed-value.ui-stat-readout {
-border-color: var(--border);
-background: var(--bg-input);
-color: var(--text);
-}
-:root[data-theme="dark"] #page-calc .tool-move-type-control.type-none {
-border-color: var(--border);
-background: var(--bg-input);
-color: var(--text-faint);
-}
-:root[data-theme="dark"] #page-calc .calc-result-card .calc-result-move-name,
-:root[data-theme="dark"] #page-calc .calc-damage-meta b {
-color: var(--text);
-}
-:root[data-theme="dark"] #page-calc .calc-damage-range.ui-meter-card {
-border-color: var(--border);
-background: var(--bg-input);
-}
-:root[data-theme="dark"] #page-calc .calc-damage-meter.ui-meter {
-border-color: var(--border-bright);
-background: var(--bg-muted);
-}
-:root[data-theme="dark"] #page-calc .calc-damage-meta.ui-meta-row {
-color: var(--text-dim);
-}
-:root[data-theme="dark"] #page-calc .calc-mods-trace b.ui-status-badge,
-:root[data-theme="dark"] #page-calc .calc-side-effect-badge.ui-status-badge,
-:root[data-theme="dark"] #page-calc .calc-timing-power-badge.ui-status-badge,
-:root[data-theme="dark"] #page-calc .calc-speed-entry-note.ui-status-badge {
-border-color: var(--border);
-background: var(--bg-input);
-color: var(--text-dim);
-}
-:root[data-theme="dark"] #page-calc .calc-side-effect-badge.ui-status-badge b {
-color: var(--warn);
-}
-#page-calc .battle-grid > .ui-panel.atk,
-#page-calc.sides-swapped .battle-grid > .ui-panel.def,
-.ui-panel.atk {
---panel-border-color: var(--ui-atk-border);
-}
-#page-calc .battle-grid > .ui-panel.def,
-#page-calc.sides-swapped .battle-grid > .ui-panel.atk,
-.ui-panel.def {
---panel-border-color: var(--ui-def-border);
-}
-#page-calc .battle-grid > .ui-panel.atk > .ui-panel-head,
-#page-calc.sides-swapped .battle-grid > .ui-panel.def > .ui-panel-head,
-.ui-panel.atk > .ui-panel-head {
-background: var(--ui-atk-head-bg);
-}
-#page-calc .battle-grid > .ui-panel.def > .ui-panel-head,
-#page-calc.sides-swapped .battle-grid > .ui-panel.atk > .ui-panel-head,
-.ui-panel.def > .ui-panel-head {
-background: var(--ui-def-head-bg);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(select, input[type="number"]:not(.tool-stat-point-input), input[type="text"], textarea, .cb-input, .form-switch-btn) {
-border-color: var(--border);
-background: var(--ui-control-bg);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(select:hover, input[type="number"]:not(.tool-stat-point-input):hover, input[type="text"]:hover, textarea:hover, .cb-input:hover, .form-switch-btn:hover) {
-border-color: var(--border-bright);
-background: var(--bg-input);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(select:focus, input[type="number"]:not(.tool-stat-point-input):focus, input[type="text"]:focus, textarea:focus, .cb-input[aria-expanded="true"], .form-switch-btn:focus-visible) {
-border-color: var(--warn);
-box-shadow: var(--focus-ring);
-}
-:is(#page-revcalc, #page-finetune)
-:where(.tool-pokemon-combobox .tool-pokemon-input:focus, .tool-pokemon-combobox .tool-pokemon-input[aria-expanded="true"]) {
-outline: 0;
-border-color: var(--warn);
-box-shadow: var(--ui-pokemon-focus-ring);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-choice-field.ui-field > .ui-choice-label.ui-field-label {
-display: flex;
-align-items: center;
-min-height: var(--ui-field-head-height);
-margin: 0;
-color: var(--ui-pokemon-label-color, var(--text-dim));
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-pokemon-label-font-size);
-font-weight: var(--ui-pokemon-label-font-weight);
-line-height: var(--ui-label-line-height);
-letter-spacing: 0;
-text-align: left;
-text-transform: none;
-white-space: nowrap;
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input {
-height: var(--ui-control-height);
-min-height: var(--ui-control-height);
-padding: 0 28px 0 10px;
-border: var(--ui-control-border);
-border-radius: var(--ui-control-radius);
-background: var(--ui-control-bg);
-color: var(--text);
-box-shadow: none;
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-control-font-size);
-font-weight: var(--ui-control-font-weight);
-line-height: normal;
-text-align: left;
-text-overflow: ellipsis;
-white-space: nowrap;
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input:hover {
-border-color: var(--ui-control-hover-border);
-background: var(--bg-input);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input:focus-visible,
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input[aria-expanded="true"] {
-outline: 0;
-border-color: var(--ui-control-focus-border);
-box-shadow: var(--ui-pokemon-focus-ring);
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-label {
-display: flex;
-align-items: center;
-justify-content: flex-start;
-min-height: var(--ui-field-head-height);
-color: var(--ui-pokemon-label-color, var(--text-dim));
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-pokemon-label-font-size);
-font-weight: var(--ui-pokemon-label-font-weight);
-line-height: var(--ui-label-line-height);
-letter-spacing: 0;
-text-align: left;
-text-transform: none;
-white-space: nowrap;
-}
-#page-calc .tool-settings-choice-cell {
---calc-control-label-width: 40px;
---calc-control-gap: var(--ui-control-grid-gap);
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input {
-height: var(--ui-control-height);
-min-height: var(--ui-control-height);
-border: var(--ui-control-border);
-border-radius: var(--ui-control-radius);
-background: var(--ui-control-bg);
-color: var(--text);
-box-shadow: none;
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-control-font-size);
-font-weight: var(--ui-control-font-weight);
-line-height: normal;
-text-align: left;
-text-overflow: ellipsis;
-white-space: nowrap;
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .tool-settings-choice-surface {
-padding-right: 28px;
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-hp-control.tool-settings-choice-surface {
-display: grid;
-grid-template-columns: minmax(0, 1fr) auto;
-align-items: center;
-padding: 0 10px;
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-hp-control .tool-settings-hp-input {
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-control-font-size);
-font-weight: var(--ui-control-font-weight);
-line-height: normal;
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:hover,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:hover {
-border-color: var(--ui-control-hover-border);
-background: var(--bg-input);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus-visible,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus-within,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:focus,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:focus-visible,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input[aria-expanded="true"] {
-outline: 0;
-border-color: var(--ui-control-focus-border);
-box-shadow: var(--ui-pokemon-focus-ring);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.combobox-options),
-.combobox-options.combobox-options-portal {
-border-color: var(--border-bright);
-background: var(--bg-elev);
-box-shadow: var(--surface-shadow);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.combobox-option),
-.combobox-options.combobox-options-portal .combobox-option {
-border-bottom-color: var(--border-soft);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.combobox-option:hover, .combobox-option.active),
-.combobox-options.combobox-options-portal .combobox-option:hover,
-.combobox-options.combobox-options-portal .combobox-option.active {
-background: var(--ui-option-hover-bg);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.combobox-option.selected),
-.combobox-options.combobox-options-portal .combobox-option.selected {
-background: var(--ui-option-selected-bg);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-label-action, .ui-field-action, .ui-popover-trigger, .theme-toggle-button, .dex-modal-btn, .tool-stat-point-button, .tool-stat-rank-button) {
-border-color: var(--ui-action-border);
-background: var(--ui-action-bg);
-color: var(--text-dim);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-panel-actions.ui-panel-actions {
-align-items: center;
-align-content: center;
-align-self: stretch;
-flex-wrap: nowrap;
-min-height: 0;
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .rc-analyze-btn, .dex-modal-btn, .calc-field-auto-toggle) {
-box-sizing: border-box;
-display: inline-flex;
-align-items: center;
-justify-content: center;
-height: var(--ui-panel-action-height);
-min-height: var(--ui-panel-action-height);
-max-height: var(--ui-panel-action-height);
-padding: var(--ui-panel-action-padding);
-font-size: var(--ui-panel-action-font-size);
-line-height: 1;
-white-space: nowrap;
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-panel-tag) {
-box-sizing: border-box;
-display: inline-flex;
-align-items: center;
-justify-content: center;
-height: var(--ui-panel-action-height);
-min-height: var(--ui-panel-action-height);
-max-height: var(--ui-panel-action-height);
-padding: var(--ui-panel-action-padding);
-font-size: var(--ui-panel-action-font-size);
-font-weight: var(--ui-panel-action-font-weight);
-line-height: 1;
-white-space: nowrap;
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-label-action:hover, .ui-field-action:hover, .ui-popover-trigger:hover, .theme-toggle-button:hover, .dex-modal-btn:hover, .tool-stat-point-button:hover, .tool-stat-rank-button:hover) {
-border-color: var(--ui-action-hover-border);
-background: var(--ui-action-hover-bg);
-color: var(--ui-action-hover-text);
-}
-:is(#page-revcalc, #page-finetune) .tool-stat-rank-value:not(.pos):not(.neg) {
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-btn-secondary, .type-filter-btn, .dex-tab, .matchup-mode-btn) {
-border-color: var(--border);
-background: var(--ui-action-bg);
-color: var(--text-dim);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-btn-secondary:hover, .type-filter-btn:hover, .dex-tab:hover, .matchup-mode-btn:hover) {
-border-color: var(--border-bright);
-background: var(--bg-input);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-btn-secondary.active, .type-filter-btn.active, .dex-tab.active, .matchup-mode-btn.active) {
-border-color: var(--ui-action-hover-border);
-background: var(--ui-action-active-bg);
-color: var(--ui-action-active-text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-check) {
-border-color: var(--border);
-background: var(--bg-input);
-color: var(--text-dim);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-check:hover) {
-border-color: var(--border-bright);
-background: var(--bg-elev);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-check:has(input:checked)) {
-border-color: color-mix(in srgb, var(--ok) 38%, transparent);
-background: color-mix(in srgb, var(--ok) 8%, transparent);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.dex-table-wrap, .matchup-table-wrap) {
-border-color: var(--border);
-background: var(--bg-panel);
-box-shadow: var(--surface-shadow-soft);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.dex-table th, .matchup-table th) {
-background: var(--bg-muted);
-color: var(--text-dim);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.dex-table td, .matchup-table td) {
-border-color: var(--border);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-empty) {
-color: var(--text-faint);
-}
-}
-@layer legacy-polish {
-:root {
---app-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
---app-font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
---ui-number-font: var(--app-font-mono);
-}
-body,
-button,
-input,
-select,
-textarea {
-font-family: var(--app-font-sans);
-}
-.mono,
-:where(.ui-stat-readout, .ui-chip-value, .calc-mobile-summary-range, .calc-mobile-summary-ko) {
-font-family: var(--app-font-mono);
-}
-#page-calc .calc-side-head-actions > .calc-detail-toggle,
-.calc-compact-stats {
-display: none;
-}
-#page-calc .calc-side-head-actions {
-align-items: center;
-}
-#page-calc .calc-result-grid {
-grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-}
-#page-calc .calc-result-card:only-child {
-min-height: 220px;
-}
-#page-revcalc .rc-analysis-progress {
-display: grid;
-grid-template-columns: 28px minmax(0, 1fr);
-align-items: center;
-gap: 10px 12px;
-min-height: 92px;
-padding: 16px;
-}
-#page-revcalc .rc-analysis-spinner {
-width: 24px;
-height: 24px;
-border: 3px solid var(--border);
-border-top-color: var(--def);
-border-radius: 50%;
-animation: rc-analysis-spin 0.8s linear infinite;
-}
-#page-revcalc .rc-analysis-copy {
-display: grid;
-gap: 2px;
-min-width: 0;
-}
-#page-revcalc .rc-analysis-copy strong {
-font-size: 13px;
-}
-#page-revcalc .rc-analysis-copy span {
-color: var(--text-dim);
-font-size: 11px;
-}
-#page-revcalc .rc-analysis-track {
-grid-column: 1 / -1;
-position: relative;
-height: 4px;
-overflow: hidden;
-border-radius: 2px;
-background: var(--bg-muted);
-}
-#page-revcalc .rc-analysis-track span {
-position: absolute;
-inset: 0 auto 0 -36%;
-width: 36%;
-background: var(--def);
-animation: rc-analysis-track 1.1s ease-in-out infinite;
-}
-#page-revcalc .rc-analyze-btn.is-analyzing {
-border-color: var(--atk);
-background: var(--atk);
-}
-.page-init-error {
-margin-bottom: var(--ui-frame-row-gap);
-border-color: color-mix(in srgb, var(--atk) 42%, var(--border));
-color: var(--atk-deep);
-}
-@keyframes rc-analysis-spin {
-to { transform: rotate(360deg); }
-}
-@keyframes rc-analysis-track {
-0% { left: -36%; }
-55% { left: 48%; }
-100% { left: 100%; }
-}
-@media (prefers-reduced-motion: reduce) {
-#page-revcalc .rc-analysis-spinner,
-#page-revcalc .rc-analysis-track span {
-animation-duration: 2.4s;
-}
-}
-.calc-mobile-summary {
-display: none;
-}
-@media (max-width: 760px) {
-header {
-border-bottom-color: var(--border);
-box-shadow: 0 2px 10px rgb(15 23 42 / 0.06);
-}
-.header-title-row h1 {
-font-size: 18px;
-}
-.brand-sub {
-display: none;
-}
-.party-preset-button,
-.theme-toggle-button {
-min-height: 40px;
-}
-.main-nav {
-gap: 3px;
-margin-top: 8px;
-overflow-x: auto;
-overscroll-behavior-x: contain;
-}
-.nav-tab,
-.nav-tab:nth-child(n) {
-flex: 1 0 auto;
-min-width: 64px;
-min-height: 44px;
-padding: 9px 6px 10px;
-font-size: 11px;
-}
-.site-shell {
-padding: 10px 8px 88px;
-}
-.page-frame > :where(.ui-frame-row, .ui-frame, .ui-panel)
-+ :where(.ui-frame-row, .ui-frame, .ui-panel) {
-margin-top: 10px;
-}
-.ui-frame-row {
-gap: 10px;
-}
-.ui-frame-body,
-.ui-panel-body {
-padding: 10px;
-}
-.page .cb-input,
-.page .ui-btn,
-.page .party-load-button,
-.page .ui-label-action:not(.is-static),
-.page .matchup-mode-btn,
-.page .dex-tab,
-.page input[type="text"]:not(.tool-stat-point-input):not(.tool-move-power-input),
-.page input[type="number"]:not(.tool-stat-point-input):not(.tool-move-power-input),
-.page select {
-min-height: 42px;
-}
-.page .ui-check {
-min-height: 40px;
-}
-#page-calc {
-padding-bottom: 10px;
-}
-#page-calc .calc-side-head-actions > .calc-detail-toggle {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-min-width: 52px;
-min-height: 36px;
-border: 1px solid var(--border);
-border-radius: 6px;
-background: var(--bg-elev);
-color: var(--text-dim);
-}
-#page-calc .calc-detail-toggle.active {
-border-color: var(--border-bright);
-background: var(--bg-muted);
-color: var(--text);
-}
-#page-calc .calc-side-body:not(.is-detail-expanded) .calc-stat-panel {
-display: none;
-}
-#page-calc .calc-side-body:not(.is-detail-expanded) .calc-compact-stats {
-display: grid;
-grid-template-columns: repeat(3, minmax(0, 1fr));
-gap: 1px;
-overflow: hidden;
-padding: 0;
-border: 1px solid var(--border);
-background: var(--border);
-}
-#page-calc .calc-compact-stat {
-display: flex;
-align-items: center;
-justify-content: space-between;
-min-width: 0;
-min-height: 38px;
-padding: 0 9px;
-background: var(--bg-input);
-}
-#page-calc .calc-compact-stat span {
-color: var(--text-faint);
-font-size: 10px;
-font-weight: 800;
-}
-#page-calc .calc-compact-stat b {
-font-family: var(--app-font-mono);
-font-size: 12px;
-}
-#page-calc .calc-mobile-summary:not([hidden]) {
-position: fixed;
-right: max(8px, env(safe-area-inset-right));
-bottom: max(8px, env(safe-area-inset-bottom));
-left: max(8px, env(safe-area-inset-left));
-z-index: 90;
-display: grid;
-grid-template-columns: auto minmax(0, 1fr) auto auto;
-align-items: center;
-gap: 5px 9px;
-min-height: 58px;
-padding: 8px 12px;
-border: 1px solid var(--border-bright);
-border-radius: 8px;
-background: var(--bg-elev);
-color: var(--text);
-box-shadow: 0 10px 28px rgb(15 23 42 / 0.2);
-text-align: left;
-}
-body:has(.combobox-options-portal.open) #page-calc .calc-mobile-summary:not([hidden]) {
-display: none;
-}
-#page-calc .calc-mobile-summary-label {
-color: var(--text-faint);
-font-size: 10px;
-font-weight: 800;
-}
-#page-calc .calc-mobile-summary strong {
-min-width: 0;
-overflow: hidden;
-font-size: 13px;
-text-overflow: ellipsis;
-white-space: nowrap;
-}
-#page-calc .calc-mobile-summary-range,
-#page-calc .calc-mobile-summary-ko {
-font-family: var(--ui-number-font);
-font-size: 12px;
-white-space: nowrap;
-}
-#page-calc .calc-mobile-summary-ko {
-color: var(--bad);
-}
-#page-calc .calc-pair-grid {
-grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-#page-calc .tool-stat-table-frame {
-overflow: hidden;
-padding: 6px 8px;
-}
-#page-calc .calc-stat-grid {
-display: block;
-min-width: 0;
---tool-stat-control-height: 34px;
---tool-stat-point-input-width: 42px;
---tool-stat-rank-value-width: 22px;
-}
-#page-calc .calc-stat-head-row {
-display: none;
-}
-#page-calc .calc-stat-row {
-display: grid;
-grid-template-columns: minmax(56px, 0.6fr) minmax(126px, 1.45fr) minmax(96px, 1fr);
-grid-template-areas:
-"name base final"
-"name point rank";
-gap: 5px 7px;
-align-items: center;
-min-height: 76px;
-padding: 7px 0;
-border-bottom: 1px solid var(--border-soft);
-}
-#page-calc .calc-stat-row:last-child {
-border-bottom: 0;
-}
-#page-calc .calc-stat-name {
-grid-area: name;
-align-self: stretch;
-border-radius: 6px;
-background: var(--bg-muted);
-}
-#page-calc .calc-stat-base {
-grid-area: base;
-}
-#page-calc .tool-stat-col-point {
-grid-area: point;
-}
-#page-calc .calc-stat-final {
-grid-area: final;
-}
-#page-calc .tool-stat-col-rank {
-grid-area: rank;
-}
-#page-calc .calc-stat-base,
-#page-calc .calc-stat-final {
-display: flex;
-align-items: center;
-justify-content: space-between;
-min-height: 28px;
-padding: 0 7px;
-border-radius: 5px;
-background: var(--bg-input);
-}
-#page-calc .calc-stat-base::before,
-#page-calc .calc-stat-final::before {
-color: var(--text-faint);
-font-family: "Noto Sans KR", sans-serif;
-font-size: 9px;
-font-weight: 800;
-}
-#page-calc .calc-stat-base::before {
-content: "종족";
-}
-#page-calc .calc-stat-final::before {
-content: "실수치";
-}
-#page-calc .tool-stat-point-stepper,
-#page-calc .tool-stat-rank-stepper {
-width: 100%;
-}
-#page-calc .tool-stat-rank-empty {
-min-height: 34px;
-}
-#page-calc .tool-move-list-frame {
-padding: 7px;
-overflow: hidden;
-}
-#page-calc .tool-move-head-row {
-display: none;
-}
-#page-calc .tool-move-row,
-#page-calc .tool-move-list--critical .tool-move-row {
-display: grid;
-grid-template-columns: 22px minmax(0, 1fr) 52px 70px;
-grid-template-areas:
-"index name name critical"
-"index type power readout";
-grid-template-rows: 40px 36px;
-gap: 4px 6px;
-height: auto;
-min-height: 84px;
-padding: 4px 0;
-border-bottom: 1px solid var(--border-soft);
-}
-#page-calc .tool-move-row:last-child {
-border-bottom: 0;
-}
-#page-calc .tool-move-col-index {
-grid-area: index;
-}
-#page-calc .tool-move-col-name {
-grid-area: name;
-}
-#page-calc .tool-move-col-type {
-grid-area: type;
-}
-#page-calc .tool-move-col-power {
-grid-area: power;
-}
-#page-calc .tool-move-col-critical {
-grid-area: critical;
-justify-content: flex-end;
-min-width: 40px;
-}
-#page-calc .tool-move-col-readout,
-#page-calc .tool-move-list--critical .tool-move-power-readout {
-grid-area: readout;
-grid-column: auto;
-}
-#page-calc .tool-move-panel {
---tool-move-control-height: 36px;
---tool-move-name-font-size: 13px;
-}
-#page-calc .calc-result-card {
-display: grid;
-grid-template-columns: minmax(0, 1fr);
-min-height: 0;
-}
-#page-calc .calc-result-card-head {
-min-height: 0;
-padding-right: 0;
-}
-#page-calc .calc-ko-badge {
-position: static;
-width: auto;
-max-width: none;
-min-height: 40px;
-margin: 0 8px 8px;
-}
-#page-calc .calc-damage-meta {
-height: auto;
-max-height: none;
-}
-#page-matchup .matchup-control-row {
-flex-wrap: wrap;
-}
-#page-matchup .matchup-mode-tabs {
-flex: 1 1 220px;
-}
-#page-matchup .party-load-button {
-flex: 1 1 100%;
-}
-#page-matchup .matchup-slot {
-grid-template-columns: 26px minmax(0, 1fr) minmax(76px, auto) 36px;
-grid-template-areas: "number input types clear";
-gap: 6px;
-min-height: 52px;
-padding: 6px;
-}
-#page-matchup .matchup-slot-num {
-grid-area: number;
-}
-#page-matchup .matchup-slot > .combobox {
-grid-area: input;
-}
-#page-matchup .matchup-slot-sprite {
-display: none;
-}
-#page-matchup .matchup-slot-types {
-grid-area: types;
-min-height: 0;
-gap: 3px;
-}
-#page-matchup .matchup-slot-types .matchup-type-pill {
-flex: 1 1 36px;
-min-width: 36px;
-padding-right: 4px;
-padding-left: 4px;
-}
-#page-matchup .matchup-slot-clear {
-grid-area: clear;
-width: 36px;
-height: 36px;
-}
-#page-matchup .matchup-table-wrap {
-border: 1px solid var(--border);
-border-radius: 6px;
-overscroll-behavior-x: contain;
-}
-#page-matchup .matchup-table {
-min-width: 620px;
-}
-#page-matchup .matchup-table th:first-child,
-#page-matchup .matchup-table td:first-child {
-position: sticky;
-left: 0;
-z-index: 1;
-background: var(--bg-panel);
-box-shadow: 1px 0 0 var(--border);
-}
-#page-matchup .matchup-table thead th:first-child {
-z-index: 3;
-background: var(--bg-muted);
-}
-#page-finetune .ft-settings-grid,
-#page-revcalc .rc-settings-grid,
-#page-revcalc .rc-opp-settings-grid {
-grid-template-columns: minmax(0, 1fr);
-grid-template-areas: none;
-}
-#page-finetune .ft-settings-grid > *,
-#page-revcalc .rc-settings-grid > *,
-#page-revcalc .rc-opp-settings-grid > * {
-grid-area: auto;
-}
-#page-finetune .ft-stats-column,
-#page-revcalc .tool-stat-table-frame {
-overflow-x: auto;
-overscroll-behavior-x: contain;
-scrollbar-width: thin;
-}
-#page-finetune .ft-stats-grid {
-min-width: 470px;
---tool-stat-control-height: 36px;
-}
-#page-revcalc .rc-stats-grid {
-min-width: 440px;
---tool-stat-control-height: 36px;
-}
-#page-revcalc .rc-opp-stat-table {
-min-width: 330px;
-}
-#page-revcalc .rc-next-rank-wrap {
-overflow-x: auto;
-overscroll-behavior-x: contain;
-}
-#page-revcalc .rc-next-rank-head,
-#page-revcalc .rc-next-rank-row {
-min-width: 430px;
-}
-#page-dex .dex-control-head,
-#page-dex .dex-nav {
-overflow-x: auto;
-overscroll-behavior-x: contain;
-}
-#page-dex .dex-tab {
-flex: 1 0 78px;
-}
-#page-dex .dex-table-wrap {
-max-height: 68vh;
-border: 1px solid var(--border);
-border-radius: 6px;
-}
-#page-dex :where(#dexTablePokemon, #dexTableMoves, #dexTableAbilities, #dexTableItems) {
-width: 100%;
-min-width: 0;
-table-layout: auto;
-}
-#dexTablePokemon :is(th, td):nth-child(4),
-#dexTablePokemon :is(th, td):nth-child(5),
-#dexTablePokemon :is(th, td):nth-child(6),
-#dexTablePokemon :is(th, td):nth-child(7),
-#dexTablePokemon :is(th, td):nth-child(10),
-#dexTablePokemon :is(th, td):nth-child(11),
-#dexTablePokemon :is(th, td):nth-child(12),
-#dexTableMoves :is(th, td):nth-child(5),
-#dexTableMoves :is(th, td):nth-child(6),
-#dexTableMoves :is(th, td):nth-child(7),
-#dexTableAbilities :is(th, td):nth-child(2),
-#dexTableItems :is(th, td):nth-child(2),
-#dexTableItems :is(th, td):nth-child(4) {
-display: none;
-}
-#page-dex .dex-table th,
-#page-dex .dex-table td {
-height: 44px;
-padding: 6px;
-}
-#dexTablePokemon .dex-name-cell {
-min-width: 118px;
-}
-#dexTablePokemon .dex-type-cell {
-min-width: 74px;
-}
-#dexTableAbilities .desc-cell,
-#dexTableItems .desc-cell {
-min-width: 0;
-overflow: hidden;
-white-space: nowrap;
-text-overflow: ellipsis;
-}
-}
-@media (max-width: 430px) {
-.header-title-row {
-flex-wrap: wrap;
-}
-.header-actions {
-width: 100%;
-}
-.theme-toggle-button {
-width: 100%;
-}
-#page-calc .calc-mobile-summary:not([hidden]) {
-grid-template-columns: minmax(0, 1fr) auto;
-}
-#page-calc .calc-mobile-summary-label {
-display: none;
-}
-#page-calc .calc-mobile-summary-ko {
-grid-column: 2;
-grid-row: 1 / span 2;
-}
-#page-calc .calc-pair-grid {
-grid-template-columns: minmax(0, 1fr);
-}
-#page-calc .calc-stat-row {
-grid-template-columns: 56px minmax(120px, 1.35fr) minmax(92px, 1fr);
-gap: 5px;
-}
-#page-calc .tool-move-row,
-#page-calc .tool-move-list--critical .tool-move-row {
-grid-template-columns: 20px minmax(0, 1fr) 48px 64px;
-gap: 4px;
-}
-#page-calc .calc-results-actions {
-display: grid;
-grid-template-columns: 1fr;
-width: 100%;
-}
-#page-calc .calc-results-head {
-align-items: stretch;
-flex-direction: column;
-}
-#page-matchup .matchup-table {
-min-width: 560px;
-}
-#page-dex .dex-pokemon-name-wrap {
-gap: 4px;
-}
-#page-dex .dex-list-sprite {
-display: none;
-}
-}
-}
-@layer components {
-.ui-btn,
-.btn-calculate,
-.btn-secondary,
-.rc-analyze-btn,
-.dex-tab,
-.matchup-mode-btn,
-.type-filter-btn,
-.dex-modal-close {
-border-radius: var(--radius-md);
-cursor: pointer;
-font-family: "Noto Sans KR", sans-serif;
-font-weight: 900;
-letter-spacing: 0;
-line-height: 1;
-transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s, transform 0.15s;
-}
-.dex-modal-btn,
-.rc-analyze-btn {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-min-height: var(--ui-action-height-sm);
-padding: var(--ui-action-padding-sm);
-border: 1px solid var(--ui-action-border);
-border-radius: var(--radius-md);
-background: var(--ui-action-bg);
-color: var(--text-dim);
-font-family: "Noto Sans KR", sans-serif;
-font-size: 12px;
-font-weight: 900;
-letter-spacing: 0;
-line-height: 1;
-cursor: pointer;
-transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s, transform 0.15s;
-}
-.dex-modal-btn:hover,
-.rc-analyze-btn:hover {
-border-color: var(--ui-action-hover-border);
-background: var(--ui-action-hover-bg);
-color: var(--ui-action-hover-text);
-}
-.dex-modal-btn.atk {
-border-color: var(--atk);
-background: var(--atk);
-color: #ffffff;
-}
-.dex-modal-btn.atk:hover {
-border-color: #bd3541;
-background: #bd3541;
-color: #ffffff;
-}
-.dex-modal-btn.def {
-border-color: var(--def);
-background: var(--def);
-color: #ffffff;
-}
-.dex-modal-btn.def:hover {
-border-color: #0f6f94;
-background: #0f6f94;
-color: #ffffff;
-}
-.ft-rank-btn {
-display: inline-grid;
-place-items: center;
-width: var(--ui-stat-control-size);
-height: var(--ui-stat-control-size);
-border: var(--ui-control-border);
-border-radius: var(--ui-stat-control-radius);
-background: var(--ui-control-bg);
-color: var(--text-dim);
-font-family: "Fira Code", "JetBrains Mono", monospace;
-font-size: 12px;
-font-weight: 900;
-cursor: pointer;
-transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
-}
-.ft-rank-btn:hover {
-border-color: var(--ui-control-hover-border);
-background: var(--bg-elev);
-color: var(--text);
-}
-.matchup-slot-clear,
-.matchup-move-clear,
-.dex-modal-close {
-display: inline-grid;
-place-items: center;
-padding: 0;
-line-height: 1;
-}
-.matchup-slot-clear,
-.matchup-move-clear {
-appearance: none;
-}
-.ui-btn-primary,
-.ui-btn-secondary,
-.btn-calculate,
-.btn-secondary {
-min-height: 46px;
-padding: 12px 18px;
-font-family: inherit;
-font-size: 13px;
-}
-.ui-btn-primary,
-.btn-calculate,
-.rc-analyze-btn {
-background: linear-gradient(180deg, #d95761, var(--atk));
-border: 1px solid rgba(159, 40, 52, 0.28);
-color: #ffffff;
-box-shadow: 0 10px 22px rgba(214, 76, 86, 0.18);
-}
-.ui-btn-primary:hover,
-.btn-calculate:hover,
-.rc-analyze-btn:hover {
-transform: translateY(-1px);
-box-shadow: 0 14px 28px rgba(214, 76, 86, 0.23);
-}
-.ui-btn-secondary,
-.btn-secondary,
-.type-filter-btn,
-.dex-tab,
-.matchup-mode-btn {
-background: var(--ui-action-bg);
-border: 1px solid var(--border);
-color: var(--text-dim);
-}
-.ui-btn-secondary:hover,
-.btn-secondary:hover,
-.type-filter-btn:hover,
-.dex-tab:hover,
-.matchup-mode-btn:hover {
-border-color: var(--border-bright);
-background: var(--ui-action-hover-bg);
-color: var(--text);
-}
-.ui-btn-secondary.active,
-.btn-secondary.active,
-.dex-tab.active,
-.matchup-mode-btn.active,
-.type-filter-btn.active {
-background: #fff7e9;
-border-color: rgba(183, 121, 31, 0.36);
-color: #6f4815;
-box-shadow: inset 0 -2px 0 rgba(183, 121, 31, 0.28);
-}
-}
-@layer components {
-.combobox {
-position: relative;
-min-width: 0;
-}
-.combobox::after {
-content: '▾';
-position: absolute;
-top: 50%;
-right: 10px;
-transform: translateY(-50%);
-color: var(--text-faint);
-font-size: 10px;
-line-height: 1;
-pointer-events: none;
-}
-.combobox .cb-input {
-width: 100%;
-padding-right: 28px;
-}
-.combobox-options {
-position: absolute;
-top: calc(100% + 4px);
-left: 0;
-right: 0;
-width: 100%;
-min-width: 0;
-max-height: 280px;
-overflow-x: hidden;
-overflow-y: auto;
-overscroll-behavior: contain;
--webkit-overflow-scrolling: touch;
-touch-action: pan-y;
-display: none;
-z-index: 120;
-border: 1px solid var(--border-bright);
-border-radius: var(--radius-md);
-background: var(--bg-elev);
-box-shadow: var(--surface-shadow);
-}
-.combobox-options.combobox-options-portal {
-box-sizing: border-box;
-position: fixed;
-top: auto;
-right: auto;
-bottom: auto;
-left: auto;
-z-index: 10020;
-}
-.combobox-options.calc-page-options-portal {
-max-width: calc(100vw - 16px);
-}
-.combobox-options.tool-move-options-portal {
-width: min(330px, calc(100vw - 16px));
-min-width: min(300px, calc(100vw - 16px));
-}
-.combobox-options.tool-move-type-options-portal {
-min-width: min(92px, calc(100vw - 16px));
-}
-.combobox-options.combobox-options-portal .combobox-option.move-option.selected {
-border-left-color: var(--tool-combo-selected, var(--warn));
-}
-.combobox-options::after {
-content: none;
-}
-.combobox-options.open {
-display: block;
-}
-.combobox-option {
-display: flex;
-align-items: center;
-gap: 8px;
-min-width: 0;
-min-height: var(--ui-option-height);
-padding: 8px 10px;
-border-bottom: 1px solid var(--border-soft);
-color: var(--text);
-font-size: var(--ui-option-font-size);
-font-weight: var(--ui-option-font-weight);
-overflow: hidden;
-cursor: pointer;
-transition: background 0.12s, color 0.12s;
-}
-.combobox-option > b,
-.combobox-option > span {
-min-width: 0;
-font-weight: var(--ui-option-font-weight);
-overflow: hidden;
-text-overflow: ellipsis;
-white-space: nowrap;
-}
-.combobox-option:last-child {
-border-bottom: none;
-}
-.combobox-option:hover,
-.combobox-option.active {
-background: var(--ui-option-hover-bg);
-}
-.combobox-option.selected {
-background: var(--ui-option-selected-bg);
-color: var(--text);
-box-shadow: none;
-}
-.combobox-option.ui-option {
-border-left: 3px solid transparent;
-padding-left: calc(10px - 3px);
-}
-.combobox-option.ui-option.selected {
-border-left-color: var(--tool-combo-selected, var(--warn));
-}
-.ui-panel.atk .combobox-option.selected,
-.ui-panel.def .combobox-option.selected {
-box-shadow: none;
-}
-.combobox-option small {
-flex: 1 1 auto;
-min-width: 0;
-margin-left: auto;
-color: var(--text-faint);
-font-size: 10px;
-font-weight: var(--ui-option-font-weight);
-overflow: hidden;
-text-overflow: ellipsis;
-white-space: nowrap;
-}
-.combobox-option.pokemon-simple-option {
-display: grid;
-grid-template-columns: minmax(78px, 1fr) calc((var(--ui-type-chip-width) * 2) + var(--ui-type-strip-gap));
-align-items: center;
-gap: var(--ui-control-grid-gap);
-width: 100%;
-}
-.pokemon-simple-option-name {
-min-width: 0;
-overflow: hidden;
-text-overflow: ellipsis;
-white-space: nowrap;
-}
-.pokemon-simple-option-types {
-display: flex;
-align-items: center;
-justify-content: flex-start;
-gap: var(--ui-type-strip-gap);
-min-width: 0;
-margin-left: 0;
-}
-.pokemon-simple-option-types .type-pill {
-flex: 0 0 auto;
-}
-.move-simple-option {
-min-height: 36px;
-}
-.combobox-options::-webkit-scrollbar {
-width: 6px;
-}
-.combobox-options::-webkit-scrollbar-thumb {
-border-radius: 3px;
-background: var(--border-bright);
-}
-.combobox-option.empty {
-cursor: default;
-background: transparent;
-color: var(--text-faint);
-box-shadow: none;
-}
-}
-@layer components {
-.ui-field,
-.field {
-min-width: 0;
-margin: 0;
-}
-.ui-field-label,
-.field-label {
-color: var(--text-dim);
-font-size: var(--ui-label-font-size);
-font-weight: var(--ui-label-font-weight);
-line-height: var(--ui-label-line-height);
-letter-spacing: 0;
-text-transform: none;
-}
-.ui-field-head {
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: var(--ui-field-label-gap);
-min-height: var(--ui-field-head-height);
-margin-bottom: var(--ui-field-stack-gap);
-}
-.ui-field-head .ui-field-label,
-.ui-field-head .field-label {
-display: flex;
-align-items: center;
-min-height: var(--ui-field-head-height);
-margin-bottom: 0;
-}
-.ui-field-actions {
-display: flex;
-flex: 0 0 auto;
-align-items: center;
-gap: var(--ui-field-stack-gap);
-}
-.ui-field-action {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-min-height: var(--ui-field-action-height);
-padding: var(--ui-field-action-padding);
-}
-.ui-label-action,
-.ui-popover-trigger {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-box-sizing: border-box;
-gap: 6px;
-min-height: var(--ui-label-action-height);
-padding: var(--ui-label-action-padding);
-border: 1px solid var(--ui-action-border);
-border-radius: var(--ui-label-action-radius);
-background: var(--ui-action-bg);
-color: var(--text-dim);
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-label-action-font-size);
-font-weight: var(--ui-label-action-font-weight);
-line-height: 1;
-letter-spacing: 0;
-text-decoration: none;
-white-space: nowrap;
-}
-button.ui-label-action,
-button.ui-popover-trigger {
-cursor: pointer;
-}
-button.ui-label-action:hover,
-button.ui-label-action:focus-visible,
-button.ui-popover-trigger:hover,
-button.ui-popover-trigger:focus-visible {
-border-color: var(--ui-action-hover-border);
-background: var(--ui-action-hover-bg);
-color: var(--ui-action-hover-text);
-outline: 0;
-}
-.ui-label-action.is-static {
-cursor: default;
-background: var(--bg-input);
-}
-.ui-field-meta-row {
-display: flex;
-align-items: center;
-justify-content: flex-start;
-flex-wrap: wrap;
-gap: var(--ui-control-grid-gap) var(--ui-field-label-gap);
-min-height: var(--ui-field-meta-min-height);
-margin-top: var(--ui-field-meta-margin-top);
-}
-select,
-input[type="number"],
-input[type="text"],
-textarea,
-.cb-input {
-width: 100%;
-box-sizing: border-box;
-min-height: var(--ui-control-height);
-padding: 6px 10px;
-border: 1px solid var(--border);
-border-radius: var(--ui-control-radius);
-background: var(--ui-control-bg);
-color: var(--text);
-font-family: inherit;
-font-size: var(--ui-control-font-size);
-font-weight: var(--ui-control-font-weight);
-outline: none;
-box-shadow: none;
-transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
-}
-select:hover,
-input[type="number"]:hover,
-input[type="text"]:hover,
-textarea:hover,
-.cb-input:hover {
-border-color: var(--border-bright);
-}
-select:focus,
-input[type="number"]:focus,
-input[type="text"]:focus,
-textarea:focus,
-.cb-input[aria-expanded="true"] {
-border-color: var(--warn);
-box-shadow: var(--focus-ring);
-}
-button:focus-visible,
-input[type="checkbox"]:focus-visible,
-input[type="radio"]:focus-visible {
-outline: none;
-box-shadow: var(--focus-ring);
-}
-.ui-inline-number {
-display: grid;
-grid-template-columns: minmax(0, 1fr) auto;
-align-items: center;
-box-sizing: border-box;
-height: var(--ui-control-height);
-min-height: var(--ui-control-height);
-margin: 0;
-padding: 0 10px;
-border: var(--ui-control-border);
-border-radius: var(--ui-control-radius);
-background: var(--ui-control-bg);
-color: var(--text);
-line-height: 1;
-transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
-}
-.ui-inline-number:hover {
-border-color: var(--ui-control-hover-border);
-}
-.ui-inline-number:focus-within {
-border-color: var(--ui-control-focus-border);
-box-shadow: var(--ui-control-focus-ring);
-}
-.ui-inline-number.is-plain {
-grid-template-columns: minmax(0, 1fr);
-}
-.ui-inline-number-input {
-display: block;
-width: 100%;
-height: calc(var(--ui-control-height) - 2px);
-min-height: 0;
-padding: 0 !important;
-border: 0 !important;
-border-radius: 0;
-outline: 0 !important;
-background: transparent !important;
-box-shadow: none !important;
-color: inherit;
-font-family: var(--ui-number-font);
-font-size: var(--ui-number-font-size);
-font-weight: var(--ui-number-font-weight);
-line-height: 1;
-text-align: center;
-}
-.ui-inline-number-input:hover,
-.ui-inline-number-input:focus,
-.ui-inline-number-input:focus-visible,
-.ui-inline-number-input:active {
-border: 0 !important;
-outline: 0 !important;
-background: transparent !important;
-box-shadow: none !important;
-}
-.ui-inline-number-input:disabled {
-cursor: not-allowed;
-opacity: 0.65;
-}
-.ui-inline-number-unit {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-margin-left: 4px;
-color: var(--text-dim);
-font-size: var(--ui-number-unit-size);
-font-weight: 800;
-line-height: 1;
-}
-}
-@layer components {
-.ui-frame {
-overflow: visible;
-}
-.ui-frame-head {
-flex-wrap: nowrap;
-}
-.ui-frame.ui-panel {
---panel-point-height: var(--ui-panel-point-height);
-}
-.ui-panel,
-.dex-modal,
-.ui-frame {
-background: var(--ui-frame-bg);
-border: var(--ui-frame-border);
-border-color: var(--panel-border-color, var(--border));
-border-top-color: var(--panel-point-color, var(--panel-border-color, var(--border)));
-border-top-width: var(--panel-point-height, 1px);
-border-radius: var(--ui-frame-radius);
-box-shadow: var(--ui-frame-shadow);
-}
-.ui-panel.atk {
---panel-border-color: var(--ui-atk-border);
-}
-.ui-panel.def {
---panel-border-color: var(--ui-def-border);
-}
-.ui-panel-head,
-.dex-modal-head,
-.ui-frame-head {
-position: relative;
-display: flex;
-align-items: center;
-align-content: center;
-justify-content: space-between;
-gap: var(--ui-panel-head-gap);
-height: var(--ui-panel-head-min-height);
-min-height: var(--ui-panel-head-min-height);
-padding: var(--ui-panel-head-padding);
-background: var(--ui-panel-head-bg);
-border-bottom: 1px solid var(--border);
-border-radius: var(--ui-frame-radius) var(--ui-frame-radius) 0 0;
-}
-.ui-panel-actions {
-display: inline-flex;
-flex: 0 0 auto;
-align-items: center;
-align-content: center;
-align-self: stretch;
-justify-content: flex-end;
-flex-wrap: nowrap;
-gap: var(--ui-panel-actions-gap);
-min-height: 0;
-margin-left: auto;
-}
-.ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .rc-analyze-btn, .dex-modal-btn, .calc-field-auto-toggle) {
-box-sizing: border-box;
-display: inline-flex;
-flex: 0 0 auto;
-align-items: center;
-justify-content: center;
-height: var(--ui-panel-action-height);
-min-height: var(--ui-panel-action-height);
-max-height: var(--ui-panel-action-height);
-padding: var(--ui-panel-action-padding);
-font-size: var(--ui-panel-action-font-size);
-line-height: 1;
-white-space: nowrap;
-}
-.ui-panel-head > :not(.ui-panel-actions) {
-min-width: 0;
-}
-.ui-panel.atk .ui-panel-head {
-background:
-linear-gradient(90deg, rgba(214, 76, 86, 0.13), transparent 56%),
-#f8fafc;
-}
-.ui-panel.def .ui-panel-head {
-background:
-linear-gradient(90deg, rgba(22, 127, 165, 0.13), transparent 56%),
-#f8fafc;
-}
-.ui-panel-title,
-.ui-panel-tag,
-.dex-modal-title {
-display: flex;
-align-items: center;
-}
-.ui-panel-title,
-.dex-modal-title {
-font-family: 'Noto Sans KR', sans-serif;
-font-size: var(--ui-panel-title-size);
-font-weight: var(--ui-panel-title-weight);
-line-height: var(--ui-panel-title-line-height);
-letter-spacing: 0;
-color: var(--text);
-}
-.ui-panel-tag {
-box-sizing: border-box;
-flex: 0 0 auto;
-justify-content: center;
-height: var(--ui-panel-action-height);
-min-height: var(--ui-panel-action-height);
-max-height: var(--ui-panel-action-height);
-border-radius: var(--radius-sm);
-padding: var(--ui-panel-action-padding);
-font-size: var(--ui-panel-action-font-size);
-font-weight: var(--ui-panel-action-font-weight);
-line-height: 1;
-letter-spacing: 0.08em;
-white-space: nowrap;
-}
-.ui-panel-body,
-.dex-modal-body,
-.ui-frame-body {
-padding: var(--ui-frame-body-padding);
-}
-.ui-panel-body.ui-subframe-stack,
-.ui-frame-body.ui-subframe-stack {
-gap: var(--ui-panel-body-stack-gap);
-}
-@media (max-width: 560px) {
-.ui-panel-head,
-.dex-modal-head,
-.ui-frame-head {
---ui-panel-action-height: 30px;
---ui-panel-action-padding: 0 10px;
---ui-panel-action-font-size: 11px;
-gap: 8px;
-padding: var(--ui-panel-head-padding-compact);
-}
-.ui-panel-actions {
-gap: 5px;
-}
-}
-}
-@layer layouts {
-header > .header-top,
-header > .main-nav {
-width: 100%;
-max-width: var(--app-shell-max);
-margin-right: auto;
-margin-left: auto;
-}
-.header-top {
-display: flex;
-flex-wrap: wrap;
-align-items: center;
-justify-content: space-between;
-gap: 12px;
-}
-.header-brand h1 {
-margin: 0;
-line-height: 1.2;
-}
-.brand-sub {
-margin-top: 2px;
-font-family: 'JetBrains Mono', monospace;
-}
-.main-nav {
-display: flex;
-}
-.nav-tab {
-font-family: 'Noto Sans KR', sans-serif;
-cursor: pointer;
-}
-.page {
-display: none;
-}
-.page.active {
-display: block;
-}
-.site-shell {
-width: 100%;
-margin: 0 auto;
-display: grid;
-grid-template-columns: var(--ad-rail-width) minmax(0, var(--app-content-max)) var(--ad-rail-width);
-align-items: start;
-}
-.app-content,
-.ad-rail {
-min-width: 0;
-}
-.ad-rail {
-display: flex;
-justify-content: center;
-}
-.ad-slot {
-width: var(--ad-rail-width);
-display: flex;
-align-items: center;
-justify-content: center;
-text-align: center;
-}
-.ad-slot-rail {
-min-height: 600px;
-position: sticky;
-top: 18px;
-}
-.ad-slot span {
-writing-mode: vertical-rl;
-transform: rotate(180deg);
-}
-main {
-width: 100%;
-max-width: none;
-margin: 0;
-padding: 0;
-}
-@media (max-width: 1759px) {
-.site-shell {
-max-width: calc(var(--app-content-max) + (var(--app-shell-gutter) * 2));
-grid-template-columns: minmax(0, var(--app-content-max));
-}
-.ad-rail {
-display: none;
-}
-header > .header-top,
-header > .main-nav {
-max-width: var(--app-content-max);
 }
 }
 }
@@ -12118,6 +10955,1169 @@ height: 36px;
 min-height: 0;
 font-size: 12px;
 }
+}
+}
+@layer responsive {
+:root {
+--app-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+--app-font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+--ui-number-font: var(--app-font-mono);
+}
+body,
+button,
+input,
+select,
+textarea {
+font-family: var(--app-font-sans);
+}
+.mono,
+:where(.ui-stat-readout, .ui-chip-value, .calc-mobile-summary-range, .calc-mobile-summary-ko) {
+font-family: var(--app-font-mono);
+}
+#page-calc .calc-side-head-actions > .calc-detail-toggle,
+.calc-compact-stats {
+display: none;
+}
+#page-calc .calc-side-head-actions {
+align-items: center;
+}
+#page-calc .calc-result-grid {
+grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+}
+#page-calc .calc-result-card:only-child {
+min-height: 220px;
+}
+#page-revcalc .rc-analysis-progress {
+display: grid;
+grid-template-columns: 28px minmax(0, 1fr);
+align-items: center;
+gap: 10px 12px;
+min-height: 92px;
+padding: 16px;
+}
+#page-revcalc .rc-analysis-spinner {
+width: 24px;
+height: 24px;
+border: 3px solid var(--border);
+border-top-color: var(--def);
+border-radius: 50%;
+animation: rc-analysis-spin 0.8s linear infinite;
+}
+#page-revcalc .rc-analysis-copy {
+display: grid;
+gap: 2px;
+min-width: 0;
+}
+#page-revcalc .rc-analysis-copy strong {
+font-size: 13px;
+}
+#page-revcalc .rc-analysis-copy span {
+color: var(--text-dim);
+font-size: 11px;
+}
+#page-revcalc .rc-analysis-track {
+grid-column: 1 / -1;
+position: relative;
+height: 4px;
+overflow: hidden;
+border-radius: 2px;
+background: var(--bg-muted);
+}
+#page-revcalc .rc-analysis-track span {
+position: absolute;
+inset: 0 auto 0 -36%;
+width: 36%;
+background: var(--def);
+animation: rc-analysis-track 1.1s ease-in-out infinite;
+}
+#page-revcalc .rc-analyze-btn.is-analyzing {
+border-color: var(--atk);
+background: var(--atk);
+}
+.page-init-error {
+margin-bottom: var(--ui-frame-row-gap);
+border-color: color-mix(in srgb, var(--atk) 42%, var(--border));
+color: var(--atk-deep);
+}
+@keyframes rc-analysis-spin {
+to { transform: rotate(360deg); }
+}
+@keyframes rc-analysis-track {
+0% { left: -36%; }
+55% { left: 48%; }
+100% { left: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+#page-revcalc .rc-analysis-spinner,
+#page-revcalc .rc-analysis-track span {
+animation-duration: 2.4s;
+}
+}
+.calc-mobile-summary {
+display: none;
+}
+@media (max-width: 760px) {
+header {
+border-bottom-color: var(--border);
+box-shadow: 0 2px 10px rgb(15 23 42 / 0.06);
+}
+.header-title-row h1 {
+font-size: 18px;
+}
+.brand-sub {
+display: none;
+}
+.party-preset-button,
+.theme-toggle-button {
+min-height: 40px;
+}
+.main-nav {
+gap: 3px;
+margin-top: 8px;
+overflow-x: auto;
+overscroll-behavior-x: contain;
+}
+.nav-tab,
+.nav-tab:nth-child(n) {
+flex: 1 0 auto;
+min-width: 64px;
+min-height: 44px;
+padding: 9px 6px 10px;
+font-size: 11px;
+}
+.site-shell {
+padding: 10px 8px 88px;
+}
+.page-frame > :where(.ui-frame-row, .ui-frame, .ui-panel)
++ :where(.ui-frame-row, .ui-frame, .ui-panel) {
+margin-top: 10px;
+}
+.ui-frame-row {
+gap: 10px;
+}
+.ui-frame-body,
+.ui-panel-body {
+padding: 10px;
+}
+.page .cb-input,
+.page .ui-btn,
+.page .party-load-button,
+.page .ui-label-action:not(.is-static),
+.page .matchup-mode-btn,
+.page .dex-tab,
+.page input[type="text"]:not(.tool-stat-point-input):not(.tool-move-power-input),
+.page input[type="number"]:not(.tool-stat-point-input):not(.tool-move-power-input),
+.page select {
+min-height: 42px;
+}
+.page .ui-check {
+min-height: 40px;
+}
+#page-calc {
+padding-bottom: 10px;
+}
+#page-calc .calc-side-head-actions > .calc-detail-toggle {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+min-width: 52px;
+min-height: 36px;
+border: 1px solid var(--border);
+border-radius: 6px;
+background: var(--bg-elev);
+color: var(--text-dim);
+}
+#page-calc .calc-detail-toggle.active {
+border-color: var(--border-bright);
+background: var(--bg-muted);
+color: var(--text);
+}
+#page-calc .calc-side-body:not(.is-detail-expanded) .calc-stat-panel {
+display: none;
+}
+#page-calc .calc-side-body:not(.is-detail-expanded) .calc-compact-stats {
+display: grid;
+grid-template-columns: repeat(3, minmax(0, 1fr));
+gap: 1px;
+overflow: hidden;
+padding: 0;
+border: 1px solid var(--border);
+background: var(--border);
+}
+#page-calc .calc-compact-stat {
+display: flex;
+align-items: center;
+justify-content: space-between;
+min-width: 0;
+min-height: 38px;
+padding: 0 9px;
+background: var(--bg-input);
+}
+#page-calc .calc-compact-stat span {
+color: var(--text-faint);
+font-size: 10px;
+font-weight: 800;
+}
+#page-calc .calc-compact-stat b {
+font-family: var(--app-font-mono);
+font-size: 12px;
+}
+#page-calc .calc-mobile-summary:not([hidden]) {
+position: fixed;
+right: max(8px, env(safe-area-inset-right));
+bottom: max(8px, env(safe-area-inset-bottom));
+left: max(8px, env(safe-area-inset-left));
+z-index: 90;
+display: grid;
+grid-template-columns: auto minmax(0, 1fr) auto auto;
+align-items: center;
+gap: 5px 9px;
+min-height: 58px;
+padding: 8px 12px;
+border: 1px solid var(--border-bright);
+border-radius: 8px;
+background: var(--bg-elev);
+color: var(--text);
+box-shadow: 0 10px 28px rgb(15 23 42 / 0.2);
+text-align: left;
+}
+body:has(.combobox-options-portal.open) #page-calc .calc-mobile-summary:not([hidden]) {
+display: none;
+}
+#page-calc .calc-mobile-summary-label {
+color: var(--text-faint);
+font-size: 10px;
+font-weight: 800;
+}
+#page-calc .calc-mobile-summary strong {
+min-width: 0;
+overflow: hidden;
+font-size: 13px;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+#page-calc .calc-mobile-summary-range,
+#page-calc .calc-mobile-summary-ko {
+font-family: var(--ui-number-font);
+font-size: 12px;
+white-space: nowrap;
+}
+#page-calc .calc-mobile-summary-ko {
+color: var(--bad);
+}
+#page-calc .calc-pair-grid {
+grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+#page-calc .tool-stat-table-frame {
+overflow: hidden;
+padding: 6px 8px;
+}
+#page-calc .calc-stat-grid {
+display: block;
+min-width: 0;
+--tool-stat-control-height: 34px;
+--tool-stat-point-input-width: 42px;
+--tool-stat-rank-value-width: 22px;
+}
+#page-calc .calc-stat-head-row {
+display: none;
+}
+#page-calc .calc-stat-row {
+display: grid;
+grid-template-columns: minmax(56px, 0.6fr) minmax(126px, 1.45fr) minmax(96px, 1fr);
+grid-template-areas:
+"name base final"
+"name point rank";
+gap: 5px 7px;
+align-items: center;
+min-height: 76px;
+padding: 7px 0;
+border-bottom: 1px solid var(--border-soft);
+}
+#page-calc .calc-stat-row:last-child {
+border-bottom: 0;
+}
+#page-calc .calc-stat-name {
+grid-area: name;
+align-self: stretch;
+border-radius: 6px;
+background: var(--bg-muted);
+}
+#page-calc .calc-stat-base {
+grid-area: base;
+}
+#page-calc .tool-stat-col-point {
+grid-area: point;
+}
+#page-calc .calc-stat-final {
+grid-area: final;
+}
+#page-calc .tool-stat-col-rank {
+grid-area: rank;
+}
+#page-calc .calc-stat-base,
+#page-calc .calc-stat-final {
+display: flex;
+align-items: center;
+justify-content: space-between;
+min-height: 28px;
+padding: 0 7px;
+border-radius: 5px;
+background: var(--bg-input);
+}
+#page-calc .calc-stat-base::before,
+#page-calc .calc-stat-final::before {
+color: var(--text-faint);
+font-family: "Noto Sans KR", sans-serif;
+font-size: 9px;
+font-weight: 800;
+}
+#page-calc .calc-stat-base::before {
+content: "종족";
+}
+#page-calc .calc-stat-final::before {
+content: "실수치";
+}
+#page-calc .tool-stat-point-stepper,
+#page-calc .tool-stat-rank-stepper {
+width: 100%;
+}
+#page-calc .tool-stat-rank-empty {
+min-height: 34px;
+}
+#page-calc .tool-move-list-frame {
+padding: 7px;
+overflow: hidden;
+}
+#page-calc .tool-move-head-row {
+display: none;
+}
+#page-calc .tool-move-row,
+#page-calc .tool-move-list--critical .tool-move-row {
+display: grid;
+grid-template-columns: 22px minmax(0, 1fr) 52px 70px;
+grid-template-areas:
+"index name name critical"
+"index type power readout";
+grid-template-rows: 40px 36px;
+gap: 4px 6px;
+height: auto;
+min-height: 84px;
+padding: 4px 0;
+border-bottom: 1px solid var(--border-soft);
+}
+#page-calc .tool-move-row:last-child {
+border-bottom: 0;
+}
+#page-calc .tool-move-col-index {
+grid-area: index;
+}
+#page-calc .tool-move-col-name {
+grid-area: name;
+}
+#page-calc .tool-move-col-type {
+grid-area: type;
+}
+#page-calc .tool-move-col-power {
+grid-area: power;
+}
+#page-calc .tool-move-col-critical {
+grid-area: critical;
+justify-content: flex-end;
+min-width: 40px;
+}
+#page-calc .tool-move-col-readout,
+#page-calc .tool-move-list--critical .tool-move-power-readout {
+grid-area: readout;
+grid-column: auto;
+}
+#page-calc .tool-move-panel {
+--tool-move-control-height: 36px;
+--tool-move-name-font-size: 13px;
+}
+#page-calc .calc-result-card {
+display: grid;
+grid-template-columns: minmax(0, 1fr);
+min-height: 0;
+}
+#page-calc .calc-result-card-head {
+min-height: 0;
+padding-right: 0;
+}
+#page-calc .calc-ko-badge {
+position: static;
+width: auto;
+max-width: none;
+min-height: 40px;
+margin: 0 8px 8px;
+}
+#page-calc .calc-damage-meta {
+height: auto;
+max-height: none;
+}
+#page-matchup .matchup-control-row {
+flex-wrap: wrap;
+}
+#page-matchup .matchup-mode-tabs {
+flex: 1 1 220px;
+}
+#page-matchup .party-load-button {
+flex: 1 1 100%;
+}
+#page-matchup .matchup-slot {
+grid-template-columns: 26px minmax(0, 1fr) minmax(76px, auto) 36px;
+grid-template-areas: "number input types clear";
+gap: 6px;
+min-height: 52px;
+padding: 6px;
+}
+#page-matchup .matchup-slot-num {
+grid-area: number;
+}
+#page-matchup .matchup-slot > .combobox {
+grid-area: input;
+}
+#page-matchup .matchup-slot-sprite {
+display: none;
+}
+#page-matchup .matchup-slot-types {
+grid-area: types;
+min-height: 0;
+gap: 3px;
+}
+#page-matchup .matchup-slot-types .matchup-type-pill {
+flex: 1 1 36px;
+min-width: 36px;
+padding-right: 4px;
+padding-left: 4px;
+}
+#page-matchup .matchup-slot-clear {
+grid-area: clear;
+width: 36px;
+height: 36px;
+}
+#page-matchup .matchup-table-wrap {
+border: 1px solid var(--border);
+border-radius: 6px;
+overscroll-behavior-x: contain;
+}
+#page-matchup .matchup-table {
+min-width: 620px;
+}
+#page-matchup .matchup-table th:first-child,
+#page-matchup .matchup-table td:first-child {
+position: sticky;
+left: 0;
+z-index: 1;
+background: var(--bg-panel);
+box-shadow: 1px 0 0 var(--border);
+}
+#page-matchup .matchup-table thead th:first-child {
+z-index: 3;
+background: var(--bg-muted);
+}
+#page-finetune .ft-settings-grid,
+#page-revcalc .rc-settings-grid,
+#page-revcalc .rc-opp-settings-grid {
+grid-template-columns: minmax(0, 1fr);
+grid-template-areas: none;
+}
+#page-finetune .ft-settings-grid > *,
+#page-revcalc .rc-settings-grid > *,
+#page-revcalc .rc-opp-settings-grid > * {
+grid-area: auto;
+}
+#page-finetune .ft-stats-column,
+#page-revcalc .tool-stat-table-frame {
+overflow-x: auto;
+overscroll-behavior-x: contain;
+scrollbar-width: thin;
+}
+#page-finetune .ft-stats-grid {
+min-width: 470px;
+--tool-stat-control-height: 36px;
+}
+#page-revcalc .rc-stats-grid {
+min-width: 440px;
+--tool-stat-control-height: 36px;
+}
+#page-revcalc .rc-opp-stat-table {
+min-width: 330px;
+}
+#page-revcalc .rc-next-rank-wrap {
+overflow-x: auto;
+overscroll-behavior-x: contain;
+}
+#page-revcalc .rc-next-rank-head,
+#page-revcalc .rc-next-rank-row {
+min-width: 430px;
+}
+#page-dex .dex-control-head,
+#page-dex .dex-nav {
+overflow-x: auto;
+overscroll-behavior-x: contain;
+}
+#page-dex .dex-tab {
+flex: 1 0 78px;
+}
+#page-dex .dex-table-wrap {
+max-height: 68vh;
+border: 1px solid var(--border);
+border-radius: 6px;
+}
+#page-dex :where(#dexTablePokemon, #dexTableMoves, #dexTableAbilities, #dexTableItems) {
+width: 100%;
+min-width: 0;
+table-layout: auto;
+}
+#dexTablePokemon :is(th, td):nth-child(4),
+#dexTablePokemon :is(th, td):nth-child(5),
+#dexTablePokemon :is(th, td):nth-child(6),
+#dexTablePokemon :is(th, td):nth-child(7),
+#dexTablePokemon :is(th, td):nth-child(10),
+#dexTablePokemon :is(th, td):nth-child(11),
+#dexTablePokemon :is(th, td):nth-child(12),
+#dexTableMoves :is(th, td):nth-child(5),
+#dexTableMoves :is(th, td):nth-child(6),
+#dexTableMoves :is(th, td):nth-child(7),
+#dexTableAbilities :is(th, td):nth-child(2),
+#dexTableItems :is(th, td):nth-child(2),
+#dexTableItems :is(th, td):nth-child(4) {
+display: none;
+}
+#page-dex .dex-table th,
+#page-dex .dex-table td {
+height: 44px;
+padding: 6px;
+}
+#dexTablePokemon .dex-name-cell {
+min-width: 118px;
+}
+#dexTablePokemon .dex-type-cell {
+min-width: 74px;
+}
+#dexTableAbilities .desc-cell,
+#dexTableItems .desc-cell {
+min-width: 0;
+overflow: hidden;
+white-space: nowrap;
+text-overflow: ellipsis;
+}
+}
+@media (max-width: 430px) {
+.header-title-row {
+flex-wrap: wrap;
+}
+.header-actions {
+width: 100%;
+}
+.theme-toggle-button {
+width: 100%;
+}
+#page-calc .calc-mobile-summary:not([hidden]) {
+grid-template-columns: minmax(0, 1fr) auto;
+}
+#page-calc .calc-mobile-summary-label {
+display: none;
+}
+#page-calc .calc-mobile-summary-ko {
+grid-column: 2;
+grid-row: 1 / span 2;
+}
+#page-calc .calc-pair-grid {
+grid-template-columns: minmax(0, 1fr);
+}
+#page-calc .calc-stat-row {
+grid-template-columns: 56px minmax(120px, 1.35fr) minmax(92px, 1fr);
+gap: 5px;
+}
+#page-calc .tool-move-row,
+#page-calc .tool-move-list--critical .tool-move-row {
+grid-template-columns: 20px minmax(0, 1fr) 48px 64px;
+gap: 4px;
+}
+#page-calc .calc-results-actions {
+display: grid;
+grid-template-columns: 1fr;
+width: 100%;
+}
+#page-calc .calc-results-head {
+align-items: stretch;
+flex-direction: column;
+}
+#page-matchup .matchup-table {
+min-width: 560px;
+}
+#page-dex .dex-pokemon-name-wrap {
+gap: 4px;
+}
+#page-dex .dex-list-sprite {
+display: none;
+}
+}
+}
+@layer themes {
+#page-calc {
+--calc-bg: var(--bg);
+--calc-line: var(--border);
+--calc-line-soft: var(--border-soft);
+--calc-text: var(--text);
+--calc-muted: var(--text-dim);
+--calc-attacker: var(--atk);
+--calc-attacker-soft: color-mix(in srgb, var(--atk) 9%, var(--bg-panel));
+--calc-defender: var(--def);
+--calc-defender-soft: color-mix(in srgb, var(--def) 9%, var(--bg-panel));
+--calc-field-soft: color-mix(in srgb, var(--ok) 6%, var(--bg-panel));
+--calc-result-soft: var(--ui-action-active-bg);
+--calc-accent: var(--text);
+--calc-control-bg: var(--ui-control-bg);
+--calc-control-hover: var(--bg-muted);
+--calc-surface: var(--bg-panel);
+--calc-surface-2: var(--bg-input);
+--calc-surface-3: var(--bg-muted);
+}
+:root[data-theme="dark"] #page-finetune {
+--ft-speed-chip-bg: var(--bg-input);
+--ft-speed-neutral-fast: var(--def);
+--ft-speed-need-bg: color-mix(in srgb, var(--ok) 13%, var(--bg-input));
+--ft-speed-impossible-bg: color-mix(in srgb, var(--atk) 13%, var(--bg-input));
+--ft-tag-bg: var(--bg-input);
+--ft-breakpoint-bg: var(--bg-input);
+--ft-breakpoint-active-bg: color-mix(in srgb, var(--ok) 12%, var(--bg-input));
+--ft-breakpoint-delta-bg: color-mix(in srgb, var(--bg-input) 86%, var(--text) 14%);
+}
+:root[data-theme="dark"] #page-matchup {
+--matchup-accent: var(--ok);
+--matchup-accent-text: var(--ok);
+--matchup-accent-contrast: var(--bg);
+--matchup-accent-soft: color-mix(in srgb, var(--ok) 9%, var(--bg-panel));
+--matchup-active-bg: var(--bg-input);
+--matchup-active-border: color-mix(in srgb, var(--ok) 34%, var(--border));
+--matchup-active-shadow: none;
+--matchup-soft-bg: var(--bg-input);
+--matchup-card-bg: var(--bg-input);
+--matchup-table-head-bg: var(--bg-muted);
+--matchup-table-summary-bg: var(--bg-input);
+--matchup-cell-neutral-bg: var(--bg-input);
+--matchup-delete-hover-border: color-mix(in srgb, var(--atk) 34%, transparent);
+--matchup-delete-hover-bg: color-mix(in srgb, var(--atk) 12%, var(--bg-input));
+--matchup-eff-4-bg: color-mix(in srgb, var(--atk) 24%, var(--bg-input));
+--matchup-eff-4-text: color-mix(in srgb, var(--atk) 86%, var(--text));
+--matchup-eff-2-bg: color-mix(in srgb, var(--atk) 15%, var(--bg-input));
+--matchup-eff-2-text: color-mix(in srgb, var(--atk) 78%, var(--text));
+--matchup-eff-resist-bg: color-mix(in srgb, var(--ok) 12%, var(--bg-input));
+--matchup-eff-quarter-bg: color-mix(in srgb, var(--ok) 18%, var(--bg-input));
+--matchup-eff-zero-bg: var(--bg-muted);
+--matchup-coverage-hit-bg: color-mix(in srgb, var(--ok) 13%, var(--bg-input));
+--matchup-coverage-miss-bg: color-mix(in srgb, var(--atk) 12%, var(--bg-input));
+}
+.tool-page {
+--tool-line: var(--border);
+--tool-line-soft: var(--border-soft);
+--tool-surface: var(--bg-panel);
+--tool-surface-soft: var(--bg-input);
+--tool-muted: var(--text-dim);
+--tool-faint: var(--text-faint);
+--tool-text: var(--text);
+--tool-accent: var(--warn);
+--tool-good: var(--ok);
+--tool-warn: var(--warn);
+--tool-danger: var(--atk);
+--tool-info: var(--def);
+--tool-shadow: var(--surface-shadow-soft);
+}
+#page-dex {
+--dex-surface: var(--bg-panel);
+--dex-surface-soft: var(--bg-input);
+--dex-muted: var(--text-dim);
+--dex-faint: var(--text-faint);
+--dex-text: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex) {
+color: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-card, .ui-summary-card, .ui-meter-card) {
+background: var(--ui-frame-bg);
+border-color: var(--border);
+box-shadow: var(--ui-frame-shadow);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-subframe) {
+background: var(--ui-subframe-bg);
+border-color: var(--border);
+box-shadow: var(--ui-frame-shadow);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-frame-head, .ui-panel-head, .dex-modal-head) {
+align-items: center;
+align-content: center;
+flex-wrap: nowrap;
+height: var(--ui-panel-head-min-height);
+min-height: var(--ui-panel-head-min-height);
+background: var(--ui-panel-head-bg);
+border-bottom-color: var(--border);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-frame-body, .ui-panel-body, .ui-card-body, .dex-modal-body) {
+color: var(--text);
+}
+#page-calc .ui-section-title,
+#page-calc .ui-control-label,
+#page-calc .ui-stat-head,
+#page-calc .ui-chip-label {
+color: var(--text-dim);
+}
+#page-calc .ui-stat-readout,
+#page-calc .ui-chip-value,
+#page-calc .ui-index {
+color: var(--text);
+}
+#page-calc .ui-metric-chip,
+#page-calc .ui-status-badge {
+border-color: var(--border);
+background: var(--bg-input);
+color: var(--text);
+}
+#page-calc .ui-table-head-row,
+#page-calc .ui-meta-row {
+color: var(--text-dim);
+}
+#page-calc .ui-meter {
+background: var(--bg-muted);
+}
+:root[data-theme="dark"] #page-calc :is(select, input[type="number"]:not(.tool-stat-point-input), input[type="text"], textarea, .cb-input, .form-switch-btn) {
+border-color: var(--border);
+background: var(--ui-control-bg);
+color: var(--text);
+}
+:root[data-theme="dark"] #page-calc .calc-result-card.ui-card {
+border-color: var(--border);
+background: var(--bg-panel);
+color: var(--text);
+box-shadow: var(--surface-shadow-soft);
+}
+:root[data-theme="dark"] #page-calc #calc-field-panel > .ui-panel-head {
+background: linear-gradient(
+135deg,
+color-mix(in srgb, var(--ok) 16%, var(--bg-elev)) 0%,
+var(--bg-input) 100%
+);
+}
+:root[data-theme="dark"] #page-calc .calc-results-panel > .ui-panel-head {
+background: linear-gradient(
+135deg,
+color-mix(in srgb, var(--calc-result) 18%, var(--bg-elev)) 0%,
+var(--bg-input) 100%
+);
+}
+:root[data-theme="dark"] #page-calc .calc-stat-preset-toggle.ui-popover-trigger,
+:root[data-theme="dark"] #page-calc .calc-stat-total.ui-metric-chip {
+border-color: var(--border);
+background: var(--bg-input);
+color: var(--text-dim);
+}
+:root[data-theme="dark"] #page-calc .calc-stat-total.ui-metric-chip b {
+color: var(--text);
+}
+:root[data-theme="dark"] :is(#page-calc, #page-finetune) .tool-stat-bulk-card,
+:root[data-theme="dark"] #page-calc .calc-stat-bulk-card.ui-metric-chip,
+:root[data-theme="dark"] #page-calc .calc-stat-bulk-card:nth-child(2).ui-metric-chip {
+border-color: var(--border);
+background: var(--bg-input);
+color: var(--text);
+}
+:root[data-theme="dark"] :is(#page-calc, #page-finetune) .tool-stat-bulk-label,
+:root[data-theme="dark"] #page-calc .calc-stat-bulk-label.ui-chip-label {
+color: var(--text-dim);
+}
+:root[data-theme="dark"] :is(#page-calc, #page-finetune) .tool-stat-bulk-value,
+:root[data-theme="dark"] #page-calc .calc-stat-bulk-value.ui-chip-value {
+color: var(--text);
+}
+:root[data-theme="dark"] #page-calc .tool-pokemon-meta-actions .type-reset-btn {
+border-color: var(--border);
+background: var(--bg-input);
+color: var(--text-dim);
+}
+:root[data-theme="dark"] #page-calc .tool-pokemon-meta-actions .type-reset-btn:hover,
+:root[data-theme="dark"] #page-calc .tool-pokemon-meta-actions .type-reset-btn:focus-visible {
+border-color: var(--ui-action-hover-border);
+background: var(--ui-action-hover-bg);
+color: var(--ui-action-hover-text);
+}
+:root[data-theme="dark"] #page-calc .calc-page-jump-button {
+border-color: var(--border);
+background: var(--bg-input);
+color: var(--text-dim);
+}
+:root[data-theme="dark"] #page-calc .calc-page-jump-button:hover,
+:root[data-theme="dark"] #page-calc .calc-page-jump-button:focus-visible {
+border-color: var(--ui-action-hover-border);
+background: var(--ui-action-hover-bg);
+color: var(--ui-action-hover-text);
+}
+:root[data-theme="dark"] #page-calc .calc-side-swap-button {
+border-color: var(--border-bright);
+background: linear-gradient(
+180deg,
+color-mix(in srgb, var(--bg-elev) 84%, var(--text) 16%) 0%,
+var(--bg-input) 100%
+);
+color: var(--text);
+box-shadow:
+0 0 0 1px color-mix(in srgb, var(--text) 8%, transparent),
+0 12px 22px -14px rgb(0 0 0 / 0.85);
+}
+:root[data-theme="dark"] #page-calc .calc-side-swap-button:hover,
+:root[data-theme="dark"] #page-calc .calc-side-swap-button:focus-visible {
+border-color: color-mix(in srgb, var(--warn) 62%, var(--border-bright));
+background: linear-gradient(
+180deg,
+color-mix(in srgb, var(--bg-elev) 72%, var(--warn) 28%) 0%,
+color-mix(in srgb, var(--bg-input) 82%, var(--warn) 18%) 100%
+);
+color: var(--warn);
+box-shadow:
+0 0 0 2px color-mix(in srgb, var(--warn) 24%, transparent),
+0 14px 26px -14px rgb(0 0 0 / 0.92);
+}
+:root[data-theme="dark"] #page-calc .calc-result-card.none.compact.ui-card {
+background: var(--bg-input);
+}
+:root[data-theme="dark"] #page-calc .calc-result-card-head.ui-card-head {
+border-bottom-color: var(--border-soft);
+}
+:root[data-theme="dark"] #page-calc .calc-result-card .calc-result-slot.ui-index {
+border-color: var(--border);
+background: var(--bg-input);
+color: var(--text-dim);
+}
+:root[data-theme="dark"] #page-calc .calc-speed-value.ui-stat-readout {
+border-color: var(--border);
+background: var(--bg-input);
+color: var(--text);
+}
+:root[data-theme="dark"] #page-calc .tool-move-type-control.type-none {
+border-color: var(--border);
+background: var(--bg-input);
+color: var(--text-faint);
+}
+:root[data-theme="dark"] #page-calc .calc-result-card .calc-result-move-name,
+:root[data-theme="dark"] #page-calc .calc-damage-meta b {
+color: var(--text);
+}
+:root[data-theme="dark"] #page-calc .calc-damage-range.ui-meter-card {
+border-color: var(--border);
+background: var(--bg-input);
+}
+:root[data-theme="dark"] #page-calc .calc-damage-meter.ui-meter {
+border-color: var(--border-bright);
+background: var(--bg-muted);
+}
+:root[data-theme="dark"] #page-calc .calc-damage-meta.ui-meta-row {
+color: var(--text-dim);
+}
+:root[data-theme="dark"] #page-calc .calc-mods-trace b.ui-status-badge,
+:root[data-theme="dark"] #page-calc .calc-side-effect-badge.ui-status-badge,
+:root[data-theme="dark"] #page-calc .calc-timing-power-badge.ui-status-badge,
+:root[data-theme="dark"] #page-calc .calc-speed-entry-note.ui-status-badge {
+border-color: var(--border);
+background: var(--bg-input);
+color: var(--text-dim);
+}
+:root[data-theme="dark"] #page-calc .calc-side-effect-badge.ui-status-badge b {
+color: var(--warn);
+}
+#page-calc .battle-grid > .ui-panel.atk,
+#page-calc.sides-swapped .battle-grid > .ui-panel.def,
+.ui-panel.atk {
+--panel-border-color: var(--ui-atk-border);
+}
+#page-calc .battle-grid > .ui-panel.def,
+#page-calc.sides-swapped .battle-grid > .ui-panel.atk,
+.ui-panel.def {
+--panel-border-color: var(--ui-def-border);
+}
+#page-calc .battle-grid > .ui-panel.atk > .ui-panel-head,
+#page-calc.sides-swapped .battle-grid > .ui-panel.def > .ui-panel-head,
+.ui-panel.atk > .ui-panel-head {
+background: var(--ui-atk-head-bg);
+}
+#page-calc .battle-grid > .ui-panel.def > .ui-panel-head,
+#page-calc.sides-swapped .battle-grid > .ui-panel.atk > .ui-panel-head,
+.ui-panel.def > .ui-panel-head {
+background: var(--ui-def-head-bg);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(select, input[type="number"]:not(.tool-stat-point-input), input[type="text"], textarea, .cb-input, .form-switch-btn) {
+border-color: var(--border);
+background: var(--ui-control-bg);
+color: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(select:hover, input[type="number"]:not(.tool-stat-point-input):hover, input[type="text"]:hover, textarea:hover, .cb-input:hover, .form-switch-btn:hover) {
+border-color: var(--border-bright);
+background: var(--bg-input);
+color: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(select:focus, input[type="number"]:not(.tool-stat-point-input):focus, input[type="text"]:focus, textarea:focus, .cb-input[aria-expanded="true"], .form-switch-btn:focus-visible) {
+border-color: var(--warn);
+box-shadow: var(--focus-ring);
+}
+:is(#page-revcalc, #page-finetune)
+:where(.tool-pokemon-combobox .tool-pokemon-input:focus, .tool-pokemon-combobox .tool-pokemon-input[aria-expanded="true"]) {
+outline: 0;
+border-color: var(--warn);
+box-shadow: var(--ui-pokemon-focus-ring);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+.ui-choice-field.ui-field > .ui-choice-label.ui-field-label {
+display: flex;
+align-items: center;
+min-height: var(--ui-field-head-height);
+margin: 0;
+color: var(--ui-pokemon-label-color, var(--text-dim));
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-pokemon-label-font-size);
+font-weight: var(--ui-pokemon-label-font-weight);
+line-height: var(--ui-label-line-height);
+letter-spacing: 0;
+text-align: left;
+text-transform: none;
+white-space: nowrap;
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input {
+height: var(--ui-control-height);
+min-height: var(--ui-control-height);
+padding: 0 28px 0 10px;
+border: var(--ui-control-border);
+border-radius: var(--ui-control-radius);
+background: var(--ui-control-bg);
+color: var(--text);
+box-shadow: none;
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-control-font-size);
+font-weight: var(--ui-control-font-weight);
+line-height: normal;
+text-align: left;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input:hover {
+border-color: var(--ui-control-hover-border);
+background: var(--bg-input);
+color: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input:focus-visible,
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input[aria-expanded="true"] {
+outline: 0;
+border-color: var(--ui-control-focus-border);
+box-shadow: var(--ui-pokemon-focus-ring);
+}
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-label {
+display: flex;
+align-items: center;
+justify-content: flex-start;
+min-height: var(--ui-field-head-height);
+color: var(--ui-pokemon-label-color, var(--text-dim));
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-pokemon-label-font-size);
+font-weight: var(--ui-pokemon-label-font-weight);
+line-height: var(--ui-label-line-height);
+letter-spacing: 0;
+text-align: left;
+text-transform: none;
+white-space: nowrap;
+}
+#page-calc .tool-settings-choice-cell {
+--calc-control-label-width: 40px;
+--calc-control-gap: var(--ui-control-grid-gap);
+}
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input {
+height: var(--ui-control-height);
+min-height: var(--ui-control-height);
+border: var(--ui-control-border);
+border-radius: var(--ui-control-radius);
+background: var(--ui-control-bg);
+color: var(--text);
+box-shadow: none;
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-control-font-size);
+font-weight: var(--ui-control-font-weight);
+line-height: normal;
+text-align: left;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .tool-settings-choice-surface {
+padding-right: 28px;
+}
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-hp-control.tool-settings-choice-surface {
+display: grid;
+grid-template-columns: minmax(0, 1fr) auto;
+align-items: center;
+padding: 0 10px;
+}
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-hp-control .tool-settings-hp-input {
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-control-font-size);
+font-weight: var(--ui-control-font-weight);
+line-height: normal;
+}
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:hover,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:hover {
+border-color: var(--ui-control-hover-border);
+background: var(--bg-input);
+color: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus-visible,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus-within,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:focus,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:focus-visible,
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input[aria-expanded="true"] {
+outline: 0;
+border-color: var(--ui-control-focus-border);
+box-shadow: var(--ui-pokemon-focus-ring);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.combobox-options),
+.combobox-options.combobox-options-portal {
+border-color: var(--border-bright);
+background: var(--bg-elev);
+box-shadow: var(--surface-shadow);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.combobox-option),
+.combobox-options.combobox-options-portal .combobox-option {
+border-bottom-color: var(--border-soft);
+color: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.combobox-option:hover, .combobox-option.active),
+.combobox-options.combobox-options-portal .combobox-option:hover,
+.combobox-options.combobox-options-portal .combobox-option.active {
+background: var(--ui-option-hover-bg);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.combobox-option.selected),
+.combobox-options.combobox-options-portal .combobox-option.selected {
+background: var(--ui-option-selected-bg);
+color: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-label-action, .ui-field-action, .ui-popover-trigger, .theme-toggle-button, .dex-modal-btn, .tool-stat-point-button, .tool-stat-rank-button) {
+border-color: var(--ui-action-border);
+background: var(--ui-action-bg);
+color: var(--text-dim);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+.ui-panel-actions.ui-panel-actions {
+align-items: center;
+align-content: center;
+align-self: stretch;
+flex-wrap: nowrap;
+min-height: 0;
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+.ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .rc-analyze-btn, .dex-modal-btn, .calc-field-auto-toggle) {
+box-sizing: border-box;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+height: var(--ui-panel-action-height);
+min-height: var(--ui-panel-action-height);
+max-height: var(--ui-panel-action-height);
+padding: var(--ui-panel-action-padding);
+font-size: var(--ui-panel-action-font-size);
+line-height: 1;
+white-space: nowrap;
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-panel-tag) {
+box-sizing: border-box;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+height: var(--ui-panel-action-height);
+min-height: var(--ui-panel-action-height);
+max-height: var(--ui-panel-action-height);
+padding: var(--ui-panel-action-padding);
+font-size: var(--ui-panel-action-font-size);
+font-weight: var(--ui-panel-action-font-weight);
+line-height: 1;
+white-space: nowrap;
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-label-action:hover, .ui-field-action:hover, .ui-popover-trigger:hover, .theme-toggle-button:hover, .dex-modal-btn:hover, .tool-stat-point-button:hover, .tool-stat-rank-button:hover) {
+border-color: var(--ui-action-hover-border);
+background: var(--ui-action-hover-bg);
+color: var(--ui-action-hover-text);
+}
+:is(#page-revcalc, #page-finetune) .tool-stat-rank-value:not(.pos):not(.neg) {
+color: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-btn-secondary, .type-filter-btn, .dex-tab, .matchup-mode-btn) {
+border-color: var(--border);
+background: var(--ui-action-bg);
+color: var(--text-dim);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-btn-secondary:hover, .type-filter-btn:hover, .dex-tab:hover, .matchup-mode-btn:hover) {
+border-color: var(--border-bright);
+background: var(--bg-input);
+color: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-btn-secondary.active, .type-filter-btn.active, .dex-tab.active, .matchup-mode-btn.active) {
+border-color: var(--ui-action-hover-border);
+background: var(--ui-action-active-bg);
+color: var(--ui-action-active-text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-check) {
+border-color: var(--border);
+background: var(--bg-input);
+color: var(--text-dim);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-check:hover) {
+border-color: var(--border-bright);
+background: var(--bg-elev);
+color: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-check:has(input:checked)) {
+border-color: color-mix(in srgb, var(--ok) 38%, transparent);
+background: color-mix(in srgb, var(--ok) 8%, transparent);
+color: var(--text);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.dex-table-wrap, .matchup-table-wrap) {
+border-color: var(--border);
+background: var(--bg-panel);
+box-shadow: var(--surface-shadow-soft);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.dex-table th, .matchup-table th) {
+background: var(--bg-muted);
+color: var(--text-dim);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.dex-table td, .matchup-table td) {
+border-color: var(--border);
+}
+:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
+:where(.ui-empty) {
+color: var(--text-faint);
 }
 }
 </style>

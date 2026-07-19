@@ -276,18 +276,38 @@ async function main() {
       renderSide('def');
       triggerCalc();
       const page = document.getElementById('page-calc');
+      const moveList = page.querySelector('#atk-body .tool-move-list--critical');
+      const moveHeaders = [...moveList.querySelectorAll('.tool-move-head-row > span')]
+        .map(cell => cell.textContent.trim());
+      const moveReadout = moveList.querySelector('.tool-move-row .tool-move-power-readout');
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         headings: page.querySelectorAll('h2.ui-panel-title').length,
         resultCards: page.querySelectorAll('.calc-result-card').length,
         summaryHidden: document.getElementById('calcMobileSummary').hidden,
         detailToggleDisplay: getComputedStyle(document.querySelector('[data-calc-detail-toggle="atk"]')).display,
+        moveLayout: {
+          headers: moveHeaders,
+          readoutWidth: moveReadout?.getBoundingClientRect().width || 0,
+          readoutClipped: !!moveReadout && moveReadout.scrollWidth > moveReadout.clientWidth + 1,
+          criticalVisible: getComputedStyle(moveList.querySelector('.calc-move-critical-input')).display !== 'none',
+        },
       };
     })()`);
     check(desktop.overflow <= 1, 'desktop has no horizontal page overflow', String(desktop.overflow));
     check(desktop.headings >= 4, 'calculator uses semantic panel headings', String(desktop.headings));
     check(desktop.resultCards >= 1, 'calculator renders a damage result card');
     check(desktop.detailToggleDisplay === 'none', 'desktop hides the mobile detail toggle', desktop.detailToggleDisplay);
+    check(
+      desktop.moveLayout.headers.at(-2) === '급소' && desktop.moveLayout.headers.at(-1) === '결정력',
+      'calculator move headers keep critical and power labels in the correct columns',
+      JSON.stringify(desktop.moveLayout),
+    );
+    check(
+      desktop.moveLayout.readoutWidth >= 90 && !desktop.moveLayout.readoutClipped && desktop.moveLayout.criticalVisible,
+      'calculator reserves readable power output beside the critical checkbox',
+      JSON.stringify(desktop.moveLayout),
+    );
     const themeTokens = await client.evaluate(`(() => {
       const root = document.documentElement;
       const panel = document.querySelector('#page-calc .ui-panel');

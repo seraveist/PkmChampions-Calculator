@@ -71,7 +71,7 @@ npm run ui:browser
 - `src/js/04-42-revcalc-candidates.js`: 역계산 캐시 및 Worker 수명주기
 - `src/js/04-43-revcalc-render.js`: 분석 진행 상태
 - `build.mjs`: CSS compact 및 역계산 Worker source 삽입
-- `src/styles/09-product-polish.css`: 현재 반응형 보완의 최종 레이어
+- `src/styles/responsive.css`: 반응형 밀도와 모바일 상호작용의 명시적 최종 레이어
 - `scripts/browser-layout-smoke.mjs`: Chrome/Edge CDP 기반 화면 및 Worker 검사
 - `scripts/damage-golden.mjs`: 속도 기반 위력과 연속기 KO 골든 테스트
 - `scripts/sync-ps-data.mjs`: upstream commit 고정 동기화
@@ -101,8 +101,9 @@ npm run ui:browser
 - 도감 포켓몬 탭은 315행과 약 6,300개의 DOM 노드를 한 번에 렌더링
 - 모바일 상성표는 620px 내부 테이블의 가로 스크롤에 의존
 
-현재 `scripts/css-structure-check.mjs`의 예산은 `!important 70`, media query 36이다. 재구축이 완료되면
-이 예산을 크게 낮추고 `08-theme-bridge.css`, `09-product-polish.css` 같은 최종 덮어쓰기 파일을 제거한다.
+초기 `scripts/css-structure-check.mjs` 예산은 `!important 70`, media query 36이었다. 재구축 브랜치에서는
+임시 `08-theme-bridge.css`, `09-product-polish.css`를 제거하고 각각 `themes.css`, `responsive.css`로
+소유권을 확정했으며 예산도 현재 실사용 상한인 `!important 47`, media query 35로 낮췄다.
 
 ## 목표 프론트엔드 구조
 

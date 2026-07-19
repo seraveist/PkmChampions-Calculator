@@ -40,8 +40,8 @@ containers.
 - `src/js/03-20-calc-combobox.js`
 - `src/js/04-30-finetune.js`
 - `src/styles/04-ui-foundation.css`
-- `src/styles/05-calc-sample-layout.css`
-- `src/styles/07-tools-redesign.css`
+- `src/styles/pages/calculator.css`
+- `src/styles/pages/00-tool-pages.css`
 - `scripts/mobile-dropdown-contract.mjs`
 - `scripts/fine-tune-state.mjs`
 - `package.json`

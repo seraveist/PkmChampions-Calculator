@@ -24,13 +24,12 @@
 ## Cascade layer 순서
 
 ```css
-@layer reset, tokens, base, legacy-pages, legacy-foundation,
-  components, layouts, pages, utilities, themes, legacy-polish;
+@layer reset, tokens, base, legacy-foundation, components,
+  layouts, pages, utilities, themes, responsive;
 ```
 
-`legacy-pages`, `legacy-foundation`, `legacy-polish`는 이전 기간에만 사용한다. 기존 파일의 규칙을
-새 컴포넌트 또는 페이지 파일로 옮긴 뒤 원래 규칙을 제거해야 하며, 같은 규칙을 두 위치에 장기간
-유지하지 않는다.
+`legacy-pages`와 `legacy-polish`는 제거했다. `legacy-foundation`은 아직 `04-ui-foundation.css`에 남은
+공통 규칙을 점진적으로 컴포넌트로 이전하기 위한 유일한 호환 layer다.
 
 ## 새 파일 배치 규칙
 
@@ -44,15 +43,13 @@ src/styles/
   pages/*.css         -> pages
   utilities.css       -> utilities
   themes.css          -> themes
+  responsive.css      -> responsive
 ```
 
-## 다음 이전 순서
+## 남은 이전 순서
 
-1. 앱 셸과 도구 페이지 골격을 `layouts/`로 이동한다.
-2. 대미지 계산기 규칙을 `pages/calculator.css`로 이동한다.
-3. 이동한 규칙을 `03`, `04`, `05`, `09` 파일에서 제거한다.
-4. 계산기 이전이 끝나면 `legacy-pages`와 `legacy-polish`의 계산기 소유권이 없는지 검사한다.
-5. 같은 방식으로 역계산, 세부조정, 상성표, 도감을 순차 이전한다.
+1. `04-ui-foundation.css`의 공통 규칙을 소유 컴포넌트로 계속 이동한다.
+2. 모든 규칙 이전 후 마지막 `legacy-foundation` layer를 제거한다.
 
 UI 이전 중에는 계산 엔진을 함께 리팩터링하지 않고 기존 element ID와 이벤트 계약을 유지한다.
 
@@ -125,3 +122,16 @@ npm run public:ready
 npm run pages:ready
 npm run ui:browser:public
 ```
+
+### 임시 CSS layer 정리
+
+- `07-tools-redesign.css`를 `pages/00-tool-pages.css`로 이동해 역계산, 세부조정, 상성표 페이지 소유권을 명시했다.
+- `08-theme-bridge.css`를 제거하고 정식 `themes.css`로 전환했다.
+- `09-product-polish.css`를 제거하고 목적이 분명한 `responsive.css`로 전환했다.
+- 빈 `legacy-pages`, `legacy-polish` cascade layer를 제거하고 마지막 상호작용 layer를 `responsive`로 명명했다.
+- 선언되지 않은 top-level CSS 파일은 빌드가 즉시 실패하도록 해 암묵적인 최종 override가 다시 생기지 않게 했다.
+- 안전하게 제거 가능한 강제 선언을 정리해 `!important` 예산을 69개에서 47개로 낮췄다.
+- media query 예산도 현재 실사용 상한인 35개로 낮췄다.
+- 브라우저 검사에 `급소`/`결정력` 헤더 순서와 결정력 readout 최소 너비·clipping 검증을 추가했다.
+
+현재 유일한 임시 layer는 `04-ui-foundation.css`의 남은 공통 규칙을 위한 `legacy-foundation`이다.
