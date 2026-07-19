@@ -24,6 +24,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
 .mono {
   font-family: 'Noto Sans KR', sans-serif;
 }

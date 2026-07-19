@@ -1,7 +1,6 @@
 /* Compatibility aliases and component sizing tokens shared across the application. */
 
 :root {
-color-scheme: light;
 --bg: var(--color-surface-canvas);
 --bg-elev: var(--color-surface-elevated);
 --bg-panel: var(--color-surface-panel);
@@ -170,7 +169,6 @@ var(--bg-input);
 --app-shell-max: calc(var(--app-content-max) + (var(--ad-rail-width) * 2) + (var(--app-shell-gap) * 2));
 }
 :root[data-theme="dark"] {
-color-scheme: dark;
 --bg: var(--color-surface-canvas);
 --bg-elev: var(--color-surface-elevated);
 --bg-panel: var(--color-surface-panel);

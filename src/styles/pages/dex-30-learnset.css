@@ -1,12 +1,12 @@
 /* Dex matchup and learnset detail sections. */
-.matchup-grid {
+.dex-matchup-grid {
   display: grid;
   grid-template-columns: 64px minmax(0, 1fr);
   gap: 7px 10px;
   align-items: start;
 }
 
-.matchup-label {
+.dex-matchup-label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -16,23 +16,30 @@
   font-weight: 900;
 }
 
-.matchup-label.x4 { background: rgba(214, 76, 86, 0.1); color: #9f2834; }
-.matchup-label.x2 { background: rgba(183, 121, 31, 0.11); color: #8a560f; }
-.matchup-label.x1 { background: rgba(104, 122, 142, 0.1); color: var(--text-dim); }
-.matchup-label.x05 { background: rgba(37, 122, 87, 0.1); color: #257a57; }
-.matchup-label.x025 { background: rgba(22, 127, 165, 0.1); color: #167fa5; }
-.matchup-label.x0 { background: rgba(126, 87, 194, 0.1); color: #5d3a9b; }
+.dex-matchup-label.x4 { background: rgba(214, 76, 86, 0.1); color: #9f2834; }
+.dex-matchup-label.x2 { background: rgba(183, 121, 31, 0.11); color: #8a560f; }
+.dex-matchup-label.x1 { background: rgba(104, 122, 142, 0.1); color: var(--text-dim); }
+.dex-matchup-label.x05 { background: rgba(37, 122, 87, 0.1); color: #257a57; }
+.dex-matchup-label.x025 { background: rgba(22, 127, 165, 0.1); color: #167fa5; }
+.dex-matchup-label.x0 { background: rgba(126, 87, 194, 0.1); color: #5d3a9b; }
 
-.matchup-types {
+.dex-matchup-types {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
 }
 
-.learnset-filter-row {
+.dex-learnset-filter-row {
+  display: flex;
+  align-items: center;
   flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
   margin-bottom: 10px;
   padding: 7px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
   box-shadow: none;
 }
 
@@ -44,7 +51,7 @@
   margin-bottom: 10px;
 }
 
-.dex-learnset-section .learnset-filter-row {
+.dex-learnset-section .dex-learnset-filter-row {
   gap: 6px;
   margin-bottom: 12px;
   padding: 8px;
@@ -60,7 +67,7 @@
   line-height: 1;
 }
 
-.learnset-type-header {
+.dex-learnset-type-header {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -72,18 +79,18 @@
   background: var(--bg-panel);
 }
 
-.learnset-type-header:first-child {
+.dex-learnset-type-header:first-child {
   margin-top: 0;
 }
 
-.learnset-type-header .count {
+.dex-learnset-type-header .count {
   color: var(--text-faint);
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 12px;
   font-weight: 900;
 }
 
-.learnset-type-header .dex-type-pill,
+.dex-learnset-type-header .dex-type-pill,
 .dex-learnset-section .type-filter-btn.type-pill-mini {
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 11px;

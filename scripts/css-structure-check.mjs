@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { styleLayerFor } from './css-layer-contract.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const STYLE_DIR = path.join(ROOT, 'src', 'styles');
@@ -409,7 +410,21 @@ const toolPageCss = TOOL_PAGE_FILES.map(file => cssByFile.get(file) || '').join(
 const responsiveCss = cssByFile.get('responsive.css') || '';
 check(Boolean(calcLayoutCss), 'calculator page stylesheet exists');
 check(Boolean(calcBaseCss), 'calculator page visual base stylesheet exists');
-check(CALCULATOR_PAGE_FILES.length === 6, 'calculator page CSS is split by responsibility');
+check(CALCULATOR_PAGE_FILES.length === 7, 'calculator page CSS is split by responsibility');
+check(
+  cssFiles.filter(file => file === 'responsive.css' || file.endsWith('-responsive.css'))
+    .every(file => styleLayerFor(file) === 'responsive'),
+  'responsive stylesheets use the final responsive cascade layer'
+);
+check(
+  cssByFile.has('layouts/header-responsive.css')
+    && cssByFile.has('layouts/app-shell-responsive.css')
+    && cssByFile.has('components/03-party-responsive.css')
+    && cssByFile.has('pages/calculator-35-results-responsive.css')
+    && cssByFile.has('pages/calculator-40-responsive.css')
+    && cssByFile.has('pages/dex-40-responsive.css'),
+  'responsive ownership is split by shell, component, and page'
+);
 check(!cssByFile.has('05-calc-sample-layout.css'), 'legacy calculator layout stylesheet is removed');
 check(!cssByFile.has('03-calc-redesign.css'), 'legacy calculator redesign stylesheet is removed');
 check(Boolean(dexPageCss), 'dex page stylesheet exists');

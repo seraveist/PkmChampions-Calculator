@@ -9,7 +9,6 @@ header > .main-nav {
 .header-top {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
@@ -83,20 +82,4 @@ main {
   max-width: none;
   margin: 0;
   padding: 0;
-}
-
-@media (max-width: 1759px) {
-  .site-shell {
-    max-width: calc(var(--app-content-max) + (var(--app-shell-gutter) * 2));
-    grid-template-columns: minmax(0, var(--app-content-max));
-  }
-
-  .ad-rail {
-    display: none;
-  }
-
-  header > .header-top,
-  header > .main-nav {
-    max-width: var(--app-content-max);
-  }
 }

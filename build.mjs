@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTsModule, applyModOverrides } from './scripts/ts-loader.mjs';
+import { CSS_LAYER_ORDER, styleLayerFor } from './scripts/css-layer-contract.mjs';
 
 // Windows 호환: file:// URL → 네이티브 경로 변환을 fileURLToPath 로 처리.
 // (URL.pathname 만 사용하면 Windows 에서 'C:\C:\...' 처럼 드라이브가 중복된다)
@@ -467,21 +468,6 @@ async function build() {
     const files = fs.readdirSync(dir).filter(f => f.endsWith(ext) && !f.startsWith('.')).sort();
     return files.map(f => `/* @source-file:${f} */\n${fs.readFileSync(path.join(dir, f), 'utf8')}`).join('\n\n');
   }
-  const CSS_LAYER_ORDER = [
-    'reset',
-    'tokens',
-    'base',
-    'components',
-    'layouts',
-    'pages',
-    'utilities',
-    'themes',
-    'responsive',
-  ];
-  const CSS_FILE_LAYERS = new Map([
-    ['02-pages.css', 'base'],
-    ['responsive.css', 'responsive'],
-  ]);
   function listFilesRecursive(dir, ext, relativeDir = '') {
     if (!fs.existsSync(dir)) return [];
     return fs.readdirSync(dir, { withFileTypes: true })
@@ -494,19 +480,6 @@ async function build() {
         return entry.isFile() && entry.name.endsWith(ext) ? [relativePath] : [];
       })
       .sort((a, b) => a.localeCompare(b));
-  }
-  function styleLayerFor(relativePath) {
-    if (relativePath === '00-tokens.css' || relativePath.startsWith('tokens/')) return 'tokens';
-    if (relativePath === '01-reset.css') return 'reset';
-    if (relativePath === '02-base.css') return 'base';
-    if (relativePath.startsWith('components/')) return 'components';
-    if (relativePath.startsWith('layouts/')) return 'layouts';
-    if (relativePath.startsWith('pages/')) return 'pages';
-    if (relativePath === 'utilities.css') return 'utilities';
-    if (relativePath === 'themes.css') return 'themes';
-    const mappedLayer = CSS_FILE_LAYERS.get(relativePath);
-    if (mappedLayer) return mappedLayer;
-    throw new Error(`CSS layer ownership is not declared: ${relativePath}`);
   }
   function concatStyles(dir) {
     const files = listFilesRecursive(dir, '.css');

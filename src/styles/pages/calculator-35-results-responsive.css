@@ -1,0 +1,130 @@
+/* Calculator result and field adaptations that must live in the responsive layer. */
+
+@media (max-width: 1280px) {
+  #page-calc .calc-side-swap-button {
+    min-height: 42px;
+  }
+
+  #page-calc .battle-field-select-frame {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1120px) {
+  #page-calc .calc-result-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #page-calc .calc-result-card {
+    min-height: 274px;
+  }
+
+  #page-calc .calc-damage-meta {
+    min-height: 58px;
+  }
+}
+
+@media (max-width: 860px) {
+  #page-calc .calc-result-card {
+    grid-template-columns: 1fr;
+  }
+
+  #page-calc .calc-result-card-main {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "top"
+      "range"
+      "info";
+  }
+
+  #page-calc .calc-ko-badge {
+    min-width: 96px;
+  }
+}
+
+@media (max-width: 620px) {
+  #page-calc .calc-result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #page-calc .calc-result-card,
+  #page-calc .calc-damage-meta {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  #page-calc .battle-field-select-frame {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #page-calc .battle-field-select-frame .ui-field-label {
+    font-size: 11px;
+  }
+
+  #page-calc .battle-field-select-frame .cb-input {
+    height: 34px;
+    padding-left: 8px;
+    padding-right: 22px;
+    font-size: 12px;
+  }
+
+  #page-calc .battle-field-select-frame .combobox::after {
+    right: 8px;
+  }
+
+  #page-calc .calc-field-effects-frame {
+    grid-template-columns: 1fr;
+  }
+
+  #page-calc .calc-speed-row {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 6px;
+    padding: var(--ui-subframe-content-padding);
+  }
+
+  #page-calc .calc-speed-side {
+    grid-template-columns: minmax(0, 1fr) auto;
+    justify-items: center;
+    gap: 5px;
+    padding: 4px 2px;
+  }
+
+  #page-calc .calc-speed-side--def {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  #page-calc .calc-speed-side--def .calc-speed-value-wrap,
+  #page-calc .calc-speed-side--def .calc-speed-identity {
+    order: initial;
+  }
+
+  #page-calc .calc-speed-identity {
+    flex-direction: column;
+    gap: 3px;
+    white-space: nowrap;
+  }
+
+  #page-calc .calc-speed-role {
+    font-size: 10px;
+  }
+
+  #page-calc .calc-speed-pokemon {
+    max-width: 100%;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  #page-calc .calc-speed-value {
+    min-width: 42px;
+    height: 28px;
+    padding: 0 8px;
+    font-size: 18px;
+  }
+
+  #page-calc .calc-speed-entry-note {
+    min-height: 22px;
+    padding: 0 6px;
+    font-size: 10px;
+  }
+}

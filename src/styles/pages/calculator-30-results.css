@@ -1,6 +1,15 @@
 /* Calculator result cards and durability metrics. */
 #page-calc .calc-result-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 7px;
+}
+
+#page-calc .calc-result-card:only-child {
+  min-height: 220px;
+}
+
+#page-calc .calc-mobile-summary {
+  display: none;
 }
 
 #page-calc .calc-result-card {

@@ -262,6 +262,78 @@
     gap: 7px;
   }
 
+  /* Dropdown rows are portaled to body, so their responsive contract cannot
+     depend on the #page-calc ancestor. */
+  .calc-page-options-portal .pokemon-option-header,
+  .calc-page-options-portal .combobox-option.pokemon-option {
+    grid-template-columns:
+      minmax(78px, 1fr)
+      minmax(66px, 0.82fr)
+      repeat(6, minmax(21px, 27px));
+    gap: 1px;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  .calc-page-options-portal .pokemon-option-header,
+  .calc-page-options-portal .pokemon-option-stat {
+    font-size: 0.68rem;
+  }
+
+  .calc-page-options-portal .pokemon-option-name {
+    font-size: 0.82rem;
+  }
+
+  .calc-page-options-portal .pokemon-option-types {
+    gap: 2px;
+  }
+
+  .calc-page-options-portal .badge-mini {
+    min-width: 28px;
+    height: 18px;
+    padding: 0 2px;
+    font-size: 0.62rem;
+  }
+
+  .tool-move-options-portal .move-option-header,
+  .tool-move-options-portal .combobox-option.move-option {
+    grid-template-columns: minmax(92px, 1fr) 36px 34px 26px;
+    gap: 1px;
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  .tool-move-options-portal .move-option-header,
+  .tool-move-options-portal .move-option-power {
+    font-size: 0.64rem;
+  }
+
+  .tool-move-options-portal .move-option-name {
+    font-size: 0.82rem;
+  }
+
+  .tool-move-options-portal .move-option-type-badge,
+  .tool-move-options-portal .move-option-category .cat-badge {
+    min-width: 30px;
+    height: 18px;
+    padding: 0 3px;
+    font-size: 0.6rem;
+  }
+
+  .calc-page-options-portal .nature-option-header,
+  .calc-page-options-portal .combobox-option.nature-option {
+    grid-template-columns: minmax(58px, 1fr) 30px 30px;
+    gap: 3px;
+    padding-right: 6px;
+    padding-left: 6px;
+  }
+
+  .calc-page-options-portal .nature-option-header,
+  .calc-page-options-portal .combobox-option.nature-option span,
+  .calc-page-options-portal .combobox-option.nature-option b {
+    font-size: 0.64rem;
+  }
+
 }
 
 @media (max-width: 520px) {
@@ -311,6 +383,58 @@
 
   #page-calc .move-option-type-badge,
   #page-calc .move-option-category .cat-badge {
+    min-width: 24px;
+    height: 16px;
+    padding: 0 2px;
+    font-size: 0.54rem;
+  }
+
+  .calc-page-options-portal .pokemon-option-header,
+  .calc-page-options-portal .combobox-option.pokemon-option {
+    grid-template-columns:
+      minmax(66px, 1fr)
+      minmax(54px, 0.78fr)
+      repeat(6, minmax(17px, 21px));
+    gap: 1px;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  .calc-page-options-portal .pokemon-option-header,
+  .calc-page-options-portal .pokemon-option-stat {
+    font-size: 0.62rem;
+  }
+
+  .calc-page-options-portal .pokemon-option-name {
+    font-size: 0.72rem;
+  }
+
+  .calc-page-options-portal .badge-mini {
+    min-width: 24px;
+    height: 16px;
+    padding: 0 2px;
+    font-size: 0.56rem;
+  }
+
+  .tool-move-options-portal .move-option-header,
+  .tool-move-options-portal .combobox-option.move-option {
+    grid-template-columns: minmax(86px, 1fr) 31px 29px 24px;
+    gap: 1px;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  .tool-move-options-portal .move-option-header,
+  .tool-move-options-portal .move-option-power {
+    font-size: 0.58rem;
+  }
+
+  .tool-move-options-portal .move-option-name {
+    font-size: 0.72rem;
+  }
+
+  .tool-move-options-portal .move-option-type-badge,
+  .tool-move-options-portal .move-option-category .cat-badge {
     min-width: 24px;
     height: 16px;
     padding: 0 2px;
