@@ -24,8 +24,12 @@ const ASSET_BUDGETS = {
   theme: { sizeBytes: 1024, gzipBytes: 1024 },
   style: { sizeBytes: 360 * 1024, gzipBytes: 55 * 1024 },
   data: { sizeBytes: 950 * 1024, gzipBytes: 170 * 1024 },
-  app: { sizeBytes: 650 * 1024, gzipBytes: 155 * 1024 },
+  app: { sizeBytes: 400 * 1024, gzipBytes: 100 * 1024 },
   worker: { sizeBytes: 220 * 1024, gzipBytes: 55 * 1024 },
+  featureDex: { sizeBytes: 80 * 1024, gzipBytes: 25 * 1024 },
+  featureMatchup: { sizeBytes: 50 * 1024, gzipBytes: 18 * 1024 },
+  featureFinetune: { sizeBytes: 70 * 1024, gzipBytes: 24 * 1024 },
+  featureRevcalc: { sizeBytes: 240 * 1024, gzipBytes: 60 * 1024 },
 };
 const TOTAL_GZIP_BUDGET = 430 * 1024;
 
@@ -81,15 +85,21 @@ const stylesheetHrefs = [...index.matchAll(/<link\s+rel="stylesheet"\s+href="([^
 const scriptSrcs = [...index.matchAll(/<script\s+src="([^"]+)"\s*><\/script>/g)].map((match) => match[1]);
 const workerSourceMatch = index.match(/<script id="reverse-worker-source" type="application\/json" data-worker-src="([^"]+)"><\/script>/);
 const workerSource = workerSourceMatch?.[1] || '';
+const featureSourceMatch = index.match(/<script id="page-feature-assets" type="application\/json"([^>]*)><\/script>/);
+const featureSources = Object.fromEntries(
+  [...(featureSourceMatch?.[1] || '').matchAll(/data-(dex|matchup|finetune|revcalc)-src="([^"]+)"/g)]
+    .map(match => [match[1], match[2]]),
+);
 const executableInlineScripts = [...index.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)]
   .filter((match) => !/type="application\/json"/.test(match[1]) && !/\ssrc=/.test(match[1]) && match[2].trim());
 
 check(stylesheetHrefs.length === 1, 'public index loads one external stylesheet');
 check(scriptSrcs.length === 3, 'public index loads theme, data, and app scripts externally');
 check(Boolean(workerSource), 'public index references a lazy reverse-analysis worker');
+check(Object.keys(featureSources).sort().join(',') === 'dex,finetune,matchup,revcalc', 'public index references all lazy page features');
 check(executableInlineScripts.length === 0, 'public index has no executable inline scripts');
 
-const referencedAssets = [...stylesheetHrefs, ...scriptSrcs, workerSource].filter(Boolean);
+const referencedAssets = [...stylesheetHrefs, ...scriptSrcs, workerSource, ...Object.values(featureSources)].filter(Boolean);
 check(referencedAssets.every((source) => /^\.\/assets\/[a-z-]+\.[a-f0-9]{12}\.(?:css|js)$/.test(source)), 'public assets use content-hashed filenames');
 for (const source of referencedAssets) {
   const assetPath = path.join(DIST, source.replace(/^\.\//, ''));
@@ -119,7 +129,11 @@ if (manifest) {
   check(manifest.mode === (PRIVATE_TEST ? 'private-test' : 'public'), `deploy manifest records ${PRIVATE_TEST ? 'private test' : 'public'} mode`);
   check(manifest.artifact === 'index.html', 'deploy manifest records index artifact');
   check(manifest.sizeBytes === statSync(INDEX).size, 'deploy manifest records the current index size');
-  check(Object.keys(manifest.assets || {}).sort().join(',') === 'app,data,style,theme,worker', 'deploy manifest records all asset roles');
+  check(
+    Object.keys(manifest.assets || {}).sort().join(',')
+      === 'app,data,featureDex,featureFinetune,featureMatchup,featureRevcalc,style,theme,worker',
+    'deploy manifest records all asset roles',
+  );
   let totalGzipBytes = 0;
   for (const [role, budget] of Object.entries(ASSET_BUDGETS)) {
     const entry = manifest.assets?.[role];

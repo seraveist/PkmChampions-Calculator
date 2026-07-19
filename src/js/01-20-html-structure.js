@@ -371,11 +371,36 @@ function bindUiTabKeyboard(tablist, options = {}) {
   });
 }
 
-function activateMainPage(pageKey, options = {}) {
+const mainPageFeatureLoads = new Map();
+
+function ensureMainPageFeatureLoaded(pageKey) {
+  const sourceHolder = document.getElementById('page-feature-assets');
+  const source = sourceHolder?.getAttribute(`data-${pageKey}-src`) || '';
+  if (!source) return Promise.resolve();
+  if (mainPageFeatureLoads.has(pageKey)) return mainPageFeatureLoads.get(pageKey);
+
+  const load = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = source;
+    script.async = false;
+    script.dataset.pageFeature = pageKey;
+    script.addEventListener('load', resolve, { once: true });
+    script.addEventListener('error', () => reject(new Error(`Failed to load page feature: ${pageKey}`)), { once: true });
+    document.head.appendChild(script);
+  }).catch(error => {
+    mainPageFeatureLoads.delete(pageKey);
+    throw error;
+  });
+  mainPageFeatureLoads.set(pageKey, load);
+  return load;
+}
+
+async function activateMainPage(pageKey, options = {}) {
   const tab = document.querySelector(`.nav-tab[data-page="${pageKey}"]`);
   const activePage = document.getElementById(`page-${pageKey}`);
   if (!tab || !activePage) return false;
 
+  await ensureMainPageFeatureLoaded(pageKey);
   if (typeof ensureMainPageInitialized === 'function') ensureMainPageInitialized(pageKey);
   syncUiTabs(document.querySelectorAll('.nav-tab'), tab);
   syncUiPanels(document.querySelectorAll('.page'), activePage);
@@ -386,7 +411,7 @@ function activateMainPage(pageKey, options = {}) {
   return true;
 }
 
-function activateMainPageFromHash() {
+async function activateMainPageFromHash() {
   const pageKey = decodeURIComponent(location.hash.replace(/^#(?:page-)?/, '')).trim();
   if (!pageKey) return false;
   return activateMainPage(pageKey, { updateHash: false });
@@ -398,20 +423,19 @@ function bindMainNavigation() {
   if (!nav || !navTabs.length) return;
 
   navTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      activateMainPage(tab.dataset.page, { updateHash: true });
+    tab.addEventListener('click', async () => {
+      await activateMainPage(tab.dataset.page, { updateHash: true });
     });
   });
 
   bindUiTabKeyboard(nav);
 
   const activeTab = document.querySelector('.nav-tab.active') || navTabs[0];
-  const initialPage = activateMainPageFromHash()
-    || activateMainPage(activeTab?.dataset.page || 'calc', { updateHash: false });
+  void (async () => {
+    const initialPage = await activateMainPageFromHash()
+      || await activateMainPage(activeTab?.dataset.page || 'calc', { updateHash: false });
+    if (!initialPage) await activateMainPage('calc', { updateHash: false });
+  })();
 
-  if (!initialPage) {
-    activateMainPage('calc', { updateHash: false });
-  }
-
-  window.addEventListener('hashchange', activateMainPageFromHash);
+  window.addEventListener('hashchange', () => { void activateMainPageFromHash(); });
 }

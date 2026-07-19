@@ -578,6 +578,14 @@
   color: var(--text);
 }
 
+:root[data-theme="dark"] :where(.party-preset-button, .theme-toggle-button) {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] #page-calc .battle-grid > .ui-panel .ui-panel-tag {
+  color: #17202a;
+}
+
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
   :where(.ui-btn-secondary, .type-filter-btn, .dex-tab, .matchup-mode-btn) {
   border-color: var(--border);

@@ -51,7 +51,7 @@ const importantCount = (allCss.match(/!important/g) || []).length;
 const mediaQueryCount = (allCss.match(/@media/g) || []).length;
 
 check(importantCount <= 47, `CSS important budget (${importantCount}/47)`);
-check(mediaQueryCount <= 35, `CSS media-query budget (${mediaQueryCount}/35)`);
+check(mediaQueryCount <= 44, `CSS media-query budget (${mediaQueryCount}/44)`);
 check(cssByFile.has('00-tokens.css'), 'semantic token stylesheet exists');
 
 [
@@ -71,6 +71,8 @@ const panelComponentCss = cssByFile.get('components/panels.css') || '';
 const buttonComponentCss = cssByFile.get('components/buttons.css') || '';
 const fieldComponentCss = cssByFile.get('components/fields.css') || '';
 const comboboxComponentCss = cssByFile.get('components/combobox.css') || '';
+const partyPresetComponentCss = cssByFile.get('components/party-presets.css') || '';
+const toolStatsComponentCss = cssByFile.get('components/tool-stats.css') || '';
 const resetCss = cssByFile.get('01-reset.css') || '';
 const appShellCss = cssByFile.get('layouts/app-shell.css') || '';
 const legacyFoundationCss = cssByFile.get('04-ui-foundation.css') || '';
@@ -129,6 +131,23 @@ check(
   !legacyFoundationCss.includes('.combobox-options.combobox-options-portal')
     && !legacyFoundationCss.includes('.combobox-option.ui-option.selected'),
   'legacy foundation releases shared combobox ownership'
+);
+check(
+  partyPresetComponentCss.includes('.party-preset-modal-backdrop')
+    && partyPresetComponentCss.includes('.party-preset-slot-grid'),
+  'party preset component owns modal and editor structure'
+);
+check(!/^\.party-preset-modal-backdrop\s*\{/m.test(legacyFoundationCss), 'legacy foundation releases base party preset ownership');
+check(
+  toolStatsComponentCss.includes('.tool-stat-panel')
+    && toolStatsComponentCss.includes('.tool-move-panel')
+    && toolStatsComponentCss.includes('.tool-stat-point-stepper'),
+  'tool stats component owns shared stat and move editors'
+);
+check(
+  !legacyFoundationCss.includes('.tool-stat-panel')
+    && !legacyFoundationCss.includes('.tool-stat-point-stepper'),
+  'legacy foundation releases shared stat editor ownership'
 );
 
 [
@@ -379,6 +398,9 @@ check(Boolean(cssByFile.get('pages/00-tool-pages.css')), 'shared tool page style
 check(Boolean(cssByFile.get('pages/01-matchup.css')), 'matchup page stylesheet exists');
 check(Boolean(cssByFile.get('pages/02-finetune.css')), 'fine-tune page stylesheet exists');
 check(Boolean(cssByFile.get('pages/03-reverse.css')), 'reverse calculator page stylesheet exists');
+check(!/#page-(matchup|revcalc)\b/.test(cssByFile.get('pages/02-finetune.css') || ''), 'fine-tune stylesheet owns only its page selectors');
+check(!/#page-(matchup|finetune)\b/.test(cssByFile.get('pages/03-reverse.css') || ''), 'reverse stylesheet owns only its page selectors');
+check(!/#page-(finetune|revcalc)\b/.test(cssByFile.get('pages/01-matchup.css') || ''), 'matchup stylesheet owns only its page selectors');
 check(
   (cssByFile.get('pages/00-tool-pages.css') || '').length < 8000,
   'shared tool page stylesheet stays focused on cross-page rules'

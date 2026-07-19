@@ -11,6 +11,7 @@
 // 변경이 감지되면 자동 커밋·푸시한다.
 
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PS_FILES, PS_REF, PS_REPOSITORY } from './ps-data-source.mjs';
@@ -29,6 +30,14 @@ const FILES = PS_FILES;
   'data/text/pokedex.ts',
 */
 const dryRun = process.argv.includes('--dry-run');
+const commitArg = process.argv.find(arg => arg.startsWith('--commit='))?.slice('--commit='.length) || '';
+if (commitArg && !/^[0-9a-f]{40}$/i.test(commitArg)) {
+  throw new Error('--commit must be a 40-character Git SHA.');
+}
+
+function sha256(content) {
+  return createHash('sha256').update(content, 'utf8').digest('hex');
+}
 
 async function fetchText(url) {
   const token = process.env.GITHUB_TOKEN || '';
@@ -43,6 +52,7 @@ async function fetchText(url) {
 }
 
 async function resolveUpstreamCommit() {
+  if (commitArg) return commitArg.toLowerCase();
   const payload = JSON.parse(await fetchText(PS_COMMIT_API));
   if (!/^[0-9a-f]{40}$/i.test(payload?.sha || '')) {
     throw new Error('Pokemon Showdown upstream commit SHA를 확인할 수 없습니다.');
@@ -106,6 +116,7 @@ async function main() {
     ref: PS_REF,
     commit: upstreamCommit,
     files: FILES,
+    fileHashes: Object.fromEntries(results.map(result => [result.path, sha256(result.upstream)])),
   }, null, 2)}\n`;
   const currentMeta = fs.existsSync(UPSTREAM_META_PATH) ? fs.readFileSync(UPSTREAM_META_PATH, 'utf8') : '';
   results.push({

@@ -466,7 +466,7 @@ async function build() {
   function concatDir(dir, ext) {
     if (!fs.existsSync(dir)) return '';
     const files = fs.readdirSync(dir).filter(f => f.endsWith(ext) && !f.startsWith('.')).sort();
-    return files.map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n\n');
+    return files.map(f => `/* @source-file:${f} */\n${fs.readFileSync(path.join(dir, f), 'utf8')}`).join('\n\n');
   }
   const CSS_LAYER_ORDER = [
     'reset',

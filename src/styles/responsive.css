@@ -569,33 +569,36 @@ textarea {
 
   #page-finetune .ft-stats-column,
   #page-revcalc .tool-stat-table-frame {
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: thin;
+    overflow: visible;
   }
 
   #page-finetune .ft-stats-grid {
-    min-width: 470px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     --tool-stat-control-height: 36px;
   }
 
   #page-revcalc .rc-stats-grid {
-    min-width: 440px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     --tool-stat-control-height: 36px;
   }
 
   #page-revcalc .rc-opp-stat-table {
-    min-width: 330px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   #page-revcalc .rc-next-rank-wrap {
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
+    overflow: visible;
   }
 
   #page-revcalc .rc-next-rank-head,
   #page-revcalc .rc-next-rank-row {
-    min-width: 430px;
+    min-width: 0;
   }
 
   #page-dex .dex-control-head,
@@ -731,6 +734,154 @@ textarea {
   #dexTableAbilities .dex-en-cell,
   #dexTableItems .dex-en-cell {
     grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  #page-finetune .ft-stats-grid,
+  #page-revcalc .rc-stats-grid,
+  #page-revcalc .rc-opp-stat-table {
+    display: block;
+  }
+
+  #page-finetune .tool-stat-head-row,
+  #page-revcalc .tool-stat-head-row {
+    display: none;
+  }
+
+  #page-finetune .ft-stat-row,
+  #page-revcalc .rc-stat-row,
+  #page-revcalc .rc-opp-stat-row {
+    display: grid;
+    gap: 7px;
+    padding: 9px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    background: var(--bg-input);
+  }
+
+  #page-finetune .ft-stat-row + .ft-stat-row,
+  #page-revcalc .rc-stat-row + .rc-stat-row,
+  #page-revcalc .rc-opp-stat-row + .rc-opp-stat-row {
+    margin-top: 7px;
+  }
+
+  #page-finetune .ft-stat-row {
+    grid-template-columns: 64px minmax(48px, 0.55fr) minmax(72px, 1fr);
+    grid-template-areas:
+      "name base final"
+      "point point rank"
+      "magic magic magic";
+  }
+
+  #page-revcalc .rc-stat-row {
+    grid-template-columns: 64px minmax(48px, 0.55fr) minmax(72px, 1fr);
+    grid-template-areas:
+      "name base final"
+      "point point rank";
+  }
+
+  #page-revcalc .rc-opp-stat-row {
+    grid-template-columns: 64px minmax(52px, 0.55fr) minmax(92px, 1fr);
+    grid-template-areas: "name base rank";
+  }
+
+  #page-finetune .tool-stat-col-name,
+  #page-revcalc .tool-stat-col-name {
+    grid-area: name;
+    justify-content: flex-start;
+  }
+
+  #page-finetune .tool-stat-col-base,
+  #page-revcalc .tool-stat-col-base {
+    grid-area: base;
+  }
+
+  #page-finetune .tool-stat-col-point,
+  #page-revcalc .tool-stat-col-point {
+    grid-area: point;
+  }
+
+  #page-finetune .tool-stat-col-magic {
+    grid-area: magic;
+  }
+
+  #page-finetune .tool-stat-col-final,
+  #page-revcalc .tool-stat-col-final {
+    grid-area: final;
+  }
+
+  #page-finetune .tool-stat-col-rank,
+  #page-revcalc .tool-stat-col-rank {
+    grid-area: rank;
+  }
+
+  #page-finetune :is(.tool-stat-col-base, .tool-stat-col-final),
+  #page-revcalc :is(.tool-stat-col-base, .tool-stat-col-final) {
+    flex-direction: column;
+    gap: 2px;
+    min-height: 36px;
+  }
+
+  #page-finetune .tool-stat-col-base::before,
+  #page-revcalc .tool-stat-col-base::before {
+    color: var(--text-faint);
+    content: "종족";
+    font-size: 9px;
+    font-weight: 900;
+  }
+
+  #page-finetune .tool-stat-col-final::before,
+  #page-revcalc .tool-stat-col-final::before {
+    color: var(--text-faint);
+    content: "실수치";
+    font-size: 9px;
+    font-weight: 900;
+  }
+
+  #page-revcalc .rc-next-rank-head {
+    display: none;
+  }
+
+  #page-revcalc .rc-next-rank-row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    padding: 7px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    background: var(--bg-input);
+  }
+
+  #page-revcalc .rc-next-rank-group-label {
+    grid-column: 1 / -1;
+  }
+
+  #page-revcalc .rc-next-rank-cell {
+    position: relative;
+    display: grid;
+    width: 100%;
+    grid-template-columns: 18px minmax(18px, 1fr) 18px;
+    gap: 1px;
+    padding-top: 15px;
+  }
+
+  #page-revcalc .rc-next-rank-cell::before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    color: var(--text-faint);
+    content: attr(data-stat-label);
+    font-family: "Noto Sans KR", sans-serif;
+    font-size: 9px;
+    font-weight: 900;
+    text-align: center;
+  }
+
+  #page-revcalc .rc-next-rank-cell button {
+    width: 18px;
+    height: 24px;
   }
 }
 

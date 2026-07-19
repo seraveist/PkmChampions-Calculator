@@ -20,6 +20,19 @@ const DATA_IDS = [
   'data-rules',
   'data-meta-threats',
 ];
+const FEATURE_FILES = {
+  dex: ['04-10-dex.js', '04-11-dex-detail.js'],
+  matchup: ['04-20-matchup.js'],
+  finetune: ['04-30-finetune.js', '04-31-finetune-render.js'],
+  revcalc: [
+    '04-40-revcalc-state.js',
+    '04-41-revcalc-scoring.js',
+    '04-42-revcalc-candidates.js',
+    '04-43-revcalc-render.js',
+    '04-44-revcalc-events.js',
+    '04-45-revcalc-actions.js',
+  ],
+};
 const RAIL_PATTERNS = [
   /\s*<aside class="ad-rail[^"]*"[\s\S]*?<\/aside>\s*/g,
   /\s*<aside class="side-rail[^"]*"[\s\S]*?<\/aside>\s*/g,
@@ -108,6 +121,29 @@ ${payload}
 })();`;
 }
 
+function splitApplicationSource(source) {
+  const marker = /\/\* @source-file:([^*]+) \*\//g;
+  const matches = [...source.matchAll(marker)];
+  if (!matches.length) throw new Error('Application source file markers are missing.');
+  const files = new Map();
+  matches.forEach((match, index) => {
+    const start = match.index + match[0].length;
+    const end = matches[index + 1]?.index ?? source.length;
+    files.set(match[1].trim(), source.slice(start, end).trim());
+  });
+  const deferred = new Set(Object.values(FEATURE_FILES).flat());
+  for (const file of deferred) {
+    if (!files.has(file)) throw new Error(`Deferred application source is missing: ${file}`);
+  }
+  return {
+    core: [...files].filter(([file]) => !deferred.has(file)).map(([, body]) => body).join('\n\n'),
+    features: Object.fromEntries(Object.entries(FEATURE_FILES).map(([page, pageFiles]) => [
+      page,
+      pageFiles.map(file => files.get(file)).join('\n\n'),
+    ])),
+  };
+}
+
 runStandaloneBuild();
 if (!existsSync(SOURCE_HTML)) throw new Error(`Expected build output not found: ${SOURCE_HTML}`);
 
@@ -115,6 +151,7 @@ let html = readFileSync(SOURCE_HTML, 'utf8');
 const styleMatch = requiredMatch(html, /<style>([\s\S]*?)<\/style>/, 'inline CSS');
 const themeMatch = extractInlineScript(html, (body) => body.includes('pkchamps-theme'), 'theme bootstrap');
 const appMatch = extractInlineScript(html, (body) => body.includes('"use strict";'), 'application JavaScript');
+const applicationSource = splitApplicationSource(appMatch[2]);
 const dataScripts = DATA_IDS.map((id) => {
   const match = requiredMatch(
     html,
@@ -128,6 +165,11 @@ const reverseWorkerMatch = requiredMatch(
   html,
   /<script id="reverse-worker-source" type="application\/json">([\s\S]*?)<\/script>/,
   'reverse analysis worker',
+);
+const featureAssetsMatch = requiredMatch(
+  html,
+  /<script id="page-feature-assets" type="application\/json"><\/script>/,
+  'page feature asset target',
 );
 const reverseWorkerSource = JSON.parse(reverseWorkerMatch[1]);
 if (typeof reverseWorkerSource !== 'string' || !reverseWorkerSource.trim()) {
@@ -147,8 +189,12 @@ const cssSource = PRIVATE_TEST ? `${styleMatch[1].trim()}\n${PRIVATE_TEST_CSS}` 
 const themeAsset = asset('theme', 'js', themeMatch[2].trim());
 const styleAsset = asset('app', 'css', cssSource);
 const dataAsset = asset('data', 'js', buildDataBootstrap(dataScripts));
-const appAsset = asset('app', 'js', appMatch[2].trim());
+const appAsset = asset('app', 'js', applicationSource.core);
 const workerAsset = asset('reverse-worker', 'js', reverseWorkerSource);
+const featureAssets = Object.fromEntries(Object.entries(applicationSource.features).map(([page, source]) => [
+  page,
+  asset(`feature-${page}`, 'js', source),
+]));
 
 html = html.replace(themeMatch[0], `<script src="${themeAsset.path}"></script>`);
 html = html.replace(styleMatch[0], `<link rel="stylesheet" href="${styleAsset.path}">`);
@@ -158,6 +204,10 @@ for (const { id, match } of dataScripts) {
 html = html.replace(
   reverseWorkerMatch[0],
   `<script id="reverse-worker-source" type="application/json" data-worker-src="${workerAsset.path}"></script>`,
+);
+html = html.replace(
+  featureAssetsMatch[0],
+  `<script id="page-feature-assets" type="application/json" ${Object.entries(featureAssets).map(([page, entry]) => `data-${page}-src="${entry.path}"`).join(' ')}></script>`,
 );
 html = html.replace(
   appMatch[0],
@@ -186,7 +236,17 @@ ${indexingHeaders}  X-Frame-Options: DENY
   Cache-Control: public, max-age=31536000, immutable
 `);
 
-const assets = { theme: themeAsset, style: styleAsset, data: dataAsset, app: appAsset, worker: workerAsset };
+const assets = {
+  theme: themeAsset,
+  style: styleAsset,
+  data: dataAsset,
+  app: appAsset,
+  worker: workerAsset,
+  featureDex: featureAssets.dex,
+  featureMatchup: featureAssets.matchup,
+  featureFinetune: featureAssets.finetune,
+  featureRevcalc: featureAssets.revcalc,
+};
 const manifest = {
   artifact: 'index.html',
   source: path.basename(SOURCE_HTML),
@@ -198,7 +258,7 @@ const manifest = {
   assets,
   notes: [
     'The offline standalone artifact remains pokemon-champions-calculator-v3.html.',
-    'HTML, CSS, application code, embedded data, and the lazy reverse-analysis worker are emitted as separate static assets.',
+    'HTML, CSS, core application code, embedded data, page features, and the lazy reverse-analysis worker are emitted as separate static assets.',
     'Hashed assets are safe to cache immutably.',
     PRIVATE_TEST
       ? 'Search indexing and advertising rails are disabled for the private test deployment.'

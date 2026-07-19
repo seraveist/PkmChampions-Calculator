@@ -1,4 +1,5 @@
 import { readFileSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTsModule, applyModOverrides } from './ts-loader.mjs';
@@ -113,8 +114,24 @@ if (!upstream) {
   if (JSON.stringify(upstream.files) !== JSON.stringify(PS_FILES)) {
     fail('upstream.files does not match the sync source manifest');
   }
+  const expectedHashKeys = [...PS_FILES].sort();
+  const actualHashKeys = Object.keys(upstream.fileHashes || {}).sort();
+  if (JSON.stringify(actualHashKeys) !== JSON.stringify(expectedHashKeys)) {
+    fail('upstream.fileHashes does not match the sync source manifest');
+  }
   for (const relPath of Array.isArray(upstream.files) ? upstream.files : []) {
-    if (!existsSync(path.join(ROOT, relPath))) fail(`upstream file is missing locally: ${relPath}`);
+    const filePath = path.join(ROOT, relPath);
+    if (!existsSync(filePath)) {
+      fail(`upstream file is missing locally: ${relPath}`);
+      continue;
+    }
+    const expectedHash = upstream.fileHashes?.[relPath] || '';
+    if (!/^[0-9a-f]{64}$/.test(expectedHash)) {
+      fail(`upstream file hash is invalid: ${relPath}`);
+      continue;
+    }
+    const actualHash = createHash('sha256').update(readFileSync(filePath)).digest('hex');
+    if (actualHash !== expectedHash) fail(`upstream file hash mismatch: ${relPath}`);
   }
 }
 

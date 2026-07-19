@@ -1,0 +1,913 @@
+/* Shared stat and move editors used by calculator tools. */
+
+.tool-stat-panel,
+.tool-stat-set,
+.tool-stat-panel-head,
+.tool-stat-table-frame,
+.tool-stat-head-row,
+.tool-stat-head-cell,
+.tool-move-panel,
+.tool-move-panel-head,
+.tool-stat-panel-body,
+.tool-stat-grid,
+.tool-stat-total,
+.tool-stat-col-name,
+.tool-stat-col-base,
+.tool-stat-col-point,
+.tool-stat-col-magic,
+.tool-stat-col-final,
+.tool-stat-col-rank,
+.tool-stat-name-text,
+.tool-stat-preset-button,
+.tool-stat-preset-popover,
+.tool-stat-preset-menu,
+.tool-stat-preset-label,
+.tool-stat-preset-row,
+.tool-stat-preset-option,
+.tool-stat-bulk-strip,
+.tool-stat-bulk-card,
+.tool-stat-bulk-label,
+.tool-stat-bulk-value,
+.tool-stat-magic,
+.tool-stat-magic-current-slot,
+.tool-stat-magic-prev,
+.tool-stat-magic-current,
+.tool-stat-magic-next,
+.tool-move-panel-body,
+.tool-move-list-frame,
+.tool-move-list,
+.tool-move-head-row,
+.tool-move-row,
+.tool-move-col-index,
+.tool-move-col-name,
+.tool-move-col-type,
+.tool-move-col-power,
+.tool-move-col-readout,
+.tool-move-index,
+.tool-move-combobox,
+.tool-move-input,
+.tool-move-type-control,
+.tool-move-type-input,
+.tool-move-power-control,
+.tool-move-power-input,
+.tool-move-power-readout {
+  min-width: 0;
+}
+
+.tool-pokemon-subframe.ui-control-frame.ui-subframe,
+.tool-settings-subframe.ui-control-frame.ui-subframe,
+.tool-stat-panel.ui-control-frame.ui-subframe,
+.tool-move-panel.ui-control-frame.ui-subframe {
+  padding: var(--ui-subframe-content-padding);
+}
+
+.tool-stat-panel-head,
+.tool-move-panel-head {
+  align-items: center;
+  min-height: var(--ui-field-head-height);
+  gap: var(--tool-panel-head-gap, var(--tool-stat-head-gap, var(--ui-control-grid-gap)));
+}
+
+.tool-stat-panel-body {
+  width: 100%;
+}
+
+.tool-stat-table-frame {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: var(--tool-stat-table-frame-padding, 10px);
+  border: var(--tool-stat-table-frame-border, 1px solid var(--border));
+  border-radius: var(--tool-stat-table-frame-radius, calc(var(--ui-subframe-radius) - 2px));
+  background: var(--tool-stat-table-frame-bg, var(--bg-input));
+}
+
+.tool-stat-table-frame > .tool-stat-grid {
+  margin: 0;
+}
+
+.tool-stat-panel-title,
+.tool-move-panel-title {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ui-field-head-height);
+  color: var(--ui-pokemon-label-color, var(--text-dim));
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-pokemon-label-font-size);
+  font-weight: var(--ui-pokemon-label-font-weight);
+  line-height: var(--ui-label-line-height);
+  letter-spacing: 0;
+  margin: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.tool-stat-panel-title,
+.tool-move-panel-title {
+  gap: var(--ui-field-label-gap);
+}
+
+.tool-stat-preset-button,
+.tool-stat-total {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  padding: var(--tool-stat-head-action-padding, 0 12px);
+  font-size: var(--ui-label-action-font-size);
+  font-weight: var(--ui-label-action-font-weight);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tool-stat-preset-button {
+  min-width: var(--tool-stat-preset-min-width, var(--ui-pokemon-action-width));
+}
+
+.tool-stat-total {
+  gap: var(--tool-stat-total-gap, 6px);
+  margin-left: auto;
+}
+
+.tool-stat-total > *,
+.tool-stat-total b {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.tool-stat-head-row,
+.tool-stat-row {
+  display: contents;
+}
+
+.tool-stat-grid {
+  --tool-stat-control-height: clamp(28px, 2.1vw, 30px);
+  --tool-stat-point-button-size: var(--tool-stat-control-height);
+  --tool-stat-point-input-width: clamp(46px, 4vw, 54px);
+  --tool-stat-point-control-height: var(--tool-stat-control-height);
+  --tool-stat-point-row-height: var(--tool-stat-control-height);
+  --tool-stat-point-gap: clamp(2px, 0.28vw, 3px);
+  --tool-stat-rank-button-size: var(--tool-stat-control-height);
+  --tool-stat-rank-value-width: clamp(18px, 1.55vw, 22px);
+  --tool-stat-rank-control-height: var(--tool-stat-control-height);
+  --tool-stat-rank-row-height: var(--tool-stat-control-height);
+  --tool-stat-rank-gap: var(--tool-stat-point-gap);
+  --tool-stat-control-border: 1px solid var(--border);
+  --tool-stat-control-hover-border: var(--border-bright);
+  --tool-stat-control-focus-border: var(--ui-control-focus-border);
+  --tool-stat-control-radius: var(--ui-stat-control-radius);
+  --tool-stat-focus-ring: var(--focus-ring);
+  --tool-stat-button-bg: var(--ui-action-bg);
+  --tool-stat-button-hover-bg: var(--ui-action-hover-bg);
+  --tool-stat-button-focus-bg: var(--ui-action-bg);
+  --tool-stat-button-font-size: clamp(11px, 0.85vw, 12px);
+  --tool-stat-input-bg: var(--ui-control-bg);
+  --tool-stat-input-hover-bg: var(--bg-input);
+  --tool-stat-input-focus-bg: var(--ui-control-bg);
+  --tool-stat-input-font-size: clamp(12px, 0.9vw, 13px);
+  --tool-stat-input-padding: 0 2px;
+  --tool-stat-input-spinner-balance: clamp(7px, 0.75vw, 9px);
+  --tool-stat-input-spinner-width: clamp(10px, 0.95vw, 12px);
+  --tool-stat-rank-value-font-size: clamp(12px, 0.9vw, 13px);
+  --tool-stat-base-font-size: 0.82rem;
+  --tool-stat-final-font-size: var(--tool-stat-base-font-size);
+  --tool-stat-readout-font-weight: 900;
+  --tool-stat-magic-control-height: var(--tool-stat-control-height);
+}
+
+.tool-stat-head-row > *,
+.tool-stat-row > * {
+  min-width: 0;
+}
+
+.tool-stat-col-name,
+.tool-stat-col-base,
+.tool-stat-col-point,
+.tool-stat-col-magic,
+.tool-stat-col-final,
+.tool-stat-col-rank {
+  box-sizing: border-box;
+}
+
+.tool-stat-col-base.ui-stat-readout,
+.tool-stat-col-final.ui-stat-readout {
+  display: grid;
+  place-items: center;
+  color: var(--tool-stat-final-color, var(--text));
+  font-family: var(--ui-number-font);
+  font-size: var(--tool-stat-final-font-size, 0.94rem);
+  font-weight: var(--tool-stat-readout-font-weight, 900);
+  line-height: 1;
+  text-align: center;
+}
+
+.tool-stat-col-base.ui-stat-readout {
+  color: var(--tool-stat-base-color, var(--text-dim));
+  font-size: var(--tool-stat-base-font-size, 0.82rem);
+}
+
+.tool-stat-name-text {
+  display: inline-block;
+  min-width: 0;
+}
+
+.tool-stat-nature-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  line-height: 1;
+}
+
+.tool-stat-nature-up {
+  color: var(--tool-stat-positive-color, var(--atk));
+}
+
+.tool-stat-nature-down {
+  color: var(--tool-stat-negative-color, var(--def));
+}
+
+.tool-stat-nature-empty {
+  visibility: hidden;
+}
+
+.tool-stat-bulk-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--tool-stat-bulk-gap, 6px);
+  min-width: 0;
+}
+
+.tool-stat-bulk-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tool-stat-bulk-card-gap, 6px);
+  min-width: 0;
+  height: var(--tool-stat-bulk-card-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-bulk-card-height, var(--ui-pokemon-action-height));
+  padding: var(--tool-stat-bulk-card-padding, 0 10px);
+  border: var(--tool-stat-bulk-card-border, 1px solid var(--border));
+  border-radius: var(--tool-stat-bulk-card-radius, 999px);
+  background: var(--tool-stat-bulk-card-bg, var(--bg-panel));
+  line-height: 1;
+}
+
+.tool-stat-bulk-card::before {
+  content: "";
+  width: var(--tool-stat-bulk-dot-size, 6px);
+  height: var(--tool-stat-bulk-dot-size, 6px);
+  flex: 0 0 var(--tool-stat-bulk-dot-size, 6px);
+  border-radius: 999px;
+  background: var(--tool-stat-bulk-dot-color, var(--text-faint));
+}
+
+.tool-stat-bulk-phys {
+  --tool-stat-bulk-dot-color: var(--tool-stat-bulk-phys-color, #b77945);
+}
+
+.tool-stat-bulk-spec {
+  --tool-stat-bulk-dot-color: var(--tool-stat-bulk-spec-color, #5277a3);
+}
+
+.tool-stat-bulk-label,
+.tool-stat-bulk-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: var(--tool-stat-bulk-content-height, 16px);
+  line-height: var(--tool-stat-bulk-content-height, 16px);
+  white-space: nowrap;
+}
+
+.tool-stat-bulk-label {
+  color: var(--tool-stat-bulk-label-color, var(--text-dim));
+  font-size: var(--tool-stat-bulk-label-font-size, 0.78rem);
+  font-weight: var(--tool-stat-bulk-label-font-weight, 800);
+}
+
+.tool-stat-bulk-value {
+  color: var(--tool-stat-bulk-value-color, var(--text));
+  font-family: var(--ui-number-font);
+  font-size: var(--tool-stat-bulk-value-font-size, 0.82rem);
+  font-weight: var(--tool-stat-bulk-value-font-weight, 900);
+}
+
+.tool-move-panel {
+  --tool-move-control-height: var(--ui-control-height);
+  --tool-move-index-width: 24px;
+  --tool-move-name-width: minmax(0, 1fr);
+  --tool-move-type-width: clamp(62px, 11%, 70px);
+  --tool-move-power-width: clamp(54px, 11%, 64px);
+  --tool-move-readout-width: clamp(74px, 16%, 96px);
+  --tool-move-column-gap: 6px;
+  --tool-move-grid-template:
+    var(--tool-move-index-width)
+    var(--tool-move-name-width)
+    var(--tool-move-type-width)
+    var(--tool-move-power-width)
+    var(--tool-move-readout-width);
+  --tool-move-line: var(--calc-line, var(--border));
+  --tool-move-text: var(--calc-text, var(--text));
+  --tool-move-muted: var(--calc-muted, var(--text-dim));
+  --tool-move-control-bg: var(--calc-control-bg, var(--bg-input));
+  --tool-move-control-radius: var(--radius-sm);
+  --tool-move-type-input-padding: 0 18px 0 8px;
+  --tool-move-power-input-padding: 0 2px;
+  --tool-move-head-font-size: 0.68rem;
+  --tool-move-index-font-size: 0.78rem;
+  --tool-move-name-font-size: var(--ui-control-font-size);
+  --tool-move-type-font-size: 12px;
+  --tool-move-type-font-weight: var(--ui-type-pill-font-weight);
+  --tool-move-power-font-size: var(--ui-control-font-size);
+  --tool-move-readout-font-size: 0.94rem;
+}
+
+.tool-move-panel-body,
+.tool-move-list-frame,
+.tool-move-list {
+  width: 100%;
+}
+
+.tool-move-list-frame {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: var(--tool-move-list-frame-padding, 10px);
+  border: var(--tool-move-list-frame-border, 1px solid var(--border));
+  border-radius: var(--tool-move-list-frame-radius, calc(var(--ui-subframe-radius) - 2px));
+  background: var(--tool-move-list-frame-bg, var(--bg-input));
+}
+
+.tool-move-list-frame > .tool-move-list {
+  margin: 0;
+}
+
+.tool-move-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.tool-move-head-row,
+.tool-move-row {
+  display: grid;
+  width: 100%;
+  grid-template-columns: var(--tool-move-grid-template);
+  column-gap: var(--tool-move-column-gap);
+  align-items: center;
+}
+
+.tool-move-head-row {
+  min-height: 16px;
+  margin-bottom: -2px;
+  color: var(--tool-move-muted);
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--tool-move-head-font-size);
+  font-weight: 900;
+  line-height: 1;
+  user-select: none;
+}
+
+.tool-move-head-row > * {
+  min-width: 0;
+}
+
+.tool-move-col-readout {
+  text-align: center;
+}
+
+.tool-move-row {
+  grid-template-rows: var(--tool-move-control-height);
+  grid-auto-rows: var(--tool-move-control-height);
+  row-gap: 0;
+  justify-content: stretch;
+  margin: 0;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.tool-move-row > * {
+  grid-area: auto;
+  grid-row: 1;
+  align-self: center;
+  min-width: 0;
+}
+
+.tool-move-index {
+  grid-column: 1;
+  color: var(--tool-move-muted);
+  font-size: var(--tool-move-index-font-size);
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+}
+
+.tool-move-row > .tool-move-combobox {
+  grid-column: 2;
+}
+
+.tool-move-combobox {
+  width: 100%;
+}
+
+.tool-move-combobox .tool-move-input {
+  border: var(--ui-control-border);
+  border-radius: var(--ui-control-radius);
+  background: var(--ui-control-bg);
+  color: var(--text);
+  box-shadow: none;
+}
+
+.tool-move-type-control {
+  grid-column: 3;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  height: var(--tool-move-control-height);
+  min-height: var(--tool-move-control-height);
+  border: 0;
+  border-radius: var(--tool-move-control-radius);
+  color: #ffffff;
+}
+
+.tool-move-power-control {
+  grid-column: 4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  justify-content: stretch;
+  gap: 0;
+  width: 100%;
+  height: var(--tool-move-control-height);
+  min-height: var(--tool-move-control-height);
+  margin: 0;
+  padding: 0 6px;
+  border: 1px solid var(--tool-move-line);
+  border-radius: var(--tool-move-control-radius);
+  background: var(--tool-move-control-bg);
+  color: var(--tool-move-text);
+  line-height: 1;
+}
+
+.tool-move-power-readout {
+  grid-column: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: stretch;
+  overflow: hidden;
+  width: 100%;
+  height: var(--tool-move-control-height);
+  min-height: var(--tool-move-control-height);
+  color: var(--tool-move-text);
+  font-family: var(--ui-number-font);
+  font-size: var(--tool-move-readout-font-size);
+  font-weight: var(--ui-number-font-weight);
+  line-height: 1;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-move-combobox .tool-move-input,
+.tool-move-type-control .tool-move-type-input {
+  height: var(--tool-move-control-height);
+  min-height: var(--tool-move-control-height);
+  overflow: hidden;
+  font-size: var(--tool-move-name-font-size);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-move-type-control .tool-move-type-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--tool-move-type-input-padding);
+  border: 0;
+  border-radius: var(--tool-move-control-radius);
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+  font-size: var(--tool-move-type-font-size);
+  font-weight: var(--tool-move-type-font-weight);
+  line-height: 1;
+  text-align: center;
+}
+
+.tool-move-type-control.type-none {
+  border: 1px solid var(--tool-move-line);
+  background: var(--tool-move-control-bg);
+  color: var(--tool-move-muted);
+}
+
+.tool-move-type-control::after {
+  top: 50%;
+  right: var(--tool-move-type-arrow-right, 7px);
+  transform: translateY(-50%);
+  color: currentColor;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.tool-move-type-control .combobox-options {
+  min-width: 92px;
+}
+
+.tool-move-power-control .tool-move-power-input {
+  display: block;
+  width: 100%;
+  height: calc(var(--tool-move-control-height) - 2px);
+  min-height: 0;
+  padding: var(--tool-move-power-input-padding);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--tool-move-text);
+  font-family: var(--ui-number-font);
+  font-size: var(--tool-move-power-font-size);
+  font-weight: 700;
+  line-height: calc(var(--tool-move-control-height) - 2px);
+  text-align: center;
+}
+
+.tool-move-power-control .tool-move-power-input:focus {
+  box-shadow: none;
+}
+
+.tool-move-power-control .tool-move-power-input:disabled {
+  color: var(--tool-move-muted);
+  opacity: 0.65;
+}
+
+.tool-move-power-readout b {
+  color: inherit;
+  font: inherit;
+}
+
+.tool-move-no-type {
+  --tool-move-grid-template:
+    var(--tool-move-index-width)
+    var(--tool-move-name-width)
+    var(--tool-move-power-width)
+    var(--tool-move-readout-width);
+}
+
+.tool-move-no-power {
+  --tool-move-grid-template:
+    var(--tool-move-index-width)
+    var(--tool-move-name-width)
+    var(--tool-move-type-width)
+    var(--tool-move-readout-width);
+}
+
+.tool-move-no-readout {
+  --tool-move-grid-template:
+    var(--tool-move-index-width)
+    var(--tool-move-name-width)
+    var(--tool-move-type-width)
+    var(--tool-move-power-width);
+}
+
+.tool-move-no-type.tool-move-no-power.tool-move-no-readout {
+  --tool-move-grid-template:
+    var(--tool-move-index-width)
+    var(--tool-move-name-width);
+}
+
+.ui-stat-button {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 0;
+  border: var(--ui-control-border);
+  border-radius: var(--ui-stat-control-radius);
+  background: var(--ui-control-bg);
+  color: var(--text-dim);
+  font-family: var(--ui-number-font);
+  font-size: var(--ui-number-font-size);
+  font-weight: 900;
+  line-height: 1;
+  outline: 0;
+  box-shadow: none;
+  transition: border-color 0.14s, background 0.14s, box-shadow 0.14s, color 0.14s;
+}
+
+.ui-stat-button:hover {
+  border-color: var(--ui-control-hover-border);
+  background: var(--bg-elev);
+  color: var(--text);
+}
+
+.ui-stat-button:focus,
+.ui-stat-button:focus-visible,
+.ui-stat-button:active {
+  outline: 0;
+  border-color: var(--ui-control-hover-border);
+  background: var(--ui-control-bg);
+  box-shadow: var(--ui-control-focus-ring);
+}
+
+.ui-stat-value {
+  display: grid;
+  box-sizing: border-box;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--ui-number-font);
+  font-size: var(--ui-number-font-size);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.tool-stat-point-stepper {
+  display: grid;
+  grid-template-columns:
+    var(--tool-stat-point-button-size, var(--ui-stat-control-size))
+    var(--tool-stat-point-input-width, minmax(82px, 1fr))
+    var(--tool-stat-point-button-size, var(--ui-stat-control-size));
+  gap: var(--tool-stat-point-gap, 4px);
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+  min-width: 0;
+  height: var(--tool-stat-point-row-height, var(--ui-stat-control-size));
+  min-height: var(--tool-stat-point-row-height, var(--ui-stat-control-size));
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.tool-stat-point-stepper:focus-within {
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
+
+.tool-stat-point-button,
+.tool-stat-rank-button {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 0;
+  border: var(--tool-stat-control-border, var(--ui-control-border));
+  border-radius: var(--tool-stat-control-radius, var(--ui-stat-control-radius));
+  background: var(--tool-stat-button-bg, var(--ui-control-bg));
+  color: var(--tool-stat-button-color, var(--text-dim));
+  font-family: var(--ui-number-font);
+  font-size: var(--tool-stat-button-font-size, 12px);
+  font-weight: var(--tool-stat-button-font-weight, 900);
+  line-height: 1;
+  outline: 0;
+  box-shadow: none;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease, color 0.14s ease;
+}
+
+.tool-stat-point-button {
+  width: var(--tool-stat-point-button-size, var(--ui-stat-control-size));
+  height: var(--tool-stat-point-control-height, var(--ui-stat-control-size));
+  min-height: var(--tool-stat-point-control-height, var(--ui-stat-control-size));
+}
+
+.tool-stat-rank-button {
+  width: var(--tool-stat-rank-button-size, 28px);
+  height: var(--tool-stat-rank-control-height, var(--ui-stat-control-size));
+  min-height: var(--tool-stat-rank-control-height, var(--ui-stat-control-size));
+}
+
+.tool-stat-point-button:hover,
+.tool-stat-rank-button:hover {
+  border-color: var(--tool-stat-control-hover-border, var(--ui-control-hover-border));
+  background: var(--tool-stat-button-hover-bg, var(--ui-action-hover-bg));
+  color: var(--tool-stat-button-hover-color, var(--text));
+}
+
+.tool-stat-point-button:focus,
+.tool-stat-point-button:focus-visible,
+.tool-stat-point-button:active,
+.tool-stat-rank-button:focus,
+.tool-stat-rank-button:focus-visible,
+.tool-stat-rank-button:active {
+  outline: 0;
+  border-color: var(--tool-stat-control-focus-border, var(--tool-stat-control-hover-border, var(--ui-control-hover-border)));
+  background: var(--tool-stat-button-focus-bg, var(--tool-stat-button-bg, var(--ui-control-bg)));
+  box-shadow: var(--tool-stat-focus-ring, var(--ui-control-focus-ring));
+}
+
+.tool-stat-point-input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: var(--tool-stat-point-control-height, var(--ui-stat-control-size));
+  min-height: var(--tool-stat-point-control-height, var(--ui-stat-control-size));
+  margin: 0;
+  padding: var(--tool-stat-input-padding, 0 2px);
+  border: var(--tool-stat-control-border, var(--ui-control-border));
+  border-radius: var(--tool-stat-control-radius, var(--ui-stat-control-radius));
+  background: var(--tool-stat-input-bg, var(--ui-control-bg));
+  color: var(--tool-stat-input-color, var(--text));
+  font-family: var(--ui-number-font);
+  font-size: var(--tool-stat-input-font-size, var(--ui-number-font-size));
+  font-weight: var(--tool-stat-input-font-weight, 900);
+  line-height: var(--tool-stat-point-control-height, var(--ui-stat-control-size));
+  text-align: center;
+  outline: 0;
+  box-shadow: none;
+  appearance: var(--tool-stat-input-appearance, auto);
+  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
+}
+
+.tool-stat-point-stepper .tool-stat-point-input {
+  border: var(--tool-stat-control-border, var(--ui-control-border));
+  background: var(--tool-stat-input-bg, var(--ui-control-bg));
+  box-shadow: none;
+  color: var(--tool-stat-input-color, var(--text));
+}
+
+.tool-stat-point-input[type="number"] {
+  height: var(--tool-stat-point-control-height, var(--ui-stat-control-size));
+  min-height: var(--tool-stat-point-control-height, var(--ui-stat-control-size));
+  padding-inline-start: var(--tool-stat-input-spinner-balance, 8px);
+  padding-inline-end: var(--tool-stat-input-spinner-end-padding, 0);
+  font-variant-numeric: tabular-nums;
+}
+
+.tool-stat-point-input[type="number"]::-webkit-inner-spin-button,
+.tool-stat-point-input[type="number"]::-webkit-outer-spin-button {
+  width: var(--tool-stat-input-spinner-width, 12px);
+  margin: 0;
+}
+
+.tool-stat-point-input:hover {
+  border-color: var(--tool-stat-control-hover-border, var(--ui-control-hover-border));
+  background: var(--tool-stat-input-hover-bg, var(--tool-stat-input-bg, var(--ui-control-bg)));
+}
+
+.tool-stat-point-stepper .tool-stat-point-input:hover {
+  border-color: var(--tool-stat-control-hover-border, var(--ui-control-hover-border));
+  background: var(--tool-stat-input-hover-bg, var(--tool-stat-input-bg, var(--ui-control-bg)));
+}
+
+.tool-stat-point-input:focus,
+.tool-stat-point-input:focus-visible,
+.tool-stat-point-input:active {
+  outline: 0;
+  border-color: var(--tool-stat-control-focus-border, var(--ui-control-focus-border));
+  background: var(--tool-stat-input-focus-bg, var(--tool-stat-input-bg, var(--ui-control-bg)));
+  box-shadow: var(--tool-stat-focus-ring, var(--ui-control-focus-ring));
+}
+
+.tool-stat-point-stepper .tool-stat-point-input:focus,
+.tool-stat-point-stepper .tool-stat-point-input:focus-visible,
+.tool-stat-point-stepper .tool-stat-point-input:active {
+  border-color: var(--tool-stat-control-focus-border, var(--ui-control-focus-border));
+  background: var(--tool-stat-input-focus-bg, var(--tool-stat-input-bg, var(--ui-control-bg)));
+  box-shadow: var(--tool-stat-focus-ring, var(--ui-control-focus-ring));
+}
+
+.tool-stat-rank-stepper {
+  display: grid;
+  grid-template-columns:
+    var(--tool-stat-rank-button-size, 28px)
+    var(--tool-stat-rank-value-width, 28px)
+    var(--tool-stat-rank-button-size, 28px);
+  gap: var(--tool-stat-rank-gap, 3px);
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+  min-width: 0;
+  height: var(--tool-stat-rank-row-height, var(--ui-stat-control-size));
+  min-height: var(--tool-stat-rank-row-height, var(--ui-stat-control-size));
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.tool-stat-rank-value {
+  width: var(--tool-stat-rank-value-width, 28px);
+  height: var(--tool-stat-rank-row-height, var(--ui-stat-control-size));
+  min-height: var(--tool-stat-rank-row-height, var(--ui-stat-control-size));
+  color: var(--tool-stat-rank-value-color, var(--text));
+  font-size: var(--tool-stat-rank-value-font-size, var(--ui-number-font-size));
+}
+
+.tool-stat-rank-empty {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--tool-stat-rank-row-height, var(--ui-stat-control-size));
+  min-height: var(--tool-stat-rank-row-height, var(--ui-stat-control-size));
+  border: 0;
+  background: transparent;
+}
+
+.tool-stat-rank-value.pos,
+.tool-stat-rank-value.up {
+  color: var(--tool-stat-positive-color, var(--atk));
+}
+
+.tool-stat-rank-value.neg,
+.tool-stat-rank-value.down {
+  color: var(--tool-stat-negative-color, var(--def));
+}
+
+.tool-stat-magic {
+  display: grid;
+  grid-template-columns:
+    var(--tool-stat-magic-edge-width, 28px)
+    var(--tool-stat-magic-current-width, 36px)
+    var(--tool-stat-magic-edge-width, 28px);
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+  gap: var(--tool-stat-magic-gap, 4px);
+  min-width: 0;
+  height: var(--tool-stat-magic-row-height, var(--ui-stat-control-size));
+  min-height: var(--tool-stat-magic-row-height, var(--ui-stat-control-size));
+}
+
+.tool-stat-magic-current-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tool-stat-magic-current-width, 36px);
+  min-width: 0;
+}
+
+.tool-stat-magic-prev,
+.tool-stat-magic-current,
+.tool-stat-magic-next {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: var(--tool-stat-magic-control-height, calc(var(--ui-stat-control-size) - 2px));
+  padding: var(--tool-stat-magic-control-padding, 0 5px);
+  border: var(--tool-stat-magic-control-border, var(--ui-control-border));
+  border-radius: var(--tool-stat-magic-control-radius, var(--ui-stat-control-radius));
+  background: var(--tool-stat-magic-control-bg, var(--ui-control-bg));
+  font-size: var(--tool-stat-magic-font-size, 10px);
+  font-weight: var(--tool-stat-magic-font-weight, 900);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tool-stat-magic-current {
+  color: var(--tool-stat-magic-current-color, var(--warn));
+}
+
+.tool-stat-magic-next {
+  color: var(--tool-stat-magic-next-color, var(--good));
+}
+
+.tool-stat-magic-prev {
+  color: var(--tool-stat-magic-prev-color, var(--text-faint));
+}
+
+.tool-stat-magic-empty {
+  visibility: hidden;
+}
+
+@media (max-width: 680px) {
+  .tool-stat-grid {
+    --tool-stat-control-height: 26px;
+    --tool-stat-point-input-width: 44px;
+    --tool-stat-point-gap: 2px;
+    --tool-stat-rank-value-width: 16px;
+    --tool-stat-rank-gap: 2px;
+    --tool-stat-button-font-size: 0.66rem;
+    --tool-stat-input-font-size: 0.72rem;
+    --tool-stat-rank-value-font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .tool-stat-grid {
+    --tool-stat-control-height: 24px;
+    --tool-stat-point-input-width: 40px;
+    --tool-stat-rank-value-width: 14px;
+  }
+}
+
+@media (max-width: 380px) {
+  .tool-stat-grid {
+    --tool-stat-control-height: 22px;
+    --tool-stat-point-input-width: 36px;
+    --tool-stat-rank-value-width: 12px;
+  }
+}

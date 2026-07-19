@@ -262,7 +262,7 @@ async function installAxe(client) {
 async function checkAxe(client, label) {
   const violations = await client.evaluate(`axe.run(document, { resultTypes: ['violations'] }).then(result => (
     result.violations
-      .filter(violation => violation.impact === 'critical' || violation.impact === 'serious')
+      .filter(violation => ['critical', 'serious', 'moderate'].includes(violation.impact))
       .map(violation => ({
         id: violation.id,
         impact: violation.impact,
@@ -272,7 +272,7 @@ async function checkAxe(client, label) {
         })),
       }))
   ))`, true);
-  check(violations.length === 0, `${label} has no critical or serious accessibility violations`, JSON.stringify(violations));
+  check(violations.length === 0, `${label} has no critical, serious, or moderate accessibility violations`, JSON.stringify(violations));
 }
 
 async function main() {
@@ -348,6 +348,8 @@ async function main() {
     ).catch(() => false);
     check(appReady, `${PUBLIC_MODE ? 'public' : 'standalone'} app runtime initializes`, browserErrors.join(' | '));
     await installAxe(client);
+    const initialFeatureRequests = await client.evaluate(`performance.getEntriesByType('resource').filter(entry => /feature-(?:dex|matchup|finetune|revcalc)\./.test(entry.name)).length`);
+    check(initialFeatureRequests === 0, 'page feature bundles are not requested during calculator startup', String(initialFeatureRequests));
 
     await setViewport(client, 1440, 1000);
     const desktop = await client.evaluate(`(() => {
@@ -481,7 +483,7 @@ async function main() {
     check(partyModalReturnFocus === 'partyPresetOpen', 'party preset modal restores trigger focus', partyModalReturnFocus);
 
     const dex = await client.evaluate(`(async () => {
-      document.querySelector('.nav-tab[data-page="dex"]')?.click();
+      await activateMainPage('dex', { updateHash: true });
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const firstPageRows = [...document.querySelectorAll('#dexBodyPokemon tr[data-dex-id]')];
       const firstId = firstPageRows[0]?.dataset.dexId || '';
@@ -498,6 +500,9 @@ async function main() {
         pageLabel: document.querySelector('#dexPagination-pokemon .dex-page-current')?.textContent?.trim() || '',
         cardDisplay: getComputedStyle(secondPageRows[0]).display,
         labeledStats: secondPageRows[0]?.querySelectorAll('td.num[data-label]').length || 0,
+        featureResources: performance.getEntriesByType('resource')
+          .filter(entry => /feature-(?:dex|matchup|finetune|revcalc)\./.test(entry.name))
+          .map(entry => entry.name.split('/').pop()),
       };
     })()`, true);
     check(dex.overflow <= 1, 'mobile dex has no horizontal page overflow', String(dex.overflow));
@@ -505,6 +510,7 @@ async function main() {
     check(dex.secondCount > 0 && dex.secondCount <= 50 && dex.secondId !== dex.firstId, 'dex pagination renders the next Pokemon slice', JSON.stringify(dex));
     check(dex.pageLabel.startsWith('2 / '), 'dex pagination exposes the current page', dex.pageLabel);
     check(dex.cardDisplay === 'grid' && dex.labeledStats === 7, 'mobile dex renders labeled information cards', JSON.stringify(dex));
+    check(dex.featureResources.length <= 1 && (!dex.featureResources.length || dex.featureResources[0].startsWith('feature-dex.')), 'dex entry requests only its page feature bundle', JSON.stringify(dex.featureResources));
     const dexKeyboard = await client.evaluate(`(() => {
       const sortButton = document.querySelector('#dexTablePokemon th[data-sort="hp"] .dex-sort-button');
       sortButton.focus();
@@ -522,10 +528,36 @@ async function main() {
     check(dexKeyboard.rowButtonTag === 'BUTTON' && dexKeyboard.rowButtonLabel.endsWith('상세 보기'), 'dex rows expose a keyboard detail action', JSON.stringify(dexKeyboard));
     await checkAxe(client, 'dex');
 
-    const stagedTools = await client.evaluate(`(() => {
+    const stagedTools = await client.evaluate(`(async () => {
+      await activateMainPage('finetune', { updateHash: false });
+      fineTuneState.my = makeSideState('primarina');
+      renderFineTuneAll();
+      const fineTuneFrame = document.querySelector('#page-finetune .ft-stats-column');
+      const fineTuneMobile = {
+        rowDisplay: getComputedStyle(document.querySelector('#page-finetune .ft-stat-row')).display,
+        overflow: fineTuneFrame.scrollWidth - fineTuneFrame.clientWidth,
+      };
+
+      await activateMainPage('revcalc', { updateHash: false });
+      revCalcState.my = makeSideState('primarina');
+      revCalcState.opp = { pokemonIdx: 'archaludon', ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: 'none' };
+      revCalcState.nextRankOpen = true;
+      renderRevCalcAll();
+      const reverseFrames = [...document.querySelectorAll('#page-revcalc .tool-stat-table-frame')];
+      const nextRankProbe = document.createElement('div');
+      nextRankProbe.innerHTML = rcRenderNextRankPanel();
+      document.getElementById('page-revcalc').appendChild(nextRankProbe);
+      const reverseMobile = {
+        rowDisplay: getComputedStyle(document.querySelector('#page-revcalc .rc-stat-row')).display,
+        maxOverflow: Math.max(0, ...reverseFrames.map(frame => frame.scrollWidth - frame.clientWidth)),
+        nextRankDisplay: getComputedStyle(nextRankProbe.querySelector('.rc-next-rank-row')).display,
+      };
+      nextRankProbe.remove();
+
       revCalcState.my = makeSideState('');
       revCalcState.opp = { pokemonIdx: '', ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: 'none' };
       revCalcState.results = null;
+      revCalcState.nextRankOpen = false;
       renderRevCalcAll();
       const reverse = {
         gated: !!document.querySelector('#rc-input-body .rc-prerequisite'),
@@ -540,13 +572,15 @@ async function main() {
         display: getComputedStyle(hpPanel).display,
         hasHpColumn: document.getElementById('ft-layout').classList.contains('has-hp-results'),
       };
-      return { reverse, finetune };
-    })()`);
+      return { reverse, finetune, fineTuneMobile, reverseMobile };
+    })()`, true);
     check(stagedTools.reverse.gated && !stagedTools.reverse.hasObservation && stagedTools.reverse.analyzeDisabled, 'reverse observations wait for both participants', JSON.stringify(stagedTools.reverse));
     check(stagedTools.finetune.hidden && stagedTools.finetune.display === 'none' && !stagedTools.finetune.hasHpColumn, 'fine-tune hides empty HP results on mobile', JSON.stringify(stagedTools.finetune));
+    check(stagedTools.fineTuneMobile.rowDisplay === 'grid' && stagedTools.fineTuneMobile.overflow <= 1, 'mobile fine-tune stats use non-scrolling cards', JSON.stringify(stagedTools.fineTuneMobile));
+    check(stagedTools.reverseMobile.rowDisplay === 'grid' && stagedTools.reverseMobile.maxOverflow <= 1 && stagedTools.reverseMobile.nextRankDisplay === 'grid', 'mobile reverse stats and next ranks use non-scrolling cards', JSON.stringify(stagedTools.reverseMobile));
 
     const matchup = await client.evaluate(`(async () => {
-      document.querySelector('.nav-tab[data-page="matchup"]')?.click();
+      await activateMainPage('matchup', { updateHash: true });
       matchupSlots.fill(null);
       matchupSlots[0] = 'charizard';
       renderMatchupSlots();
@@ -603,6 +637,24 @@ async function main() {
     })()`, true);
     check(!reverse.error && reverse.total > 0, 'reverse Worker returns candidate results', JSON.stringify(reverse));
     check(reverse.heartbeats >= 2, 'reverse Worker keeps the main thread responsive', JSON.stringify(reverse));
+
+    await setViewport(client, 320, 720);
+    await client.evaluate(`document.documentElement.dataset.theme = 'dark'`);
+    for (const pageKey of ['calc', 'revcalc', 'finetune', 'matchup', 'dex']) {
+      const narrowDark = await client.evaluate(`(async () => {
+        await activateMainPage(${JSON.stringify(pageKey)}, { updateHash: false });
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        return {
+          overflow: document.documentElement.scrollWidth - window.innerWidth,
+          active: document.getElementById(${JSON.stringify(`page-${pageKey}`)})?.classList.contains('active') || false,
+        };
+      })()`, true);
+      check(narrowDark.active && narrowDark.overflow <= 1, `${pageKey} reflows at 320px in dark theme`, JSON.stringify(narrowDark));
+      await checkAxe(client, `${pageKey} dark 320px`);
+    }
+    await captureScreenshot(client, 'dex-dark-320');
+    await client.evaluate(`delete document.documentElement.dataset.theme`);
+    check(browserErrors.length === 0, 'browser runtime reports no uncaught errors', browserErrors.join(' | '));
   } catch (error) {
     const detail = browserDiagnostics.trim().split(/\r?\n/).slice(-6).join(' | ');
     if (detail) error.message = `${error.message} (${detail})`;
