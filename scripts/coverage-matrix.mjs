@@ -27,7 +27,15 @@ function md(text) {
 }
 
 function uniqueSorted(values) {
-  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  return [...new Set(values.filter(Boolean))].sort(stableCompare);
+}
+
+function stableCompare(a, b) {
+  const left = String(a);
+  const right = String(b);
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
 }
 
 const html = readFileSync(HTML_PATH, 'utf8');
@@ -252,7 +260,7 @@ function tableFor(title, rows) {
   const scoped = rows
     .map(row => ({ ...row, status: statusFor(row), evidence: supportEvidence(row) }))
     .filter(row => row.status)
-    .sort((a, b) => a.group.localeCompare(b.group) || a.id.localeCompare(b.id));
+    .sort((a, b) => stableCompare(a.group, b.group) || stableCompare(a.id, b.id));
 
   const lines = [
     `## ${title}`,
@@ -276,10 +284,10 @@ const allCandidates = [...moveCandidates, ...abilityCandidates, ...itemCandidate
 const scopedCandidates = allCandidates.filter(row => statusFor(row));
 const missingRows = scopedCandidates
   .filter(row => ['미구현', '지원 근거 없음', '검토 필요'].includes(statusFor(row)))
-  .sort((a, b) => a.kind.localeCompare(b.kind) || a.group.localeCompare(b.group) || a.id.localeCompare(b.id));
+  .sort((a, b) => stableCompare(a.kind, b.kind) || stableCompare(a.group, b.group) || stableCompare(a.id, b.id));
 const deferredRows = scopedCandidates
   .filter(row => statusFor(row) === '보류')
-  .sort((a, b) => a.kind.localeCompare(b.kind) || a.id.localeCompare(b.id));
+  .sort((a, b) => stableCompare(a.kind, b.kind) || stableCompare(a.id, b.id));
 
 const out = [
   '# Damage Calculator Coverage Matrix',

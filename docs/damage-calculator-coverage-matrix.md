@@ -181,6 +181,9 @@
 
 | 그룹 | 항목 | 판정 | 지원 근거 | 비고 |
 | --- | --- | --- | --- | --- |
+| KO 추정 | 기합의띠 (focussash) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
+| KO 추정 | 먹다남은음식 (leftovers) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
+| KO 추정 | 자뭉열매 (sitrusberry) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
 | 가변 위력/접지 보조 | 검은철구 (ironball) | 지원 감지 | mechanics, built-data |  |
 | 공격/방어 실수치 보정 | 전기구슬 (lightball) | 지원 감지 | mechanics, built-data |  |
 | 반감 열매 | 바리비열매 (babiriberry) | 지원 감지 | mechanics, built-data | Unnerve/As One/Ripen 반영 |
@@ -223,9 +226,6 @@
 | 타입 위력 보정 | 부드러운모래 (softsand) | 지원 감지 | mechanics, built-data |  |
 | 타입 위력 보정 | 저주의부적 (spelltag) | 지원 감지 | mechanics, built-data |  |
 | 타입 위력 보정 | 휘어진스푼 (twistedspoon) | 지원 감지 | mechanics, built-data |  |
-| KO 추정 | 기합의띠 (focussash) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
-| KO 추정 | 먹다남은음식 (leftovers) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
-| KO 추정 | 자뭉열매 (sitrusberry) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
 
 ## 필드/상태 매트릭스
 
