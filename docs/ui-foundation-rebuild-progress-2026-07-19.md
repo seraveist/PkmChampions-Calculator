@@ -65,5 +65,12 @@ npm run build:pages
 git diff --check
 ```
 
+### Reset and app shell extraction
+
+- Replaced the mixed `01-base.css` stylesheet with `01-reset.css` and `layouts/app-shell.css`.
+- The reset layer now owns document defaults and typography helpers only.
+- The layouts layer now owns header navigation, page visibility, the centered content grid, and ad rails.
+- CSS structure checks prevent the legacy mixed stylesheet from returning and verify both new owners.
+
 이번 단계에서는 위 검증이 모두 통과했다. 브라우저 검사는 데스크톱/모바일 가로 넘침, 계산 결과,
 모바일 상세 토글과 드롭다운, 라이트/다크 semantic token, 역계산 Worker 응답성을 확인한다.

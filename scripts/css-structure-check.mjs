@@ -65,7 +65,21 @@ const panelComponentCss = cssByFile.get('components/panels.css') || '';
 const buttonComponentCss = cssByFile.get('components/buttons.css') || '';
 const fieldComponentCss = cssByFile.get('components/fields.css') || '';
 const comboboxComponentCss = cssByFile.get('components/combobox.css') || '';
+const resetCss = cssByFile.get('01-reset.css') || '';
+const appShellCss = cssByFile.get('layouts/app-shell.css') || '';
 const legacyFoundationCss = cssByFile.get('04-ui-foundation.css') || '';
+check(!cssByFile.has('01-base.css'), 'legacy base stylesheet is removed');
+check(
+  resetCss.includes('scrollbar-gutter: stable')
+    && resetCss.includes("font-family: 'Noto Sans KR', sans-serif"),
+  'reset stylesheet owns document defaults'
+);
+check(
+  appShellCss.includes('.site-shell')
+    && appShellCss.includes('.ad-slot-rail')
+    && appShellCss.includes('.page.active'),
+  'app shell layout owns navigation, page visibility, and ad rails'
+);
 check(Boolean(panelComponentCss), 'panel component stylesheet exists');
 check(
   panelComponentCss.includes('.ui-frame.ui-panel')
