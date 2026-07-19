@@ -1,17 +1,26 @@
 {
   "name": "pkmchampions-calculator",
   "version": "2.0.0",
-  "description": "Pokemon Champions Damage Calculator",
+  "private": true,
+  "description": "Pokemon Champions battle calculator and team analysis toolkit",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "build": "node build.mjs",
-    "prepare-public": "node scripts/prepare-public.mjs",
-    "build:public": "npm run build && npm run prepare-public",
-    "build:pages": "node scripts/build-pages.mjs",
+    "build": "npm run build:standalone",
+    "build:standalone": "node build.mjs",
+    "build:public": "node scripts/build-public.mjs",
+    "build:pages": "node scripts/build-public.mjs --private-test",
+    "pages:ready": "node scripts/public-readiness-check.mjs --private-test",
     "check": "node scripts/check.mjs",
     "html:structure": "node scripts/html-structure-check.mjs",
     "css:structure": "node scripts/css-structure-check.mjs",
+    "js:structure": "node scripts/js-structure-check.mjs",
     "ui:dropdowns": "node scripts/mobile-dropdown-contract.mjs",
+    "ui:audit": "node scripts/ui-architecture-audit.mjs",
+    "ui:browser": "node scripts/browser-layout-smoke.mjs",
+    "ui:browser:public": "npm run build:public && node scripts/browser-layout-smoke.mjs --public",
     "spa:hosting": "node scripts/spa-hosting-check.mjs",
     "public:ready": "node scripts/public-readiness-check.mjs",
     "data:validate": "node scripts/validate-data.mjs",
@@ -19,11 +28,17 @@
     "damage:golden": "node scripts/damage-golden.mjs",
     "reverse:golden": "node scripts/reverse-golden.mjs",
     "coverage:matrix": "node scripts/coverage-matrix.mjs",
+    "coverage:check": "node scripts/coverage-matrix.mjs --check",
     "state:entry": "node scripts/entry-effects-state.mjs",
     "state:finetune": "node scripts/fine-tune-state.mjs",
-    "test": "npm run check && npm run build && npm run html:structure && npm run css:structure && npm run ui:dropdowns && npm run spa:hosting && npm run public:ready && npm run data:validate && npm run dex:smoke && npm run damage:golden && npm run reverse:golden && npm run state:entry && npm run state:finetune",
+    "state:party": "node scripts/party-preset-state.mjs",
+    "test": "npm run check && npm run build:standalone && npm run html:structure && npm run css:structure && npm run js:structure && npm run ui:dropdowns && npm run spa:hosting && npm run build:public && npm run public:ready && npm run data:validate && npm run coverage:check && npm run dex:smoke && npm run damage:golden && npm run reverse:golden && npm run state:entry && npm run state:finetune && npm run state:party",
     "sync-data": "node scripts/sync-ps-data.mjs",
     "sync-data:dry": "node scripts/sync-ps-data.mjs --dry-run",
     "fetch-ko": "node scripts/fetch-ko.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "^4.12.1",
+    "ws": "^8.21.1"
   }
 }

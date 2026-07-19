@@ -1,0 +1,145 @@
+/* Dex responsive table and detail composition. */
+@media (max-width: 760px) {
+  #page-dex .dex-search {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  #page-dex .dex-reset-btn {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+  }
+
+  .dex-fullpage-head {
+    align-items: center;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .dex-fullpage-title {
+    font-size: 21px;
+  }
+
+  .dex-modal .ui-frame-head {
+    align-items: flex-start;
+  }
+
+  .dex-modal-title-en {
+    display: block;
+    margin: 2px 0 0;
+  }
+
+  .dex-modal-actions,
+  .dex-fullpage-actions {
+    justify-content: stretch;
+  }
+
+  .dex-modal-btn {
+    flex: 1 1 140px;
+  }
+
+  .dex-modal-actions:has(.dex-action-label) .dex-modal-btn,
+  .dex-fullpage-actions:has(.dex-action-label) .dex-modal-btn {
+    flex: initial;
+  }
+}
+
+@media (max-width: 520px) {
+  #page-dex .dex-nav {
+    grid-template-columns: repeat(4, minmax(60px, 1fr));
+    gap: 4px;
+    padding: 0;
+  }
+
+  #page-dex .dex-tab {
+    min-height: 34px;
+    padding: 0 6px;
+    font-size: 12px;
+  }
+
+  #page-dex .dex-search {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  #page-dex .dex-reset-btn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    font-size: 16px;
+  }
+
+  #page-dex .dex-type-filter {
+    gap: 5px;
+    margin-top: 8px;
+    padding: 8px 0 0;
+  }
+
+  #page-dex .dex-pagination {
+    gap: 8px;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  #page-dex .dex-page-button {
+    min-width: 58px;
+    min-height: 36px;
+    padding: 0 10px;
+  }
+
+  #page-dex .type-filter-btn,
+  .dex-modal .type-filter-btn,
+  #dexFullPageDetail .type-filter-btn {
+    min-height: 28px;
+    padding: 0 9px;
+    font-size: 11px;
+  }
+
+  .dex-modal-actions:has(.dex-action-label),
+  .dex-fullpage-actions:has(.dex-action-label) {
+    grid-template-columns: auto repeat(4, minmax(40px, 1fr));
+    gap: 5px;
+    padding: 10px;
+  }
+
+  .dex-modal-actions:has(.dex-action-label) .dex-action-label,
+  .dex-fullpage-actions:has(.dex-action-label) .dex-action-label {
+    font-size: 11px;
+  }
+
+  .dex-modal-actions:has(.dex-action-label) .dex-modal-btn,
+  .dex-fullpage-actions:has(.dex-action-label) .dex-modal-btn {
+    min-height: 32px;
+    padding: 0 6px;
+    font-size: 11px;
+  }
+
+  .dex-modal-stat-grid {
+    grid-template-columns: 48px minmax(72px, 1fr) 42px;
+    gap: 6px 8px;
+  }
+
+  .matchup-grid {
+    grid-template-columns: 54px minmax(0, 1fr);
+  }
+
+  .dex-modal .ui-frame-head {
+    align-items: center;
+    min-height: 52px;
+    padding: 11px 12px;
+  }
+
+  .dex-modal-actions:not(:has(.dex-action-label)) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 7px 10px;
+  }
+
+  .dex-modal-actions:not(:has(.dex-action-label)) .dex-modal-btn {
+    height: 36px;
+    min-height: 0;
+    font-size: 12px;
+  }
+}

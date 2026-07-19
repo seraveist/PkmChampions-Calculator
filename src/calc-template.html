@@ -7,7 +7,7 @@
 <meta name="description" content="포켓몬 챔피언스 룰에 맞춘 대미지 계산기, 형태 역계산, 세부조정, 상성표, 도감을 한 화면에서 다루는 정적 웹앱입니다.">
 <meta name="application-name" content="포켓몬 챔피언스 랩">
 <meta name="apple-mobile-web-app-title" content="포켓몬 챔피언스 랩">
-<meta name="theme-color" content="#f4f6f8">
+<meta name="theme-color" content="#eef2f6">
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="index,follow">
 <meta property="og:site_name" content="포켓몬 챔피언스 랩">
@@ -19,9 +19,6 @@
 <meta name="twitter:title" content="포켓몬 챔피언스 랩">
 <meta name="twitter:description" content="챔피언스 룰 기반 대미지 계산, 형태 역계산, 세부조정, 상성표, 도감을 제공하는 정적 웹앱입니다.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23f4f6f8'/%3E%3Cpath d='M8 32a24 24 0 1 1 48 0H8Z' fill='%23d64c56'/%3E%3Cpath d='M8 32a24 24 0 1 0 48 0H8Z' fill='%23ffffff'/%3E%3Cpath d='M8 31h48v4H8z' fill='%2317202a'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%2317202a'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23ffffff'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Fira+Code:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
 (function () {
   try {
@@ -37,18 +34,21 @@
 <body>
 <a class="skip-link" href="#appContent">본문으로 건너뛰기</a>
 
-<header class="app-header" role="banner">
+<header class="app-header">
   <div class="header-top">
     <div class="header-brand">
       <div class="brand-sub">POKEMON CHAMPIONS LAB</div>
       <div class="header-title-row">
         <h1>포켓몬 챔피언스 랩</h1>
-        <button type="button" class="party-preset-button ui-popover-trigger" id="partyPresetOpen">파티 프리셋</button>
+        <button type="button" class="party-preset-button ui-popover-trigger" id="partyPresetOpen" aria-label="파티 프리셋 열기">
+          <span class="party-preset-label-full">파티 프리셋</span>
+          <span class="party-preset-label-short" aria-hidden="true">파티</span>
+        </button>
       </div>
     </div>
     <div class="header-actions" aria-label="화면 설정">
       <button type="button" class="theme-toggle-button" id="themeToggle" aria-pressed="false">
-        <span class="theme-toggle-text">다크 모드</span>
+        <span class="theme-toggle-text">다크</span>
       </button>
     </div>
   </div>
@@ -59,6 +59,7 @@
     <button type="button" id="nav-matchup" class="nav-tab" data-page="matchup" role="tab" aria-controls="page-matchup" aria-selected="false" tabindex="-1">상성표</button>
     <button type="button" id="nav-dex" class="nav-tab" data-page="dex" role="tab" aria-controls="page-dex" aria-selected="false" tabindex="-1">도감</button>
   </nav>
+  <div id="pageLoadStatus" class="page-load-status" role="status" aria-live="polite" hidden></div>
 </header>
 
 <div class="site-shell">
@@ -71,11 +72,15 @@
   <main id="appContent" class="app-content" tabindex="-1">
     <!-- 대미지 계산기 -->
     <section id="page-calc" class="page page-frame active" role="tabpanel" aria-labelledby="nav-calc" aria-hidden="false">
+      <button type="button" class="calc-mobile-summary" id="calcMobileSummary" aria-live="polite" aria-label="계산 결과로 이동" hidden></button>
       <div class="battle-grid ui-frame-row">
         <section class="ui-frame atk ui-panel">
           <div class="ui-frame-head ui-panel-head">
-            <div class="ui-panel-title" role="heading" aria-level="2">공격측</div>
-            <span class="ui-panel-tag">ATK</span>
+            <h2 class="ui-panel-title">공격측</h2>
+            <div class="calc-side-head-actions ui-panel-actions">
+              <span class="ui-panel-tag">ATK</span>
+              <button type="button" class="calc-detail-toggle ui-label-action" data-calc-detail-toggle="atk" aria-controls="atk-body" aria-expanded="false">상세</button>
+            </div>
           </div>
           <div class="calc-side-body ui-frame-body ui-panel-body ui-subframe-stack" id="atk-body"></div>
         </section>
@@ -87,8 +92,11 @@
 
         <section class="ui-frame def ui-panel">
           <div class="ui-frame-head ui-panel-head">
-            <div class="ui-panel-title" role="heading" aria-level="2">방어측</div>
-            <span class="ui-panel-tag">DEF</span>
+            <h2 class="ui-panel-title">방어측</h2>
+            <div class="calc-side-head-actions ui-panel-actions">
+              <span class="ui-panel-tag">DEF</span>
+              <button type="button" class="calc-detail-toggle ui-label-action" data-calc-detail-toggle="def" aria-controls="def-body" aria-expanded="false">상세</button>
+            </div>
           </div>
           <div class="calc-side-body ui-frame-body ui-panel-body ui-subframe-stack" id="def-body"></div>
         </section>
@@ -97,7 +105,7 @@
       <div class="calc-field-row ui-frame-row">
         <section class="ui-frame collapsible collapsed ui-panel" id="calc-field-panel">
           <div class="ui-frame-head ui-panel-head" id="calc-field-head">
-            <div class="ui-panel-title" role="heading" aria-level="2">필드 · 부가 효과</div>
+            <h2 class="ui-panel-title">필드 · 부가 효과</h2>
             <div class="ui-action-row ui-panel-actions">
               <label class="calc-field-auto-toggle">
                 <input type="checkbox" id="autoEntry" checked>
@@ -148,13 +156,14 @@
               </label>
               <label class="checkbox-label ui-check"><input type="checkbox" id="gravity"><span>중력장</span></label>
             </div>
+            <p class="calc-field-scope-note" role="note">방어·판별(Protect/Detect) 계열의 보호 상태는 현재 계산에 반영되지 않습니다.</p>
           </div>
         </section>
       </div>
 
       <section class="calc-results-panel ui-frame ui-panel">
         <div class="calc-results-head ui-frame-head ui-panel-head">
-          <div class="calc-results-title ui-panel-title" role="heading" aria-level="2">결과</div>
+          <h2 class="calc-results-title ui-panel-title">결과</h2>
           <div class="calc-results-actions ui-action-row ui-panel-actions">
             <button class="btn-calculate ui-btn ui-btn-primary" id="btnSwapSidesResult" type="button">공수교대</button>
             <button class="btn-secondary ui-btn ui-btn-secondary" id="btnCalculate" type="button">계산 재실행</button>
@@ -170,55 +179,57 @@
       <div class="rc-grid ui-frame-row">
         <section class="ui-frame rc-my ui-panel">
           <div class="ui-frame-head ui-panel-head">
-            <div class="ui-panel-title" role="heading" aria-level="2">내 포켓몬</div>
+            <h2 class="ui-panel-title">내 포켓몬</h2>
           </div>
           <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-my-body"></div>
         </section>
 
         <section class="ui-frame rc-opp ui-panel">
           <div class="ui-frame-head ui-panel-head">
-            <div class="ui-panel-title" role="heading" aria-level="2">상대 포켓몬</div>
+            <h2 class="ui-panel-title">상대 포켓몬</h2>
           </div>
           <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-opp-body"></div>
         </section>
       </div>
 
-      <section class="ui-frame ui-panel">
+      <section class="ui-frame ui-panel rc-stage-panel" id="rc-input-panel" data-rc-stage="observations" data-stage-state="locked" aria-disabled="true">
         <div class="ui-frame-head ui-panel-head">
-          <div class="ui-panel-title" role="heading" aria-level="2">관측 데이터</div>
+          <h2 class="ui-panel-title">관측 데이터</h2>
+          <span class="ui-panel-tag rc-stage-status" id="rc-input-stage-status">선택 필요</span>
         </div>
         <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-input-body"></div>
       </section>
 
-      <section class="ui-frame ui-panel">
+      <section class="ui-frame ui-panel rc-stage-panel" id="rc-results-panel" data-rc-stage="results" data-stage-state="locked" aria-disabled="true">
         <div class="ui-frame-head ui-panel-head">
-          <div class="ui-panel-title" role="heading" aria-level="2">형태 분석 결과</div>
+          <h2 class="ui-panel-title">형태 분석 결과</h2>
           <div class="ui-action-row ui-panel-actions">
-            <button type="button" class="btn-calculate rc-analyze-btn ui-btn ui-btn-primary" id="rcAnalyze">형태 분석</button>
+            <span class="ui-panel-tag rc-stage-status" id="rc-results-stage-status">대기</span>
+            <button type="button" class="btn-calculate rc-analyze-btn ui-btn ui-btn-primary" id="rcAnalyze" aria-controls="rc-results-body" aria-pressed="false">형태 분석</button>
           </div>
         </div>
         <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-results-body">
-          <div class="empty-state ui-empty">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>
+          <div class="empty-state ui-empty ui-empty--compact ui-empty--guide">참가 포켓몬을 선택하면 형태 분석을 준비합니다.</div>
         </div>
       </section>
     </section>
 
     <!-- 세부조정 -->
     <section id="page-finetune" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-finetune" aria-hidden="true" hidden>
-      <div class="finetune-grid ft-layout ui-frame-row">
+      <div class="finetune-grid ft-layout ui-frame-row" id="ft-layout">
         <section class="ui-frame ft-editor ui-panel">
           <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="ui-panel-title" role="heading" aria-level="2">세부조정</div>
+              <h2 class="ui-panel-title">세부조정</h2>
             </div>
           </div>
           <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="ft-my-body"></div>
         </section>
 
-        <aside class="ui-frame ft-hp-panel ui-panel">
+        <aside class="ui-frame ft-hp-panel ui-panel" id="ft-hp-panel" hidden>
           <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="ui-panel-title" role="heading" aria-level="2">HP 브레이크포인트</div>
+              <h2 class="ui-panel-title">HP 브레이크포인트</h2>
               <div class="ft-panel-subtitle">HP 기준점 · 조정 포인트</div>
             </div>
           </div>
@@ -228,7 +239,7 @@
         <section class="ui-frame ft-speed-panel ui-panel">
           <div class="ui-frame-head ui-panel-head">
             <div>
-              <div class="ui-panel-title" role="heading" aria-level="2">상대 / 스피드</div>
+              <h2 class="ui-panel-title">상대 / 스피드</h2>
             </div>
           </div>
           <div class="ui-frame-body ft-speed-panel-body ui-panel-body ui-control-grid">
@@ -255,7 +266,7 @@
     <section id="page-matchup" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-matchup" aria-hidden="true" hidden>
       <section class="panel ui-frame ui-panel">
         <div class="panel-head ui-frame-head ui-panel-head">
-          <div class="panel-title ui-panel-title" role="heading" aria-level="2">상성표</div>
+          <h2 class="panel-title ui-panel-title">상성표</h2>
         </div>
         <div class="panel-body ui-frame-body ui-panel-body ui-subframe-stack">
           <div class="matchup-control-row ui-action-row ui-control-frame ui-subframe">
@@ -272,12 +283,13 @@
 
       <section class="panel ui-frame matchup-results-panel ui-panel">
         <div class="panel-head ui-frame-head ui-panel-head">
-          <div class="panel-title ui-panel-title" role="heading" aria-level="2">결과</div>
+          <h2 class="panel-title ui-panel-title">결과</h2>
         </div>
         <div class="panel-body ui-frame-body ui-panel-body">
           <div class="matchup-result-layout ui-control-grid">
             <div class="matchup-main">
-              <div class="matchup-table-wrap">
+              <div class="matchup-scroll-hint" id="matchupScrollHint" role="status" hidden>표를 좌우로 밀어 전체 내용을 확인하세요.</div>
+              <div class="matchup-table-wrap" role="region" aria-label="상성 결과 표" tabindex="0">
                 <table class="matchup-table" id="matchupTable">
                   <thead id="matchupHead"></thead>
                   <tbody id="matchupBody"></tbody>
@@ -325,15 +337,15 @@
           <table class="dex-table" id="dexTablePokemon">
             <thead>
               <tr>
-                <th class="sortable" data-sort="koName">이름</th>
-                <th class="sortable" data-sort="type">타입</th>
-                <th class="sortable num" data-sort="hp">HP</th>
-                <th class="sortable num" data-sort="atk">공격</th>
-                <th class="sortable num" data-sort="def">방어</th>
-                <th class="sortable num" data-sort="spa">특공</th>
-                <th class="sortable num" data-sort="spd">특방</th>
-                <th class="sortable num" data-sort="spe">속도</th>
-                <th class="sortable num" data-sort="bst">합계</th>
+                <th class="sortable" data-sort="koName" aria-sort="none"><button type="button" class="dex-sort-button">이름</button></th>
+                <th class="sortable" data-sort="type" aria-sort="none"><button type="button" class="dex-sort-button">타입</button></th>
+                <th class="sortable num" data-sort="hp" aria-sort="none"><button type="button" class="dex-sort-button">HP</button></th>
+                <th class="sortable num" data-sort="atk" aria-sort="none"><button type="button" class="dex-sort-button">공격</button></th>
+                <th class="sortable num" data-sort="def" aria-sort="none"><button type="button" class="dex-sort-button">방어</button></th>
+                <th class="sortable num" data-sort="spa" aria-sort="none"><button type="button" class="dex-sort-button">특공</button></th>
+                <th class="sortable num" data-sort="spd" aria-sort="none"><button type="button" class="dex-sort-button">특방</button></th>
+                <th class="sortable num" data-sort="spe" aria-sort="none"><button type="button" class="dex-sort-button">속도</button></th>
+                <th class="sortable num" data-sort="bst" aria-sort="none"><button type="button" class="dex-sort-button">합계</button></th>
                 <th>특성 1</th>
                 <th>특성 2</th>
                 <th>숨겨진 특성</th>
@@ -342,6 +354,7 @@
             <tbody id="dexBodyPokemon"></tbody>
           </table>
         </div>
+        <nav class="dex-pagination" id="dexPagination-pokemon" aria-label="포켓몬 목록 페이지" aria-live="polite"></nav>
       </div>
 
       <div class="dex-content" id="dex-moves" role="tabpanel" aria-labelledby="dex-tab-moves" aria-hidden="true" hidden>
@@ -349,18 +362,19 @@
           <table class="dex-table" id="dexTableMoves">
             <thead>
               <tr>
-                <th class="sortable" data-sort="koName">이름</th>
-                <th class="sortable" data-sort="type">타입</th>
-                <th class="sortable" data-sort="cat">분류</th>
-                <th class="sortable num" data-sort="bp">위력</th>
-                <th class="sortable num" data-sort="acc">명중</th>
-                <th class="sortable num" data-sort="pri">우선</th>
+                <th class="sortable" data-sort="koName" aria-sort="none"><button type="button" class="dex-sort-button">이름</button></th>
+                <th class="sortable" data-sort="type" aria-sort="none"><button type="button" class="dex-sort-button">타입</button></th>
+                <th class="sortable" data-sort="cat" aria-sort="none"><button type="button" class="dex-sort-button">분류</button></th>
+                <th class="sortable num" data-sort="bp" aria-sort="none"><button type="button" class="dex-sort-button">위력</button></th>
+                <th class="sortable num" data-sort="acc" aria-sort="none"><button type="button" class="dex-sort-button">명중</button></th>
+                <th class="sortable num" data-sort="pri" aria-sort="none"><button type="button" class="dex-sort-button">우선</button></th>
                 <th>설명</th>
               </tr>
             </thead>
             <tbody id="dexBodyMoves"></tbody>
           </table>
         </div>
+        <nav class="dex-pagination" id="dexPagination-moves" aria-label="기술 목록 페이지" aria-live="polite"></nav>
       </div>
 
       <div class="dex-content" id="dex-abilities" role="tabpanel" aria-labelledby="dex-tab-abilities" aria-hidden="true" hidden>
@@ -368,7 +382,7 @@
           <table class="dex-table" id="dexTableAbilities">
             <thead>
               <tr>
-                <th class="sortable" data-sort="koName">이름</th>
+                <th class="sortable" data-sort="koName" aria-sort="none"><button type="button" class="dex-sort-button">이름</button></th>
                 <th>영문명</th>
                 <th>설명</th>
               </tr>
@@ -376,6 +390,7 @@
             <tbody id="dexBodyAbilities"></tbody>
           </table>
         </div>
+        <nav class="dex-pagination" id="dexPagination-abilities" aria-label="특성 목록 페이지" aria-live="polite"></nav>
       </div>
 
       <div class="dex-content" id="dex-items" role="tabpanel" aria-labelledby="dex-tab-items" aria-hidden="true" hidden>
@@ -383,7 +398,7 @@
           <table class="dex-table" id="dexTableItems">
             <thead>
               <tr>
-                <th class="sortable" data-sort="koName">이름</th>
+                <th class="sortable" data-sort="koName" aria-sort="none"><button type="button" class="dex-sort-button">이름</button></th>
                 <th>영문명</th>
                 <th>설명</th>
                 <th>상태</th>
@@ -392,6 +407,7 @@
             <tbody id="dexBodyItems"></tbody>
           </table>
         </div>
+        <nav class="dex-pagination" id="dexPagination-items" aria-label="도구 목록 페이지" aria-live="polite"></nav>
       </div>
 
       <div class="dex-content ui-frame" id="dexFullPageDetail" role="region" aria-label="도감 상세" aria-hidden="true"></div>
@@ -430,6 +446,8 @@
 <script id="data-typechart" type="application/json">__TYPECHART_DATA__</script>
 <script id="data-rules" type="application/json">__CHAMP_RULES__</script>
 <script id="data-meta-threats" type="application/json">__META_THREATS_DATA__</script>
+<script id="reverse-worker-source" type="application/json">__REVERSE_WORKER_SOURCE__</script>
+<script id="page-feature-assets" type="application/json"></script>
 
 <script>
 "use strict";

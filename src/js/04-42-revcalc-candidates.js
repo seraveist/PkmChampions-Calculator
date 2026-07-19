@@ -10,6 +10,161 @@ function rcRelevantOffenseItems(move) {
   });
 }
 
+const RC_ANALYSIS_CACHE_LIMIT = 6;
+const rcAnalysisCache = new Map();
+let rcAnalysisWorker = null;
+let rcAnalysisWorkerUrl = '';
+let rcAnalysisWorkerPending = null;
+let rcAnalysisRequestId = 0;
+
+function rcAnalysisCacheKey() {
+  return JSON.stringify({
+    my: revCalcState.my,
+    opp: revCalcState.opp,
+    myMove: revCalcState.myMove,
+    myMoveBp: revCalcState.myMoveBp,
+    observedTheirPct: revCalcState.observedTheirPct,
+    oppMove: revCalcState.oppMove,
+    oppMoveBp: revCalcState.oppMoveBp,
+    observedMyHp: revCalcState.observedMyHp,
+    oppItemKnown: revCalcState.oppItemKnown,
+    itemCandidates: revCalcState.itemCandidates,
+    turnOrder: revCalcState.turnOrder,
+    field: revCalcState.field,
+    observedFields: revCalcState.observedFields,
+  });
+}
+
+function rcReadAnalysisCache(key) {
+  if (rcAnalysisCache.has(key)) {
+    const cached = rcAnalysisCache.get(key);
+    rcAnalysisCache.delete(key);
+    rcAnalysisCache.set(key, cached);
+    return cloneCalcValue(cached);
+  }
+  return null;
+}
+
+function rcWriteAnalysisCache(key, result) {
+  if (!result?.error) {
+    rcAnalysisCache.set(key, cloneCalcValue(result));
+    while (rcAnalysisCache.size > RC_ANALYSIS_CACHE_LIMIT) {
+      rcAnalysisCache.delete(rcAnalysisCache.keys().next().value);
+    }
+  }
+}
+
+function rcAnalyzeCached() {
+  const key = rcAnalysisCacheKey();
+  const cached = rcReadAnalysisCache(key);
+  if (cached) return cached;
+  const result = rcAnalyze();
+  rcWriteAnalysisCache(key, result);
+  return result;
+}
+
+function rcAnalysisWorkerData() {
+  return {
+    'data-pokemon': POKEMON,
+    'data-moves': MOVES,
+    'data-abilities': ABILITIES,
+    'data-items': ITEMS,
+    'data-natures': NATURE_DATA,
+    'data-typechart': TYPE_CHART_DATA,
+    'data-rules': RULES,
+    'data-meta-threats': META_THREATS,
+  };
+}
+
+function rcTerminateAnalysisWorker(reason = null) {
+  if (rcAnalysisWorker) rcAnalysisWorker.terminate();
+  if (rcAnalysisWorkerUrl) URL.revokeObjectURL(rcAnalysisWorkerUrl);
+  rcAnalysisWorker = null;
+  rcAnalysisWorkerUrl = '';
+  if (rcAnalysisWorkerPending) {
+    const pending = rcAnalysisWorkerPending;
+    rcAnalysisWorkerPending = null;
+    if (reason) pending.reject(reason);
+  }
+}
+
+function rcCreateAnalysisWorker() {
+  if (rcAnalysisWorker) return rcAnalysisWorker;
+  if (typeof Worker !== 'function') return null;
+  const sourceElement = document.getElementById('reverse-worker-source');
+  if (!sourceElement) return null;
+
+  const externalUrl = sourceElement.dataset.workerSrc || '';
+  if (externalUrl) {
+    rcAnalysisWorker = new Worker(externalUrl, { name: 'pkmchampions-reverse-analysis' });
+  } else {
+    if (!sourceElement.textContent || typeof Blob !== 'function' || typeof URL?.createObjectURL !== 'function') return null;
+    let source = '';
+    try {
+      source = JSON.parse(sourceElement.textContent);
+    } catch (_) {
+      return null;
+    }
+    if (!source) return null;
+    rcAnalysisWorkerUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
+    rcAnalysisWorker = new Worker(rcAnalysisWorkerUrl, { name: 'pkmchampions-reverse-analysis' });
+  }
+  rcAnalysisWorker.addEventListener('message', event => {
+    const message = event.data || {};
+    const pending = rcAnalysisWorkerPending;
+    if (!pending || (message.id != null && message.id !== pending.id)) return;
+    if (message.type === 'result') {
+      rcAnalysisWorkerPending = null;
+      pending.resolve(message.result);
+    } else if (message.type === 'error') {
+      rcAnalysisWorkerPending = null;
+      pending.reject(new Error(message.message || '역계산 Worker 오류'));
+    }
+  });
+  rcAnalysisWorker.addEventListener('error', event => {
+    const error = new Error(event.message || '역계산 Worker를 실행하지 못했습니다.');
+    rcTerminateAnalysisWorker(error);
+  });
+  rcAnalysisWorker.postMessage({ type: 'init', dataScripts: rcAnalysisWorkerData() });
+  return rcAnalysisWorker;
+}
+
+function rcAnalysisSnapshot() {
+  const snapshot = cloneCalcValue(revCalcState);
+  snapshot.results = null;
+  snapshot.analyzing = false;
+  return snapshot;
+}
+
+function rcAnalyzeInWorker() {
+  const worker = rcCreateAnalysisWorker();
+  if (!worker) {
+    return new Promise(resolve => setTimeout(() => resolve(rcAnalyze()), 0));
+  }
+  if (rcAnalysisWorkerPending) {
+    rcTerminateAnalysisWorker(new Error('RC_ANALYSIS_CANCELLED'));
+    return rcAnalyzeInWorker();
+  }
+  const id = ++rcAnalysisRequestId;
+  return new Promise((resolve, reject) => {
+    rcAnalysisWorkerPending = { id, resolve, reject };
+    worker.postMessage({ type: 'analyze', id, state: rcAnalysisSnapshot() });
+  });
+}
+
+async function rcAnalyzeCachedAsync() {
+  const key = rcAnalysisCacheKey();
+  const cached = rcReadAnalysisCache(key);
+  if (cached) return cached;
+  const result = await rcAnalyzeInWorker();
+  rcWriteAnalysisCache(key, result);
+  return result;
+}
+
+function rcCancelAnalysis() {
+  rcTerminateAnalysisWorker(new Error('RC_ANALYSIS_CANCELLED'));
+}
+
 // 베이스 defender state 빌드 (역계산 검색 중간 단계용)
 function rcBuildOpponentState(oppP, oppOverrides = {}) {
   const hasAbilityOverride = Object.prototype.hasOwnProperty.call(oppOverrides, 'ability');

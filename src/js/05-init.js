@@ -2,22 +2,53 @@
  * 05-init.js — 페이지 로드 시 초기 렌더 호출
  * (build.mjs 가 src/js/*.js 를 알파벳순 concat 후 calc-template.html 에 주입)
  * ════════════════════════════════════════════════════════════ */
-/* ════════════════════════════════════════════════════════════
-   초기 렌더링 — 페이지 로드 시 양측 패널, 결과 영역, 도감 첫 탭을
-   즉시 채운다. (이전 버전엔 이 블록이 빠져 있어 사용자가 토글이나
-   탭을 건드리기 전까지 화면이 비어있는 버그가 있었다.)
-   ════════════════════════════════════════════════════════════ */
-bindMainNavigation();
+const initializedMainPages = new Set();
+
+function ensureMainPageInitialized(pageKey) {
+  if (initializedMainPages.has(pageKey)) return;
+  const initializers = {
+    calc() {
+      initCalcDetailToggles();
+      renderSide('atk');
+      renderSide('def');
+      triggerCalc();
+    },
+    revcalc() {
+      renderRevCalcAll();
+    },
+    finetune() {
+      renderFineTuneAll();
+    },
+    matchup() {
+      renderMatchupModeTabs();
+      renderMatchupSlots();
+      renderMatchupCoverageInputs();
+      renderMatchupTable();
+    },
+    dex() {
+      renderTypeFilter();
+      renderDexContent('');
+    },
+  };
+  const initialize = initializers[pageKey];
+  if (!initialize) return;
+  try {
+    initialize();
+    initializedMainPages.add(pageKey);
+  } catch (error) {
+    initializedMainPages.delete(pageKey);
+    console.error(`[page-init:${pageKey}]`, error);
+    const page = document.getElementById(`page-${pageKey}`);
+    if (page && !page.querySelector('.page-init-error')) {
+      const alert = document.createElement('div');
+      alert.className = 'page-init-error ui-control-frame ui-subframe';
+      alert.setAttribute('role', 'alert');
+      alert.textContent = '화면을 불러오지 못했습니다. 메뉴를 다시 선택해 재시도해 주세요.';
+      page.prepend(alert);
+    }
+  }
+}
+
 initThemeToggle();
-renderSide('atk');
-renderSide('def');
-triggerCalc();
-renderTypeFilter();
-renderDexContent('');
-renderMatchupModeTabs();
-renderMatchupSlots();
-renderMatchupCoverageInputs();
-renderMatchupTable();
-renderFineTuneAll();
-renderRevCalcAll();
 initPartyPresets();
+bindMainNavigation();

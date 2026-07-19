@@ -39,6 +39,11 @@ check(buttonWithoutTypeCount(generatedStaticDom) === 0, 'generated static DOM bu
 check((template.match(/<main\b/g) || []).length === 1, 'template exposes a single main landmark');
 check(template.includes('<main id="appContent" class="app-content"'), 'app content owns the main landmark');
 check(template.includes('class="skip-link"') && template.includes('href="#appContent"'), 'template provides skip link to app content');
+check(!template.includes('fonts.googleapis.com') && !template.includes('fonts.gstatic.com'), 'template has no external webfont dependency');
+check(!template.includes('role="heading"'), 'template uses native heading elements');
+check((template.match(/<h2\b/g) || []).length >= 10, 'template exposes semantic section headings');
+check(template.includes('id="reverse-worker-source"'), 'template embeds the reverse analysis worker source');
+check((template.match(/data-calc-detail-toggle=/g) || []).length === 2, 'calculator exposes one mobile detail toggle per side');
 
 let lastPageIndex = -1;
 for (const page of PAGES) {
@@ -203,6 +208,7 @@ const sourceButtonMisses = jsFiles.flatMap(file => {
 check(sourceButtonMisses.length === 0, `rendered button literals declare type${sourceButtonMisses.length ? ` (${sourceButtonMisses.join(', ')})` : ''}`);
 
 check(template.includes('id="dexFullPageDetail"') && template.includes('aria-label="도감 상세"'), 'dex fullpage detail has structural region');
+check(template.includes('class="calc-field-scope-note"') && template.includes('Protect/Detect'), 'calculator declares Protect and Detect states unsupported');
 check(template.includes('id="matchupModeTabs"') && template.includes('aria-label="상성표 모드"'), 'matchup mode tabs expose structure');
 check(template.includes('aria-labelledby="dexDetailTitle"'), 'dex modal has accessible title wiring');
 

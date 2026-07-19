@@ -1,5 +1,7 @@
 # UI Handoff: Calculator And Reverse Calculator Complete
 
+> 이 문서는 이전 UI 작업의 이력 보존용이다. 현재 구조와 검증 기준은 `README.md`, `docs/ui-css-html-audit-2026-07-19.md`, `docs/ui-breakpoints.md`를 우선한다.
+
 이 문서는 다른 PC에서 UI 정리 작업을 이어받기 위한 기준 문서다. 2026-05-20 현재
 대미지 계산기와 내구 역계산은 완성 기준으로 본다. 다음 작업은 세부조정 메뉴를 이
 구조에 맞춰 따라오는 것이다.
@@ -422,8 +424,9 @@ condition-auto
 - `src/js/04-43-revcalc-render.js`: 역계산 화면 렌더링.
 - `src/js/04-44-revcalc-events.js`: 역계산 이벤트와 combobox wiring.
 - `src/styles/04-ui-foundation.css`: 공통 `ui-*`, `tool-*` 기본 스타일.
-- `src/styles/07-tools-redesign.css`: 도구 메뉴별 layout과 남은 메뉴 고유 스타일.
-- `src/styles/08-theme-bridge.css`: 다크모드와 theme bridge.
+- `src/styles/pages/00-tool-pages.css`: 도구 메뉴별 layout과 남은 메뉴 고유 스타일.
+- `src/styles/themes.css`: 다크모드와 페이지별 semantic token mapping.
+- `src/styles/responsive.css`: 모바일 밀도, touch target, compact view.
 - `scripts/css-structure-check.mjs`: CSS 구조 검사.
 - `scripts/html-structure-check.mjs`: HTML 구조 검사.
 
@@ -443,6 +446,5 @@ git diff --check
 잔재 검색 기준:
 
 ```bash
-rg -n "rc-input-divider|rc-collapse-divider|rc-opp-rank|rc-result-stats|rc-practical|rc-hint|field-label|class=\"field|panel-head|panel-body|panel-title|panel-tag|panel-head-actions|ft-controls-row" src/js/04-43-revcalc-render.js src/calc-template.html src/styles/07-tools-redesign.css src/styles/04-ui-foundation.css src/styles/08-theme-bridge.css pokemon-champions-calculator-v3.html
+rg -n "rc-input-divider|rc-collapse-divider|rc-opp-rank|rc-result-stats|rc-practical|rc-hint|field-label|class=\"field|panel-head|panel-body|panel-title|panel-tag|panel-head-actions|ft-controls-row" src/js/04-43-revcalc-render.js src/calc-template.html src/styles/pages/00-tool-pages.css src/styles/04-ui-foundation.css src/styles/themes.css pokemon-champions-calculator-v3.html
 ```
-

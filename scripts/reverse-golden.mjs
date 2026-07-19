@@ -265,10 +265,16 @@ for (const id of ['page-revcalc', 'rc-my-body', 'rc-opp-body', 'rc-input-body', 
   assertIncludes(template, id, `Reverse template includes #${id}`);
 }
 
-const reverseCss = readdirSync(path.join(ROOT, 'src', 'styles'))
-  .filter(file => file.endsWith('.css'))
-  .sort()
-  .map(file => readFileSync(path.join(ROOT, 'src', 'styles', file), 'utf8'))
+function listCssFiles(dir) {
+  return readdirSync(dir, { withFileTypes: true })
+    .filter(entry => !entry.name.startsWith('.'))
+    .flatMap(entry => entry.isDirectory()
+      ? listCssFiles(path.join(dir, entry.name))
+      : (entry.isFile() && entry.name.endsWith('.css') ? [path.join(dir, entry.name)] : []))
+    .sort((a, b) => a.localeCompare(b));
+}
+const reverseCss = listCssFiles(path.join(ROOT, 'src', 'styles'))
+  .map(file => readFileSync(file, 'utf8'))
   .join('\n');
 for (const className of [
   '.rc-grid',
@@ -315,14 +321,17 @@ assertIncludes(reverseSource, '내구 미확인', 'Reverse source marks unobserv
 assertIncludes(reverseSource, '속도 미확인', 'Reverse source marks priority-distorted speed observations');
 
 const initialHtml = reverseRenderedHtml();
-assertIncludes(initialHtml, 'data-rc-action="observedMyHp"', 'Reverse rendered HTML uses raw HP action name');
 assertIncludes(initialHtml, 'data-rc-pick="my"', 'Reverse initial render exposes blank Pokemon selection');
+assertIncludes(initialHtml, '참가 포켓몬이 준비되면 관측 데이터 입력이 열립니다.', 'Reverse initial render gates observation inputs');
+assertNotIncludes(initialHtml, 'data-rc-action="observedMyHp"', 'Reverse initial render omits premature observation inputs');
 assertNotIncludes(initialHtml, '기술 1', 'Reverse move slots omit numbered move labels');
 for (const stale of ['undefined', 'NaN']) {
   assertNotIncludes(initialHtml, stale, `Reverse initial render does not leak ${stale}`);
 }
 
 configurePrimarinaArchaludon(api, 81);
+const configuredHtml = reverseRenderedHtml();
+assertIncludes(configuredHtml, 'data-rc-action="observedMyHp"', 'Reverse participant selection reveals raw HP observation input');
 assertIncludes(reverseRenderedHtml(), 'data-rc-move-picker="moveslot"', 'Reverse move slots render as searchable move comboboxes after Pokemon selection');
 
 const myMove = api.MoveById.moonblast;

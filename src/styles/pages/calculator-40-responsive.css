@@ -1,0 +1,406 @@
+/* Calculator responsive page composition. */
+@media (max-width: 1120px) {
+  #page-calc .calc-stat-grid {
+    grid-template-columns:
+      minmax(54px, 0.62fr)
+      minmax(40px, 0.42fr)
+      minmax(154px, 1.68fr)
+      minmax(52px, 0.56fr)
+      minmax(88px, 1.02fr);
+  }
+
+  #page-calc .tool-move-panel {
+    --tool-move-index-width: 20px;
+    --tool-move-type-width: clamp(56px, 11%, 62px);
+    --tool-move-power-width: clamp(50px, 11%, 58px);
+    --tool-move-readout-width: clamp(66px, 16%, 84px);
+  }
+}
+
+@media (max-width: 960px) {
+  #page-calc .battle-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #page-calc .calc-side-swap-button {
+    position: relative;
+    left: auto;
+    top: auto;
+    margin: -6px auto;
+    transform: rotate(90deg);
+  }
+
+  #page-calc .calc-side-swap-button:hover,
+  #page-calc .calc-side-swap-button:focus-visible {
+    transform: rotate(90deg) scale(1.04);
+  }
+
+}
+
+@media (max-width: 680px) {
+  #page-calc .tool-move-panel {
+    --tool-move-index-width: 18px;
+    --tool-move-type-width: 56px;
+    --tool-move-power-width: 42px;
+    --tool-move-readout-width: minmax(52px, 62px);
+    --tool-move-column-gap: 5px;
+    --tool-move-type-input-padding: 0 14px 0 5px;
+    --tool-move-type-arrow-right: 4px;
+    --tool-move-head-font-size: 0.62rem;
+    --tool-move-name-font-size: 0.76rem;
+    --tool-move-type-font-size: 0.68rem;
+    --tool-move-power-font-size: 0.78rem;
+    --tool-move-readout-font-size: 0.76rem;
+  }
+
+  #page-calc .tool-move-input {
+    padding-left: 10px;
+    padding-right: 22px;
+  }
+
+  #page-calc .tool-move-power-control {
+    padding: 0 4px;
+  }
+
+  #page-calc .pokemon-select .pokemon-option-header,
+  #page-calc .pokemon-select .combobox-option.pokemon-option {
+    grid-template-columns:
+      minmax(78px, 1fr)
+      minmax(66px, 0.82fr)
+      repeat(6, minmax(21px, 27px));
+    gap: 1px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  #page-calc .pokemon-select .pokemon-option-header {
+    font-size: 0.68rem;
+  }
+
+  #page-calc .pokemon-select .pokemon-option-name {
+    font-size: 0.82rem;
+  }
+
+  #page-calc .pokemon-select .pokemon-option-types {
+    gap: 2px;
+  }
+
+  #page-calc .pokemon-select .badge-mini {
+    min-width: 28px;
+    height: 18px;
+    padding: 0 2px;
+    font-size: 0.62rem;
+  }
+
+  #page-calc .pokemon-select .pokemon-option-stat {
+    font-size: 0.68rem;
+  }
+
+  #page-calc .move-option-header,
+  #page-calc .combobox-option.move-option {
+    grid-template-columns: minmax(92px, 1fr) 36px 34px 26px;
+    gap: 1px;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  #page-calc .move-option-header {
+    font-size: 0.64rem;
+  }
+
+  #page-calc .move-option-name {
+    font-size: 0.82rem;
+  }
+
+  #page-calc .move-option-type-badge,
+  #page-calc .move-option-category .cat-badge {
+    min-width: 30px;
+    height: 18px;
+    padding: 0 3px;
+    font-size: 0.6rem;
+  }
+
+  #page-calc .move-option-power {
+    font-size: 0.64rem;
+    text-align: center;
+  }
+  #page-calc .tool-move-list--critical {
+    --tool-move-critical-width: 34px;
+    --tool-move-readout-width: 80px;
+  }
+  #page-calc {
+    --calc-move-control-h: var(--ui-control-height-compact);
+    --calc-control-label-width: var(--ui-field-label-width-compact);
+    --calc-control-gap: var(--ui-field-label-gap-compact);
+  }
+
+  #page-calc .calc-stat-preset-menu {
+    grid-template-columns: 1fr;
+  }
+
+  #page-calc .calc-stat-bulk-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  #page-calc .calc-stat-bulk-card {
+    gap: 5px;
+    min-height: 28px;
+    padding: 5px 8px;
+  }
+
+  #page-calc .calc-stat-bulk-label {
+    font-size: 0.72rem;
+  }
+
+  #page-calc .calc-stat-bulk-value {
+    margin-top: 0;
+    font-size: 0.76rem;
+  }
+
+  #page-calc .calc-pair-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #page-calc .calc-control-label {
+    height: var(--ui-control-height-compact);
+    font-size: 0.76rem;
+  }
+
+  #page-calc .calc-control-cell {
+    min-width: 0;
+  }
+
+  #page-calc .calc-control-cell .cb-input,
+  #page-calc .hp-status-cell .hp-inline-control,
+  #page-calc .manual-ability-toggle {
+    height: var(--ui-control-height-compact);
+    min-height: var(--ui-control-height-compact);
+    font-size: 0.78rem;
+  }
+
+  #page-calc .battle-field-select-frame {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #page-calc .battle-field-select-frame .cb-trigger {
+    height: var(--ui-control-height-compact);
+    min-height: var(--ui-control-height-compact);
+    padding-left: 8px;
+    padding-right: 21px;
+    font-size: 0.72rem;
+  }
+
+  #page-calc .calc-control-cell .cb-input {
+    padding-left: 10px;
+    padding-right: 24px;
+  }
+
+  #page-calc .hp-status-cell {
+    grid-template-columns: minmax(48px, 0.92fr) minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  #page-calc .hp-status-cell .hp-inline-control {
+    padding: 0 6px;
+  }
+
+  #page-calc .hp-status-cell .hp-inline-control .hp-percent-input {
+    height: calc(var(--ui-control-height-compact) - 2px);
+    font-size: 0.78rem;
+  }
+
+  #page-calc .hp-status-cell .hp-inline-control .ui-inline-number-unit {
+    margin-left: 2px;
+    font-size: 0.7rem;
+  }
+
+  #page-calc .combobox:has(.cb-input[data-cb-type="nature"]) .combobox-options {
+    left: auto;
+    right: 0;
+    width: min(188px, calc(100vw - 24px));
+    min-width: min(168px, calc(100vw - 24px));
+  }
+
+  #page-calc .nature-option-header,
+  #page-calc .combobox-option.nature-option {
+    grid-template-columns: minmax(58px, 1fr) 30px 30px;
+    gap: 3px;
+  }
+
+  #page-calc .nature-option-header,
+  #page-calc .combobox-option.nature-option {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  #page-calc .nature-option-header,
+  #page-calc .combobox-option.nature-option span,
+  #page-calc .combobox-option.nature-option b {
+    font-size: 0.64rem;
+  }
+
+  #page-calc .calc-stat-grid {
+    grid-template-columns:
+      minmax(46px, 0.62fr)
+      minmax(34px, 0.42fr)
+      minmax(124px, 1.55fr)
+      minmax(42px, 0.56fr)
+      minmax(72px, 0.96fr);
+    gap: 6px;
+    padding: 8px;
+  }
+
+  #page-calc .calc-stat-head {
+    min-height: 18px;
+    font-size: 0.68rem;
+    padding-bottom: 1px;
+  }
+
+  #page-calc .calc-stat-total {
+    min-width: 96px;
+    gap: 7px;
+  }
+
+}
+
+@media (max-width: 520px) {
+  #page-calc .pokemon-select .pokemon-option-header,
+  #page-calc .pokemon-select .combobox-option.pokemon-option {
+    grid-template-columns:
+      minmax(66px, 1fr)
+      minmax(54px, 0.78fr)
+      repeat(6, minmax(17px, 21px));
+    gap: 1px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  #page-calc .pokemon-select .pokemon-option-header,
+  #page-calc .pokemon-select .pokemon-option-stat {
+    font-size: 0.62rem;
+  }
+
+  #page-calc .pokemon-select .pokemon-option-name {
+    font-size: 0.72rem;
+  }
+
+  #page-calc .pokemon-select .badge-mini {
+    min-width: 24px;
+    height: 16px;
+    padding: 0 2px;
+    font-size: 0.56rem;
+  }
+
+  #page-calc .move-option-header,
+  #page-calc .combobox-option.move-option {
+    grid-template-columns: minmax(86px, 1fr) 31px 29px 24px;
+    gap: 1px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  #page-calc .move-option-header,
+  #page-calc .move-option-power {
+    font-size: 0.58rem;
+  }
+
+  #page-calc .move-option-name {
+    font-size: 0.72rem;
+  }
+
+  #page-calc .move-option-type-badge,
+  #page-calc .move-option-category .cat-badge {
+    min-width: 24px;
+    height: 16px;
+    padding: 0 2px;
+    font-size: 0.54rem;
+  }
+
+  #page-calc .calc-stat-grid {
+    grid-template-columns:
+      minmax(44px, 0.62fr)
+      minmax(32px, 0.42fr)
+      minmax(122px, 1.55fr)
+      minmax(40px, 0.56fr)
+      minmax(70px, 0.96fr);
+  }
+
+  #page-calc .calc-stat-preset-row,
+  #page-calc .calc-stat-preset-row:not(.calc-stat-preset-row--natures) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #page-calc .calc-stat-preset-row--natures {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  #page-calc .calc-stat-grid {
+    --calc-stat-name-label-width: 28px;
+    --calc-stat-nature-width: 10px;
+    --calc-stat-name-gap: 1px;
+    grid-template-columns:
+      minmax(38px, 0.56fr)
+      minmax(28px, 0.38fr)
+      minmax(94px, 1.08fr)
+      minmax(34px, 0.46fr)
+      minmax(64px, 0.72fr);
+    gap: 5px 3px;
+    padding: 7px 6px;
+  }
+
+  #page-calc .calc-stat-head {
+    min-height: 16px;
+    padding: 0 1px 1px;
+    font-size: 0.62rem;
+  }
+
+  #page-calc .calc-stat-name {
+    font-size: 0.7rem;
+  }
+
+  #page-calc .calc-stat-name-text {
+    min-width: var(--calc-stat-name-label-width, 28px);
+  }
+
+  #page-calc .nature-stat-mark {
+    width: var(--calc-stat-nature-width, 10px);
+  }
+
+  #page-calc .hp-status-cell {
+    grid-template-columns: minmax(54px, 0.96fr) minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  #page-calc .hp-status-cell .hp-inline-control {
+    padding: 0 5px;
+  }
+
+  #page-calc .hp-status-cell .hp-inline-control .hp-percent-input {
+    min-width: 24px;
+    font-size: 12px;
+  }
+
+  #page-calc .hp-status-cell .hp-inline-control .ui-inline-number-unit {
+    margin-left: 1px;
+  }
+
+  #page-calc .tool-move-panel {
+    --tool-move-type-width: 46px;
+    --tool-move-power-width: 38px;
+    --tool-move-readout-width: 42px;
+    --tool-move-column-gap: 4px;
+    --tool-move-type-font-size: 0.64rem;
+    --tool-move-type-input-padding: 0 10px 0 4px;
+    --tool-move-type-arrow-right: 3px;
+    --tool-move-power-input-padding: 0 1px;
+    --tool-move-readout-font-size: 0.68rem;
+  }
+
+  #page-calc .tool-move-power-control {
+    padding-right: 2px;
+    padding-left: 2px;
+  }
+}

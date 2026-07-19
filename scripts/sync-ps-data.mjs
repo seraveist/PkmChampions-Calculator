@@ -11,58 +11,57 @@
 // 변경이 감지되면 자동 커밋·푸시한다.
 
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PS_FILES, PS_REF, PS_REPOSITORY } from './ps-data-source.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const DATA = path.join(ROOT, 'data');
-const PS_BASE = 'https://raw.githubusercontent.com/smogon/pokemon-showdown/master';
+const PS_COMMIT_API = `https://api.github.com/repos/${PS_REPOSITORY}/commits/${PS_REF}`;
+const PS_RAW_ROOT = `https://raw.githubusercontent.com/${PS_REPOSITORY}`;
+const UPSTREAM_META_PATH = path.join(DATA, 'upstream.json');
 
 // 챔피언스 빌드에 필요한 모든 ts 파일.
 // 신규 파일이 PS 에서 추가되면 여기에만 추가하면 됨.
-const FILES = [
-  'data/pokedex.ts',
-  'data/moves.ts',
-  'data/abilities.ts',
-  'data/items.ts',
-  'data/learnsets.ts',
-  'data/typechart.ts',
-  'data/natures.ts',
-  'data/formats-data.ts',
-  'data/conditions.ts',
-  'data/aliases.ts',
-  'data/tags.ts',
-  'data/rulesets.ts',
-  'data/scripts.ts',
-  'data/pokemongo.ts',
+const FILES = PS_FILES;
+/* Legacy inline comment retained from the original encoded source.
   // text/ 한국어/영문 서술문
   'data/text/pokedex.ts',
-  'data/text/moves.ts',
-  'data/text/abilities.ts',
-  'data/text/items.ts',
-  // mods/champions
-  'data/mods/champions/formats-data.ts',
-  'data/mods/champions/moves.ts',
-  'data/mods/champions/abilities.ts',
-  'data/mods/champions/items.ts',
-  'data/mods/champions/learnsets.ts',
-  'data/mods/champions/scripts.ts',
-  'data/mods/champions/conditions.ts',
-  'data/mods/champions/rulesets.ts',
-];
-
+*/
 const dryRun = process.argv.includes('--dry-run');
+const commitArg = process.argv.find(arg => arg.startsWith('--commit='))?.slice('--commit='.length) || '';
+if (commitArg && !/^[0-9a-f]{40}$/i.test(commitArg)) {
+  throw new Error('--commit must be a 40-character Git SHA.');
+}
+
+function sha256(content) {
+  return createHash('sha256').update(content, 'utf8').digest('hex');
+}
 
 async function fetchText(url) {
+  const token = process.env.GITHUB_TOKEN || '';
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'pkmchampions-calculator-sync/1.0' },
+    headers: {
+      'User-Agent': 'pkmchampions-calculator-sync/1.0',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
   if (!res.ok) throw new Error(`HTTP ${res.status} ${url}`);
   return res.text();
 }
 
-async function syncOne(relPath) {
-  const url = `${PS_BASE}/${relPath}`;
+async function resolveUpstreamCommit() {
+  if (commitArg) return commitArg.toLowerCase();
+  const payload = JSON.parse(await fetchText(PS_COMMIT_API));
+  if (!/^[0-9a-f]{40}$/i.test(payload?.sha || '')) {
+    throw new Error('Pokemon Showdown upstream commit SHA를 확인할 수 없습니다.');
+  }
+  return payload.sha;
+}
+
+async function inspectOne(relPath, commit) {
+  const url = `${PS_RAW_ROOT}/${commit}/${relPath}`;
   const localPath = path.join(ROOT, relPath);
   let upstream;
   try {
@@ -75,14 +74,12 @@ async function syncOne(relPath) {
     local = fs.readFileSync(localPath, 'utf8');
   }
   if (local === upstream) {
-    return { path: relPath, status: 'unchanged', bytes: upstream.length };
-  }
-  if (!dryRun) {
-    fs.mkdirSync(path.dirname(localPath), { recursive: true });
-    fs.writeFileSync(localPath, upstream);
+    return { path: relPath, localPath, upstream, status: 'unchanged', bytes: upstream.length };
   }
   return {
     path: relPath,
+    localPath,
+    upstream,
     status: local ? 'updated' : 'created',
     bytes: upstream.length,
     delta: upstream.length - local.length,
@@ -91,6 +88,8 @@ async function syncOne(relPath) {
 
 async function main() {
   console.log(`🔄 PS 데이터 동기화${dryRun ? ' (dry-run)' : ''}`);
+  const upstreamCommit = await resolveUpstreamCommit();
+  console.log(`🔒 upstream ${PS_REPOSITORY}@${upstreamCommit}`);
   console.log(`📦 ${FILES.length}개 파일 검사`);
 
   // 동시성 제한 (raw.githubusercontent.com 은 관대하지만 매너상 5)
@@ -100,10 +99,41 @@ async function main() {
   async function worker() {
     while (idx < FILES.length) {
       const i = idx++;
-      results[i] = await syncOne(FILES[i]);
+      results[i] = await inspectOne(FILES[i], upstreamCommit);
     }
   }
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+
+  if (results.some(result => result.status === 'fetch-failed')) {
+    results.filter(result => result.status === 'fetch-failed').forEach(result => {
+      console.error(`  ❌ ${result.path} — ${result.detail}`);
+    });
+    throw new Error('일부 파일 fetch 실패로 로컬 데이터를 변경하지 않았습니다.');
+  }
+
+  const upstreamMeta = `${JSON.stringify({
+    repository: PS_REPOSITORY,
+    ref: PS_REF,
+    commit: upstreamCommit,
+    files: FILES,
+    fileHashes: Object.fromEntries(results.map(result => [result.path, sha256(result.upstream)])),
+  }, null, 2)}\n`;
+  const currentMeta = fs.existsSync(UPSTREAM_META_PATH) ? fs.readFileSync(UPSTREAM_META_PATH, 'utf8') : '';
+  results.push({
+    path: path.relative(ROOT, UPSTREAM_META_PATH).split(path.sep).join('/'),
+    localPath: UPSTREAM_META_PATH,
+    upstream: upstreamMeta,
+    status: currentMeta === upstreamMeta ? 'unchanged' : currentMeta ? 'updated' : 'created',
+    bytes: upstreamMeta.length,
+    delta: upstreamMeta.length - currentMeta.length,
+  });
+
+  if (!dryRun) {
+    results.filter(result => result.status === 'updated' || result.status === 'created').forEach(result => {
+      fs.mkdirSync(path.dirname(result.localPath), { recursive: true });
+      fs.writeFileSync(result.localPath, result.upstream);
+    });
+  }
 
   const counts = { unchanged: 0, updated: 0, created: 0, 'fetch-failed': 0 };
   for (const r of results) {
@@ -119,10 +149,6 @@ async function main() {
   const hasChanges = (counts.updated || 0) + (counts.created || 0) > 0;
   console.log(`\n${hasChanges ? '✓ 변경 감지' : '· 변경 없음'}`);
 
-  if (counts['fetch-failed'] > 0) {
-    console.error('❌ 일부 파일 fetch 실패. 위 로그 확인.');
-    process.exit(1);
-  }
 }
 
 main().catch(err => { console.error('❌ 동기화 실패:', err); process.exit(1); });

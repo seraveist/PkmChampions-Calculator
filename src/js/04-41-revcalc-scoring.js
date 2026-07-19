@@ -583,13 +583,15 @@ function rcRenderFollowupMoveChip(analysis) {
 }
 
 function rcRenderNextRankCells(ranks, action) {
+  const labels = { atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
+  const sideLabel = action === 'nextmyrank' ? '내' : '상대';
   return ['atk','def','spa','spd','spe'].map(stat => {
     const value = ranks[stat] || 0;
     return `
-      <div class="rc-next-rank-cell">
-        <button type="button" class="tool-stat-rank-button ui-stat-button" data-rc-${action}="${stat}" data-rc-dir="-1">-</button>
+      <div class="rc-next-rank-cell" data-stat-label="${labels[stat]}">
+        <button type="button" class="tool-stat-rank-button ui-stat-button" data-rc-${action}="${stat}" data-rc-dir="-1" aria-label="${sideLabel} ${labels[stat]} 랭크 감소">-</button>
         <b class="tool-stat-rank-value ui-stat-value ${value > 0 ? 'pos' : value < 0 ? 'neg' : ''}">${value > 0 ? '+' + value : value}</b>
-        <button type="button" class="tool-stat-rank-button ui-stat-button" data-rc-${action}="${stat}" data-rc-dir="1">+</button>
+        <button type="button" class="tool-stat-rank-button ui-stat-button" data-rc-${action}="${stat}" data-rc-dir="1" aria-label="${sideLabel} ${labels[stat]} 랭크 증가">+</button>
       </div>
     `;
   }).join('');

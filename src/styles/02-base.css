@@ -1,0 +1,38 @@
+/* Global document presentation and accessibility helpers. */
+
+* {
+scrollbar-color: #b9c5d1 #eef2f6;
+}
+body {
+background:
+linear-gradient(180deg, color-mix(in srgb, var(--tera) 3%, var(--bg)) 0, var(--bg) 240px),
+var(--bg);
+color: var(--text);
+font-size: 14px;
+line-height: 1.5;
+}
+.skip-link {
+position: fixed;
+top: 10px;
+left: 10px;
+z-index: 1000;
+transform: translateY(-160%);
+padding: 8px 12px;
+border: 1px solid var(--border-bright);
+border-radius: var(--radius-md);
+background: var(--bg-elev);
+color: var(--text);
+font-size: 13px;
+font-weight: 800;
+text-decoration: none;
+box-shadow: var(--surface-shadow);
+transition: transform 0.12s;
+}
+.skip-link:focus {
+transform: translateY(0);
+outline: 0;
+box-shadow: var(--ui-control-focus-ring), var(--surface-shadow);
+}
+a {
+color: var(--def);
+}

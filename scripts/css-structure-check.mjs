@@ -23,11 +23,147 @@ function read(file) {
 
 check(existsSync(STYLE_DIR), 'style directory exists');
 
-const cssFiles = existsSync(STYLE_DIR)
-  ? readdirSync(STYLE_DIR).filter(file => file.endsWith('.css')).sort()
-  : [];
-const cssByFile = new Map(cssFiles.map(file => [file, read(path.join(STYLE_DIR, file))]));
+function listCssFiles(dir, relativeDir = '') {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true })
+    .filter(entry => !entry.name.startsWith('.'))
+    .flatMap(entry => {
+      const relativePath = relativeDir ? `${relativeDir}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) return listCssFiles(path.join(dir, entry.name), relativePath);
+      return entry.isFile() && entry.name.endsWith('.css') ? [relativePath] : [];
+    })
+    .sort((a, b) => a.localeCompare(b));
+}
+
+const cssFiles = listCssFiles(STYLE_DIR);
+const cssByFile = new Map(cssFiles.map(file => [
+  file,
+  read(path.join(STYLE_DIR, ...file.split('/'))),
+]));
+const TOOL_PAGE_FILES = [
+  'pages/00-tool-pages.css',
+  'pages/01-matchup.css',
+  'pages/02-finetune.css',
+  'pages/03-reverse.css',
+];
+const CALCULATOR_PAGE_FILES = cssFiles.filter(file => file.startsWith('pages/calculator-'));
+const DEX_PAGE_FILES = cssFiles.filter(file => file.startsWith('pages/dex-'));
 const allCss = [...cssByFile.values()].join('\n');
+const importantCount = (allCss.match(/!important/g) || []).length;
+const mediaQueryCount = (allCss.match(/@media/g) || []).length;
+const STANDARD_VIEWPORT_BREAKPOINTS = new Set([
+  1759, 1280, 1120, 1100, 960, 860, 760, 720, 680, 620, 560, 520, 430, 380,
+]);
+
+check(importantCount === 0, `CSS important budget (${importantCount}/0)`);
+check(mediaQueryCount <= 41, `CSS media-query budget (${mediaQueryCount}/41)`);
+const nonstandardMediaQueries = [...allCss.matchAll(/@media\s*\(([^)]*)\)/g)]
+  .map(match => match[1].trim())
+  .filter(query => {
+    if (query === 'prefers-reduced-motion: reduce') return false;
+    const width = query.match(/^max-width:\s*(\d+)px$/)?.[1];
+    return !width || !STANDARD_VIEWPORT_BREAKPOINTS.has(Number(width));
+  });
+check(
+  nonstandardMediaQueries.length === 0,
+  `CSS media queries use documented breakpoints${nonstandardMediaQueries.length ? ` (${[...new Set(nonstandardMediaQueries)].join(', ')})` : ''}`
+);
+const oversizedPageStyles = [...cssByFile.entries()]
+  .filter(([file, css]) => file.startsWith('pages/') && Buffer.byteLength(css) > 32 * 1024)
+  .map(([file, css]) => `${file}: ${Buffer.byteLength(css)} bytes`);
+check(
+  oversizedPageStyles.length === 0,
+  `page stylesheets stay below 32 KiB${oversizedPageStyles.length ? ` (${oversizedPageStyles.join('; ')})` : ''}`
+);
+const duplicateMediaQueries = [];
+for (const [file, css] of cssByFile) {
+  const queries = [...css.matchAll(/@media\s+([^\{]+)\{/g)].map(match => match[1].trim());
+  for (const query of new Set(queries)) {
+    const count = queries.filter(value => value === query).length;
+    if (count > 1) duplicateMediaQueries.push(`${file}: ${query} x${count}`);
+  }
+}
+check(
+  duplicateMediaQueries.length === 0,
+  `stylesheets consolidate duplicate media queries${duplicateMediaQueries.length ? ` (${duplicateMediaQueries.join('; ')})` : ''}`
+);
+check(cssByFile.has('00-tokens.css'), 'semantic token stylesheet exists');
+const tokenCss = cssByFile.get('00-tokens.css') || '';
+const typeNames = ['normal', 'fire', 'water', 'grass', 'electric', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy', 'stellar'];
+check(
+  typeNames.every(type => tokenCss.includes(`--type-${type}-bg`) && tokenCss.includes(`--type-${type}-fg`)),
+  'semantic tokens own the complete Pokemon type palette'
+);
+
+[
+  '--color-surface-canvas',
+  '--color-surface-panel',
+  '--color-border-default',
+  '--color-text-primary',
+  '--color-side-attack',
+  '--color-side-defense',
+  '--shadow-surface',
+  '--layout-content-max',
+].forEach(token => {
+  check((cssByFile.get('00-tokens.css') || '').includes(token), `${token} semantic token exists`);
+});
+
+const panelComponentCss = cssByFile.get('components/panels.css') || '';
+const buttonComponentCss = cssByFile.get('components/buttons.css') || '';
+const fieldComponentCss = cssByFile.get('components/fields.css') || '';
+const comboboxComponentCss = cssByFile.get('components/combobox.css') || '';
+const partyPresetComponentCss = cssByFile.get('components/party-presets.css') || '';
+const toolStatsComponentCss = cssByFile.get('components/tool-stats.css') || '';
+const resetCss = cssByFile.get('01-reset.css') || '';
+const appShellCss = cssByFile.get('layouts/app-shell.css') || '';
+check(!cssByFile.has('01-base.css'), 'legacy base stylesheet is removed');
+check(!cssByFile.has('04-ui-foundation.css'), 'legacy foundation stylesheet is removed');
+check(
+  resetCss.includes('scrollbar-gutter: stable')
+    && resetCss.includes("font-family: 'Noto Sans KR', sans-serif"),
+  'reset stylesheet owns document defaults'
+);
+check(
+  appShellCss.includes('.site-shell')
+    && appShellCss.includes('.ad-slot-rail')
+    && appShellCss.includes('.page.active'),
+  'app shell layout owns navigation, page visibility, and ad rails'
+);
+check(Boolean(panelComponentCss), 'panel component stylesheet exists');
+check(
+  panelComponentCss.includes('.ui-frame.ui-panel')
+    && panelComponentCss.includes('.ui-panel-body.ui-subframe-stack'),
+  'panel component owns shared frame and panel structure'
+);
+check(Boolean(buttonComponentCss), 'button component stylesheet exists');
+check(
+  buttonComponentCss.includes('.ui-btn-primary')
+    && buttonComponentCss.includes('.ui-btn-secondary.active'),
+  'button component owns shared button variants and states'
+);
+check(Boolean(fieldComponentCss), 'field component stylesheet exists');
+check(
+  fieldComponentCss.includes('.ui-field-label')
+    && fieldComponentCss.includes('.ui-inline-number-input'),
+  'field component owns labels, controls, and inline numbers'
+);
+check(Boolean(comboboxComponentCss), 'combobox component stylesheet exists');
+check(
+  comboboxComponentCss.includes('.combobox-options.combobox-options-portal')
+    && comboboxComponentCss.includes('.combobox-option.selected'),
+  'combobox component owns portal, option, and selection states'
+);
+check(
+  partyPresetComponentCss.includes('.party-preset-modal-backdrop')
+    && partyPresetComponentCss.includes('.party-preset-slot-grid'),
+  'party preset component owns modal and editor structure'
+);
+check(
+  toolStatsComponentCss.includes('.tool-stat-panel')
+    && toolStatsComponentCss.includes('.tool-move-panel')
+    && toolStatsComponentCss.includes('.tool-stat-point-stepper'),
+  'tool stats component owns shared stat and move editors'
+);
 
 [
   '.page-frame',
@@ -214,7 +350,7 @@ check(allCss.includes('#page-calc .ui-stat-readout'), 'calculator stat readouts 
 check(!allCss.includes('--calc-radius'), 'calculator panels do not define a legacy radius token');
 check(!allCss.includes('--calc-shadow'), 'calculator panels do not define a legacy shadow token');
 
-const pageCss = ['03-calc-redesign.css', '05-calc-sample-layout.css', '06-dex-redesign.css', '07-tools-redesign.css']
+const pageCss = [...TOOL_PAGE_FILES, ...CALCULATOR_PAGE_FILES, ...DEX_PAGE_FILES]
   .map(file => cssByFile.get(file) || '')
   .join('\n');
 check(!pageCss.includes('--panel-point-height'), 'page CSS does not override panel point height');
@@ -229,7 +365,7 @@ const structuralSpacingSelectorRe = /(battle-grid|calc-field-row|calc-results-bo
 const structuralSpacingPropRe = /(?:^|\n)\s*(margin(?:-top|-bottom|-left|-right)?|gap|row-gap|column-gap)\s*:/;
 const structuralSpacingHits = [];
 for (const [file, css] of cssByFile) {
-  if (!['03-calc-redesign.css', '05-calc-sample-layout.css', '07-tools-redesign.css'].includes(file)) continue;
+  if (![...TOOL_PAGE_FILES, ...CALCULATOR_PAGE_FILES].includes(file)) continue;
   const blockRe = /([^{}]+)\{([^{}]*)\}/g;
   let match;
   while ((match = blockRe.exec(css))) {
@@ -256,10 +392,58 @@ check(
   legacyStructureSelectors.length === 0,
   `page CSS uses ui-* structure selectors${legacyStructureSelectors.length ? ` (${legacyStructureSelectors.join(', ')})` : ''}`
 );
-check(cssByFile.has('08-theme-bridge.css'), 'theme bridge loads after page styles');
+check(cssByFile.has('themes.css'), 'theme stylesheet loads after page styles');
+check(cssByFile.has('responsive.css'), 'responsive interaction stylesheet exists');
+check(!cssByFile.has('07-tools-redesign.css'), 'legacy tool redesign stylesheet is removed');
+check(!cssByFile.has('08-theme-bridge.css'), 'legacy theme bridge stylesheet is removed');
+check(!cssByFile.has('09-product-polish.css'), 'legacy product polish stylesheet is removed');
 check(allCss.includes(':root[data-theme="dark"]'), 'dark theme token block exists');
 
-const calcLayoutCss = cssByFile.get('05-calc-sample-layout.css') || '';
+const calcLayoutCss = CALCULATOR_PAGE_FILES
+  .filter(file => file !== 'pages/calculator-00-base.css')
+  .map(file => cssByFile.get(file) || '')
+  .join('\n');
+const calcBaseCss = cssByFile.get('pages/calculator-00-base.css') || '';
+const dexPageCss = DEX_PAGE_FILES.map(file => cssByFile.get(file) || '').join('\n');
+const toolPageCss = TOOL_PAGE_FILES.map(file => cssByFile.get(file) || '').join('\n');
+const responsiveCss = cssByFile.get('responsive.css') || '';
+check(Boolean(calcLayoutCss), 'calculator page stylesheet exists');
+check(Boolean(calcBaseCss), 'calculator page visual base stylesheet exists');
+check(CALCULATOR_PAGE_FILES.length === 6, 'calculator page CSS is split by responsibility');
+check(!cssByFile.has('05-calc-sample-layout.css'), 'legacy calculator layout stylesheet is removed');
+check(!cssByFile.has('03-calc-redesign.css'), 'legacy calculator redesign stylesheet is removed');
+check(Boolean(dexPageCss), 'dex page stylesheet exists');
+check(DEX_PAGE_FILES.length === 5, 'dex page CSS is split by responsibility');
+check(Boolean(cssByFile.get('pages/00-tool-pages.css')), 'shared tool page stylesheet exists');
+check(Boolean(cssByFile.get('pages/01-matchup.css')), 'matchup page stylesheet exists');
+check(Boolean(cssByFile.get('pages/02-finetune.css')), 'fine-tune page stylesheet exists');
+check(Boolean(cssByFile.get('pages/03-reverse.css')), 'reverse calculator page stylesheet exists');
+check(!/#page-(matchup|revcalc)\b/.test(cssByFile.get('pages/02-finetune.css') || ''), 'fine-tune stylesheet owns only its page selectors');
+check(!/#page-(matchup|finetune)\b/.test(cssByFile.get('pages/03-reverse.css') || ''), 'reverse stylesheet owns only its page selectors');
+check(!/#page-(finetune|revcalc)\b/.test(cssByFile.get('pages/01-matchup.css') || ''), 'matchup stylesheet owns only its page selectors');
+check(
+  (cssByFile.get('pages/00-tool-pages.css') || '').length < 8000,
+  'shared tool page stylesheet stays focused on cross-page rules'
+);
+check(!cssByFile.has('06-dex-redesign.css'), 'legacy dex redesign stylesheet is removed');
+check(
+  dexPageCss.includes('.dex-pagination') && dexPageCss.includes('.dex-page-button'),
+  'dex page owns paginated list controls'
+);
+check(
+  toolPageCss.includes('.ft-hp-panel[hidden]')
+    && toolPageCss.includes('.rc-prerequisite'),
+  'tool page styles own staged empty and result states'
+);
+check(
+  !responsiveCss.includes('.ft-hp-panel:has(#ft-hp-body:empty)'),
+  'responsive layer does not infer fine-tune state from empty markup'
+);
+check(
+  toolPageCss.includes('.matchup-scroll-hint[hidden]')
+    && responsiveCss.includes('grid-template-areas: "number input types clear"'),
+  'matchup page provides a scroll hint and compact single-row mobile slots'
+);
 check(
   /\.tool-move-list--critical\s+\.tool-move-power-readout\s*\{[^}]*grid-column:\s*6/s.test(calcLayoutCss),
   'calculator critical layout places power readout in sixth column'
@@ -271,6 +455,13 @@ check(
 
 if (existsSync(GENERATED)) {
   const generated = read(GENERATED);
+  check(
+    generated.includes('@layer reset, tokens, base, components, layouts, pages, utilities, themes, responsive;'),
+    'generated CSS declares deterministic cascade layer order'
+  );
+  ['tokens', 'base', 'components', 'layouts', 'pages', 'themes', 'responsive'].forEach(layer => {
+    check(generated.includes(`@layer ${layer} {`), `generated CSS contains ${layer} layer`);
+  });
   ['ui-frame', 'ui-frame-head', 'ui-frame-body', 'ui-control-frame', 'ui-action-row'].forEach(className => {
     check(generated.includes(className), `generated HTML contains ${className}`);
   });

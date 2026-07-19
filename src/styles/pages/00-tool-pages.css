@@ -1,0 +1,206 @@
+/* Tool-page styles shared by matchup, fine-tune, and reverse calculator. */
+
+.tool-page {
+  --tool-line: #d9e1ea;
+  --tool-line-soft: rgba(104, 122, 142, 0.16);
+  --tool-surface: #ffffff;
+  --tool-surface-soft: #f8fafc;
+  --tool-muted: #5b6978;
+  --tool-faint: #8b98a6;
+  --tool-text: #17202a;
+  --tool-accent: #b7791f;
+  --tool-good: #257a57;
+  --tool-warn: #b7791f;
+  --tool-danger: #d64c56;
+  --tool-info: #167fa5;
+  --tool-shadow: 0 10px 24px rgba(28, 40, 52, 0.06);
+  color: var(--tool-text);
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.tool-page * {
+  box-sizing: border-box;
+}
+
+.tool-page .ui-field:not(.tool-pokemon-field) .ui-field-label,
+.tool-page .ft-section-title,
+.tool-page .rc-section-title {
+  color: var(--ui-pokemon-label-color, var(--text-dim));
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--ui-pokemon-label-font-size);
+  font-weight: var(--ui-pokemon-label-font-weight);
+  line-height: var(--ui-label-line-height);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.tool-page .ui-field {
+  min-width: 0;
+}
+
+.tool-page .combobox-option.pokemon-option.selected,
+.tool-page .combobox-option.move-option.selected,
+.tool-page .combobox-option.nature-option.selected,
+.tool-page .combobox-option.ability-option.selected,
+.tool-page .combobox-option.item-option.selected,
+.tool-page .combobox-option.status-option.selected {
+  border-left-color: var(--tool-combo-selected, var(--tool-accent));
+  box-shadow: none;
+}
+
+#page-finetune .tool-settings-select-cell[data-tool-setting="nature"] .combobox-options,
+#page-revcalc .tool-settings-select-cell[data-tool-setting="nature"] .combobox-options {
+  left: 0;
+  right: 0;
+  width: max(100%, min(220px, calc(100vw - 24px)));
+  min-width: min(220px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  transform: none;
+}
+
+.tool-page select,
+.tool-page input,
+.tool-page .cb-input {
+  border-color: var(--border);
+  background: var(--ui-control-bg);
+  color: var(--text);
+  box-shadow: none;
+}
+
+.tool-page .combobox-options {
+  border-radius: 8px;
+  border-color: #b9c5d1;
+  box-shadow: 0 18px 42px rgba(28, 40, 52, 0.16);
+}
+
+.tool-page .combobox-option small {
+  margin-left: auto;
+  color: var(--tool-faint);
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 11px;
+  font-weight: var(--ui-option-font-weight);
+}
+
+.tool-page .combobox-option.nature-option span,
+.tool-page .nature-option-header span:nth-child(n+2) {
+  color: var(--tool-muted);
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-align: center;
+}
+
+.tool-page .type-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--ui-type-chip-width);
+  min-height: var(--ui-type-chip-height);
+  padding: 0 8px;
+  border-radius: 5px;
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: var(--ui-type-pill-font-size);
+  font-weight: var(--ui-type-pill-font-weight);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tool-page .ui-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--ui-control-bg);
+  color: var(--text-dim);
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tool-page .ui-check:hover {
+  border-color: var(--border-bright);
+  background: var(--bg-input);
+  color: var(--text);
+}
+
+.tool-page .ui-check:has(input:checked) {
+  border-color: rgba(37, 122, 87, 0.34);
+  background: rgba(37, 122, 87, 0.08);
+  color: var(--tool-text);
+}
+
+.tool-page .ui-empty {
+  color: var(--tool-faint);
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tool-page .ui-control-frame.ui-subframe {
+  border-color: var(--tool-line);
+  background: var(--ui-subframe-bg);
+}
+
+.tool-page :where(
+  .matchup-control-row,
+  .matchup-slots,
+  .matchup-coverage-inputs,
+  .matchup-slot,
+  .matchup-coverage-card,
+  .ft-hp-section,
+  .ft-opp-section,
+  .ft-opp-config-row,
+  .rc-my-moves-panel,
+  .rc-input-block
+) {
+  min-width: 0;
+}
+
+.tool-page :where(
+  .matchup-control-row,
+  .matchup-slots,
+  .matchup-coverage-inputs,
+  .matchup-coverage-card,
+  .ft-hp-section,
+  .ft-opp-section,
+  .ft-opp-config-row,
+  .ft-opp-speed-setup,
+  .ft-opp-speed-detail,
+  .ft-speed-embedded,
+  .ft-speed-summary,
+  .ft-speed-case,
+  .rc-my-moves-panel,
+  .rc-input-block,
+  .rc-observed-subframe,
+  .rc-item-grid,
+  .rc-result-info-panel,
+  .rc-prediction-panel,
+  .rc-followup-panel,
+  .rc-result-row,
+  .rc-briefing
+).ui-control-frame.ui-subframe {
+  padding: var(--ui-subframe-content-padding);
+}
+
+.tool-page .tool-stat-total {
+  height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  padding: 0 10px;
+}
+
+.tool-page .tool-stat-total.over {
+  color: var(--tool-danger);
+}
+
+.tool-page .tool-stat-total.over b {
+  color: inherit;
+}
+
+#page-revcalc .ui-empty.error {
+  color: var(--tool-danger);
+}

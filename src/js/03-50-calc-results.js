@@ -10,8 +10,10 @@ function runCalc() {
   const atkP = PokemonById[state.atk.pokemonIdx];
   const defP = PokemonById[state.def.pokemonIdx];
   const body = document.getElementById('calc-results-body');
+  const mobileSummary = document.getElementById('calcMobileSummary');
   if (!atkP || !defP) {
-    if (body) body.innerHTML = '<div class="empty-state ui-empty">공격측과 방어측 포켓몬을 선택하면 계산 결과가 표시됩니다.</div>';
+    if (body) renderTrustedHTML(body, '<div class="empty-state ui-empty">공격측과 방어측 포켓몬을 선택하면 계산 결과가 표시됩니다.</div>');
+    if (mobileSummary) mobileSummary.hidden = true;
     return;
   }
   
@@ -39,9 +41,9 @@ function runCalc() {
     };
     const result = calculateDamage(calcAtk, calcDef, move, moveField);
     if (!result) return { empty: true, slot: i+1, move };
-    const hko = hkoLabel(result.damages, result.defHP, calcDef, calcField);
-    const defStartHp = Math.max(1, sideCurrentHp(result.defHP, calcDef) - calcHazardDamage(calcDef, calcField));
-  const first = firstMover(move.pri, atkSpe, defSpe);
+    const hko = hkoLabel(result.damages, result.defHP, calcDef, calcField, result.koContext, result.hitProfile);
+    const defStartHp = Math.max(1, sideCurrentHp(result.defHP, calcDef) - calcHazardDamage(calcDef, calcField, result.koContext));
+    const first = firstMover(move.pri, atkSpe, defSpe);
     const timingPowerLabel = timingPowerConditionLabel(move, calcAtk, calcDef, calcField);
     return { ...result, hko, first, slot: i+1, move, defStartHp, entryMeta: calcState.entryMeta, timingPowerLabel };
   });
@@ -53,7 +55,20 @@ function runCalc() {
   const ignoredAb = moldBreakerActive && MOLD_BREAKER_IGNORED_ABILITIES.includes(defAb)
     ? AbilityById[defAb] : null;
 
-  body.innerHTML = `
+  const recommendedResult = moveResults
+    .filter(result => !result.empty && result.move)
+    .sort(compareCalcMoveRecommendations)[0];
+  if (mobileSummary) {
+    mobileSummary.hidden = !recommendedResult;
+    renderTrustedHTML(mobileSummary, recommendedResult ? `
+      <span class="calc-mobile-summary-label">추천 기술</span>
+      <strong>${escapeHTML(mvName(recommendedResult.move))}</strong>
+      <span class="calc-mobile-summary-range">${recommendedResult.minPct.toFixed(1)}~${recommendedResult.maxPct.toFixed(1)}%</span>
+      <b class="calc-mobile-summary-ko">${escapeHTML(`${recommendedResult.hko.label} ${recommendedResult.hko.turns}`)}</b>
+    ` : '');
+  }
+
+  renderTrustedHTML(body, `
     ${moldBreakerActive ? `
     <div class="calc-mold-breaker-info ui-control-frame ui-subframe ui-meta-row">
       <span class="calc-mold-breaker-tag">${AbilityById[atkAb]?.koName || atkAb}</span>
@@ -92,8 +107,39 @@ function runCalc() {
     <div class="calc-result-grid ui-control-frame ui-subframe ui-card-grid">
       ${moveResults.map(r => renderMoveCard(r)).join('')}
     </div>
-  `;
+  `);
+  body.querySelectorAll('[data-meter-percent]').forEach((meter) => {
+    const percent = Math.max(0, Math.min(100, Number(meter.dataset.meterPercent) || 0));
+    meter.style.width = `${percent}%`;
+  });
 }
+
+function calcMoveRecommendationRank(result) {
+  const metric = result?.hko?.metric || {};
+  const oneMoveChance = Number(metric.oneMoveKoChance) || 0;
+  const guaranteedTurn = Number(metric.guaranteedTurn) || null;
+  const possibleTurn = Number(metric.possibleTurn) || null;
+
+  if (guaranteedTurn === 1) return [6, 1, result.minPct, result.maxPct];
+  if (oneMoveChance > 0) return [5, oneMoveChance, result.minPct, result.maxPct];
+  if (guaranteedTurn === 2) return [4, 1, result.minPct, result.maxPct];
+  if (possibleTurn === 2) return [3, 1 / (guaranteedTurn || 10), result.minPct, result.maxPct];
+  if (guaranteedTurn) return [2, 1 / guaranteedTurn, result.minPct, result.maxPct];
+  return [1, 0, result.minPct, result.maxPct];
+}
+
+function compareCalcMoveRecommendations(a, b) {
+  const aRank = calcMoveRecommendationRank(a);
+  const bRank = calcMoveRecommendationRank(b);
+  for (let index = 0; index < aRank.length; index++) {
+    if (aRank[index] !== bRank[index]) return bRank[index] - aRank[index];
+  }
+  return (a.slot || 0) - (b.slot || 0);
+}
+
+document.getElementById('calcMobileSummary')?.addEventListener('click', () => {
+  document.querySelector('#page-calc .calc-results-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 function resultOffensiveStat(r) {
   return r?.move?.overrideOffensiveStat || (r?.category === 'Physical' ? 'atk' : 'spa');
@@ -277,8 +323,8 @@ function renderMoveCard(r) {
             <span class="calc-hp-remain"><span class="calc-hp-remain-label">잔여 HP</span><b class="calc-hp-remain-value">${hpRemMin}-${hpRemMax} / ${r.defHP}</b></span>
           </div>
           <div class="calc-damage-meter ui-meter">
-            <div class="calc-damage-meter-fill ui-meter-fill" style="width: ${barMax}%"></div>
-            <div class="calc-damage-meter-fill min ui-meter-fill" style="width: ${barMin}%"></div>
+            <div class="calc-damage-meter-fill ui-meter-fill" data-meter-percent="${barMax}"></div>
+            <div class="calc-damage-meter-fill min ui-meter-fill" data-meter-percent="${barMin}"></div>
           </div>
         </div>
         <div class="calc-damage-meta ui-meta-row">

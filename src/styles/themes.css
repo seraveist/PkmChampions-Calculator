@@ -1,8 +1,4 @@
-/* Theme bridge.
- * This file loads after page-specific styles and maps legacy page scopes back
- * to the shared ui token system. It keeps the current light UI intact while
- * making future dark-mode work a token change instead of a per-menu rewrite.
- */
+/* Application themes and page-level semantic token mappings. */
 
 #page-calc {
   --calc-bg: var(--bg);
@@ -582,22 +578,36 @@
   color: var(--text);
 }
 
+:root[data-theme="dark"] :where(.party-preset-button, .theme-toggle-button) {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] :where(.party-preset-button, .theme-toggle-button):hover {
+  border-color: var(--border-bright);
+  background: var(--bg-input);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] #page-calc .battle-grid > .ui-panel .ui-panel-tag {
+  color: #17202a;
+}
+
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  :where(.ui-btn-secondary, .type-filter-btn, .dex-tab, .matchup-mode-btn) {
+  :where(.ui-btn-secondary, .dex-tab, .matchup-mode-btn) {
   border-color: var(--border);
   background: var(--ui-action-bg);
   color: var(--text-dim);
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  :where(.ui-btn-secondary:hover, .type-filter-btn:hover, .dex-tab:hover, .matchup-mode-btn:hover) {
+  :where(.ui-btn-secondary:hover, .dex-tab:hover, .matchup-mode-btn:hover) {
   border-color: var(--border-bright);
   background: var(--bg-input);
   color: var(--text);
 }
 
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-  :where(.ui-btn-secondary.active, .type-filter-btn.active, .dex-tab.active, .matchup-mode-btn.active) {
+  :where(.ui-btn-secondary.active, .dex-tab.active, .matchup-mode-btn.active) {
   border-color: var(--ui-action-hover-border);
   background: var(--ui-action-active-bg);
   color: var(--ui-action-active-text);

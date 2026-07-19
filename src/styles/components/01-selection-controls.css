@@ -1,0 +1,496 @@
+/* Shared Pokemon, form, move, nature, item, and status selection controls. */
+
+.pokemon-select .cb-input {
+height: var(--ui-control-height);
+min-height: var(--ui-control-height);
+}
+.tool-pokemon-subframe,
+.tool-pokemon-field,
+.tool-pokemon-row,
+.tool-pokemon-head-row,
+.tool-pokemon-control-row,
+.tool-pokemon-toolbar-row,
+.tool-pokemon-combobox,
+.tool-pokemon-combobox .tool-pokemon-input {
+min-width: 0;
+}
+.tool-pokemon-subframe,
+.tool-pokemon-control-row,
+.tool-pokemon-combobox,
+.tool-pokemon-combobox .tool-pokemon-input {
+width: 100%;
+}
+.tool-pokemon-subframe {
+position: relative;
+}
+.tool-pokemon-subframe > .tool-pokemon-field {
+width: 100%;
+}
+.tool-pokemon-head {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: var(--ui-field-label-gap);
+min-height: var(--ui-field-head-height);
+margin-bottom: var(--ui-field-stack-gap);
+}
+.tool-pokemon-title-actions,
+.tool-pokemon-label-actions,
+.tool-pokemon-primary-actions,
+.tool-pokemon-actions,
+.tool-pokemon-meta-actions,
+.tool-pokemon-secondary-actions {
+display: inline-flex;
+align-items: center;
+min-width: 0;
+gap: var(--ui-field-stack-gap);
+}
+.tool-pokemon-title-actions {
+flex: 1 1 auto;
+min-height: var(--ui-field-head-height);
+justify-content: flex-start;
+gap: var(--ui-field-label-gap);
+}
+.tool-pokemon-label-actions {
+flex: 0 1 auto;
+gap: var(--ui-field-label-gap);
+}
+.tool-pokemon-title-actions .ui-field-label {
+display: flex;
+align-items: center;
+min-height: var(--ui-field-head-height);
+margin-bottom: 0;
+color: var(--ui-pokemon-label-color, var(--text-dim));
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-pokemon-label-font-size);
+font-weight: var(--ui-pokemon-label-font-weight);
+line-height: var(--ui-label-line-height);
+letter-spacing: 0;
+text-transform: none;
+white-space: nowrap;
+}
+.tool-pokemon-primary-actions,
+.tool-pokemon-actions {
+flex: 0 0 auto;
+justify-content: flex-start;
+}
+.tool-pokemon-primary-actions .ui-field-action,
+.tool-pokemon-actions .ui-field-action {
+width: var(--ui-pokemon-action-width);
+height: var(--ui-pokemon-action-height);
+min-height: var(--ui-pokemon-action-height);
+}
+.tool-pokemon-nav-actions {
+margin-left: auto;
+}
+.tool-pokemon-meta-actions {
+position: relative;
+z-index: 5;
+flex: 0 1 auto;
+justify-content: flex-end;
+min-height: var(--ui-field-head-height);
+margin-left: auto;
+overflow: visible;
+}
+.tool-pokemon-toolbar-row {
+display: flex;
+position: static;
+z-index: auto;
+flex: 1 1 100%;
+justify-content: flex-start;
+flex-wrap: wrap;
+width: 100%;
+gap: var(--ui-control-grid-gap) var(--ui-field-label-gap);
+min-height: var(--ui-field-meta-min-height);
+margin-top: var(--ui-field-meta-margin-top);
+margin-left: 0;
+}
+.tool-pokemon-meta-actions .tool-pokemon-type-strip {
+display: flex;
+align-items: center;
+flex: 0 0 auto;
+flex-wrap: nowrap;
+justify-content: flex-end;
+gap: var(--ui-type-strip-gap);
+height: var(--ui-field-head-height);
+max-width: none;
+min-width: 0;
+min-height: var(--ui-field-head-height);
+margin: 0;
+overflow: visible;
+pointer-events: none;
+}
+.tool-pokemon-meta-actions .tool-pokemon-type-strip.empty {
+visibility: hidden;
+}
+.tool-pokemon-type-pill {
+flex: 0 0 var(--ui-type-chip-width);
+height: var(--ui-type-chip-height);
+padding: 0 7px;
+}
+.tool-pokemon-combobox .tool-pokemon-input {
+height: var(--ui-control-height);
+min-height: var(--ui-control-height);
+padding-right: 30px;
+overflow: hidden;
+font-size: 13px;
+font-weight: 700;
+text-overflow: ellipsis;
+white-space: nowrap;
+box-shadow: none;
+}
+.tool-form-combobox {
+flex: 0 0 var(--ui-form-switch-width);
+width: var(--ui-form-switch-width);
+max-width: var(--ui-form-switch-width);
+min-width: 0;
+height: var(--ui-form-switch-height);
+}
+.tool-form-combobox::after {
+right: 8px;
+}
+.tool-form-combobox .form-switch-btn {
+display: flex;
+align-items: center;
+justify-content: flex-start;
+width: 100%;
+height: var(--ui-form-switch-height);
+min-height: var(--ui-form-switch-height);
+margin: 0;
+padding: 0 22px 0 9px;
+overflow: hidden;
+border: var(--ui-control-border);
+border-radius: var(--ui-control-radius);
+background: var(--ui-control-bg);
+color: var(--text);
+box-shadow: none;
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-control-font-size);
+font-weight: var(--ui-control-font-weight);
+line-height: 1;
+text-align: left;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-form-combobox .form-switch-btn {
+height: var(--ui-form-switch-height);
+min-height: var(--ui-form-switch-height);
+border: var(--ui-control-border);
+border-radius: var(--ui-control-radius);
+background: var(--ui-control-bg);
+color: var(--text);
+box-shadow: none;
+font-size: var(--ui-control-font-size);
+font-weight: var(--ui-control-font-weight);
+}
+.tool-form-combobox .form-switch-btn:hover {
+border-color: var(--border-bright);
+background: var(--bg-input);
+color: var(--text);
+}
+.tool-form-combobox .form-switch-btn:focus-visible,
+.tool-form-combobox .form-switch-btn[aria-expanded="true"] {
+border-color: var(--warn);
+box-shadow: var(--ui-pokemon-focus-ring);
+outline: 0;
+}
+.tool-form-combobox .combobox-options {
+left: auto;
+right: 0;
+width: max-content;
+min-width: var(--ui-form-switch-width);
+max-width: calc(100vw - 24px);
+transform: none;
+}
+.tool-form-combobox .combobox-option {
+min-width: var(--ui-form-switch-width);
+border-left: 3px solid transparent;
+}
+:is(#page-calc, #page-revcalc, #page-finetune) .tool-form-combobox .combobox-option.selected {
+border-left-color: var(--warn);
+box-shadow: none;
+}
+.ui-divider,
+.ft-speed-divider {
+display: block;
+box-sizing: border-box;
+width: 100%;
+height: var(--ui-divider-height);
+min-height: var(--ui-divider-height);
+margin: var(--ui-divider-margin);
+padding: 0;
+border: 0;
+background: var(--ui-divider-color);
+}
+.types-display {
+display: flex;
+align-items: center;
+flex-wrap: wrap;
+gap: 4px;
+margin-top: 5px;
+}
+.pokemon-select .combobox-options {
+box-sizing: border-box;
+width: 100%;
+min-width: 0;
+max-width: min(100%, calc(100vw - 24px));
+overflow-x: hidden;
+}
+.pokemon-option-header,
+.combobox-option.pokemon-option {
+box-sizing: border-box;
+display: grid;
+grid-template-columns:
+minmax(82px, 1.45fr)
+minmax(58px, 0.9fr)
+repeat(6, minmax(22px, 0.34fr));
+width: 100%;
+min-width: 0;
+column-gap: clamp(2px, 0.7vw, 6px);
+padding-right: clamp(5px, 1vw, 10px);
+padding-left: clamp(5px, 1vw, 10px);
+}
+.pokemon-option-header,
+.move-option-header,
+.nature-option-header {
+position: sticky;
+z-index: 2;
+top: 0;
+align-items: center;
+border-left: 3px solid transparent;
+border-bottom: 1px solid var(--border);
+background: var(--bg-input);
+color: var(--text-dim);
+font-size: var(--ui-option-header-font-size);
+font-weight: var(--ui-option-header-font-weight);
+user-select: none;
+}
+.move-option-header,
+.combobox-option.move-option {
+box-sizing: border-box;
+display: grid;
+grid-template-columns: minmax(86px, 1fr) 40px 44px 38px;
+align-items: center;
+width: 100%;
+min-width: 0;
+column-gap: 4px;
+padding-right: 7px;
+padding-left: 7px;
+}
+.move-option-header {
+min-height: 32px;
+}
+.combobox-option.move-option {
+min-height: var(--ui-option-height);
+border-left: 3px solid transparent;
+padding-left: 7px;
+}
+.pokemon-option-header {
+min-height: 32px;
+}
+.combobox-option.pokemon-option {
+min-height: var(--ui-option-height);
+border-left: 3px solid transparent;
+padding-left: clamp(5px, 1vw, 10px);
+}
+.pokemon-select .combobox-option.pokemon-option.selected {
+border-left-color: var(--ui-pokemon-option-selected-line, var(--warn));
+box-shadow: none;
+}
+.pokemon-option-header span,
+.pokemon-option-name,
+.pokemon-option-types,
+.pokemon-option-stat {
+min-width: 0;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.pokemon-option-header span {
+text-align: center;
+}
+.pokemon-option-types {
+display: flex;
+align-items: center;
+justify-content: flex-start;
+gap: clamp(1px, 0.35vw, 3px);
+}
+.pokemon-option-stat {
+color: var(--text);
+font-family: "Noto Sans KR", sans-serif;
+text-align: center;
+}
+.pokemon-option-name,
+.pokemon-option-stat,
+.move-option-name,
+.move-option-power,
+.combobox-option.nature-option b,
+.combobox-option.nature-option span,
+.combobox-option.status-option b,
+.combobox-option.status-option small,
+.combobox-option.ability-option b,
+.combobox-option.item-option b {
+font-size: var(--ui-option-font-size);
+font-weight: var(--ui-option-font-weight);
+}
+.move-option-type-badge,
+.move-option-category .cat-badge,
+.pokemon-option-types .badge-mini {
+font-family: 'Noto Sans KR', sans-serif;
+font-size: var(--ui-badge-font-size);
+font-weight: var(--ui-badge-font-weight);
+line-height: 1;
+}
+.pokemon-option-types .badge-mini {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+min-width: clamp(22px, 6.2vw, 40px);
+height: clamp(16px, 3.8vw, 22px);
+padding: 0 clamp(2px, 0.8vw, 6px);
+border-radius: 5px;
+}
+.move-option-type-badge,
+.move-option-category .cat-badge {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+min-width: 34px;
+min-height: 20px;
+padding: 0 6px;
+border-radius: 5px;
+}
+.move-option-category,
+.move-option-type {
+display: flex;
+justify-content: center;
+}
+.move-option-header span:nth-child(n+2),
+.move-option-category,
+.move-option-type,
+.move-option-power {
+text-align: center;
+}
+.move-option-category .cat-badge {
+border: 1px solid #d1d5db;
+background: #f3f4f6;
+color: #4b5563;
+}
+.move-option-category .cat-badge.cat-phys {
+border-color: #fdba74;
+background: #fff3e8;
+color: #9a3412;
+}
+.move-option-category .cat-badge.cat-spec {
+border-color: #93c5fd;
+background: #eff6ff;
+color: #1d4ed8;
+}
+.move-option-category .cat-badge.cat-stat {
+border-color: #d1d5db;
+background: #f3f4f6;
+color: #4b5563;
+}
+.move-option-power {
+display: block;
+min-width: 38px;
+color: var(--text-dim);
+font-family: "Noto Sans KR", sans-serif;
+font-variant-numeric: tabular-nums;
+text-align: center;
+overflow: visible;
+text-overflow: clip;
+}
+.type-pill {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+min-width: var(--ui-type-chip-width);
+min-height: var(--ui-type-chip-height);
+padding: 0 8px;
+border-radius: 5px;
+font-family: "Noto Sans KR", sans-serif;
+font-size: var(--ui-type-pill-font-size);
+font-weight: var(--ui-type-pill-font-weight);
+line-height: 1;
+white-space: nowrap;
+}
+.move-option-header span,
+.move-option-name,
+.move-option-category,
+.move-option-type,
+.move-option-power {
+min-width: 0;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.nature-option-header,
+.combobox-option.nature-option {
+display: grid;
+grid-template-columns: minmax(78px, 1fr) minmax(36px, 0.42fr) minmax(36px, 0.42fr);
+gap: 3px;
+align-items: center;
+}
+.nature-option-header {
+padding: 8px;
+}
+.combobox-option.nature-option {
+border-left: 3px solid transparent;
+padding-right: 8px;
+padding-left: 8px;
+}
+.combobox-option.nature-option b,
+.combobox-option.nature-option span {
+min-width: 0;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.combobox-option.nature-option span,
+.nature-option-header span:nth-child(n+2) {
+color: var(--text-dim);
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+text-align: center;
+}
+.combobox-option.ability-option,
+.combobox-option.item-option {
+border-left: 3px solid transparent;
+padding-left: calc(12px - 3px);
+}
+.combobox-option.status-option {
+display: grid;
+grid-template-columns: 64px minmax(0, 1fr);
+gap: 10px;
+align-items: center;
+border-left: 3px solid transparent;
+padding-left: calc(12px - 3px);
+}
+.combobox-option.status-option small {
+margin-left: 0;
+text-align: left;
+}
+.calc-combobox-tooltip {
+position: fixed;
+z-index: 10000;
+width: min(280px, calc(100vw - 24px));
+box-sizing: border-box;
+padding: 9px 11px;
+border: 1px solid rgba(148, 163, 184, 0.32);
+border-radius: 10px;
+background: rgba(255, 255, 255, 0.98);
+box-shadow: 0 14px 34px rgb(15 23 42 / 0.18);
+color: #475569;
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: 0.74rem;
+font-weight: 600;
+line-height: 1.45;
+opacity: 0;
+visibility: hidden;
+pointer-events: none;
+transition: opacity 0.12s ease;
+}
+.calc-combobox-tooltip.visible {
+opacity: 1;
+visibility: visible;
+}

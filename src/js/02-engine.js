@@ -306,14 +306,14 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
   switch (move.variableBpKind) {
     case 'gyroBall': {
       // 25 × defSpe / atkSpe, 최소 1, 최대 150
-      const aS = applyBoost(atkStats.spe, atkSide.ranks?.spe || 0);
-      const dS = applyBoost(defStats.spe, defSide.ranks?.spe || 0);
+      const aS = effectiveSpeed(atkSide, field);
+      const dS = effectiveSpeed(defSide, field);
       if (aS <= 0) return 1;
-      return Math.min(150, Math.max(1, Math.floor(25 * dS / aS)));
+      return Math.min(150, Math.max(1, Math.floor(25 * dS / aS) + 1));
     }
     case 'electroBall': {
-      const aS = applyBoost(atkStats.spe, atkSide.ranks?.spe || 0);
-      const dS = applyBoost(defStats.spe, defSide.ranks?.spe || 0);
+      const aS = effectiveSpeed(atkSide, field);
+      const dS = effectiveSpeed(defSide, field);
       if (dS <= 0) return 150;
       const r = aS / dS;
       if (r >= 4) return 150;
@@ -1082,9 +1082,11 @@ function calculateFinalDamageStage(ctx) {
     damages.push(d);
   }
 
-  // Multi-hit 처리
+  // Multi-hit 처리. 표시용 16롤은 기존 계약을 유지하고, 실제 타격 단계는
+  // hitProfile에 보존해 기합의띠/옹골참/자뭉열매를 타격 사이에 판정한다.
   let multihitDamages = null;
   let parentalBondActive = false;
+  let hitProfile = null;
 
   // 부자유친 (Parental Bond): 다단기/광역기/특정 기술 제외하고 1타 100% + 2타 25% = 평균 1.25×
   // 단, 단일 타깃 공격기에만 적용
@@ -1093,27 +1095,26 @@ function calculateFinalDamageStage(ctx) {
       !(field.gameType === 'Doubles' && ['allAdjacent','allAdjacentFoes'].includes(move.tgt))) {
     parentalBondActive = true;
     mods.push(`${ctx.atkAbilityData.koName || ctx.atkAbilityData.name} 추가타`);
-    multihitDamages = damages.map(d => Math.floor(d * mechanicMod(extraHit.mod) / 4096));
+    const extraHitMod = Math.max(0, mechanicMod(extraHit.mod) - 4096);
+    const extraHitDamages = damages.map(d => Math.floor(d * extraHitMod / 4096));
+    multihitDamages = damages.map((d, index) => d + extraHitDamages[index]);
+    hitProfile = {
+      kind: 'parentalBond',
+      variants: [{ weight: 1, hitDamages: [damages, extraHitDamages] }],
+    };
   }
 
   if (move.mh && !parentalBondActive) {
-    let hits;
-    if (Array.isArray(move.mh)) {
-      // [min, max] 범위 → 평균 hit 수 사용 (기본 3.167 for 2~5)
-      // Loaded Dice 가 있으면 최대치에 가까움
-      if (atkItemData?.multiHitModifier === 'loadedDice') {
-        hits = move.mh[1] === 5 ? 4.5 : move.mh[1];  // 2~5 → 4.5, 그 외 최대
-      } else if (ctx.atkAbilityData?.multiHitModifier === 'max') {
-        hits = move.mh[1];  // 최대
-      } else {
-        hits = (move.mh[0] + move.mh[1]) / 2;  // 평균 (근사)
-        // 2~5 공식값: 3.167 (Gen 5+)
-        if (move.mh[0] === 2 && move.mh[1] === 5) hits = 3.167;
-      }
-    } else {
-      hits = move.mh;
-    }
-    multihitDamages = damages.map(d => Math.floor(d * hits));
+    const hitVariants = resolveMultiHitVariants(move.mh, atkItemData, ctx.atkAbilityData);
+    const sampledHits = sampleMultiHitCounts(hitVariants, damages.length);
+    multihitDamages = damages.map((d, index) => d * sampledHits[index]);
+    hitProfile = {
+      kind: 'multiHit',
+      variants: hitVariants.map(({ hits, weight }) => ({
+        weight,
+        hitDamages: Array.from({ length: hits }, () => damages),
+      })),
+    };
   }
 
   const finalDamages = multihitDamages || damages;
@@ -1124,6 +1125,7 @@ function calculateFinalDamageStage(ctx) {
     damages: finalDamages,
     rawDamages: damages,
     multihitCount: move.mh,
+    hitProfile,
     minPct, maxPct,
     effectiveness,
     moveType, category,
@@ -1132,6 +1134,45 @@ function calculateFinalDamageStage(ctx) {
     stab: stabMod !== 4096,
     mods
   };
+}
+
+function resolveMultiHitVariants(multihit, itemData, abilityData) {
+  if (!Array.isArray(multihit)) {
+    return [{ hits: Math.max(1, Number(multihit) || 1), weight: 1 }];
+  }
+
+  const minHits = Math.max(1, Number(multihit[0]) || 1);
+  const maxHits = Math.max(minHits, Number(multihit[1]) || minHits);
+  if (abilityData?.multiHitModifier === 'max') return [{ hits: maxHits, weight: 1 }];
+  if (itemData?.multiHitModifier === 'loadedDice') {
+    return maxHits === 5
+      ? [{ hits: 4, weight: 1 }, { hits: 5, weight: 1 }]
+      : [{ hits: maxHits, weight: 1 }];
+  }
+
+  const configured = minHits === 2 && maxHits === 5 && Array.isArray(RULES.multihitDistribution25)
+    ? RULES.multihitDistribution25
+    : Array.from({ length: maxHits - minHits + 1 }, (_, index) => minHits + index);
+  const weights = new Map();
+  configured.forEach(value => {
+    const hits = Math.max(minHits, Math.min(maxHits, Number(value) || minHits));
+    weights.set(hits, (weights.get(hits) || 0) + 1);
+  });
+  return [...weights.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([hits, weight]) => ({ hits, weight }));
+}
+
+function sampleMultiHitCounts(variants, sampleCount = 16) {
+  const weighted = variants.flatMap(({ hits, weight }) => (
+    Array.from({ length: Math.max(1, Math.round(weight || 1)) }, () => hits)
+  ));
+  if (!weighted.length) return Array.from({ length: sampleCount }, () => 1);
+  return Array.from({ length: sampleCount }, (_, index) => {
+    if (sampleCount <= 1) return weighted[0];
+    const weightedIndex = Math.floor(index * (weighted.length - 1) / (sampleCount - 1));
+    return weighted[weightedIndex];
+  });
 }
 
 function calculateDamage(atkSide, defSide, move, field) {
@@ -1150,16 +1191,27 @@ function calculateDamage(atkSide, defSide, move, field) {
 
   for (const stage of stages) {
     const outcome = stage(ctx);
-    if (outcome?.done) return outcome.result;
+    if (outcome?.done) return attachKoContext(outcome.result, ctx);
   }
 
-  return calculateFinalDamageStage(ctx);
+  return attachKoContext(calculateFinalDamageStage(ctx), ctx);
+}
+
+function attachKoContext(result, ctx) {
+  if (!result) return result;
+  return {
+    ...result,
+    koContext: {
+      defAbility: ctx.defAb || '',
+      defItem: ctx.defItem || '',
+    },
+  };
 }
 
 /* ════════════════════════════════════════════════════════════
    진입 위험 (스텔스록 / 압정뿌리기) 데미지 계산
    ════════════════════════════════════════════════════════════ */
-function calcHazardDamage(defSide, field) {
+function calcHazardDamage(defSide, field, koContext = null) {
   let total = 0;
   const hp = calcStats(defSide).hp;
   // 스텔스록: 바위 약점 비율 ×기본 1/8
@@ -1169,7 +1221,13 @@ function calcHazardDamage(defSide, field) {
     if (eff > 0) total += Math.floor(hp * eff / 8);
   }
   // 압정뿌리기: 지면에 닿은 포켓몬에게만
-  if (field.defSpikesLayers > 0 && isGrounded(defSide, field)) {
+  const defAbility = koContext && Object.prototype.hasOwnProperty.call(koContext, 'defAbility')
+    ? koContext.defAbility
+    : null;
+  const defItem = koContext && Object.prototype.hasOwnProperty.call(koContext, 'defItem')
+    ? koContext.defItem
+    : null;
+  if (field.defSpikesLayers > 0 && isGrounded(defSide, field, defAbility, defItem)) {
     const layerDmg = [0, 1/8, 1/6, 1/4][field.defSpikesLayers] || 0;
     total += Math.floor(hp * layerDmg);
   }
@@ -1204,17 +1262,134 @@ function simulateKO(dmg, hp, defItemData, defAbilityData, startHp) {
   return 11;
 }
 
-function hkoLabel(damages, hp, defSide, field) {
+function koRollWeights(damages) {
+  const weights = new Map();
+  (damages || []).forEach(damage => {
+    const value = Math.max(0, Number(damage) || 0);
+    weights.set(value, (weights.get(value) || 0) + 1);
+  });
+  return weights.size ? weights : new Map([[0, 1]]);
+}
+
+function simulateMoveKoDistribution(hitProfile, hp, startHp, options = {}, maxTurns = 10) {
+  const variants = hitProfile?.variants || [];
+  const totalVariantWeight = variants.reduce((sum, variant) => sum + (variant.weight || 0), 0);
+  if (!variants.length || totalVariantWeight <= 0) return null;
+
+  const halfHP = Math.floor(hp / 2);
+  const berryHeal = Math.floor(hp * fractionValue(options.hpRecovery?.fraction, 1 / 4));
+  const startsWithBerry = options.hpRecovery?.kind === 'sitrus';
+  const itemResidualHeal = options.residualRecovery?.kind === 'endTurn'
+    ? Math.floor(hp * fractionValue(options.residualRecovery.fraction, 1 / 16))
+    : 0;
+  const abilityResidualHeal = options.abilityResidualRecovery
+    ? Math.floor(hp * fractionValue(options.abilityResidualRecovery.fraction, 1 / 8))
+    : 0;
+  let states = new Map([[`${startHp}|${options.fullHpSurvival ? 1 : 0}|${startsWithBerry ? 0 : 1}`, 1]]);
+  const cumulative = [];
+  let totalKoChance = 0;
+
+  for (let turn = 1; turn <= maxTurns && states.size; turn++) {
+    const actionStates = new Map();
+    let actionKoChance = 0;
+
+    for (const variant of variants) {
+      const variantWeight = (variant.weight || 0) / totalVariantWeight;
+      if (variantWeight <= 0) continue;
+      let variantStates = new Map([...states].map(([key, chance]) => [key, chance * variantWeight]));
+
+      for (const hitDamages of variant.hitDamages || []) {
+        const rollWeights = koRollWeights(hitDamages);
+        const rollTotal = [...rollWeights.values()].reduce((sum, weight) => sum + weight, 0) || 1;
+        const nextStates = new Map();
+
+        for (const [stateKey, stateChance] of variantStates) {
+          const [currentHpRaw, survivalRaw, berryUsedRaw] = stateKey.split('|').map(Number);
+          for (const [damage, rollWeight] of rollWeights) {
+            let currentHp = currentHpRaw - damage;
+            let survivalAvailable = survivalRaw === 1;
+            let berryUsed = berryUsedRaw === 1;
+            const chance = stateChance * rollWeight / rollTotal;
+
+            if (currentHp <= 0 && survivalAvailable && currentHpRaw === hp) {
+              currentHp = 1;
+              survivalAvailable = false;
+            } else if (currentHp <= 0) {
+              actionKoChance += chance;
+              continue;
+            }
+
+            if (!berryUsed && options.hpRecovery?.trigger === 'halfHp' && currentHp <= halfHP) {
+              currentHp = Math.min(hp, currentHp + berryHeal);
+              berryUsed = true;
+            }
+
+            const nextKey = `${currentHp}|${survivalAvailable ? 1 : 0}|${berryUsed ? 1 : 0}`;
+            nextStates.set(nextKey, (nextStates.get(nextKey) || 0) + chance);
+          }
+        }
+
+        variantStates = nextStates;
+        if (!variantStates.size) break;
+      }
+
+      for (const [stateKey, chance] of variantStates) {
+        const [currentHpRaw, survivalRaw, berryUsedRaw] = stateKey.split('|').map(Number);
+        const currentHp = Math.min(hp, currentHpRaw + itemResidualHeal + abilityResidualHeal);
+        const nextKey = `${currentHp}|${survivalRaw}|${berryUsedRaw}`;
+        actionStates.set(nextKey, (actionStates.get(nextKey) || 0) + chance);
+      }
+    }
+
+    totalKoChance = Math.max(0, Math.min(1, totalKoChance + actionKoChance));
+    cumulative.push(totalKoChance);
+    states = actionStates;
+    if (totalKoChance >= 1 - 1e-9) break;
+  }
+
+  const possibleIndex = cumulative.findIndex(chance => chance > 1e-9);
+  const guaranteedIndex = cumulative.findIndex(chance => chance >= 1 - 1e-9);
+  return {
+    cumulative,
+    oneMoveKoChance: cumulative[0] || 0,
+    possibleTurn: possibleIndex >= 0 ? possibleIndex + 1 : null,
+    guaranteedTurn: guaranteedIndex >= 0 ? guaranteedIndex + 1 : null,
+  };
+}
+
+function simulateOneMoveKoChance(hitProfile, hp, startHp, options = {}) {
+  return simulateMoveKoDistribution(hitProfile, hp, startHp, options, 1)?.oneMoveKoChance ?? null;
+}
+
+function withKoMetric(result, metric = {}) {
+  Object.defineProperty(result, 'metric', {
+    configurable: true,
+    enumerable: false,
+    value: {
+      possibleTurn: metric.possibleTurn ?? null,
+      guaranteedTurn: metric.guaranteedTurn ?? null,
+      oneMoveKoChance: metric.oneMoveKoChance || 0,
+      cumulative: metric.cumulative || [],
+    },
+  });
+  return result;
+}
+
+function hkoLabel(damages, hp, defSide, field, koContext = null, hitProfile = null) {
   const max = damages[15];
   const min = damages[0];
-  if (max <= 0) return { label: "대미지", turns: "없음", pct: "", cls: "no" };
-  const defItem = effectiveItem(defSide);
+  if (max <= 0) return withKoMetric({ label: "대미지", turns: "없음", pct: "", cls: "no" });
+  const defItem = koContext && Object.prototype.hasOwnProperty.call(koContext, 'defItem')
+    ? koContext.defItem
+    : effectiveItem(defSide);
   const defItemData = defItem ? ItemById[defItem] : null;
-  const defAb = effectiveAbility(defSide);
+  const defAb = koContext && Object.prototype.hasOwnProperty.call(koContext, 'defAbility')
+    ? koContext.defAbility
+    : effectiveAbility(defSide);
   const defAbilityData = defAb ? AbilityById[defAb] : null;
 
   // 진입 위험 (스텔스록/압정뿌리기) 데미지를 시작 HP 에서 차감
-  const hazardDmg = field ? calcHazardDamage(defSide, field) : 0;
+  const hazardDmg = field ? calcHazardDamage(defSide, field, koContext) : 0;
   const currentHp = sideCurrentHp(hp, defSide);
   const startHp = Math.max(1, currentHp - hazardDmg);
   const hazardActive = hazardDmg > 0;
@@ -1223,23 +1398,61 @@ function hkoLabel(damages, hp, defSide, field) {
   const hasFocusSash = defItemData?.koSurvival === 'fullHpNoHazards' && sideIsFullHp(defSide) && !hazardActive;
   const hasSturdy = defAbilityData?.koSurvival === 'fullHpNoHazards' && sideIsFullHp(defSide) && !hazardActive;
   const survives1HKO = hasFocusSash || hasSturdy;
+  const multiHitDistribution = simulateMoveKoDistribution(hitProfile, hp, startHp, {
+    fullHpSurvival: survives1HKO,
+    hpRecovery: defItemData?.hpRecovery,
+    residualRecovery: defItemData?.residualRecovery,
+    abilityResidualRecovery: defAbilityData?.residualRecovery,
+  });
+  const multiHitKoChance = multiHitDistribution?.oneMoveKoChance ?? null;
+
+  if (multiHitKoChance != null && multiHitKoChance >= 1 - 1e-9) {
+    const subParts = [];
+    if (hazardActive) subParts.push(`진입 위험 -${Math.round(hazardDmg / hp * 100)}%`);
+    if (survives1HKO) subParts.push(`${hasFocusSash ? '기합의띠' : '옹골참'} 타격별 반영`);
+    if (defItemData?.hpRecovery?.kind === 'sitrus') subParts.push('자뭉 타격별 반영');
+    return withKoMetric(
+      { label: '확정', turns: '1타', pct: '', cls: 'ohko', sub: subParts.join(' · ') },
+      multiHitDistribution,
+    );
+  }
+
+  if (multiHitKoChance != null && multiHitKoChance > 1e-9) {
+    const subParts = [];
+    if (hazardActive) subParts.push(`진입 위험 -${Math.round(hazardDmg / hp * 100)}%`);
+    if (survives1HKO) subParts.push(`${hasFocusSash ? '기합의띠' : '옹골참'} 타격별 반영`);
+    if (defItemData?.hpRecovery?.kind === 'sitrus') subParts.push('자뭉 타격별 반영');
+    return withKoMetric({
+      label: '난수',
+      turns: '1타',
+      pct: `${(multiHitKoChance * 100).toFixed(1)}%`,
+      cls: 'ohko',
+      sub: subParts.join(' · '),
+    }, multiHitDistribution);
+  }
 
   // 1타 판정은 진입 위험 후의 startHp 기준
   const oneHits = damages.filter(d => d >= startHp).length;
 
   // 확정 1타 (기합의띠 없을 때만)
-  if (oneHits === 16 && !survives1HKO) {
-    return { label: "확정", turns: "1타", pct: "", cls: "ohko" };
+  if (multiHitKoChance == null && oneHits === 16 && !survives1HKO) {
+    return withKoMetric(
+      { label: "확정", turns: "1타", pct: "", cls: "ohko" },
+      { possibleTurn: 1, guaranteedTurn: 1, oneMoveKoChance: 1, cumulative: [1] },
+    );
   }
   // 기합의띠/옹골참으로 1타 회피
-  if (oneHits === 16 && survives1HKO) {
+  if (multiHitKoChance == null && oneHits === 16 && survives1HKO) {
     const reason = hasFocusSash ? '기합의띠' : '옹골참';
-    return { label: "확정", turns: "2타", pct: "", cls: "ohko", sub: `${reason}로 1타 회피` };
+    return withKoMetric(
+      { label: "확정", turns: "2타", pct: "", cls: "ohko", sub: `${reason}로 1타 회피` },
+      { possibleTurn: 2, guaranteedTurn: 2, oneMoveKoChance: 0, cumulative: [0, 1] },
+    );
   }
 
   const hasSitrus = defItemData?.hpRecovery?.kind === 'sitrus';
 
-  if (oneHits > 0) {
+  if (multiHitKoChance == null && oneHits > 0) {
     const pct = (oneHits / 16 * 100).toFixed(1);
     const subParts = [];
     if (hazardActive) {
@@ -1252,12 +1465,40 @@ function hkoLabel(damages, hp, defSide, field) {
       const minKOs = simulateKO(min, hp, defItemData, defAbilityData, startHp);
       subParts.push(`자뭉 시 확정 ${minKOs}타`);
     }
-    return { label: "난수", turns: "1타", pct: `${pct}%`, cls: "ohko", sub: subParts.join(' · ') };
+    return withKoMetric(
+      { label: "난수", turns: "1타", pct: `${pct}%`, cls: "ohko", sub: subParts.join(' · ') },
+      { possibleTurn: 1, oneMoveKoChance: oneHits / 16, cumulative: [oneHits / 16] },
+    );
+  }
+
+  if (multiHitDistribution?.possibleTurn) {
+    const possibleTurn = multiHitDistribution.possibleTurn;
+    const guaranteedTurn = multiHitDistribution.guaranteedTurn;
+    const isFixed = guaranteedTurn === possibleTurn;
+    const turns = guaranteedTurn
+      ? (isFixed ? `${guaranteedTurn}타` : `${possibleTurn}~${guaranteedTurn}타`)
+      : `${possibleTurn}타 이상`;
+    const subParts = [];
+    if (hazardActive) subParts.push(`진입 위험 -${Math.round(hazardDmg / hp * 100)}%`);
+    if (defItemData?.hpRecovery?.kind === 'sitrus') subParts.push('자뭉 타격별 반영');
+    else if (defItemData?.residualRecovery?.kind === 'endTurn') subParts.push('먹남 반영');
+    else if (defAbilityData?.residualRecovery) subParts.push(`${defAbilityData.koName || defAbilityData.name} 반영`);
+    return withKoMetric({
+      label: isFixed ? '확정' : '난수',
+      turns,
+      pct: '',
+      cls: (guaranteedTurn || possibleTurn) <= 2 ? 'ohko' : '',
+      sub: subParts.join(' · '),
+    }, multiHitDistribution);
   }
 
   // 자뭉/회복 아이템 반영한 N타 (진입 위험 후 startHp 기준)
-  const minKOs = simulateKO(min, hp, defItemData, defAbilityData, startHp);
-  const maxKOs = simulateKO(max, hp, defItemData, defAbilityData, startHp);
+  let minKOs = simulateKO(min, hp, defItemData, defAbilityData, startHp);
+  let maxKOs = simulateKO(max, hp, defItemData, defAbilityData, startHp);
+  if (multiHitKoChance != null && multiHitKoChance <= 1e-9) {
+    minKOs = Math.max(2, minKOs);
+    maxKOs = Math.max(2, maxKOs);
+  }
 
   const isFixed = (minKOs === maxKOs);
   const label = isFixed ? "확정" : "난수";
@@ -1272,7 +1513,14 @@ function hkoLabel(damages, hp, defSide, field) {
   else if (defItemData?.residualRecovery?.kind === 'endTurn') subParts.push('먹남 반영');
   else if (defAbilityData?.residualRecovery) subParts.push(`${defAbilityData.koName || defAbilityData.name} 반영`);
 
-  return { label, turns, pct: "", cls: minKOs <= 2 ? "ohko" : "", sub: subParts.join(' · ') };
+  return withKoMetric(
+    { label, turns, pct: "", cls: minKOs <= 2 ? "ohko" : "", sub: subParts.join(' · ') },
+    {
+      possibleTurn: minKOs <= 10 ? minKOs : null,
+      guaranteedTurn: maxKOs <= 10 ? maxKOs : null,
+      oneMoveKoChance: 0,
+    },
+  );
 }
 
 /* ════════════════════════════════════════════════════════════

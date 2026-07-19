@@ -1,0 +1,431 @@
+/* Shared structural primitives, cards, metrics, and settings controls. */
+
+.page-frame,
+.ui-frame,
+.ui-frame-row,
+.ui-frame-head,
+.ui-frame-body,
+.ui-control-frame,
+.ui-control-row,
+.ui-control-grid,
+.ui-action-row,
+.ui-panel-actions,
+.ui-panel-tag,
+.ui-stat-grid,
+.ui-metric-row,
+.ui-subframe,
+.ui-section-head,
+.ui-section-title,
+.ui-control-cell,
+.ui-control-label,
+.ui-card-grid,
+.ui-card,
+.ui-card-head,
+.ui-card-body,
+.ui-chip-row,
+.ui-metric-chip,
+.ui-chip-label,
+.ui-chip-value,
+.ui-stepper,
+.ui-stat-table,
+.ui-stat-head,
+.ui-stat-name,
+.ui-stat-readout,
+.ui-table-head-row,
+.ui-summary-row,
+.ui-summary-card,
+.ui-title-row,
+.ui-meter-card,
+.ui-meter,
+.ui-meter-fill,
+.ui-meta-row,
+.ui-status-badge,
+.ui-popover-trigger,
+.ui-index,
+.ui-popover,
+.tool-settings-layout,
+.tool-settings-subframe,
+.tool-settings-grid,
+.tool-settings-cell,
+.tool-settings-label,
+.tool-settings-control,
+.tool-settings-compound,
+.tool-settings-combobox,
+.tool-settings-choice-cell,
+.tool-settings-choice-label,
+.tool-settings-choice-control,
+.tool-settings-choice-combobox,
+.tool-settings-choice-surface,
+.tool-settings-choice-input,
+.tool-settings-select-cell,
+.tool-settings-select-label,
+.tool-settings-select-control,
+.tool-settings-select-combobox,
+.tool-settings-select-input,
+.tool-settings-condition-cell,
+.tool-settings-condition-control,
+.tool-settings-hp-control,
+.tool-settings-hp-input {
+box-sizing: border-box;
+min-width: 0;
+}
+.page-frame {
+width: 100%;
+}
+.ui-frame-row {
+width: 100%;
+gap: var(--ui-frame-row-gap);
+}
+.ui-frame-row > * {
+min-width: 0;
+}
+.page-frame
+> :where(.ui-frame-row, .ui-frame, .ui-panel)
++ :where(.ui-frame-row, .ui-frame, .ui-panel) {
+margin-top: var(--ui-frame-row-gap);
+}
+.ui-control-frame {
+display: block;
+}
+.ui-control-grid {
+display: grid;
+gap: var(--ui-control-grid-gap);
+}
+.ui-control-grid > * {
+min-width: 0;
+}
+.ui-control-row,
+.ui-action-row,
+.ui-metric-row {
+display: flex;
+align-items: center;
+flex-wrap: wrap;
+gap: var(--ui-control-frame-gap);
+}
+.ui-action-row {
+justify-content: flex-end;
+gap: var(--ui-action-gap);
+}
+.ui-stat-grid {
+min-width: 0;
+}
+.ui-metric-row {
+justify-content: flex-start;
+}
+.ui-subframe {
+border: 1px solid var(--border);
+border-radius: var(--ui-subframe-radius);
+background: var(--ui-subframe-bg);
+}
+.ui-subframe-stack {
+display: flex;
+flex-direction: column;
+gap: var(--ui-control-frame-gap);
+min-width: 0;
+}
+.ui-section-head,
+.ui-card-head,
+.ui-title-row,
+.ui-summary-row,
+.ui-chip-row,
+.ui-meta-row {
+display: flex;
+align-items: center;
+min-width: 0;
+}
+.ui-section-head {
+justify-content: space-between;
+gap: var(--ui-control-frame-gap);
+}
+.ui-section-title,
+.ui-control-label,
+.ui-stat-head,
+.ui-chip-label {
+color: var(--text-dim);
+font-size: var(--ui-label-font-size);
+font-weight: var(--ui-label-font-weight);
+line-height: var(--ui-label-line-height);
+}
+.ui-control-cell {
+min-width: 0;
+}
+.ui-choice-field,
+.ui-choice-combobox,
+.ui-choice-surface {
+box-sizing: border-box;
+min-width: 0;
+}
+.ui-choice-field {
+display: grid;
+align-content: start;
+gap: var(--ui-field-stack-gap);
+}
+.ui-choice-label {
+display: flex;
+align-items: center;
+min-height: var(--ui-field-head-height);
+margin: 0;
+color: var(--ui-pokemon-label-color, var(--text-dim));
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-pokemon-label-font-size);
+font-weight: var(--ui-pokemon-label-font-weight);
+line-height: var(--ui-label-line-height);
+letter-spacing: 0;
+text-transform: none;
+white-space: nowrap;
+}
+.ui-choice-combobox {
+width: 100%;
+}
+.ui-choice-surface,
+.ui-choice-combobox .cb-input {
+height: var(--ui-control-height);
+min-height: var(--ui-control-height);
+overflow: hidden;
+border: var(--ui-control-border);
+border-radius: var(--ui-control-radius);
+background: var(--ui-control-bg);
+color: var(--text);
+box-shadow: none;
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-control-font-size);
+font-weight: var(--ui-control-font-weight);
+line-height: normal;
+text-align: left;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.ui-choice-combobox .ui-choice-surface {
+padding-right: 28px;
+}
+.tool-settings-subframe {
+padding-block: var(--ui-subframe-content-padding);
+padding-inline: var(--ui-subframe-edge-padding-inline);
+}
+.tool-settings-grid {
+grid-template-columns: repeat(auto-fit, minmax(152px, 1fr));
+align-items: end;
+gap: var(--ui-control-grid-gap);
+}
+.tool-settings-cell {
+display: grid;
+align-content: start;
+gap: var(--ui-field-stack-gap);
+}
+.tool-settings-label {
+display: block;
+margin: 0;
+}
+.tool-settings-control,
+.tool-settings-compound,
+.tool-settings-combobox,
+.tool-settings-choice-control,
+.tool-settings-choice-combobox,
+.tool-settings-select-control,
+.tool-settings-select-combobox,
+.tool-settings-condition-control,
+.tool-settings-hp-control {
+width: 100%;
+min-width: 0;
+}
+.tool-settings-compound {
+display: grid;
+grid-template-columns: minmax(0, 1fr);
+align-items: center;
+gap: var(--ui-control-grid-gap);
+}
+.tool-settings-choice-label {
+display: flex;
+align-items: center;
+min-height: var(--ui-field-head-height);
+margin-bottom: 0;
+color: var(--ui-pokemon-label-color, var(--text-dim));
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-pokemon-label-font-size);
+font-weight: var(--ui-pokemon-label-font-weight);
+line-height: var(--ui-label-line-height);
+letter-spacing: 0;
+text-transform: none;
+white-space: nowrap;
+}
+.tool-settings-choice-surface,
+.tool-settings-choice-combobox .cb-input {
+height: var(--ui-control-height);
+min-height: var(--ui-control-height);
+overflow: hidden;
+border: var(--ui-control-border);
+border-radius: var(--ui-control-radius);
+background: var(--ui-control-bg);
+color: var(--text);
+box-shadow: none;
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-control-font-size);
+font-weight: var(--ui-control-font-weight);
+line-height: normal;
+text-align: left;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.tool-settings-choice-combobox .tool-settings-choice-surface {
+padding-right: 28px;
+}
+.tool-settings-hp-control.tool-settings-choice-surface {
+display: grid;
+grid-template-columns: minmax(0, 1fr) auto;
+align-items: center;
+padding: 0 10px;
+}
+.tool-settings-hp-status-control {
+grid-template-columns: 96px minmax(0, 1fr);
+}
+.tool-settings-choice-input,
+.tool-settings-select-input,
+.tool-settings-select-combobox .cb-input,
+.tool-settings-condition-control,
+.tool-settings-condition-control .cb-input,
+.tool-settings-hp-input {
+font-family: inherit;
+font-size: var(--ui-control-font-size);
+font-weight: var(--ui-control-font-weight);
+line-height: 1;
+}
+.tool-settings-condition-control {
+height: var(--ui-control-height);
+min-height: var(--ui-control-height);
+}
+.tool-settings-condition-control .cb-input {
+height: var(--ui-control-height);
+min-height: var(--ui-control-height);
+}
+.tool-settings-status-combobox .cb-trigger {
+display: flex;
+align-items: center;
+justify-content: flex-start;
+}
+.ui-card-grid {
+display: grid;
+min-width: 0;
+gap: var(--ui-control-grid-gap);
+}
+.ui-card,
+.ui-summary-card,
+.ui-meter-card,
+.ui-metric-chip {
+border: 1px solid var(--border);
+background: var(--bg-panel);
+}
+.ui-card {
+position: relative;
+min-width: 0;
+border-radius: var(--ui-subframe-radius);
+}
+.ui-card-body {
+min-width: 0;
+}
+.ui-chip-row {
+flex-wrap: wrap;
+gap: var(--ui-type-strip-gap);
+}
+.ui-metric-chip {
+border-radius: 999px;
+}
+.ui-chip-value,
+.ui-stat-readout,
+.ui-index {
+color: var(--text);
+font-family: var(--ui-number-font);
+font-size: var(--ui-number-font-size);
+font-weight: var(--ui-number-font-weight);
+line-height: 1;
+}
+.ui-stepper {
+display: inline-flex;
+align-items: center;
+min-width: 0;
+}
+.ui-stat-table {
+min-width: 0;
+}
+.ui-summary-row {
+justify-content: space-between;
+gap: var(--ui-control-grid-gap);
+}
+.ui-summary-card {
+min-width: 0;
+border-radius: var(--ui-subframe-radius);
+}
+.ui-count-badge {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+min-height: 22px;
+padding: 0 8px;
+border: 1px solid rgba(22, 127, 165, 0.22);
+border-radius: 999px;
+background: rgba(22, 127, 165, 0.08);
+color: var(--tool-info, var(--def));
+font-size: 11px;
+font-weight: 900;
+line-height: 1;
+white-space: nowrap;
+}
+.ui-collapse-head {
+display: flex;
+align-items: center;
+justify-content: flex-start;
+gap: var(--ui-control-grid-gap);
+width: 100%;
+min-height: var(--ui-field-head-height);
+margin: 0;
+padding: 0;
+border: 0;
+background: transparent;
+color: var(--ui-pokemon-label-color, var(--text-dim));
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-pokemon-label-font-size);
+font-weight: var(--ui-pokemon-label-font-weight);
+line-height: var(--ui-label-line-height);
+text-align: left;
+cursor: pointer;
+}
+.ui-collapse-head::after {
+content: '▾';
+display: inline-flex;
+align-items: center;
+justify-content: center;
+flex: 0 0 auto;
+width: 14px;
+height: 14px;
+margin-left: auto;
+color: var(--text-faint);
+font-size: 11px;
+line-height: 1;
+transition: transform 0.16s ease;
+}
+.ui-collapse-head[aria-expanded="false"]::after {
+transform: rotate(-90deg);
+}
+.ui-meter {
+position: relative;
+overflow: hidden;
+background: var(--bg-muted);
+}
+.ui-meter-fill {
+display: block;
+background: var(--warn);
+}
+.ui-status-badge {
+border: 1px solid var(--border);
+border-radius: var(--radius-md);
+background: var(--bg-panel);
+}
+.party-load-head-actions {
+display: flex;
+min-width: 0;
+align-items: center;
+justify-content: flex-end;
+gap: var(--ui-field-stack-gap);
+}
+.party-load-button {
+flex: 0 0 auto;
+}

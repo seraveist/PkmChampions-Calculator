@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readCalcUiSource } from './source-utils.mjs';
@@ -27,7 +27,15 @@ function md(text) {
 }
 
 function uniqueSorted(values) {
-  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  return [...new Set(values.filter(Boolean))].sort(stableCompare);
+}
+
+function stableCompare(a, b) {
+  const left = String(a);
+  const right = String(b);
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
 }
 
 const html = readFileSync(HTML_PATH, 'utf8');
@@ -242,6 +250,7 @@ function scopeFor(kind) {
 function statusFor(row) {
   const inScope = scopeFor(row.kind).has(row.id);
   if (!inScope) return null;
+  if (row.expectation === 'unsupported') return '미지원';
   if (row.expectation === 'deferred') return '보류';
   const detected = supportEvidence(row).length > 0;
   if (row.expectation === 'missing') return detected ? '검토 필요' : '미구현';
@@ -252,7 +261,7 @@ function tableFor(title, rows) {
   const scoped = rows
     .map(row => ({ ...row, status: statusFor(row), evidence: supportEvidence(row) }))
     .filter(row => row.status)
-    .sort((a, b) => a.group.localeCompare(b.group) || a.id.localeCompare(b.id));
+    .sort((a, b) => stableCompare(a.group, b.group) || stableCompare(a.id, b.id));
 
   const lines = [
     `## ${title}`,
@@ -276,10 +285,13 @@ const allCandidates = [...moveCandidates, ...abilityCandidates, ...itemCandidate
 const scopedCandidates = allCandidates.filter(row => statusFor(row));
 const missingRows = scopedCandidates
   .filter(row => ['미구현', '지원 근거 없음', '검토 필요'].includes(statusFor(row)))
-  .sort((a, b) => a.kind.localeCompare(b.kind) || a.group.localeCompare(b.group) || a.id.localeCompare(b.id));
+  .sort((a, b) => stableCompare(a.kind, b.kind) || stableCompare(a.group, b.group) || stableCompare(a.id, b.id));
+const unsupportedRows = scopedCandidates
+  .filter(row => statusFor(row) === '미지원')
+  .sort((a, b) => stableCompare(a.kind, b.kind) || stableCompare(a.id, b.id));
 const deferredRows = scopedCandidates
   .filter(row => statusFor(row) === '보류')
-  .sort((a, b) => a.kind.localeCompare(b.kind) || a.id.localeCompare(b.id));
+  .sort((a, b) => stableCompare(a.kind, b.kind) || stableCompare(a.id, b.id));
 
 const out = [
   '# Damage Calculator Coverage Matrix',
@@ -307,6 +319,12 @@ const out = [
   '| --- | --- | --- | --- | --- |',
   ...(missingRows.length ? missingRows.map(row => `| ${row.kind} | ${md(row.group)} | ${md(entityName(row.kind, row.id))} | ${statusFor(row)} | ${md(row.note)} |`) : ['| - | - | - | 없음 | - |']),
   '',
+  '## 명시적 미지원 요약',
+  '',
+  '| 종류 | 그룹 | 항목 | 비고 |',
+  '| --- | --- | --- | --- |',
+  ...(unsupportedRows.length ? unsupportedRows.map(row => `| ${row.kind} | ${md(row.group)} | ${md(entityName(row.kind, row.id))} | ${md(row.note)} |`) : ['| - | - | - | - |']),
+  '',
   '## 보류 요약',
   '',
   '| 종류 | 그룹 | 항목 | 비고 |',
@@ -319,6 +337,17 @@ const out = [
   tableFor('필드/상태 매트릭스', fieldCandidates),
 ].join('\n');
 
-mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
-writeFileSync(OUTPUT_PATH, `${out.trim()}\n`, 'utf8');
-console.log(`Wrote ${path.relative(ROOT, OUTPUT_PATH)}`);
+const finalOutput = `${out.trim()}\n`;
+if (process.argv.includes('--check')) {
+  const current = existsSync(OUTPUT_PATH) ? readFileSync(OUTPUT_PATH, 'utf8') : '';
+  if (current !== finalOutput) {
+    console.error(`Coverage matrix is stale: ${path.relative(ROOT, OUTPUT_PATH)}`);
+    console.error('Run npm run coverage:matrix and commit the generated document.');
+    process.exit(1);
+  }
+  console.log(`Coverage matrix is current: ${path.relative(ROOT, OUTPUT_PATH)}`);
+} else {
+  mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
+  writeFileSync(OUTPUT_PATH, finalOutput, 'utf8');
+  console.log(`Wrote ${path.relative(ROOT, OUTPUT_PATH)}`);
+}

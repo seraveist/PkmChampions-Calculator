@@ -141,7 +141,7 @@ function syncMatchupMetaHeight() {
 function renderMatchupSlots() {
   const container = document.getElementById('matchupSlots');
   if (!container) return;
-  container.innerHTML = matchupSlots.map((id, i) => {
+  renderTrustedHTML(container, matchupSlots.map((id, i) => {
     const p = id ? PokemonById[id] : null;
     return `
       <div class="matchup-slot ui-control-frame ui-subframe ui-control-grid ${p ? 'filled' : ''}" data-slot="${i}">
@@ -149,7 +149,7 @@ function renderMatchupSlots() {
         ${pokemonSpriteSlot(p, { size: 'md', className: 'matchup-slot-sprite' })}
         <div class="combobox">
           <input type="text" class="cb-input matchup-cb-input" data-slot="${i}" data-cb-type="pokemon" data-cb-portal="true" data-field="matchup-pokemon-${i}"
-                 value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="포켓몬 검색...">
+                 value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="포켓몬 검색..." aria-label="${i + 1}번 슬롯 포켓몬 선택" aria-expanded="false">
           <div class="combobox-options"></div>
         </div>
         <div class="matchup-slot-types">
@@ -158,7 +158,7 @@ function renderMatchupSlots() {
         ${p ? `<button type="button" class="matchup-slot-clear" data-slot="${i}" title="비우기">✕</button>` : ''}
       </div>
     `;
-  }).join('');
+  }).join(''));
   wireMatchupSlots();
 }
 
@@ -237,10 +237,10 @@ function renderMatchupCoverageInputs() {
   const container = document.getElementById('matchupCoverageInputs');
   if (!container) return;
   if (matchupMode !== 'coverage') {
-    container.innerHTML = '';
+    renderTrustedHTML(container, '');
     return;
   }
-  container.innerHTML = matchupSlots.map((id, slot) => {
+  renderTrustedHTML(container, matchupSlots.map((id, slot) => {
     const p = id ? PokemonById[id] : null;
     const title = p ? pkName(p) : `슬롯 ${slot + 1}`;
     const rows = p ? matchupCoverageMoves[slot].map((moveId, moveIndex) => {
@@ -269,7 +269,7 @@ function renderMatchupCoverageInputs() {
         ${p ? `<div class="matchup-move-grid ui-control-grid">${rows}</div>` : '<div class="matchup-coverage-empty">포켓몬 선택 후 기술 입력</div>'}
       </div>
     `;
-  }).join('');
+  }).join(''));
   wireMatchupCoverageInputs();
 }
 
@@ -299,9 +299,9 @@ function wireMatchupCoverageInputs() {
     };
     const showMoveOptions = query => {
       const rows = matchupMoveOptionRows(slot, moveIndex, query);
-      optsEl.innerHTML = rows
+      renderTrustedHTML(optsEl, rows
         ? rows
-        : '<div class="combobox-option empty" aria-disabled="true"><span>\uAC80\uC0C9 \uACB0\uACFC \uC5C6\uC74C</span></div>';
+        : '<div class="combobox-option empty" aria-disabled="true"><span>\uAC80\uC0C9 \uACB0\uACFC \uC5C6\uC74C</span></div>');
       if (typeof closeSiblingComboboxOptions === 'function') {
         closeSiblingComboboxOptions(optsEl, input);
       }
@@ -404,7 +404,7 @@ function renderMatchupMeta(kind, context = {}) {
   if (kind === 'defensiveThreats') {
     const pokes = context.pokes || [];
     if (pokes.length < 3) {
-      box.innerHTML = '<div class="matchup-side-title">주의 포켓몬</div><div class="matchup-side-empty">3마리 이상 선택하면 메타 위협의 타입별 위험도를 표시합니다.</div>';
+      renderTrustedHTML(box, '<div class="matchup-side-title">주의 포켓몬</div><div class="matchup-side-empty">3마리 이상 선택하면 메타 위협의 타입별 위험도를 표시합니다.</div>');
       return;
     }
     const rows = matchupMetaPokemon('defensiveThreats').map(p => {
@@ -423,17 +423,17 @@ function renderMatchupMeta(kind, context = {}) {
       renderMatchupSideGroup('위험', 'danger', dangerRows, renderDefenseRow),
       renderMatchupSideGroup('주의', 'caution', cautionRows, renderDefenseRow),
     ].join('');
-    box.innerHTML = `
+    renderTrustedHTML(box, `
       <div class="matchup-side-title">주의 포켓몬</div>
       <div class="matchup-side-list">
         ${sections || '<div class="matchup-side-empty">현재 선택 기준으로 위험/주의 메타 포켓몬이 없습니다.</div>'}
       </div>
-    `;
+    `);
     return;
   }
   const coverageMoves = selectedCoverageMoves();
   if (coverageMoves.length === 0) {
-    box.innerHTML = '<div class="matchup-side-title">메타 타점</div><div class="matchup-side-empty">타점 체크에서 기술을 입력하면 메타 포켓몬의 4배/2배 약점 커버를 표시합니다.</div>';
+    renderTrustedHTML(box, '<div class="matchup-side-title">메타 타점</div><div class="matchup-side-empty">타점 체크에서 기술을 입력하면 메타 포켓몬의 4배/2배 약점 커버를 표시합니다.</div>');
     return;
   }
   const rows = matchupMetaPokemon('coverageChecks').map(p => {
@@ -470,12 +470,12 @@ function renderMatchupMeta(kind, context = {}) {
     renderMatchupSideGroup('주의', 'caution', cautionRows, renderCoverageRow),
     renderMatchupSideGroup('견제', 'check', checkRows, renderCoverageRow),
   ].join('');
-  box.innerHTML = `
+  renderTrustedHTML(box, `
     <div class="matchup-side-title">메타 타점</div>
     <div class="matchup-side-list">
       ${sections || '<div class="matchup-side-empty">현재 기술 기준으로 미커버 위험/주의/견제 메타 포켓몬이 없습니다.</div>'}
     </div>
-  `;
+  `);
 }
 
 function renderDefenseScoreCell(profile) {
@@ -488,8 +488,53 @@ function renderDefenseScoreCell(profile) {
 }
 
 function renderMatchupTable() {
-  if (matchupMode === 'coverage') return renderCoverageMatchupTable();
-  return renderDefenseMatchupTable();
+  if (matchupMode === 'coverage') renderCoverageMatchupTable();
+  else renderDefenseMatchupTable();
+  wireMatchupScrollHint();
+  requestAnimationFrame(updateMatchupScrollHint);
+}
+
+function updateMatchupScrollHint() {
+  const wrap = document.querySelector('#page-matchup .matchup-table-wrap');
+  const hint = document.getElementById('matchupScrollHint');
+  if (!wrap || !hint) return;
+  const hasOverflow = wrap.scrollWidth > wrap.clientWidth + 1;
+  hint.hidden = !hasOverflow;
+  hint.classList.toggle('has-scrolled', wrap.scrollLeft > 4);
+}
+
+function wireMatchupScrollHint() {
+  const wrap = document.querySelector('#page-matchup .matchup-table-wrap');
+  if (!wrap || wrap.dataset.scrollHintWired === 'true') return;
+  wrap.dataset.scrollHintWired = 'true';
+  wrap.addEventListener('scroll', updateMatchupScrollHint, { passive: true });
+}
+
+function replaceMatchupColgroup(table, widths) {
+  table.querySelector('colgroup')?.remove();
+  const colgroup = document.createElement('colgroup');
+  widths.forEach((width) => {
+    const col = document.createElement('col');
+    col.style.width = `${width}px`;
+    colgroup.appendChild(col);
+  });
+  table.insertBefore(colgroup, table.firstChild);
+}
+
+function selectedMatchupEntries() {
+  return matchupSlots
+    .map((id, slot) => ({ slot, pokemon: id ? PokemonById[id] : null }))
+    .filter(entry => entry.pokemon);
+}
+
+function configureMatchupTable(table, entries, summaryWidth) {
+  replaceMatchupColgroup(table, [
+    MATCHUP_COL.type,
+    ...entries.map(() => MATCHUP_COL.slot),
+    summaryWidth,
+  ]);
+  table.dataset.selectedCount = String(entries.length);
+  table.classList.toggle('matchup-table-compact', entries.length <= 3);
 }
 
 function renderDefenseMatchupTable() {
@@ -498,39 +543,31 @@ function renderDefenseMatchupTable() {
   const body = document.getElementById('matchupBody');
   if (!tbl || !head || !body) return;
 
-  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
-  const valid = pokes.filter(Boolean);
+  const entries = selectedMatchupEntries();
+  const valid = entries.map(entry => entry.pokemon);
   renderMatchupMeta('defensiveThreats', { pokes: valid });
 
   // colgroup 으로 고정 열 너비 강제 (table-layout: fixed 와 함께)
   // 슬롯 채워지든 비어 있든 동일한 폭을 유지한다.
-  const oldCG = tbl.querySelector('colgroup');
-  if (oldCG) oldCG.remove();
-  const cg = document.createElement('colgroup');
-  cg.innerHTML =
-    `<col style="width:${MATCHUP_COL.type}px">` +
-    pokes.map(() => `<col style="width:${MATCHUP_COL.slot}px">`).join('') +
-    `<col style="width:${MATCHUP_COL.score}px">`;
-  tbl.insertBefore(cg, tbl.firstChild);
+  configureMatchupTable(tbl, entries, MATCHUP_COL.score);
 
   // 헤더: 공격 타입 컬럼 + 6 슬롯 + 무효/약점 요약
-  head.innerHTML = `
+  renderTrustedHTML(head, `
     <tr>
       <th class="matchup-type-head">타입</th>
-      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span class="matchup-empty-slot">슬롯 ${i+1}</span>`}</th>`).join('')}
+      ${entries.map(({ pokemon }) => `<th title="${escapeHTML(pkName(pokemon))}">${escapeHTML(pkName(pokemon))}</th>`).join('')}
       <th class="summary">일관성</th>
     </tr>
-  `;
+  `);
 
   if (valid.length < 3) {
-    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하면 방어 상성 진단을 표시합니다.</td></tr>`;
+    renderTrustedHTML(body, `<tr><td colspan="${entries.length + 2}" class="empty-state-cell">3마리 이상 선택하면 방어 상성 진단을 표시합니다.</td></tr>`);
     return;
   }
 
   // 본문: 18 행 × 6 셀 + 요약
-  body.innerHTML = BATTLE_TYPES.map(t => {
-    const cells = pokes.map(p => {
-      if (!p) return `<td class="empty">—</td>`;
+  renderTrustedHTML(body, BATTLE_TYPES.map(t => {
+    const cells = entries.map(({ pokemon: p }) => {
       const eff = typeEff(t, p.types);
       const sym = EFF_SYMBOL[eff] !== undefined ? EFF_SYMBOL[eff] : eff + '×';
       const cls = EFF_CLASS[eff] || '';
@@ -546,7 +583,7 @@ function renderDefenseMatchupTable() {
         ${renderDefenseScoreCell(profile)}
       </tr>
     `;
-  }).join('');
+  }).join(''));
   syncMatchupMetaHeight();
 }
 /* ════════════════════════════════════════════════════════════
@@ -560,33 +597,25 @@ function renderCoverageMatchupTable() {
   if (!tbl || !head || !body) return;
   renderMatchupMeta('coverageChecks');
 
-  const pokes = matchupSlots.map(id => id ? PokemonById[id] : null);
-  const valid = pokes.filter(Boolean);
-  const oldCG = tbl.querySelector('colgroup');
-  if (oldCG) oldCG.remove();
-  const cg = document.createElement('colgroup');
-  cg.innerHTML =
-    `<col style="width:${MATCHUP_COL.type}px">` +
-    pokes.map(() => `<col style="width:${MATCHUP_COL.slot}px">`).join('') +
-    `<col style="width:${MATCHUP_COL.coverageSummary}px">`;
-  tbl.insertBefore(cg, tbl.firstChild);
+  const entries = selectedMatchupEntries();
+  const valid = entries.map(entry => entry.pokemon);
+  configureMatchupTable(tbl, entries, MATCHUP_COL.coverageSummary);
 
-  head.innerHTML = `
+  renderTrustedHTML(head, `
     <tr>
       <th class="matchup-type-head">타입</th>
-      ${pokes.map((p, i) => `<th title="${p ? escapeHTML(pkName(p)) : ''}">${p ? escapeHTML(pkName(p)) : `<span class="matchup-empty-slot">슬롯 ${i+1}</span>`}</th>`).join('')}
+      ${entries.map(({ pokemon }) => `<th title="${escapeHTML(pkName(pokemon))}">${escapeHTML(pkName(pokemon))}</th>`).join('')}
       <th class="summary">커버</th>
     </tr>
-  `;
+  `);
 
   if (valid.length < 3) {
-    body.innerHTML = `<tr><td colspan="${pokes.length + 2}" class="empty-state-cell">3마리 이상 선택하고 타점 체크에서 기술을 입력하면 진단을 표시합니다.</td></tr>`;
+    renderTrustedHTML(body, `<tr><td colspan="${entries.length + 2}" class="empty-state-cell">3마리 이상 선택하고 타점 체크에서 기술을 입력하면 진단을 표시합니다.</td></tr>`);
     return;
   }
 
-  body.innerHTML = BATTLE_TYPES.map(t => {
-    const cells = pokes.map((p, slot) => {
-      if (!p) return '<td class="empty">-</td>';
+  renderTrustedHTML(body, BATTLE_TYPES.map(t => {
+    const cells = entries.map(({ slot }) => {
       const count = coverageCountByType(t, slot);
       return `<td class="${count ? 'coverage-hit' : 'coverage-miss'}">${count || ''}</td>`;
     }).join('');
@@ -598,10 +627,13 @@ function renderCoverageMatchupTable() {
         <td class="summary ${total ? 'coverage-hit' : 'coverage-miss'}">${total || ''}</td>
       </tr>
     `;
-  }).join('');
+  }).join(''));
   syncMatchupMetaHeight();
 }
 
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-  window.addEventListener('resize', syncMatchupMetaHeight);
+  window.addEventListener('resize', () => {
+    syncMatchupMetaHeight();
+    updateMatchupScrollHint();
+  });
 }

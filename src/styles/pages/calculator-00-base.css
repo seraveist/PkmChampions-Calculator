@@ -1,6 +1,6 @@
-/* Damage calculator redesign layer.
+/* Damage calculator visual base.
  * This file is intentionally scoped to #page-calc where possible.
- * It preserves the current calculation DOM and replaces the visual system.
+ * It preserves the calculation DOM while owning the page visual system.
  */
 
 #page-calc {
@@ -271,6 +271,13 @@
   border-top-color: var(--calc-line-soft);
 }
 
+#page-calc .calc-field-scope-note {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 #page-calc .ui-check {
   display: inline-flex;
   grid-template-columns: none;
@@ -323,12 +330,12 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  height: 22px !important;
-  min-height: 22px !important;
-  padding: 0 16px 0 5px !important;
+  height: 22px;
+  min-height: 22px;
+  padding: 0 16px 0 5px;
   border-radius: 4px;
-  font-size: 10px !important;
-  line-height: 22px !important;
+  font-size: 10px;
+  line-height: 22px;
   text-align: left;
   cursor: pointer;
   caret-color: transparent;
@@ -510,7 +517,7 @@
   border-radius: 5px;
   background: #ffffff;
   color: var(--calc-text);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 18px;
   font-weight: 900;
   line-height: 1;
@@ -601,7 +608,7 @@
   border-radius: 6px;
   background: #f8fafc;
   color: var(--calc-muted);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 12px;
   font-weight: 900;
   line-height: 1;
@@ -791,7 +798,7 @@
 
 #page-calc .calc-damage-percent {
   color: var(--text);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 16px;
   font-weight: 900;
   line-height: 1.15;
@@ -821,7 +828,7 @@
 
 #page-calc .calc-damage-summary .calc-hp-remain-value {
   color: var(--calc-text);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 11px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
@@ -863,7 +870,7 @@
 
 #page-calc .calc-damage-meta b {
   color: var(--calc-text);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
@@ -895,7 +902,7 @@
 
 #page-calc .calc-damage-actual-value {
   color: var(--calc-text);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 10px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
@@ -985,7 +992,7 @@
 
 #page-calc .calc-side-effect-badge b {
   color: #b45309;
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 10px;
   font-weight: 900;
 }
@@ -1043,7 +1050,7 @@
 }
 
 #page-calc .calc-ko-main.ohko {
-  color: var(--atk);
+  color: var(--atk-deep);
 }
 
 @media (max-width: 1280px) {

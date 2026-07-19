@@ -1,6 +1,6 @@
 const THEME_STORAGE_KEY = 'pkchamps-theme';
 const THEME_COLORS = {
-  light: '#f4f6f8',
+  light: '#eef2f6',
   dark: '#0f1621',
 };
 
@@ -31,7 +31,7 @@ function applyTheme(theme) {
     toggle.setAttribute('aria-pressed', String(isDark));
     toggle.setAttribute('aria-label', isDark ? '라이트 모드로 전환' : '다크 모드로 전환');
     const text = toggle.querySelector('.theme-toggle-text');
-    if (text) text.textContent = isDark ? '라이트 모드' : '다크 모드';
+    if (text) text.textContent = isDark ? '라이트' : '다크';
   }
 }
 

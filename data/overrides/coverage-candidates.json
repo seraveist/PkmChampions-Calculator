@@ -126,7 +126,13 @@
       "group": "필드/상태 보정",
       "expectation": "supported",
       "note": "field-mechanics.json에서 처리",
-      "ids": ["weatherdamage", "terrainbp", "screens", "protect"]
+      "ids": ["weatherdamage", "terrainbp", "screens"]
+    },
+    {
+      "group": "명시적 미지원",
+      "expectation": "unsupported",
+      "note": "단발 피해 계산 범위 밖이며 보호 상태 UI와 엔진 처리를 제공하지 않음",
+      "ids": ["protect"]
     },
     {
       "group": "보류",

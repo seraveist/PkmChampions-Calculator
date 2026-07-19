@@ -461,19 +461,133 @@ async function build() {
   const template = fs.readFileSync(templatePath, 'utf8');
 
   // 분할된 src/styles/*.css, src/js/*.js 를 알파벳순으로 concat 한다.
-  // 파일명 접두사(01-, 02-, ...)가 곧 의존성 순서를 결정하므로 Array.sort() 면 충분.
+  // CSS 는 소유권별 우선순위를 보장하도록 명시적인 cascade layer 로 감싼다.
   function concatDir(dir, ext) {
     if (!fs.existsSync(dir)) return '';
     const files = fs.readdirSync(dir).filter(f => f.endsWith(ext) && !f.startsWith('.')).sort();
-    return files.map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n\n');
+    return files.map(f => `/* @source-file:${f} */\n${fs.readFileSync(path.join(dir, f), 'utf8')}`).join('\n\n');
   }
-  const inlineCss = concatDir(path.join(ROOT, 'src', 'styles'), '.css');
-  const inlineJs = concatDir(path.join(ROOT, 'src', 'js'), '.js');
-  console.log(`  styles: ${inlineCss.length} bytes, js: ${inlineJs.length} bytes`);
+  const CSS_LAYER_ORDER = [
+    'reset',
+    'tokens',
+    'base',
+    'components',
+    'layouts',
+    'pages',
+    'utilities',
+    'themes',
+    'responsive',
+  ];
+  const CSS_FILE_LAYERS = new Map([
+    ['02-pages.css', 'base'],
+    ['responsive.css', 'responsive'],
+  ]);
+  function listFilesRecursive(dir, ext, relativeDir = '') {
+    if (!fs.existsSync(dir)) return [];
+    return fs.readdirSync(dir, { withFileTypes: true })
+      .filter(entry => !entry.name.startsWith('.'))
+      .flatMap(entry => {
+        const relativePath = relativeDir ? `${relativeDir}/${entry.name}` : entry.name;
+        if (entry.isDirectory()) {
+          return listFilesRecursive(path.join(dir, entry.name), ext, relativePath);
+        }
+        return entry.isFile() && entry.name.endsWith(ext) ? [relativePath] : [];
+      })
+      .sort((a, b) => a.localeCompare(b));
+  }
+  function styleLayerFor(relativePath) {
+    if (relativePath === '00-tokens.css' || relativePath.startsWith('tokens/')) return 'tokens';
+    if (relativePath === '01-reset.css') return 'reset';
+    if (relativePath === '02-base.css') return 'base';
+    if (relativePath.startsWith('components/')) return 'components';
+    if (relativePath.startsWith('layouts/')) return 'layouts';
+    if (relativePath.startsWith('pages/')) return 'pages';
+    if (relativePath === 'utilities.css') return 'utilities';
+    if (relativePath === 'themes.css') return 'themes';
+    const mappedLayer = CSS_FILE_LAYERS.get(relativePath);
+    if (mappedLayer) return mappedLayer;
+    throw new Error(`CSS layer ownership is not declared: ${relativePath}`);
+  }
+  function concatStyles(dir) {
+    const files = listFilesRecursive(dir, '.css');
+    const prelude = `@layer ${CSS_LAYER_ORDER.join(', ')};`;
+    const layeredFiles = files.map(relativePath => {
+      const layer = styleLayerFor(relativePath);
+      const source = fs.readFileSync(path.join(dir, ...relativePath.split('/')), 'utf8');
+      return `@layer ${layer} {\n${source}\n}`;
+    });
+    return [prelude, ...layeredFiles].join('\n\n');
+  }
+  function compactCssForInline(source) {
+    return source
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean)
+      .join('\n');
+  }
+  function reverseWorkerSource(jsDir) {
+    const workerFiles = [
+      '01-core.js',
+      '02-engine.js',
+      '03-10-calc-state.js',
+      '04-40-revcalc-state.js',
+      '04-41-revcalc-scoring.js',
+      '04-42-revcalc-candidates.js',
+    ];
+    const workerBody = workerFiles
+      .map(file => fs.readFileSync(path.join(jsDir, file), 'utf8'))
+      .join('\n\n');
+    return `
+function createReverseAnalyzer(dataScripts) {
+  const document = {
+    getElementById(id) {
+      const value = dataScripts[id];
+      return value === undefined ? null : { textContent: JSON.stringify(value) };
+    },
+  };
+  ${workerBody}
+  return function analyzeReverseState(snapshot) {
+    Object.assign(revCalcState, cloneCalcValue(snapshot));
+    return rcAnalyzeCached();
+  };
+}
+
+let reverseAnalyze = null;
+self.onmessage = event => {
+  const message = event.data || {};
+  if (message.type === 'init') {
+    try {
+      reverseAnalyze = createReverseAnalyzer(message.dataScripts || {});
+      self.postMessage({ type: 'ready' });
+    } catch (error) {
+      self.postMessage({ type: 'error', id: message.id, message: error?.message || String(error) });
+    }
+    return;
+  }
+  if (message.type !== 'analyze') return;
+  try {
+    if (!reverseAnalyze) throw new Error('역계산 Worker가 초기화되지 않았습니다.');
+    const result = reverseAnalyze(message.state || {});
+    self.postMessage({ type: 'result', id: message.id, result });
+  } catch (error) {
+    self.postMessage({ type: 'error', id: message.id, message: error?.message || String(error) });
+  }
+};
+`;
+  }
+
+  const styleSource = concatStyles(path.join(ROOT, 'src', 'styles'));
+  const inlineCss = compactCssForInline(styleSource);
+  const jsDir = path.join(ROOT, 'src', 'js');
+  const inlineJs = concatDir(jsDir, '.js');
+  const reverseWorker = JSON.stringify(reverseWorkerSource(jsDir)).replace(/</g, '\\u003c');
+  console.log(`  styles: ${styleSource.length} -> ${inlineCss.length} bytes, js: ${inlineJs.length} bytes`);
 
   const replacements = {
     '/* __INLINE_CSS__ */': inlineCss,
     '// __INLINE_JS__': inlineJs,
+    '__REVERSE_WORKER_SOURCE__': reverseWorker,
     '__POKEMON_DATA__': JSON.stringify(finalPokemon),
     '__MOVES_DATA__': JSON.stringify(finalMoves),
     '__ABILITIES_DATA__': JSON.stringify(finalAbilities),

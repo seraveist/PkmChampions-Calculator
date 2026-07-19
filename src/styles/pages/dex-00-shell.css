@@ -1,0 +1,337 @@
+/* Dex page shell, navigation, search, and filters. */
+/* PokeChamps Lab - Dex page */
+
+#page-dex,
+.dex-modal {
+  --dex-accent: #6f63d6;
+  --dex-chip-border: var(--border-soft);
+  --dex-chip-bg: var(--bg-input);
+}
+
+#page-dex {
+  display: none;
+  gap: 12px;
+}
+
+#page-dex.active {
+  display: grid;
+}
+
+#page-dex .dex-control-panel,
+#page-dex .dex-nav,
+#page-dex .dex-filter-frame,
+#page-dex .dex-search,
+#page-dex .dex-type-filter,
+#page-dex .dex-table-wrap,
+#dexFullPageDetail,
+.dex-modal {
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+#page-dex .dex-control-panel.ui-frame {
+  --panel-point-color: var(--dex-accent);
+  position: relative;
+  display: grid;
+  overflow: hidden;
+}
+
+#page-dex .dex-control-head.ui-frame-head {
+  display: block;
+}
+
+#page-dex .dex-control-body.ui-frame-body {
+  padding: 10px;
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
+}
+
+#page-dex.dex-fullpage-mode .dex-control-body {
+  display: none;
+}
+
+#page-dex .dex-nav {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(4, minmax(92px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#page-dex .dex-tab {
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--ui-action-border);
+  border-radius: var(--radius-md);
+  background: var(--ui-action-bg);
+  color: var(--text-dim);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0;
+  box-shadow: var(--surface-shadow-soft);
+  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease, color 0.14s ease;
+}
+
+#page-dex .dex-tab:hover {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
+}
+
+#page-dex .dex-tab.active {
+  border-color: color-mix(in srgb, var(--dex-accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--dex-accent) 12%, var(--bg-input));
+  color: var(--text);
+  box-shadow: var(--surface-shadow-soft);
+}
+
+#page-dex .dex-nav > .dex-tab {
+  appearance: none;
+  text-transform: none;
+  line-height: 1;
+}
+
+#page-dex .dex-filter-frame {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#page-dex .dex-filter-frame[hidden] {
+  display: none;
+}
+
+#page-dex .dex-search {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+#page-dex .dex-reset-btn {
+  display: inline-grid;
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0;
+  border: 2px solid var(--ui-action-border);
+  border-radius: var(--radius-md);
+  background: var(--ui-action-bg);
+  color: var(--text-dim);
+  font-family: 'Noto Sans KR', 'Segoe UI Symbol', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  place-items: center;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--bg-elev) 76%, transparent),
+    0 1px 3px color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+#page-dex .dex-reset-btn:hover {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
+}
+
+#page-dex .dex-search input {
+  width: 100%;
+  max-width: none;
+  min-height: var(--ui-control-height);
+  padding: 0 14px;
+  border: var(--ui-control-border);
+  border-radius: var(--ui-control-radius);
+  background: var(--ui-control-bg);
+  color: var(--text);
+  font-size: var(--ui-control-font-size);
+  font-weight: var(--ui-control-font-weight);
+  box-shadow: none;
+}
+
+#page-dex .dex-search input:focus,
+#page-dex .dex-search input:focus-visible {
+  border-color: var(--ui-control-focus-border);
+  box-shadow: var(--ui-control-focus-ring);
+}
+
+#page-dex .dex-type-filter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--border-soft);
+  background: transparent;
+  box-shadow: none;
+}
+
+.learnset-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
+  box-shadow: var(--surface-shadow-soft);
+}
+
+#page-dex .dex-type-filter .label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  margin-right: 3px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+#page-dex .dex-filter-limit {
+  margin-left: 2px;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-faint);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+#page-dex .type-filter-btn,
+.dex-modal .type-filter-btn,
+#dexFullPageDetail .type-filter-btn {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--ui-action-border);
+  border-radius: var(--radius-md);
+  background: var(--ui-action-bg);
+  color: var(--text-dim);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+  box-shadow: none;
+}
+
+#page-dex .type-filter-btn:hover,
+.dex-modal .type-filter-btn:hover,
+#dexFullPageDetail .type-filter-btn:hover {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
+}
+
+#page-dex .type-filter-btn.active,
+.dex-modal .type-filter-btn.active,
+#dexFullPageDetail .type-filter-btn.active {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-active-bg);
+  color: var(--ui-action-active-text);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--warn) 22%, transparent);
+}
+
+#page-dex .type-filter-btn[data-filter-type=""].active {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-active-bg);
+  color: var(--ui-action-active-text);
+}
+
+#page-dex .type-filter-btn[data-filter-type="Normal"], .dex-modal .type-filter-btn[data-learnset-filter="Normal"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Normal"] { --dex-filter-bg: var(--type-normal-bg); --dex-filter-border: var(--type-normal-border); --dex-filter-text: var(--type-normal-text); --dex-filter-fg: var(--type-normal-fg); }
+#page-dex .type-filter-btn[data-filter-type="Fire"], .dex-modal .type-filter-btn[data-learnset-filter="Fire"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Fire"] { --dex-filter-bg: var(--type-fire-bg); --dex-filter-border: var(--type-fire-border); --dex-filter-text: var(--type-fire-text); --dex-filter-fg: var(--type-fire-fg); }
+#page-dex .type-filter-btn[data-filter-type="Water"], .dex-modal .type-filter-btn[data-learnset-filter="Water"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Water"] { --dex-filter-bg: var(--type-water-bg); --dex-filter-border: var(--type-water-border); --dex-filter-text: var(--type-water-text); --dex-filter-fg: var(--type-water-fg); }
+#page-dex .type-filter-btn[data-filter-type="Electric"], .dex-modal .type-filter-btn[data-learnset-filter="Electric"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Electric"] { --dex-filter-bg: var(--type-electric-bg); --dex-filter-border: var(--type-electric-border); --dex-filter-text: var(--type-electric-text); --dex-filter-fg: var(--type-electric-fg); }
+#page-dex .type-filter-btn[data-filter-type="Grass"], .dex-modal .type-filter-btn[data-learnset-filter="Grass"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Grass"] { --dex-filter-bg: var(--type-grass-bg); --dex-filter-border: var(--type-grass-border); --dex-filter-text: var(--type-grass-text); --dex-filter-fg: var(--type-grass-fg); }
+#page-dex .type-filter-btn[data-filter-type="Ice"], .dex-modal .type-filter-btn[data-learnset-filter="Ice"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Ice"] { --dex-filter-bg: var(--type-ice-bg); --dex-filter-border: var(--type-ice-border); --dex-filter-text: var(--type-ice-text); --dex-filter-fg: var(--type-ice-fg); }
+#page-dex .type-filter-btn[data-filter-type="Fighting"], .dex-modal .type-filter-btn[data-learnset-filter="Fighting"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Fighting"] { --dex-filter-bg: var(--type-fighting-bg); --dex-filter-border: var(--type-fighting-border); --dex-filter-text: var(--type-fighting-text); --dex-filter-fg: var(--type-fighting-fg); }
+#page-dex .type-filter-btn[data-filter-type="Poison"], .dex-modal .type-filter-btn[data-learnset-filter="Poison"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Poison"] { --dex-filter-bg: var(--type-poison-bg); --dex-filter-border: var(--type-poison-border); --dex-filter-text: var(--type-poison-text); --dex-filter-fg: var(--type-poison-fg); }
+#page-dex .type-filter-btn[data-filter-type="Ground"], .dex-modal .type-filter-btn[data-learnset-filter="Ground"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Ground"] { --dex-filter-bg: var(--type-ground-bg); --dex-filter-border: var(--type-ground-border); --dex-filter-text: var(--type-ground-text); --dex-filter-fg: var(--type-ground-fg); }
+#page-dex .type-filter-btn[data-filter-type="Flying"], .dex-modal .type-filter-btn[data-learnset-filter="Flying"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Flying"] { --dex-filter-bg: var(--type-flying-bg); --dex-filter-border: var(--type-flying-border); --dex-filter-text: var(--type-flying-text); --dex-filter-fg: var(--type-flying-fg); }
+#page-dex .type-filter-btn[data-filter-type="Psychic"], .dex-modal .type-filter-btn[data-learnset-filter="Psychic"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Psychic"] { --dex-filter-bg: var(--type-psychic-bg); --dex-filter-border: var(--type-psychic-border); --dex-filter-text: var(--type-psychic-text); --dex-filter-fg: var(--type-psychic-fg); }
+#page-dex .type-filter-btn[data-filter-type="Bug"], .dex-modal .type-filter-btn[data-learnset-filter="Bug"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Bug"] { --dex-filter-bg: var(--type-bug-bg); --dex-filter-border: var(--type-bug-border); --dex-filter-text: var(--type-bug-text); --dex-filter-fg: var(--type-bug-fg); }
+#page-dex .type-filter-btn[data-filter-type="Rock"], .dex-modal .type-filter-btn[data-learnset-filter="Rock"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Rock"] { --dex-filter-bg: var(--type-rock-bg); --dex-filter-border: var(--type-rock-border); --dex-filter-text: var(--type-rock-text); --dex-filter-fg: var(--type-rock-fg); }
+#page-dex .type-filter-btn[data-filter-type="Ghost"], .dex-modal .type-filter-btn[data-learnset-filter="Ghost"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Ghost"] { --dex-filter-bg: var(--type-ghost-bg); --dex-filter-border: var(--type-ghost-border); --dex-filter-text: var(--type-ghost-text); --dex-filter-fg: var(--type-ghost-fg); }
+#page-dex .type-filter-btn[data-filter-type="Dragon"], .dex-modal .type-filter-btn[data-learnset-filter="Dragon"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Dragon"] { --dex-filter-bg: var(--type-dragon-bg); --dex-filter-border: var(--type-dragon-border); --dex-filter-text: var(--type-dragon-text); --dex-filter-fg: var(--type-dragon-fg); }
+#page-dex .type-filter-btn[data-filter-type="Dark"], .dex-modal .type-filter-btn[data-learnset-filter="Dark"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Dark"] { --dex-filter-bg: var(--type-dark-bg); --dex-filter-border: var(--type-dark-border); --dex-filter-text: var(--type-dark-text); --dex-filter-fg: var(--type-dark-fg); }
+#page-dex .type-filter-btn[data-filter-type="Steel"], .dex-modal .type-filter-btn[data-learnset-filter="Steel"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Steel"] { --dex-filter-bg: var(--type-steel-bg); --dex-filter-border: var(--type-steel-border); --dex-filter-text: var(--type-steel-text); --dex-filter-fg: var(--type-steel-fg); }
+#page-dex .type-filter-btn[data-filter-type="Fairy"], .dex-modal .type-filter-btn[data-learnset-filter="Fairy"], #dexFullPageDetail .type-filter-btn[data-learnset-filter="Fairy"] { --dex-filter-bg: var(--type-fairy-bg); --dex-filter-border: var(--type-fairy-border); --dex-filter-text: var(--type-fairy-text); --dex-filter-fg: var(--type-fairy-fg); }
+
+#page-dex .type-filter-btn.type-pill-mini,
+.dex-modal .type-filter-btn.type-pill-mini,
+#dexFullPageDetail .type-filter-btn.type-pill-mini {
+  min-width: 42px;
+  border-color: var(--ui-action-border);
+  background: var(--ui-action-bg);
+  color: var(--text-dim);
+  opacity: 1;
+  box-shadow: none;
+}
+
+#page-dex .type-filter-btn.type-pill-mini:not([data-filter-type=""]),
+.dex-modal .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]),
+#dexFullPageDetail .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]) {
+  border-color: var(--dex-filter-border);
+  background: var(--bg-panel);
+  color: var(--dex-filter-text);
+}
+
+#page-dex .type-filter-btn.type-pill-mini:hover,
+.dex-modal .type-filter-btn.type-pill-mini:hover,
+#dexFullPageDetail .type-filter-btn.type-pill-mini:hover {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+  color: var(--ui-action-hover-text);
+}
+
+#page-dex .type-filter-btn.type-pill-mini:not([data-filter-type=""]):hover,
+.dex-modal .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]):hover,
+#dexFullPageDetail .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]):hover {
+  border-color: var(--dex-filter-border);
+  background: color-mix(in srgb, var(--dex-filter-bg) 12%, var(--bg-panel));
+  color: var(--dex-filter-text);
+}
+
+#page-dex .type-filter-btn.type-pill-mini.active,
+.dex-modal .type-filter-btn.type-pill-mini.active,
+#dexFullPageDetail .type-filter-btn.type-pill-mini.active {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-active-bg);
+  color: var(--ui-action-active-text);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--warn) 22%, transparent);
+}
+
+#page-dex .type-filter-btn.type-pill-mini:not([data-filter-type=""]).active,
+.dex-modal .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]).active,
+#dexFullPageDetail .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]).active {
+  border-color: var(--dex-filter-border);
+  background: var(--dex-filter-bg);
+  color: var(--dex-filter-fg);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--text) 8%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--bg-elev) 22%, transparent);
+}

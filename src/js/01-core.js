@@ -20,7 +20,19 @@ const ItemById      = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 // XSS 및 특수문자 방지 헬퍼
 function escapeHTML(str) {
   if (!str) return '';
-  return str.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return str.toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Central HTML rendering boundary. Markup passed here is application-owned;
+// every interpolated data or user string must be escaped with escapeHTML first.
+function renderTrustedHTML(target, markup) {
+  if (!target) return;
+  target.innerHTML = String(markup ?? '');
 }
 
 
@@ -110,7 +122,7 @@ function toId(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
-const POKEMON_SPRITE_BASE_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork';
+const POKEMON_SPRITE_BASE_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
 
 function pokemonSpriteUrlById(spriteId) {
   const id = Number(spriteId || 0);
@@ -139,6 +151,15 @@ function handlePokemonSpriteError(img) {
   img.closest?.('.pokemon-sprite-slot')?.classList.add('is-empty');
 }
 
+if (typeof document.addEventListener === 'function') {
+  document.addEventListener('error', (event) => {
+    const image = event.target;
+    if (image instanceof HTMLImageElement && image.closest('.pokemon-sprite-slot')) {
+      handlePokemonSpriteError(image);
+    }
+  }, true);
+}
+
 function pokemonSpriteSlot(pokemon, { size = 'lg', className = '', alt = '', decorative = true } = {}) {
   const p = typeof pokemon === 'string' ? PokemonById[pokemon] : pokemon;
   const sizeClass = size === 'sm' ? 'is-sm' : size === 'md' ? 'is-md' : '';
@@ -151,10 +172,11 @@ function pokemonSpriteSlot(pokemon, { size = 'lg', className = '', alt = '', dec
 
   const altText = decorative ? '' : (alt || pkName(p));
   const ariaHidden = decorative ? ' aria-hidden="true"' : '';
+  const fallbackLabel = String(pkName(p) || p.name || '?').trim().slice(0, 1).toUpperCase();
   const fallbackAttr = fallback ? ` data-fallback-src="${escapeHTML(fallback)}"` : '';
   return `
-    <span class="${classes}">
-      <img ${'src'}="${escapeHTML(src)}" alt="${escapeHTML(altText)}"${ariaHidden} loading="lazy" decoding="async"${fallbackAttr} onerror="handlePokemonSpriteError(this)">
+    <span class="${classes}" data-fallback-label="${escapeHTML(fallbackLabel)}">
+      <img ${'src'}="${escapeHTML(src)}" alt="${escapeHTML(altText)}"${ariaHidden} loading="lazy" decoding="async"${fallbackAttr}>
     </span>
   `;
 }

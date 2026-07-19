@@ -21,7 +21,13 @@
 
 | 종류 | 그룹 | 항목 | 판정 | 비고 |
 | --- | --- | --- | --- | --- |
-| field | 필드/상태 보정 | Protect 처리 | 지원 근거 없음 | field-mechanics.json에서 처리 |
+| - | - | - | 없음 | - |
+
+## 명시적 미지원 요약
+
+| 종류 | 그룹 | 항목 | 비고 |
+| --- | --- | --- | --- |
+| field | 명시적 미지원 | Protect 처리 | 단발 피해 계산 범위 밖이며 보호 상태 UI와 엔진 처리를 제공하지 않음 |
 
 ## 보류 요약
 
@@ -181,6 +187,9 @@
 
 | 그룹 | 항목 | 판정 | 지원 근거 | 비고 |
 | --- | --- | --- | --- | --- |
+| KO 추정 | 기합의띠 (focussash) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
+| KO 추정 | 먹다남은음식 (leftovers) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
+| KO 추정 | 자뭉열매 (sitrusberry) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
 | 가변 위력/접지 보조 | 검은철구 (ironball) | 지원 감지 | mechanics, built-data |  |
 | 공격/방어 실수치 보정 | 전기구슬 (lightball) | 지원 감지 | mechanics, built-data |  |
 | 반감 열매 | 바리비열매 (babiriberry) | 지원 감지 | mechanics, built-data | Unnerve/As One/Ripen 반영 |
@@ -223,21 +232,18 @@
 | 타입 위력 보정 | 부드러운모래 (softsand) | 지원 감지 | mechanics, built-data |  |
 | 타입 위력 보정 | 저주의부적 (spelltag) | 지원 감지 | mechanics, built-data |  |
 | 타입 위력 보정 | 휘어진스푼 (twistedspoon) | 지원 감지 | mechanics, built-data |  |
-| KO 추정 | 기합의띠 (focussash) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
-| KO 추정 | 먹다남은음식 (leftovers) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
-| KO 추정 | 자뭉열매 (sitrusberry) | 지원 감지 | mechanics, built-data | hkoLabel()/simulateKO()에서 처리 |
 
 ## 필드/상태 매트릭스
 
 | 그룹 | 항목 | 판정 | 지원 근거 | 비고 |
 | --- | --- | --- | --- | --- |
+| 명시적 미지원 | Protect 처리 | 미지원 | - | 단발 피해 계산 범위 밖이며 보호 상태 UI와 엔진 처리를 제공하지 않음 |
 | 보류 | Aurora Veil | 보류 | - | 리플렉터/빛의장막과 중첩되지 않는 별도 사이드 스크린 상태가 필요 |
 | 보류 | Battery | 보류 | - | 아군 위치/사이드 컨텍스트가 필요한 더블 보정 |
 | 보류 | Friend Guard | 보류 | - | 아군 위치/사이드 컨텍스트가 필요한 더블 보정 |
 | 보류 | Magic Room | 보류 | - | 도구/스탯/양쪽 방어 상태를 전역으로 뒤집는 효과라 단발 계산기 상태 모델 밖 |
 | 보류 | Power Spot | 보류 | - | 아군 위치/사이드 컨텍스트가 필요한 더블 보정 |
 | 보류 | Wonder Room | 보류 | - | 도구/스탯/양쪽 방어 상태를 전역으로 뒤집는 효과라 단발 계산기 상태 모델 밖 |
-| 필드/상태 보정 | Protect 처리 | 지원 근거 없음 | - | field-mechanics.json에서 처리 |
 | 필드/상태 보정 | 스크린 보정 | 지원 감지 | mechanics | field-mechanics.json에서 처리 |
 | 필드/상태 보정 | 지형 BP 보정 | 지원 감지 | mechanics | field-mechanics.json에서 처리 |
 | 필드/상태 보정 | 날씨 대미지 보정 | 지원 감지 | mechanics | field-mechanics.json에서 처리 |
