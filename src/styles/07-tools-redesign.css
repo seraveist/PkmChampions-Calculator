@@ -655,6 +655,39 @@
   border-radius: 10px;
 }
 
+#page-matchup .matchup-scroll-hint {
+  margin-bottom: 6px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--matchup-accent) 24%, var(--tool-line));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--matchup-accent) 7%, var(--tool-surface));
+  color: var(--tool-muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+#page-matchup .matchup-scroll-hint[hidden] {
+  display: none;
+}
+
+#page-matchup .matchup-scroll-hint::before,
+#page-matchup .matchup-scroll-hint::after {
+  color: var(--matchup-accent);
+}
+
+#page-matchup .matchup-scroll-hint::before {
+  content: '← ';
+}
+
+#page-matchup .matchup-scroll-hint::after {
+  content: ' →';
+}
+
+#page-matchup .matchup-scroll-hint.has-scrolled::before {
+  opacity: 0.45;
+}
+
 #page-matchup .matchup-table {
   min-width: 880px;
   border-collapse: collapse;

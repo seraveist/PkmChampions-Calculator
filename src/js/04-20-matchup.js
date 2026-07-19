@@ -488,8 +488,26 @@ function renderDefenseScoreCell(profile) {
 }
 
 function renderMatchupTable() {
-  if (matchupMode === 'coverage') return renderCoverageMatchupTable();
-  return renderDefenseMatchupTable();
+  if (matchupMode === 'coverage') renderCoverageMatchupTable();
+  else renderDefenseMatchupTable();
+  wireMatchupScrollHint();
+  requestAnimationFrame(updateMatchupScrollHint);
+}
+
+function updateMatchupScrollHint() {
+  const wrap = document.querySelector('#page-matchup .matchup-table-wrap');
+  const hint = document.getElementById('matchupScrollHint');
+  if (!wrap || !hint) return;
+  const hasOverflow = wrap.scrollWidth > wrap.clientWidth + 1;
+  hint.hidden = !hasOverflow;
+  hint.classList.toggle('has-scrolled', wrap.scrollLeft > 4);
+}
+
+function wireMatchupScrollHint() {
+  const wrap = document.querySelector('#page-matchup .matchup-table-wrap');
+  if (!wrap || wrap.dataset.scrollHintWired === 'true') return;
+  wrap.dataset.scrollHintWired = 'true';
+  wrap.addEventListener('scroll', updateMatchupScrollHint, { passive: true });
 }
 
 function renderDefenseMatchupTable() {
@@ -603,5 +621,8 @@ function renderCoverageMatchupTable() {
 }
 
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-  window.addEventListener('resize', syncMatchupMetaHeight);
+  window.addEventListener('resize', () => {
+    syncMatchupMetaHeight();
+    updateMatchupScrollHint();
+  });
 }

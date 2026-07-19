@@ -380,6 +380,11 @@ check(
   'legacy polish releases fine-tune empty panel ownership'
 );
 check(
+  toolPageCss.includes('.matchup-scroll-hint[hidden]')
+    && legacyPolishCss.includes('grid-template-areas: "number input types clear"'),
+  'matchup page provides a scroll hint and compact single-row mobile slots'
+);
+check(
   /\.tool-move-list--critical\s+\.tool-move-power-readout\s*\{[^}]*grid-column:\s*6/s.test(calcLayoutCss),
   'calculator critical layout places power readout in sixth column'
 );

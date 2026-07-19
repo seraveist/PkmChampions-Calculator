@@ -336,6 +336,30 @@ async function main() {
     check(stagedTools.reverse.gated && !stagedTools.reverse.hasObservation && stagedTools.reverse.analyzeDisabled, 'reverse observations wait for both participants', JSON.stringify(stagedTools.reverse));
     check(stagedTools.finetune.hidden && stagedTools.finetune.display === 'none' && !stagedTools.finetune.hasHpColumn, 'fine-tune hides empty HP results on mobile', JSON.stringify(stagedTools.finetune));
 
+    const matchup = await client.evaluate(`(async () => {
+      document.querySelector('.nav-tab[data-page="matchup"]')?.click();
+      matchupSlots[0] = 'charizard';
+      renderMatchupSlots();
+      renderMatchupTable();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const slot = document.querySelector('#matchupSlots .matchup-slot');
+      const centers = ['.matchup-slot-num', '.matchup-cb-input', '.matchup-slot-types', '.matchup-slot-clear']
+        .map(selector => slot.querySelector(selector)?.getBoundingClientRect())
+        .filter(Boolean)
+        .map(rect => Math.round(rect.top + (rect.height / 2)));
+      const hint = document.getElementById('matchupScrollHint');
+      return {
+        overflow: document.documentElement.scrollWidth - window.innerWidth,
+        slotHeight: slot.getBoundingClientRect().height,
+        centerSpread: Math.max(...centers) - Math.min(...centers),
+        spriteDisplay: getComputedStyle(slot.querySelector('.matchup-slot-sprite')).display,
+        hintVisible: !hint.hidden && getComputedStyle(hint).display !== 'none',
+      };
+    })()`, true);
+    check(matchup.overflow <= 1, 'mobile matchup has no horizontal page overflow', String(matchup.overflow));
+    check(matchup.slotHeight <= 60 && matchup.centerSpread <= 4 && matchup.spriteDisplay === 'none', 'mobile matchup uses compact single-row party slots', JSON.stringify(matchup));
+    check(matchup.hintVisible, 'mobile matchup announces horizontal table scrolling', JSON.stringify(matchup));
+
     const reverse = await client.evaluate(`(async () => {
       revCalcState.my = makeSideState('primarina');
       revCalcState.opp = { pokemonIdx: 'archaludon', ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: 'none' };

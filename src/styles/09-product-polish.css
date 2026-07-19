@@ -488,13 +488,11 @@ textarea {
   }
 
   #page-matchup .matchup-slot {
-    grid-template-columns: 30px minmax(0, 1fr) 40px;
-    grid-template-areas:
-      "number input clear"
-      "sprite types types";
-    gap: 6px 8px;
-    min-height: 86px;
-    padding: 8px;
+    grid-template-columns: 26px minmax(0, 1fr) minmax(76px, auto) 36px;
+    grid-template-areas: "number input types clear";
+    gap: 6px;
+    min-height: 52px;
+    padding: 6px;
   }
 
   #page-matchup .matchup-slot-num {
@@ -506,18 +504,26 @@ textarea {
   }
 
   #page-matchup .matchup-slot-sprite {
-    grid-area: sprite;
+    display: none;
   }
 
   #page-matchup .matchup-slot-types {
     grid-area: types;
-    min-height: 24px;
+    min-height: 0;
+    gap: 3px;
+  }
+
+  #page-matchup .matchup-slot-types .matchup-type-pill {
+    flex: 1 1 36px;
+    min-width: 36px;
+    padding-right: 4px;
+    padding-left: 4px;
   }
 
   #page-matchup .matchup-slot-clear {
     grid-area: clear;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
 
   #page-matchup .matchup-table-wrap {

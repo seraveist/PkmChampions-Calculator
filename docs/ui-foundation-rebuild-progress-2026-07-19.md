@@ -93,5 +93,12 @@ git diff --check
 - Fine-tune HP breakpoints are hidden before Pokemon selection and no longer reserve an empty desktop column.
 - Removed the mobile-only `:has(...:empty)` polish override in favor of explicit application state.
 
+### Mobile matchup density and guidance
+
+- Compressed mobile party slots into a single editing row with number, Pokemon, types, and clear action.
+- Hid decorative slot sprites at the narrow breakpoint to preserve the Pokemon input width.
+- Added a horizontal-scroll hint that appears only when the matchup table actually overflows.
+- Added browser checks for row alignment, touch layout height, scroll guidance, and page overflow.
+
 이번 단계에서는 위 검증이 모두 통과했다. 브라우저 검사는 데스크톱/모바일 가로 넘침, 계산 결과,
 모바일 상세 토글과 드롭다운, 라이트/다크 semantic token, 역계산 Worker 응답성을 확인한다.

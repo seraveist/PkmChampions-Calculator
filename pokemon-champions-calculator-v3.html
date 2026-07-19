@@ -4044,6 +4044,33 @@ font-size: 10px;
 overflow-x: auto;
 border-radius: 10px;
 }
+#page-matchup .matchup-scroll-hint {
+margin-bottom: 6px;
+padding: 7px 10px;
+border: 1px solid color-mix(in srgb, var(--matchup-accent) 24%, var(--tool-line));
+border-radius: var(--radius-md);
+background: color-mix(in srgb, var(--matchup-accent) 7%, var(--tool-surface));
+color: var(--tool-muted);
+font-size: 11px;
+font-weight: 800;
+text-align: center;
+}
+#page-matchup .matchup-scroll-hint[hidden] {
+display: none;
+}
+#page-matchup .matchup-scroll-hint::before,
+#page-matchup .matchup-scroll-hint::after {
+color: var(--matchup-accent);
+}
+#page-matchup .matchup-scroll-hint::before {
+content: '← ';
+}
+#page-matchup .matchup-scroll-hint::after {
+content: ' →';
+}
+#page-matchup .matchup-scroll-hint.has-scrolled::before {
+opacity: 0.45;
+}
 #page-matchup .matchup-table {
 min-width: 880px;
 border-collapse: collapse;
@@ -7154,13 +7181,11 @@ flex: 1 1 220px;
 flex: 1 1 100%;
 }
 #page-matchup .matchup-slot {
-grid-template-columns: 30px minmax(0, 1fr) 40px;
-grid-template-areas:
-"number input clear"
-"sprite types types";
-gap: 6px 8px;
-min-height: 86px;
-padding: 8px;
+grid-template-columns: 26px minmax(0, 1fr) minmax(76px, auto) 36px;
+grid-template-areas: "number input types clear";
+gap: 6px;
+min-height: 52px;
+padding: 6px;
 }
 #page-matchup .matchup-slot-num {
 grid-area: number;
@@ -7169,16 +7194,23 @@ grid-area: number;
 grid-area: input;
 }
 #page-matchup .matchup-slot-sprite {
-grid-area: sprite;
+display: none;
 }
 #page-matchup .matchup-slot-types {
 grid-area: types;
-min-height: 24px;
+min-height: 0;
+gap: 3px;
+}
+#page-matchup .matchup-slot-types .matchup-type-pill {
+flex: 1 1 36px;
+min-width: 36px;
+padding-right: 4px;
+padding-left: 4px;
 }
 #page-matchup .matchup-slot-clear {
 grid-area: clear;
-width: 40px;
-height: 40px;
+width: 36px;
+height: 36px;
 }
 #page-matchup .matchup-table-wrap {
 border: 1px solid var(--border);
@@ -12340,6 +12372,7 @@ font-size: 12px;
         <div class="panel-body ui-frame-body ui-panel-body">
           <div class="matchup-result-layout ui-control-grid">
             <div class="matchup-main">
+              <div class="matchup-scroll-hint" id="matchupScrollHint" role="status" hidden>표를 좌우로 밀어 전체 내용을 확인하세요.</div>
               <div class="matchup-table-wrap">
                 <table class="matchup-table" id="matchupTable">
                   <thead id="matchupHead"></thead>
@@ -21936,8 +21969,26 @@ function renderDefenseScoreCell(profile) {
 }
 
 function renderMatchupTable() {
-  if (matchupMode === 'coverage') return renderCoverageMatchupTable();
-  return renderDefenseMatchupTable();
+  if (matchupMode === 'coverage') renderCoverageMatchupTable();
+  else renderDefenseMatchupTable();
+  wireMatchupScrollHint();
+  requestAnimationFrame(updateMatchupScrollHint);
+}
+
+function updateMatchupScrollHint() {
+  const wrap = document.querySelector('#page-matchup .matchup-table-wrap');
+  const hint = document.getElementById('matchupScrollHint');
+  if (!wrap || !hint) return;
+  const hasOverflow = wrap.scrollWidth > wrap.clientWidth + 1;
+  hint.hidden = !hasOverflow;
+  hint.classList.toggle('has-scrolled', wrap.scrollLeft > 4);
+}
+
+function wireMatchupScrollHint() {
+  const wrap = document.querySelector('#page-matchup .matchup-table-wrap');
+  if (!wrap || wrap.dataset.scrollHintWired === 'true') return;
+  wrap.dataset.scrollHintWired = 'true';
+  wrap.addEventListener('scroll', updateMatchupScrollHint, { passive: true });
 }
 
 function renderDefenseMatchupTable() {
@@ -22051,7 +22102,10 @@ function renderCoverageMatchupTable() {
 }
 
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-  window.addEventListener('resize', syncMatchupMetaHeight);
+  window.addEventListener('resize', () => {
+    syncMatchupMetaHeight();
+    updateMatchupScrollHint();
+  });
 }
 
 
