@@ -24,3 +24,9 @@
   color: #ffffff;
   border-color: var(--border);
 }
+
+.page-init-error {
+  margin-bottom: var(--ui-frame-row-gap);
+  border-color: color-mix(in srgb, var(--atk) 42%, var(--border));
+  color: var(--atk-deep);
+}

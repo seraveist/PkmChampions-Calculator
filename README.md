@@ -49,6 +49,7 @@ npm run ui:browser:public -- --require-browser
 
 - [UI/CSS/HTML 전수조사](docs/ui-css-html-audit-2026-07-19.md)
 - [UI breakpoint 정책](docs/ui-breakpoints.md)
+- [CSS architecture contract](docs/CSS-ARCHITECTURE.md)
 - [대미지 계산 지원 범위](docs/damage-calculator-coverage-matrix.md)
 - [v2 출시 준비도 검토](docs/v2-readiness-review-2026-07-20.md)
 

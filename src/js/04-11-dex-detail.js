@@ -275,8 +275,8 @@ function renderDefensiveMatchup(defTypes) {
     else if (eff === 0) buckets.x0.push(t);
   }
   const row = (label, key, types) => types.length === 0 ? '' : `
-    <div class="matchup-label ${key}">${label}</div>
-    <div class="matchup-types">${types.map(t => dexTypePill(t)).join('')}</div>
+    <div class="dex-matchup-label ${key}">${label}</div>
+    <div class="dex-matchup-types">${types.map(t => dexTypePill(t)).join('')}</div>
   `;
   const html = `
     ${row('4배', 'x4', buckets.x4)}
@@ -286,7 +286,7 @@ function renderDefensiveMatchup(defTypes) {
     ${row('1/4배', 'x025', buckets.x025)}
     ${row('무효', 'x0', buckets.x0)}
   `;
-  return `<div class="matchup-grid">${html}</div>`;
+  return `<div class="dex-matchup-grid">${html}</div>`;
 }
 
 // 학습 기술을 타입별로 그룹화 + 모달 내 타입 필터
@@ -308,7 +308,7 @@ function renderLearnsetByType(learnable) {
 
   // 필터 버튼 (이 포켓몬이 학습 가능한 타입만 표시)
   const filterButtons = `
-    <div class="learnset-filter-row">
+    <div class="dex-learnset-filter-row">
       ${uiButton('전체', { class: `type-filter-btn ${pokemonDetailTypeFilter === null ? 'active' : ''}`, 'data-learnset-filter': '' })}
       ${presentTypes.map(t => {
         const active = pokemonDetailTypeFilter === t;
@@ -326,7 +326,7 @@ function renderLearnsetByType(learnable) {
   const groups = showTypes.map(t => {
     const moves = byType[t];
     return `
-      <div class="learnset-type-header">
+      <div class="dex-learnset-type-header">
         ${dexTypePill(t)}
         <span class="count">${moves.length}개</span>
       </div>

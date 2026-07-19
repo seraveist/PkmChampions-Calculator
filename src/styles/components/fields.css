@@ -52,6 +52,7 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  min-width: 0;
   gap: 6px;
   min-height: var(--ui-label-action-height);
   padding: var(--ui-label-action-padding);

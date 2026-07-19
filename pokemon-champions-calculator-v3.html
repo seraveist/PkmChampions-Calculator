@@ -146,6 +146,12 @@ min-height: 100%;
 font-family: 'Noto Sans KR', sans-serif;
 -webkit-font-smoothing: antialiased;
 }
+button,
+input,
+select,
+textarea {
+font-family: inherit;
+}
 .mono {
 font-family: 'Noto Sans KR', sans-serif;
 }
@@ -213,6 +219,11 @@ background: var(--text-faint);
 color: #ffffff;
 border-color: var(--border);
 }
+.page-init-error {
+margin-bottom: var(--ui-frame-row-gap);
+border-color: color-mix(in srgb, var(--atk) 42%, var(--border));
+color: var(--atk-deep);
+}
 }
 @layer components {
 .page-frame,
@@ -225,7 +236,6 @@ border-color: var(--border);
 .ui-control-grid,
 .ui-action-row,
 .ui-panel-actions,
-.ui-panel-tag,
 .ui-stat-grid,
 .ui-metric-row,
 .ui-subframe,
@@ -255,7 +265,6 @@ border-color: var(--border);
 .ui-meter-fill,
 .ui-meta-row,
 .ui-status-badge,
-.ui-popover-trigger,
 .ui-index,
 .ui-popover,
 .tool-settings-layout,
@@ -413,6 +422,21 @@ white-space: nowrap;
 .ui-choice-combobox .ui-choice-surface {
 padding-right: 28px;
 }
+.ui-choice-surface:hover,
+.ui-choice-combobox .cb-input:hover {
+border-color: var(--ui-control-hover-border);
+background: var(--bg-input);
+color: var(--text);
+}
+.ui-choice-surface:focus,
+.ui-choice-surface:focus-visible,
+.ui-choice-combobox .cb-input:focus,
+.ui-choice-combobox .cb-input:focus-visible,
+.ui-choice-combobox .cb-input[aria-expanded="true"] {
+outline: 0;
+border-color: var(--ui-control-focus-border);
+box-shadow: var(--ui-pokemon-focus-ring);
+}
 .tool-settings-subframe {
 padding-block: var(--ui-subframe-content-padding);
 padding-inline: var(--ui-subframe-edge-padding-inline);
@@ -483,6 +507,22 @@ white-space: nowrap;
 }
 .tool-settings-choice-combobox .tool-settings-choice-surface {
 padding-right: 28px;
+}
+.tool-settings-choice-surface:hover,
+.tool-settings-choice-combobox .cb-input:hover {
+border-color: var(--ui-control-hover-border);
+background: var(--bg-input);
+color: var(--text);
+}
+.tool-settings-choice-surface:focus,
+.tool-settings-choice-surface:focus-visible,
+.tool-settings-choice-surface:focus-within,
+.tool-settings-choice-combobox .cb-input:focus,
+.tool-settings-choice-combobox .cb-input:focus-visible,
+.tool-settings-choice-combobox .cb-input[aria-expanded="true"] {
+outline: 0;
+border-color: var(--ui-control-focus-border);
+box-shadow: var(--ui-pokemon-focus-ring);
 }
 .tool-settings-hp-control.tool-settings-choice-surface {
 display: grid;
@@ -785,6 +825,12 @@ text-overflow: ellipsis;
 white-space: nowrap;
 box-shadow: none;
 }
+.tool-pokemon-combobox .tool-pokemon-input:focus,
+.tool-pokemon-combobox .tool-pokemon-input[aria-expanded="true"] {
+outline: 0;
+border-color: var(--ui-control-focus-border);
+box-shadow: var(--ui-pokemon-focus-ring);
+}
 .tool-form-combobox {
 flex: 0 0 var(--ui-form-switch-width);
 width: var(--ui-form-switch-width);
@@ -882,8 +928,7 @@ min-width: 0;
 max-width: min(100%, calc(100vw - 24px));
 overflow-x: hidden;
 }
-.pokemon-option-header,
-.combobox-option.pokemon-option {
+.pokemon-option-header {
 box-sizing: border-box;
 display: grid;
 grid-template-columns:
@@ -911,8 +956,7 @@ font-size: var(--ui-option-header-font-size);
 font-weight: var(--ui-option-header-font-weight);
 user-select: none;
 }
-.move-option-header,
-.combobox-option.move-option {
+.move-option-header {
 box-sizing: border-box;
 display: grid;
 grid-template-columns: minmax(86px, 1fr) 40px 44px 38px;
@@ -929,7 +973,6 @@ min-height: 32px;
 .combobox-option.move-option {
 min-height: var(--ui-option-height);
 border-left: 3px solid transparent;
-padding-left: 7px;
 }
 .pokemon-option-header {
 min-height: 32px;
@@ -937,7 +980,6 @@ min-height: 32px;
 .combobox-option.pokemon-option {
 min-height: var(--ui-option-height);
 border-left: 3px solid transparent;
-padding-left: clamp(5px, 1vw, 10px);
 }
 .pokemon-select .combobox-option.pokemon-option.selected {
 border-left-color: var(--ui-pokemon-option-selected-line, var(--warn));
@@ -1071,8 +1113,7 @@ overflow: hidden;
 text-overflow: ellipsis;
 white-space: nowrap;
 }
-.nature-option-header,
-.combobox-option.nature-option {
+.nature-option-header {
 display: grid;
 grid-template-columns: minmax(78px, 1fr) minmax(36px, 0.42fr) minmax(36px, 0.42fr);
 gap: 3px;
@@ -1083,8 +1124,6 @@ padding: 8px;
 }
 .combobox-option.nature-option {
 border-left: 3px solid transparent;
-padding-right: 8px;
-padding-left: 8px;
 }
 .combobox-option.nature-option b,
 .combobox-option.nature-option span {
@@ -1254,7 +1293,7 @@ color: var(--atk-deep);
 color: var(--text-dim);
 }
 }
-@layer components {
+@layer responsive {
 @media (max-width: 720px) {
 .party-preset-modal-backdrop,
 .party-preset-picker-backdrop {
@@ -1797,6 +1836,7 @@ display: inline-flex;
 align-items: center;
 justify-content: center;
 box-sizing: border-box;
+min-width: 0;
 gap: 6px;
 min-height: var(--ui-label-action-height);
 padding: var(--ui-label-action-padding);
@@ -3980,16 +4020,98 @@ linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(244, 247, 250, 0.86)),
 color: #98a5b3;
 box-shadow: var(--surface-shadow-soft);
 }
-.ad-slot-rail {
-min-height: 620px;
-top: 88px;
-}
 .app-content:focus {
 outline: 0;
 }
 .page {
 min-width: 0;
 }
+}
+@layer responsive {
+@media (max-width: 1759px) {
+.site-shell {
+max-width: calc(var(--app-content-max) + (var(--app-shell-gutter) * 2));
+grid-template-columns: minmax(0, var(--app-content-max));
+}
+.ad-rail {
+display: none;
+}
+}
+}
+@layer layouts {
+header > .header-top,
+header > .main-nav {
+width: 100%;
+max-width: var(--app-shell-max);
+margin-right: auto;
+margin-left: auto;
+}
+.header-top {
+display: flex;
+flex-wrap: wrap;
+justify-content: space-between;
+gap: 12px;
+}
+.header-brand h1 {
+margin: 0;
+line-height: 1.2;
+}
+.brand-sub {
+margin-top: 2px;
+font-family: 'Noto Sans KR', sans-serif;
+}
+.main-nav {
+display: flex;
+}
+.nav-tab {
+font-family: 'Noto Sans KR', sans-serif;
+cursor: pointer;
+}
+.page {
+display: none;
+}
+.page.active {
+display: block;
+}
+.site-shell {
+width: 100%;
+margin: 0 auto;
+display: grid;
+grid-template-columns: var(--ad-rail-width) minmax(0, var(--app-content-max)) var(--ad-rail-width);
+align-items: start;
+}
+.app-content,
+.ad-rail {
+min-width: 0;
+}
+.ad-rail {
+display: flex;
+justify-content: center;
+}
+.ad-slot {
+width: var(--ad-rail-width);
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+}
+.ad-slot-rail {
+min-height: 600px;
+position: sticky;
+top: 18px;
+}
+.ad-slot span {
+writing-mode: vertical-rl;
+transform: rotate(180deg);
+}
+main {
+width: 100%;
+max-width: none;
+margin: 0;
+padding: 0;
+}
+}
+@layer responsive {
 @media (max-width: 1759px) {
 header > .header-top,
 header > .main-nav {
@@ -4064,93 +4186,6 @@ gap: 2px;
 min-height: 36px;
 padding: 8px 1px 9px;
 font-size: 10px;
-}
-}
-}
-@layer layouts {
-header > .header-top,
-header > .main-nav {
-width: 100%;
-max-width: var(--app-shell-max);
-margin-right: auto;
-margin-left: auto;
-}
-.header-top {
-display: flex;
-flex-wrap: wrap;
-align-items: center;
-justify-content: space-between;
-gap: 12px;
-}
-.header-brand h1 {
-margin: 0;
-line-height: 1.2;
-}
-.brand-sub {
-margin-top: 2px;
-font-family: 'Noto Sans KR', sans-serif;
-}
-.main-nav {
-display: flex;
-}
-.nav-tab {
-font-family: 'Noto Sans KR', sans-serif;
-cursor: pointer;
-}
-.page {
-display: none;
-}
-.page.active {
-display: block;
-}
-.site-shell {
-width: 100%;
-margin: 0 auto;
-display: grid;
-grid-template-columns: var(--ad-rail-width) minmax(0, var(--app-content-max)) var(--ad-rail-width);
-align-items: start;
-}
-.app-content,
-.ad-rail {
-min-width: 0;
-}
-.ad-rail {
-display: flex;
-justify-content: center;
-}
-.ad-slot {
-width: var(--ad-rail-width);
-display: flex;
-align-items: center;
-justify-content: center;
-text-align: center;
-}
-.ad-slot-rail {
-min-height: 600px;
-position: sticky;
-top: 18px;
-}
-.ad-slot span {
-writing-mode: vertical-rl;
-transform: rotate(180deg);
-}
-main {
-width: 100%;
-max-width: none;
-margin: 0;
-padding: 0;
-}
-@media (max-width: 1759px) {
-.site-shell {
-max-width: calc(var(--app-content-max) + (var(--app-shell-gutter) * 2));
-grid-template-columns: minmax(0, var(--app-content-max));
-}
-.ad-rail {
-display: none;
-}
-header > .header-top,
-header > .main-nav {
-max-width: var(--app-content-max);
 }
 }
 }
@@ -6906,6 +6941,61 @@ cursor: not-allowed;
 filter: grayscale(0.35);
 opacity: 0.56;
 }
+#page-revcalc .rc-analysis-progress {
+display: grid;
+grid-template-columns: 28px minmax(0, 1fr);
+align-items: center;
+gap: 10px 12px;
+min-height: 92px;
+padding: 16px;
+}
+#page-revcalc .rc-analysis-spinner {
+width: 24px;
+height: 24px;
+border: 3px solid var(--border);
+border-top-color: var(--def);
+border-radius: 50%;
+animation: rc-analysis-spin 0.8s linear infinite;
+}
+#page-revcalc .rc-analysis-copy {
+display: grid;
+gap: 2px;
+min-width: 0;
+}
+#page-revcalc .rc-analysis-copy strong {
+font-size: 13px;
+}
+#page-revcalc .rc-analysis-copy span {
+color: var(--text-dim);
+font-size: 11px;
+}
+#page-revcalc .rc-analysis-track {
+grid-column: 1 / -1;
+position: relative;
+height: 4px;
+overflow: hidden;
+border-radius: 2px;
+background: var(--bg-muted);
+}
+#page-revcalc .rc-analysis-track span {
+position: absolute;
+inset: 0 auto 0 -36%;
+width: 36%;
+background: var(--def);
+animation: rc-analysis-track 1.1s ease-in-out infinite;
+}
+#page-revcalc .rc-analyze-btn.is-analyzing {
+border-color: var(--atk);
+background: var(--atk);
+}
+@keyframes rc-analysis-spin {
+to { transform: rotate(360deg); }
+}
+@keyframes rc-analysis-track {
+0% { left: -36%; }
+55% { left: 48%; }
+100% { left: 100%; }
+}
 #page-revcalc .rc-prerequisite {
 display: grid;
 justify-items: start;
@@ -7034,17 +7124,6 @@ transform: translateX(11px);
 color: var(--text-faint);
 letter-spacing: 0;
 }
-#page-calc input[type="text"]:not(.tool-stat-point-input):not(.tool-move-power-input),
-#page-calc input[type="number"]:not(.tool-stat-point-input),
-#page-calc select,
-#page-calc .cb-input:not(.tool-move-input):not(.tool-move-type-input) {
-height: 36px;
-border-radius: 5px;
-border-color: var(--calc-line);
-background: var(--ui-control-bg);
-color: var(--text);
-font-size: 13px;
-}
 #page-calc .combobox .cb-input {
 width: 100%;
 }
@@ -7069,13 +7148,6 @@ padding: 0;
 #page-calc .cb-trigger:not(.tool-move-type-input):disabled {
 opacity: 0.58;
 cursor: not-allowed;
-}
-#page-calc input[type="text"]:not(.tool-stat-point-input):not(.tool-move-power-input):focus,
-#page-calc input[type="number"]:not(.tool-stat-point-input):focus,
-#page-calc select:focus,
-#page-calc .cb-input[aria-expanded="true"]:not(.tool-move-input):not(.tool-move-type-input) {
-border-color: var(--warn);
-box-shadow: 0 0 0 2px rgba(234, 184, 94, 0.16);
 }
 #page-calc .ui-panel.atk input[type="text"]:not(.tool-stat-point-input):not(.tool-move-power-input):focus,
 #page-calc .ui-panel.atk input[type="number"]:not(.tool-stat-point-input):focus,
@@ -7151,20 +7223,11 @@ background: #f3f4f6;
 color: #4b5563;
 border-color: #d1d5db;
 }
-#page-calc .calc-page-jump-button,
-#page-calc .type-reset-btn,
-#page-calc .manual-ability-toggle {
-border-radius: 5px;
-border-color: var(--calc-line);
-background: var(--calc-surface-3);
-}
 #page-calc .calc-pair-grid {
 align-items: start;
 }
-#page-calc .manual-ability-spacer,
-#page-calc .manual-ability-toggle {
+#page-calc .manual-ability-spacer {
 width: 72px;
-height: 36px;
 }
 #page-calc .hp-inline-control {
 height: 36px;
@@ -7172,21 +7235,8 @@ border-radius: 5px;
 border-color: var(--calc-line);
 background: var(--ui-control-bg);
 }
-#page-calc .calc-stat-total,
-#page-calc .calc-stat-preset-menu,
-#page-calc .calc-stat-bulk-card {
-border-radius: 5px;
-border-color: var(--calc-line);
-background: var(--calc-surface-3);
-}
 #page-calc .calc-stat-preset-option {
 border-color: var(--calc-line);
-}
-#page-calc .battle-field-select-frame {
-grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-#page-calc .battle-field-select-frame > .ui-field {
-min-width: 0;
 }
 #page-calc .battle-field-select-frame .cb-input {
 min-width: 0;
@@ -7195,9 +7245,6 @@ min-width: 0;
 padding: 0 24px 0 10px;
 }
 #page-calc .calc-field-effects-frame {
-display: flex;
-flex-wrap: wrap;
-align-items: center;
 padding-top: 10px;
 border-top-color: var(--calc-line-soft);
 }
@@ -7212,12 +7259,6 @@ display: inline-flex;
 grid-template-columns: none;
 align-items: center;
 width: auto;
-min-height: 32px;
-padding: 6px 10px;
-gap: 7px;
-border-radius: 5px;
-border: 1px solid var(--calc-line);
-background: var(--calc-surface-3);
 font-family: 'Noto Sans KR', sans-serif;
 font-size: 12px;
 font-weight: 800;
@@ -7225,25 +7266,10 @@ letter-spacing: 0;
 white-space: nowrap;
 }
 #page-calc .ui-check input {
-flex: 0 0 auto;
 margin: 0;
-}
-#page-calc .ui-check span {
-min-width: auto;
-overflow: visible;
-text-overflow: clip;
 }
 #page-calc .ui-check.spikes {
 grid-template-columns: none;
-height: 32px;
-min-height: 32px;
-padding: 0 8px 0 10px;
-gap: 6px;
-}
-#page-calc .ui-check.spikes .calc-spikes-layer-combobox {
-width: 54px;
-height: 22px;
-flex: 0 0 54px;
 }
 #page-calc .ui-check.spikes:not(:has(#defSpikes:checked)) .calc-spikes-layer-combobox {
 display: none;
@@ -7253,12 +7279,9 @@ display: flex;
 align-items: center;
 justify-content: flex-start;
 width: 100%;
-height: 22px;
-min-height: 22px;
 padding: 0 16px 0 5px;
 border-radius: 4px;
 font-size: 10px;
-line-height: 22px;
 text-align: left;
 cursor: pointer;
 caret-color: transparent;
@@ -7440,21 +7463,14 @@ white-space: nowrap;
 #page-calc .calc-result-grid {
 display: grid;
 align-items: stretch;
-gap: 10px;
-grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 #page-calc .calc-result-card {
 display: grid;
 position: relative;
 grid-template-columns: minmax(0, 1fr);
 align-content: start;
-height: 100%;
-min-height: 292px;
-gap: 8px;
-padding: 10px;
 border-width: 3px;
 border-style: solid;
-border-color: rgb(165 138 104 / 0.22);
 border-radius: 8px;
 background: #ffffff;
 box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
@@ -7469,7 +7485,6 @@ grid-template-areas:
 "info";
 align-items: stretch;
 align-content: start;
-gap: 8px;
 height: 100%;
 }
 #page-calc .calc-result-card-head {
@@ -7477,24 +7492,17 @@ display: grid;
 grid-area: top;
 grid-template-columns: minmax(0, 1fr);
 align-items: start;
-gap: 6px;
-min-height: 54px;
-padding-right: 112px;
-padding-bottom: 8px;
 border-bottom: 1px solid var(--calc-line-soft);
 }
 #page-calc .calc-result-title-row {
 display: flex;
 align-items: center;
-gap: 9px;
 min-width: 0;
 }
 #page-calc .calc-result-card .calc-result-slot {
 display: inline-flex;
 align-items: center;
 justify-content: center;
-width: 24px;
-height: 24px;
 flex: 0 0 24px;
 border: 1px solid var(--calc-line);
 border-radius: 6px;
@@ -7544,9 +7552,7 @@ overflow: hidden;
 text-overflow: ellipsis;
 white-space: nowrap;
 color: var(--calc-text);
-font-size: 15px;
 font-weight: 900;
-line-height: 1.28;
 }
 #page-calc .calc-move-meta {
 max-width: none;
@@ -7574,7 +7580,6 @@ display: flex;
 align-items: center;
 flex-wrap: wrap;
 justify-content: flex-start;
-gap: 4px;
 min-width: 0;
 }
 #page-calc .calc-move-badges .type-pill,
@@ -7582,8 +7587,6 @@ min-width: 0;
 #page-calc .calc-move-badges .calc-stab-badge,
 #page-calc .calc-move-badges .calc-effectiveness-badge,
 #page-calc .calc-move-badges .calc-move-meta-badge {
-min-height: 22px;
-padding: 0 7px;
 line-height: 1;
 }
 #page-calc .calc-move-badges .type-pill {
@@ -7644,9 +7647,7 @@ border-color: #9ca3af;
 grid-area: range;
 display: grid;
 grid-template-columns: minmax(0, 1fr);
-gap: 7px;
 min-width: 0;
-padding: 8px;
 border: 1px solid var(--calc-line-soft);
 border-radius: 6px;
 background: #f8fafc;
@@ -7667,7 +7668,6 @@ gap: 2px 8px;
 #page-calc .calc-damage-percent {
 color: var(--text);
 font-family: "Noto Sans KR", sans-serif;
-font-size: 16px;
 font-weight: 900;
 line-height: 1.15;
 letter-spacing: -0.01em;
@@ -7720,14 +7720,11 @@ align-items: center;
 flex-wrap: wrap;
 grid-area: info;
 align-content: flex-start;
-min-height: 74px;
-gap: 4px 5px;
 padding-top: 1px;
 color: #7a8795;
 font-family: 'Noto Sans KR', sans-serif;
 font-size: 10px;
 font-weight: 800;
-line-height: 1;
 }
 #page-calc .calc-damage-meta b {
 color: var(--calc-text);
@@ -7849,17 +7846,11 @@ display: flex;
 flex-direction: column;
 justify-content: center;
 position: absolute;
-top: 8px;
-right: 8px;
 z-index: 1;
-min-width: 96px;
-max-width: 112px;
-min-height: 52px;
 border-radius: 8px;
 border-color: var(--calc-line-soft);
 background: #f8fafc;
 align-self: auto;
-padding: 7px 9px;
 text-align: center;
 }
 #page-calc .calc-ko-main {
@@ -7868,7 +7859,6 @@ align-items: baseline;
 justify-content: center;
 gap: 4px;
 font-family: 'Noto Sans KR', sans-serif;
-font-size: 14px;
 font-weight: 900;
 line-height: 1.15;
 white-space: nowrap;
@@ -7892,115 +7882,6 @@ display: none;
 }
 #page-calc .calc-ko-main.ohko {
 color: var(--atk-deep);
-}
-@media (max-width: 1280px) {
-#page-calc .calc-side-swap-button {
-min-height: 42px;
-}
-#page-calc .battle-field-select-frame {
-grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-}
-@media (max-width: 1120px) {
-#page-calc .calc-result-grid {
-grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-#page-calc .calc-result-card {
-min-height: 274px;
-}
-#page-calc .calc-damage-meta {
-min-height: 58px;
-}
-}
-@media (max-width: 860px) {
-#page-calc .calc-result-card {
-grid-template-columns: 1fr;
-}
-#page-calc .calc-result-card-main {
-grid-template-columns: 1fr;
-grid-template-areas:
-"top"
-"range"
-"info";
-}
-#page-calc .calc-ko-badge {
-min-width: 96px;
-}
-}
-@media (max-width: 620px) {
-#page-calc .calc-result-grid {
-grid-template-columns: 1fr;
-}
-#page-calc .calc-result-card {
-min-height: 0;
-}
-#page-calc .calc-damage-meta {
-min-height: 0;
-}
-}
-@media (max-width: 560px) {
-#page-calc .battle-field-select-frame {
-grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-#page-calc .battle-field-select-frame .ui-field-label {
-font-size: 11px;
-}
-#page-calc .battle-field-select-frame .cb-input {
-height: 34px;
-padding-left: 8px;
-padding-right: 22px;
-font-size: 12px;
-}
-#page-calc .battle-field-select-frame .combobox::after {
-right: 8px;
-}
-#page-calc .calc-field-effects-frame {
-grid-template-columns: 1fr;
-}
-#page-calc .calc-speed-row {
-grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-gap: 6px;
-padding: var(--ui-subframe-content-padding);
-}
-#page-calc .calc-speed-side {
-grid-template-columns: minmax(0, 1fr) auto;
-justify-items: center;
-gap: 5px;
-padding: 4px 2px;
-}
-#page-calc .calc-speed-side--def {
-grid-template-columns: auto minmax(0, 1fr);
-}
-#page-calc .calc-speed-side--def .calc-speed-value-wrap {
-order: initial;
-}
-#page-calc .calc-speed-side--def .calc-speed-identity {
-order: initial;
-}
-#page-calc .calc-speed-identity {
-flex-direction: column;
-gap: 3px;
-white-space: nowrap;
-}
-#page-calc .calc-speed-role {
-font-size: 10px;
-}
-#page-calc .calc-speed-pokemon {
-max-width: 100%;
-font-size: 14px;
-text-align: center;
-}
-#page-calc .calc-speed-value {
-min-width: 42px;
-height: 28px;
-padding: 0 8px;
-font-size: 18px;
-}
-#page-calc .calc-speed-entry-note {
-min-height: 22px;
-padding: 0 6px;
-font-size: 10px;
-}
 }
 }
 @layer pages {
@@ -8028,6 +7909,7 @@ font-size: 10px;
 --calc-move-control-h: var(--ui-control-height);
 --calc-control-label-width: var(--ui-field-label-width);
 --calc-control-gap: var(--ui-field-label-gap);
+--calc-settings-label-width: 40px;
 color: var(--calc-text);
 font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 font-size: 14px;
@@ -8041,14 +7923,12 @@ font-family: inherit;
 #page-calc .mono,
 #page-calc .hint,
 #page-calc .brand-sub,
-#page-calc .calc-stat-total,
 #page-calc .tool-stat-point-input,
 #page-calc .tool-stat-rank-value,
 #page-calc .calc-stat-base,
 #page-calc .calc-stat-final,
 #page-calc .tool-move-power-input,
-#page-calc .tool-move-power-readout,
-#page-calc .calc-stat-bulk-value {
+#page-calc .tool-move-power-readout {
 font-family: "Noto Sans KR", sans-serif;
 }
 #page-calc .battle-grid {
@@ -8056,6 +7936,13 @@ position: relative;
 display: grid;
 grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 align-items: stretch;
+}
+#page-calc .calc-side-head-actions > .calc-detail-toggle,
+#page-calc .calc-compact-stats {
+display: none;
+}
+#page-calc .calc-side-head-actions {
+align-items: center;
 }
 #page-calc .battle-grid > .ui-panel.atk,
 #page-calc.sides-swapped .battle-grid > .ui-panel.def {
@@ -8261,20 +8148,21 @@ line-height: var(--ui-check-inline-height);
 height: var(--ui-control-height);
 text-align: center;
 }
-#page-calc input[type="text"]:not(.tool-stat-point-input),
+#page-calc input[type="text"]:not(.tool-stat-point-input):not(.ui-inline-number-input),
 #page-calc input[type="number"]:not(.tool-stat-point-input),
 #page-calc select {
+height: var(--ui-control-height);
 min-height: var(--ui-control-height);
 border: 1px solid var(--calc-line);
 border-radius: 8px;
-background: #ffffff;
-color: var(--calc-text);
+background: var(--ui-control-bg);
+color: var(--text);
 font-family: inherit;
 font-size: 13px;
 font-weight: 700;
 box-shadow: none;
 }
-#page-calc input[type="text"]:not(.tool-stat-point-input):focus,
+#page-calc input[type="text"]:not(.tool-stat-point-input):not(.ui-inline-number-input):focus,
 #page-calc input[type="number"]:not(.tool-stat-point-input):focus,
 #page-calc select:focus {
 border-color: var(--ui-control-focus-border);
@@ -8321,6 +8209,7 @@ display: none;
 grid-template-columns: minmax(0, 1fr);
 }
 #page-calc .manual-ability-toggle {
+width: 72px;
 height: var(--ui-control-height);
 min-height: var(--ui-control-height);
 padding: 0 12px;
@@ -8461,6 +8350,13 @@ font-size: var(--ui-type-pill-font-size);
 font-weight: var(--ui-type-pill-font-weight);
 line-height: 1;
 text-align: center;
+}
+#page-calc .tool-pokemon-meta-actions .type-pill-combobox:not(.type-none):focus-within {
+box-shadow: var(--ui-control-focus-ring);
+}
+#page-calc .tool-settings-choice-cell {
+--calc-control-label-width: var(--calc-settings-label-width);
+--calc-control-gap: var(--ui-control-grid-gap);
 }
 #page-calc .tool-pokemon-meta-actions .type-pill-combobox .cb-trigger {
 align-items: center;
@@ -8811,7 +8707,14 @@ color: #4338ca;
 }
 @layer pages {
 #page-calc .calc-result-grid {
+grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
 gap: 7px;
+}
+#page-calc .calc-result-card:only-child {
+min-height: 220px;
+}
+#page-calc .calc-mobile-summary {
+display: none;
 }
 #page-calc .calc-result-card {
 height: var(--calc-result-card-height);
@@ -8956,7 +8859,114 @@ text-align: center;
 white-space: nowrap;
 }
 }
-@layer pages {
+@layer responsive {
+@media (max-width: 1280px) {
+#page-calc .calc-side-swap-button {
+min-height: 42px;
+}
+#page-calc .battle-field-select-frame {
+grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+}
+@media (max-width: 1120px) {
+#page-calc .calc-result-grid {
+grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+#page-calc .calc-result-card {
+min-height: 274px;
+}
+#page-calc .calc-damage-meta {
+min-height: 58px;
+}
+}
+@media (max-width: 860px) {
+#page-calc .calc-result-card {
+grid-template-columns: 1fr;
+}
+#page-calc .calc-result-card-main {
+grid-template-columns: 1fr;
+grid-template-areas:
+"top"
+"range"
+"info";
+}
+#page-calc .calc-ko-badge {
+min-width: 96px;
+}
+}
+@media (max-width: 620px) {
+#page-calc .calc-result-grid {
+grid-template-columns: 1fr;
+}
+#page-calc .calc-result-card,
+#page-calc .calc-damage-meta {
+min-height: 0;
+}
+}
+@media (max-width: 560px) {
+#page-calc .battle-field-select-frame {
+grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+#page-calc .battle-field-select-frame .ui-field-label {
+font-size: 11px;
+}
+#page-calc .battle-field-select-frame .cb-input {
+height: 34px;
+padding-left: 8px;
+padding-right: 22px;
+font-size: 12px;
+}
+#page-calc .battle-field-select-frame .combobox::after {
+right: 8px;
+}
+#page-calc .calc-field-effects-frame {
+grid-template-columns: 1fr;
+}
+#page-calc .calc-speed-row {
+grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+gap: 6px;
+padding: var(--ui-subframe-content-padding);
+}
+#page-calc .calc-speed-side {
+grid-template-columns: minmax(0, 1fr) auto;
+justify-items: center;
+gap: 5px;
+padding: 4px 2px;
+}
+#page-calc .calc-speed-side--def {
+grid-template-columns: auto minmax(0, 1fr);
+}
+#page-calc .calc-speed-side--def .calc-speed-value-wrap,
+#page-calc .calc-speed-side--def .calc-speed-identity {
+order: initial;
+}
+#page-calc .calc-speed-identity {
+flex-direction: column;
+gap: 3px;
+white-space: nowrap;
+}
+#page-calc .calc-speed-role {
+font-size: 10px;
+}
+#page-calc .calc-speed-pokemon {
+max-width: 100%;
+font-size: 14px;
+text-align: center;
+}
+#page-calc .calc-speed-value {
+min-width: 42px;
+height: 28px;
+padding: 0 8px;
+font-size: 18px;
+}
+#page-calc .calc-speed-entry-note {
+min-height: 22px;
+padding: 0 6px;
+font-size: 10px;
+}
+}
+}
+@layer responsive {
 @media (max-width: 1120px) {
 #page-calc .calc-stat-grid {
 grid-template-columns:
@@ -9177,6 +9187,65 @@ padding-bottom: 1px;
 min-width: 96px;
 gap: 7px;
 }
+.calc-page-options-portal .pokemon-option-header,
+.calc-page-options-portal .combobox-option.pokemon-option {
+grid-template-columns:
+minmax(78px, 1fr)
+minmax(66px, 0.82fr)
+repeat(6, minmax(21px, 27px));
+gap: 1px;
+padding-right: 4px;
+padding-left: 4px;
+}
+.calc-page-options-portal .pokemon-option-header,
+.calc-page-options-portal .pokemon-option-stat {
+font-size: 0.68rem;
+}
+.calc-page-options-portal .pokemon-option-name {
+font-size: 0.82rem;
+}
+.calc-page-options-portal .pokemon-option-types {
+gap: 2px;
+}
+.calc-page-options-portal .badge-mini {
+min-width: 28px;
+height: 18px;
+padding: 0 2px;
+font-size: 0.62rem;
+}
+.tool-move-options-portal .move-option-header,
+.tool-move-options-portal .combobox-option.move-option {
+grid-template-columns: minmax(92px, 1fr) 36px 34px 26px;
+gap: 1px;
+padding-right: 5px;
+padding-left: 5px;
+}
+.tool-move-options-portal .move-option-header,
+.tool-move-options-portal .move-option-power {
+font-size: 0.64rem;
+}
+.tool-move-options-portal .move-option-name {
+font-size: 0.82rem;
+}
+.tool-move-options-portal .move-option-type-badge,
+.tool-move-options-portal .move-option-category .cat-badge {
+min-width: 30px;
+height: 18px;
+padding: 0 3px;
+font-size: 0.6rem;
+}
+.calc-page-options-portal .nature-option-header,
+.calc-page-options-portal .combobox-option.nature-option {
+grid-template-columns: minmax(58px, 1fr) 30px 30px;
+gap: 3px;
+padding-right: 6px;
+padding-left: 6px;
+}
+.calc-page-options-portal .nature-option-header,
+.calc-page-options-portal .combobox-option.nature-option span,
+.calc-page-options-portal .combobox-option.nature-option b {
+font-size: 0.64rem;
+}
 }
 @media (max-width: 520px) {
 #page-calc .pokemon-select .pokemon-option-header,
@@ -9218,6 +9287,50 @@ font-size: 0.72rem;
 }
 #page-calc .move-option-type-badge,
 #page-calc .move-option-category .cat-badge {
+min-width: 24px;
+height: 16px;
+padding: 0 2px;
+font-size: 0.54rem;
+}
+.calc-page-options-portal .pokemon-option-header,
+.calc-page-options-portal .combobox-option.pokemon-option {
+grid-template-columns:
+minmax(66px, 1fr)
+minmax(54px, 0.78fr)
+repeat(6, minmax(17px, 21px));
+gap: 1px;
+padding-right: 4px;
+padding-left: 4px;
+}
+.calc-page-options-portal .pokemon-option-header,
+.calc-page-options-portal .pokemon-option-stat {
+font-size: 0.62rem;
+}
+.calc-page-options-portal .pokemon-option-name {
+font-size: 0.72rem;
+}
+.calc-page-options-portal .badge-mini {
+min-width: 24px;
+height: 16px;
+padding: 0 2px;
+font-size: 0.56rem;
+}
+.tool-move-options-portal .move-option-header,
+.tool-move-options-portal .combobox-option.move-option {
+grid-template-columns: minmax(86px, 1fr) 31px 29px 24px;
+gap: 1px;
+padding-right: 4px;
+padding-left: 4px;
+}
+.tool-move-options-portal .move-option-header,
+.tool-move-options-portal .move-option-power {
+font-size: 0.58rem;
+}
+.tool-move-options-portal .move-option-name {
+font-size: 0.72rem;
+}
+.tool-move-options-portal .move-option-type-badge,
+.tool-move-options-portal .move-option-category .cat-badge {
 min-width: 24px;
 height: 16px;
 padding: 0 2px;
@@ -9662,17 +9775,6 @@ padding: 10px 0 0;
 border-top: 1px solid var(--border-soft);
 background: transparent;
 box-shadow: none;
-}
-.learnset-filter-row {
-display: flex;
-align-items: center;
-gap: 7px;
-margin: 0;
-padding: 9px 10px;
-border: 1px solid var(--border-soft);
-border-radius: var(--radius-lg);
-background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
-box-shadow: var(--surface-shadow-soft);
 }
 #page-dex .dex-type-filter .label {
 display: inline-flex;
@@ -10720,13 +10822,13 @@ font-weight: 700;
 }
 }
 @layer pages {
-.matchup-grid {
+.dex-matchup-grid {
 display: grid;
 grid-template-columns: 64px minmax(0, 1fr);
 gap: 7px 10px;
 align-items: start;
 }
-.matchup-label {
+.dex-matchup-label {
 display: inline-flex;
 align-items: center;
 justify-content: center;
@@ -10735,21 +10837,28 @@ border-radius: var(--radius-sm);
 font-size: 11px;
 font-weight: 900;
 }
-.matchup-label.x4 { background: rgba(214, 76, 86, 0.1); color: #9f2834; }
-.matchup-label.x2 { background: rgba(183, 121, 31, 0.11); color: #8a560f; }
-.matchup-label.x1 { background: rgba(104, 122, 142, 0.1); color: var(--text-dim); }
-.matchup-label.x05 { background: rgba(37, 122, 87, 0.1); color: #257a57; }
-.matchup-label.x025 { background: rgba(22, 127, 165, 0.1); color: #167fa5; }
-.matchup-label.x0 { background: rgba(126, 87, 194, 0.1); color: #5d3a9b; }
-.matchup-types {
+.dex-matchup-label.x4 { background: rgba(214, 76, 86, 0.1); color: #9f2834; }
+.dex-matchup-label.x2 { background: rgba(183, 121, 31, 0.11); color: #8a560f; }
+.dex-matchup-label.x1 { background: rgba(104, 122, 142, 0.1); color: var(--text-dim); }
+.dex-matchup-label.x05 { background: rgba(37, 122, 87, 0.1); color: #257a57; }
+.dex-matchup-label.x025 { background: rgba(22, 127, 165, 0.1); color: #167fa5; }
+.dex-matchup-label.x0 { background: rgba(126, 87, 194, 0.1); color: #5d3a9b; }
+.dex-matchup-types {
 display: flex;
 flex-wrap: wrap;
 gap: 5px;
 }
-.learnset-filter-row {
+.dex-learnset-filter-row {
+display: flex;
+align-items: center;
 flex-wrap: wrap;
+gap: 7px;
+margin: 0;
 margin-bottom: 10px;
 padding: 7px;
+border: 1px solid var(--border-soft);
+border-radius: var(--radius-lg);
+background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
 box-shadow: none;
 }
 .dex-learnset-section {
@@ -10758,7 +10867,7 @@ background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
 .dex-learnset-section .dex-modal-section-title {
 margin-bottom: 10px;
 }
-.dex-learnset-section .learnset-filter-row {
+.dex-learnset-section .dex-learnset-filter-row {
 gap: 6px;
 margin-bottom: 12px;
 padding: 8px;
@@ -10772,7 +10881,7 @@ padding: 0 10px;
 font-size: 11px;
 line-height: 1;
 }
-.learnset-type-header {
+.dex-learnset-type-header {
 display: flex;
 align-items: center;
 gap: 8px;
@@ -10783,16 +10892,16 @@ border: 1px solid var(--border);
 border-radius: var(--radius-md);
 background: var(--bg-panel);
 }
-.learnset-type-header:first-child {
+.dex-learnset-type-header:first-child {
 margin-top: 0;
 }
-.learnset-type-header .count {
+.dex-learnset-type-header .count {
 color: var(--text-faint);
 font-family: 'Noto Sans KR', sans-serif;
 font-size: 12px;
 font-weight: 900;
 }
-.learnset-type-header .dex-type-pill,
+.dex-learnset-type-header .dex-type-pill,
 .dex-learnset-section .type-filter-btn.type-pill-mini {
 font-family: 'Noto Sans KR', sans-serif;
 font-size: 11px;
@@ -10911,7 +11020,7 @@ background: color-mix(in srgb, var(--warn) 12%, var(--bg-input));
 background: var(--bg-overlay);
 }
 }
-@layer pages {
+@layer responsive {
 @media (max-width: 760px) {
 #page-dex .dex-search {
 grid-template-columns: 40px minmax(0, 1fr);
@@ -11014,7 +11123,7 @@ font-size: 11px;
 grid-template-columns: 48px minmax(72px, 1fr) 42px;
 gap: 6px 8px;
 }
-.matchup-grid {
+.dex-matchup-grid {
 grid-template-columns: 54px minmax(0, 1fr);
 }
 .dex-modal .ui-frame-head {
@@ -11034,105 +11143,16 @@ font-size: 12px;
 }
 }
 @layer responsive {
-:root {
---app-font-sans: "Noto Sans KR", sans-serif;
---app-font-mono: "Noto Sans KR", sans-serif;
---ui-number-font: var(--app-font-mono);
-}
-body,
-button,
-input,
-select,
-textarea {
-font-family: var(--app-font-sans);
-}
-.mono,
-:where(.ui-stat-readout, .ui-chip-value, .calc-mobile-summary-range, .calc-mobile-summary-ko) {
-font-family: var(--app-font-mono);
-}
-#page-calc .calc-side-head-actions > .calc-detail-toggle,
-.calc-compact-stats {
-display: none;
-}
-#page-calc .calc-side-head-actions {
-align-items: center;
-}
-#page-calc .calc-result-grid {
-grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-}
-#page-calc .calc-result-card:only-child {
-min-height: 220px;
-}
-#page-revcalc .rc-analysis-progress {
-display: grid;
-grid-template-columns: 28px minmax(0, 1fr);
-align-items: center;
-gap: 10px 12px;
-min-height: 92px;
-padding: 16px;
-}
-#page-revcalc .rc-analysis-spinner {
-width: 24px;
-height: 24px;
-border: 3px solid var(--border);
-border-top-color: var(--def);
-border-radius: 50%;
-animation: rc-analysis-spin 0.8s linear infinite;
-}
-#page-revcalc .rc-analysis-copy {
-display: grid;
-gap: 2px;
-min-width: 0;
-}
-#page-revcalc .rc-analysis-copy strong {
-font-size: 13px;
-}
-#page-revcalc .rc-analysis-copy span {
-color: var(--text-dim);
-font-size: 11px;
-}
-#page-revcalc .rc-analysis-track {
-grid-column: 1 / -1;
-position: relative;
-height: 4px;
-overflow: hidden;
-border-radius: 2px;
-background: var(--bg-muted);
-}
-#page-revcalc .rc-analysis-track span {
-position: absolute;
-inset: 0 auto 0 -36%;
-width: 36%;
-background: var(--def);
-animation: rc-analysis-track 1.1s ease-in-out infinite;
-}
-#page-revcalc .rc-analyze-btn.is-analyzing {
-border-color: var(--atk);
-background: var(--atk);
-}
-.page-init-error {
-margin-bottom: var(--ui-frame-row-gap);
-border-color: color-mix(in srgb, var(--atk) 42%, var(--border));
-color: var(--atk-deep);
-}
-@keyframes rc-analysis-spin {
-to { transform: rotate(360deg); }
-}
-@keyframes rc-analysis-track {
-0% { left: -36%; }
-55% { left: 48%; }
-100% { left: 100%; }
-}
 @media (prefers-reduced-motion: reduce) {
 #page-revcalc .rc-analysis-spinner,
 #page-revcalc .rc-analysis-track span {
 animation-duration: 2.4s;
 }
 }
-.calc-mobile-summary {
-display: none;
-}
 @media (max-width: 760px) {
+.page {
+--ui-control-height: 42px;
+}
 header {
 border-bottom-color: var(--border);
 box-shadow: 0 2px 10px rgb(15 23 42 / 0.06);
@@ -11176,15 +11196,11 @@ gap: 10px;
 .ui-panel-body {
 padding: 10px;
 }
-.page .cb-input,
 .page .ui-btn,
 .page .party-load-button,
 .page .ui-label-action:not(.is-static),
 .page .matchup-mode-btn,
-.page .dex-tab,
-.page input[type="text"]:not(.tool-stat-point-input):not(.tool-move-power-input),
-.page input[type="number"]:not(.tool-stat-point-input):not(.tool-move-power-input),
-.page select {
+.page .dex-tab {
 min-height: 42px;
 }
 .page .ui-check {
@@ -11794,7 +11810,7 @@ font-size: 9px;
 font-weight: 900;
 text-align: center;
 }
-#page-revcalc .rc-next-rank-cell button {
+#page-revcalc .rc-next-rank-cell .tool-stat-rank-button {
 width: 18px;
 height: 24px;
 }
@@ -11985,16 +12001,6 @@ border-color: var(--border);
 box-shadow: var(--ui-frame-shadow);
 }
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-frame-head, .ui-panel-head, .dex-modal-head) {
-align-items: center;
-align-content: center;
-flex-wrap: nowrap;
-height: var(--ui-panel-head-min-height);
-min-height: var(--ui-panel-head-min-height);
-background: var(--ui-panel-head-bg);
-border-bottom-color: var(--border);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
 :where(.ui-frame-body, .ui-panel-body, .ui-card-body, .dex-modal-body) {
 color: var(--text);
 }
@@ -12021,11 +12027,6 @@ color: var(--text-dim);
 }
 #page-calc .ui-meter {
 background: var(--bg-muted);
-}
-:root[data-theme="dark"] #page-calc :is(select, input[type="number"]:not(.tool-stat-point-input), input[type="text"], textarea, .cb-input, .form-switch-btn) {
-border-color: var(--border);
-background: var(--ui-control-bg);
-color: var(--text);
 }
 :root[data-theme="dark"] #page-calc .calc-result-card.ui-card {
 border-color: var(--border);
@@ -12186,144 +12187,6 @@ background: var(--ui-atk-head-bg);
 background: var(--ui-def-head-bg);
 }
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(select, input[type="number"]:not(.tool-stat-point-input), input[type="text"], textarea, .cb-input, .form-switch-btn) {
-border-color: var(--border);
-background: var(--ui-control-bg);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(select:hover, input[type="number"]:not(.tool-stat-point-input):hover, input[type="text"]:hover, textarea:hover, .cb-input:hover, .form-switch-btn:hover) {
-border-color: var(--border-bright);
-background: var(--bg-input);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(select:focus, input[type="number"]:not(.tool-stat-point-input):focus, input[type="text"]:focus, textarea:focus, .cb-input[aria-expanded="true"], .form-switch-btn:focus-visible) {
-border-color: var(--warn);
-box-shadow: var(--focus-ring);
-}
-:is(#page-revcalc, #page-finetune)
-:where(.tool-pokemon-combobox .tool-pokemon-input:focus, .tool-pokemon-combobox .tool-pokemon-input[aria-expanded="true"]) {
-outline: 0;
-border-color: var(--warn);
-box-shadow: var(--ui-pokemon-focus-ring);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-choice-field.ui-field > .ui-choice-label.ui-field-label {
-display: flex;
-align-items: center;
-min-height: var(--ui-field-head-height);
-margin: 0;
-color: var(--ui-pokemon-label-color, var(--text-dim));
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-pokemon-label-font-size);
-font-weight: var(--ui-pokemon-label-font-weight);
-line-height: var(--ui-label-line-height);
-letter-spacing: 0;
-text-align: left;
-text-transform: none;
-white-space: nowrap;
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input {
-height: var(--ui-control-height);
-min-height: var(--ui-control-height);
-padding: 0 28px 0 10px;
-border: var(--ui-control-border);
-border-radius: var(--ui-control-radius);
-background: var(--ui-control-bg);
-color: var(--text);
-box-shadow: none;
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-control-font-size);
-font-weight: var(--ui-control-font-weight);
-line-height: normal;
-text-align: left;
-text-overflow: ellipsis;
-white-space: nowrap;
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input:hover {
-border-color: var(--ui-control-hover-border);
-background: var(--bg-input);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input:focus-visible,
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-choice-field .ui-choice-combobox .ui-choice-surface.cb-input[aria-expanded="true"] {
-outline: 0;
-border-color: var(--ui-control-focus-border);
-box-shadow: var(--ui-pokemon-focus-ring);
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-label {
-display: flex;
-align-items: center;
-justify-content: flex-start;
-min-height: var(--ui-field-head-height);
-color: var(--ui-pokemon-label-color, var(--text-dim));
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-pokemon-label-font-size);
-font-weight: var(--ui-pokemon-label-font-weight);
-line-height: var(--ui-label-line-height);
-letter-spacing: 0;
-text-align: left;
-text-transform: none;
-white-space: nowrap;
-}
-#page-calc .tool-settings-choice-cell {
---calc-control-label-width: 40px;
---calc-control-gap: var(--ui-control-grid-gap);
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input {
-height: var(--ui-control-height);
-min-height: var(--ui-control-height);
-border: var(--ui-control-border);
-border-radius: var(--ui-control-radius);
-background: var(--ui-control-bg);
-color: var(--text);
-box-shadow: none;
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-control-font-size);
-font-weight: var(--ui-control-font-weight);
-line-height: normal;
-text-align: left;
-text-overflow: ellipsis;
-white-space: nowrap;
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .tool-settings-choice-surface {
-padding-right: 28px;
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-hp-control.tool-settings-choice-surface {
-display: grid;
-grid-template-columns: minmax(0, 1fr) auto;
-align-items: center;
-padding: 0 10px;
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-hp-control .tool-settings-hp-input {
-font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-font-size: var(--ui-control-font-size);
-font-weight: var(--ui-control-font-weight);
-line-height: normal;
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:hover,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:hover {
-border-color: var(--ui-control-hover-border);
-background: var(--bg-input);
-color: var(--text);
-}
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus-visible,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-surface:focus-within,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:focus,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input:focus-visible,
-:is(#page-calc, #page-revcalc, #page-finetune) .tool-settings-choice-cell .tool-settings-choice-combobox .cb-input[aria-expanded="true"] {
-outline: 0;
-border-color: var(--ui-control-focus-border);
-box-shadow: var(--ui-pokemon-focus-ring);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
 :where(.combobox-options),
 .combobox-options.combobox-options-portal {
 border-color: var(--border-bright);
@@ -12353,43 +12216,6 @@ color: var(--text);
 border-color: var(--ui-action-border);
 background: var(--ui-action-bg);
 color: var(--text-dim);
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-panel-actions.ui-panel-actions {
-align-items: center;
-align-content: center;
-align-self: stretch;
-flex-wrap: nowrap;
-min-height: 0;
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-.ui-panel-actions.ui-panel-actions > :where(button, .ui-btn, .ui-label-action, .rc-analyze-btn, .dex-modal-btn, .calc-field-auto-toggle) {
-box-sizing: border-box;
-display: inline-flex;
-align-items: center;
-justify-content: center;
-height: var(--ui-panel-action-height);
-min-height: var(--ui-panel-action-height);
-max-height: var(--ui-panel-action-height);
-padding: var(--ui-panel-action-padding);
-font-size: var(--ui-panel-action-font-size);
-line-height: 1;
-white-space: nowrap;
-}
-:is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
-:where(.ui-panel-tag) {
-box-sizing: border-box;
-display: inline-flex;
-align-items: center;
-justify-content: center;
-height: var(--ui-panel-action-height);
-min-height: var(--ui-panel-action-height);
-max-height: var(--ui-panel-action-height);
-padding: var(--ui-panel-action-padding);
-font-size: var(--ui-panel-action-font-size);
-font-weight: var(--ui-panel-action-font-weight);
-line-height: 1;
-white-space: nowrap;
 }
 :is(#page-calc, #page-revcalc, #page-finetune, #page-matchup, #page-dex)
 :where(.ui-label-action:hover, .ui-field-action:hover, .ui-popover-trigger:hover, .theme-toggle-button:hover, .dex-modal-btn:hover, .tool-stat-point-button:hover, .tool-stat-rank-button:hover) {
@@ -12469,7 +12295,6 @@ color: var(--text-faint);
 }
 @layer tokens {
 :root {
-color-scheme: light;
 --bg: var(--color-surface-canvas);
 --bg-elev: var(--color-surface-elevated);
 --bg-panel: var(--color-surface-panel);
@@ -12638,7 +12463,6 @@ var(--bg-input);
 --app-shell-max: calc(var(--app-content-max) + (var(--ad-rail-width) * 2) + (var(--app-shell-gap) * 2));
 }
 :root[data-theme="dark"] {
-color-scheme: dark;
 --bg: var(--color-surface-canvas);
 --bg-elev: var(--color-surface-elevated);
 --bg-panel: var(--color-surface-panel);
@@ -12980,7 +12804,7 @@ var(--bg-input);
     </section>
 
     <!-- 도감 -->
-    <section id="page-dex" class="page page-frame" role="tabpanel" aria-labelledby="nav-dex" aria-hidden="true" hidden>
+    <section id="page-dex" class="page page-frame dex-surface" role="tabpanel" aria-labelledby="nav-dex" aria-hidden="true" hidden>
       <section class="panel ui-frame dex-control-panel ui-panel">
         <div class="panel-head ui-frame-head dex-control-head ui-panel-head">
           <div class="dex-nav" aria-label="도감 분류" role="tablist">
@@ -13079,7 +12903,7 @@ var(--bg-input);
         <nav class="dex-pagination" id="dexPagination-items" aria-label="도구 목록 페이지" aria-live="polite"></nav>
       </div>
 
-      <div class="dex-content ui-frame" id="dexFullPageDetail" role="region" aria-label="도감 상세" aria-hidden="true"></div>
+      <div class="dex-content ui-frame dex-surface" id="dexFullPageDetail" role="region" aria-label="도감 상세" aria-hidden="true"></div>
     </section>
   </main>
 
@@ -13090,7 +12914,7 @@ var(--bg-input);
   </aside>
 </div>
 
-<dialog class="dex-modal ui-frame" id="dexDetailModal" aria-labelledby="dexDetailTitle">
+<dialog class="dex-modal ui-frame dex-surface" id="dexDetailModal" aria-labelledby="dexDetailTitle">
   <div class="dex-modal-head ui-frame-head">
     <div>
       <span class="dex-modal-title" id="dexDetailTitle"></span>
@@ -21965,8 +21789,8 @@ function renderDefensiveMatchup(defTypes) {
     else if (eff === 0) buckets.x0.push(t);
   }
   const row = (label, key, types) => types.length === 0 ? '' : `
-    <div class="matchup-label ${key}">${label}</div>
-    <div class="matchup-types">${types.map(t => dexTypePill(t)).join('')}</div>
+    <div class="dex-matchup-label ${key}">${label}</div>
+    <div class="dex-matchup-types">${types.map(t => dexTypePill(t)).join('')}</div>
   `;
   const html = `
     ${row('4배', 'x4', buckets.x4)}
@@ -21976,7 +21800,7 @@ function renderDefensiveMatchup(defTypes) {
     ${row('1/4배', 'x025', buckets.x025)}
     ${row('무효', 'x0', buckets.x0)}
   `;
-  return `<div class="matchup-grid">${html}</div>`;
+  return `<div class="dex-matchup-grid">${html}</div>`;
 }
 
 // 학습 기술을 타입별로 그룹화 + 모달 내 타입 필터
@@ -21998,7 +21822,7 @@ function renderLearnsetByType(learnable) {
 
   // 필터 버튼 (이 포켓몬이 학습 가능한 타입만 표시)
   const filterButtons = `
-    <div class="learnset-filter-row">
+    <div class="dex-learnset-filter-row">
       ${uiButton('전체', { class: `type-filter-btn ${pokemonDetailTypeFilter === null ? 'active' : ''}`, 'data-learnset-filter': '' })}
       ${presentTypes.map(t => {
         const active = pokemonDetailTypeFilter === t;
@@ -22016,7 +21840,7 @@ function renderLearnsetByType(learnable) {
   const groups = showTypes.map(t => {
     const moves = byType[t];
     return `
-      <div class="learnset-type-header">
+      <div class="dex-learnset-type-header">
         ${dexTypePill(t)}
         <span class="count">${moves.length}개</span>
       </div>

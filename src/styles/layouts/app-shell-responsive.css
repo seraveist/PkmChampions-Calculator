@@ -1,0 +1,12 @@
+/* Application shell breakpoint rules owned by the responsive layer. */
+
+@media (max-width: 1759px) {
+  .site-shell {
+    max-width: calc(var(--app-content-max) + (var(--app-shell-gutter) * 2));
+    grid-template-columns: minmax(0, var(--app-content-max));
+  }
+
+  .ad-rail {
+    display: none;
+  }
+}

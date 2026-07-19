@@ -211,6 +211,21 @@ check(template.includes('id="dexFullPageDetail"') && template.includes('aria-lab
 check(template.includes('class="calc-field-scope-note"') && template.includes('Protect/Detect'), 'calculator declares Protect and Detect states unsupported');
 check(template.includes('id="matchupModeTabs"') && template.includes('aria-label="상성표 모드"'), 'matchup mode tabs expose structure');
 check(template.includes('aria-labelledby="dexDetailTitle"'), 'dex modal has accessible title wiring');
+[
+  ['page-dex', /<section[^>]*id="page-dex"[^>]*class="[^"]*\bdex-surface\b/],
+  ['dexFullPageDetail', /<div[^>]*class="[^"]*\bdex-surface\b[^"]*"[^>]*id="dexFullPageDetail"/],
+  ['dexDetailModal', /<dialog[^>]*class="[^"]*\bdex-surface\b[^"]*"[^>]*id="dexDetailModal"/],
+].forEach(([label, pattern]) => {
+  check(pattern.test(template), `${label} declares the Dex CSS scope`);
+});
+
+const dexDetailRenderer = read(path.join(JS_DIR, '04-11-dex-detail.js'));
+check(
+  !/class="(?:matchup-|learnset-)/.test(dexDetailRenderer)
+    && dexDetailRenderer.includes('class="dex-matchup-grid"')
+    && dexDetailRenderer.includes('class="dex-learnset-filter-row"'),
+  'Dex renderer uses namespaced detail classes'
+);
 
 const calcSideRenderer = read(path.join(JS_DIR, '03-30-calc-side-render.js'));
 check(!calcSideRenderer.includes('section-divider'), 'calculator side renderer stacks subframes directly');

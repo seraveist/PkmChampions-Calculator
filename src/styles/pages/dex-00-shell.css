@@ -181,18 +181,6 @@
   box-shadow: none;
 }
 
-.learnset-filter-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 0;
-  padding: 9px 10px;
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
-  box-shadow: var(--surface-shadow-soft);
-}
-
 #page-dex .dex-type-filter .label {
   display: inline-flex;
   align-items: center;

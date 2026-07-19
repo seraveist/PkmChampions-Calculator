@@ -175,7 +175,7 @@ expectText(viewSource, 'partyPresetApplyPartyToMatchup', 'party preset should lo
 expectText(viewSource, 'partyPresetCollapsedParties', 'party preset party collapse state is missing');
 expectText(viewSource, 'partyPresetExpandedSlots', 'party preset slot expand state is missing');
 
-for (const selector of ['.dex-modal', '.dex-modal .ui-frame-body', '.dex-fullpage-head', '.dex-fullpage-body', '.dex-link', '.learnset-filter-row', '.dex-pagination', '.matchup-grid', '.matchup-label.x1']) {
+for (const selector of ['.dex-modal', '.dex-modal .ui-frame-body', '.dex-fullpage-head', '.dex-fullpage-body', '.dex-link', '.dex-learnset-filter-row', '.dex-pagination', '.dex-matchup-grid', '.dex-matchup-label.x1']) {
   expectText(css, selector, `CSS is missing ${selector}`);
 }
 expectPattern(css, /#page-dex \.dex-content\s*\{[\s\S]*?display:\s*none;[\s\S]*?\}/, 'inactive dex tab pages should be hidden');
@@ -185,7 +185,7 @@ expectPattern(css, /\.dex-modal-actions:has\(\.dex-action-label\)[\s\S]*grid-tem
 expectPattern(css, /\.party-preset-party\.collapsed\s*>\s*\.party-preset-slot-grid\s*\{[\s\S]*?display:\s*none;/, 'collapsed party should hide slot grid');
 expectPattern(css, /\.party-preset-slot\.collapsed\s*>\s*\.party-preset-detail\s*\{[\s\S]*?display:\s*none;/, 'collapsed slot should hide detail');
 expectPattern(css, /@media \(max-width: 760px\)[\s\S]*\.dex-fullpage-title[\s\S]*\.dex-modal \.ui-frame-head/, 'tablet CSS should cover dex modal and full-page detail');
-expectPattern(css, /@media \(max-width: 520px\)[\s\S]*#page-dex \.dex-type-filter[\s\S]*\.matchup-grid/, 'mobile CSS should cover dex filters and matchup grid');
+expectPattern(css, /@media \(max-width: 520px\)[\s\S]*#page-dex \.dex-type-filter[\s\S]*\.dex-matchup-grid/, 'mobile CSS should cover dex filters and matchup grid');
 
 if (failed) process.exit(1);
 console.log('dex smoke ok');

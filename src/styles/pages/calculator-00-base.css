@@ -74,18 +74,6 @@
   letter-spacing: 0;
 }
 
-#page-calc input[type="text"]:not(.tool-stat-point-input):not(.tool-move-power-input),
-#page-calc input[type="number"]:not(.tool-stat-point-input),
-#page-calc select,
-#page-calc .cb-input:not(.tool-move-input):not(.tool-move-type-input) {
-  height: 36px;
-  border-radius: 5px;
-  border-color: var(--calc-line);
-  background: var(--ui-control-bg);
-  color: var(--text);
-  font-size: 13px;
-}
-
 #page-calc .combobox .cb-input {
   width: 100%;
 }
@@ -113,14 +101,6 @@
 #page-calc .cb-trigger:not(.tool-move-type-input):disabled {
   opacity: 0.58;
   cursor: not-allowed;
-}
-
-#page-calc input[type="text"]:not(.tool-stat-point-input):not(.tool-move-power-input):focus,
-#page-calc input[type="number"]:not(.tool-stat-point-input):focus,
-#page-calc select:focus,
-#page-calc .cb-input[aria-expanded="true"]:not(.tool-move-input):not(.tool-move-type-input) {
-  border-color: var(--warn);
-  box-shadow: 0 0 0 2px rgba(234, 184, 94, 0.16);
 }
 
 #page-calc .ui-panel.atk input[type="text"]:not(.tool-stat-point-input):not(.tool-move-power-input):focus,
@@ -210,22 +190,12 @@
   border-color: #d1d5db;
 }
 
-#page-calc .calc-page-jump-button,
-#page-calc .type-reset-btn,
-#page-calc .manual-ability-toggle {
-  border-radius: 5px;
-  border-color: var(--calc-line);
-  background: var(--calc-surface-3);
-}
-
 #page-calc .calc-pair-grid {
   align-items: start;
 }
 
-#page-calc .manual-ability-spacer,
-#page-calc .manual-ability-toggle {
+#page-calc .manual-ability-spacer {
   width: 72px;
-  height: 36px;
 }
 
 #page-calc .hp-inline-control {
@@ -235,24 +205,8 @@
   background: var(--ui-control-bg);
 }
 
-#page-calc .calc-stat-total,
-#page-calc .calc-stat-preset-menu,
-#page-calc .calc-stat-bulk-card {
-  border-radius: 5px;
-  border-color: var(--calc-line);
-  background: var(--calc-surface-3);
-}
-
 #page-calc .calc-stat-preset-option {
   border-color: var(--calc-line);
-}
-
-#page-calc .battle-field-select-frame {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-#page-calc .battle-field-select-frame > .ui-field {
-  min-width: 0;
 }
 
 #page-calc .battle-field-select-frame .cb-input {
@@ -264,9 +218,6 @@
 }
 
 #page-calc .calc-field-effects-frame {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
   padding-top: 10px;
   border-top-color: var(--calc-line-soft);
 }
@@ -283,12 +234,6 @@
   grid-template-columns: none;
   align-items: center;
   width: auto;
-  min-height: 32px;
-  padding: 6px 10px;
-  gap: 7px;
-  border-radius: 5px;
-  border: 1px solid var(--calc-line);
-  background: var(--calc-surface-3);
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 12px;
   font-weight: 800;
@@ -297,28 +242,11 @@
 }
 
 #page-calc .ui-check input {
-  flex: 0 0 auto;
   margin: 0;
-}
-
-#page-calc .ui-check span {
-  min-width: auto;
-  overflow: visible;
-  text-overflow: clip;
 }
 
 #page-calc .ui-check.spikes {
   grid-template-columns: none;
-  height: 32px;
-  min-height: 32px;
-  padding: 0 8px 0 10px;
-  gap: 6px;
-}
-
-#page-calc .ui-check.spikes .calc-spikes-layer-combobox {
-  width: 54px;
-  height: 22px;
-  flex: 0 0 54px;
 }
 
 #page-calc .ui-check.spikes:not(:has(#defSpikes:checked)) .calc-spikes-layer-combobox {
@@ -330,12 +258,9 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  height: 22px;
-  min-height: 22px;
   padding: 0 16px 0 5px;
   border-radius: 4px;
   font-size: 10px;
-  line-height: 22px;
   text-align: left;
   cursor: pointer;
   caret-color: transparent;
@@ -543,8 +468,6 @@
 #page-calc .calc-result-grid {
   display: grid;
   align-items: stretch;
-  gap: 10px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 #page-calc .calc-result-card {
@@ -552,13 +475,8 @@
   position: relative;
   grid-template-columns: minmax(0, 1fr);
   align-content: start;
-  height: 100%;
-  min-height: 292px;
-  gap: 8px;
-  padding: 10px;
   border-width: 3px;
   border-style: solid;
-  border-color: rgb(165 138 104 / 0.22);
   border-radius: 8px;
   background: #ffffff;
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
@@ -574,7 +492,6 @@
     "info";
   align-items: stretch;
   align-content: start;
-  gap: 8px;
   height: 100%;
 }
 
@@ -583,17 +500,12 @@
   grid-area: top;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 6px;
-  min-height: 54px;
-  padding-right: 112px;
-  padding-bottom: 8px;
   border-bottom: 1px solid var(--calc-line-soft);
 }
 
 #page-calc .calc-result-title-row {
   display: flex;
   align-items: center;
-  gap: 9px;
   min-width: 0;
 }
 
@@ -601,8 +513,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
   flex: 0 0 24px;
   border: 1px solid var(--calc-line);
   border-radius: 6px;
@@ -657,9 +567,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--calc-text);
-  font-size: 15px;
   font-weight: 900;
-  line-height: 1.28;
 }
 
 #page-calc .calc-move-meta {
@@ -690,7 +598,6 @@
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-start;
-  gap: 4px;
   min-width: 0;
 }
 
@@ -699,8 +606,6 @@
 #page-calc .calc-move-badges .calc-stab-badge,
 #page-calc .calc-move-badges .calc-effectiveness-badge,
 #page-calc .calc-move-badges .calc-move-meta-badge {
-  min-height: 22px;
-  padding: 0 7px;
   line-height: 1;
 }
 
@@ -774,9 +679,7 @@
   grid-area: range;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 7px;
   min-width: 0;
-  padding: 8px;
   border: 1px solid var(--calc-line-soft);
   border-radius: 6px;
   background: #f8fafc;
@@ -799,7 +702,6 @@
 #page-calc .calc-damage-percent {
   color: var(--text);
   font-family: "Noto Sans KR", sans-serif;
-  font-size: 16px;
   font-weight: 900;
   line-height: 1.15;
   letter-spacing: -0.01em;
@@ -858,14 +760,11 @@
   flex-wrap: wrap;
   grid-area: info;
   align-content: flex-start;
-  min-height: 74px;
-  gap: 4px 5px;
   padding-top: 1px;
   color: #7a8795;
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 10px;
   font-weight: 800;
-  line-height: 1;
 }
 
 #page-calc .calc-damage-meta b {
@@ -1002,17 +901,11 @@
   flex-direction: column;
   justify-content: center;
   position: absolute;
-  top: 8px;
-  right: 8px;
   z-index: 1;
-  min-width: 96px;
-  max-width: 112px;
-  min-height: 52px;
   border-radius: 8px;
   border-color: var(--calc-line-soft);
   background: #f8fafc;
   align-self: auto;
-  padding: 7px 9px;
   text-align: center;
 }
 
@@ -1022,7 +915,6 @@
   justify-content: center;
   gap: 4px;
   font-family: 'Noto Sans KR', sans-serif;
-  font-size: 14px;
   font-weight: 900;
   line-height: 1.15;
   white-space: nowrap;
@@ -1051,140 +943,4 @@
 
 #page-calc .calc-ko-main.ohko {
   color: var(--atk-deep);
-}
-
-@media (max-width: 1280px) {
-  #page-calc .calc-side-swap-button {
-    min-height: 42px;
-  }
-
-  #page-calc .battle-field-select-frame {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 1120px) {
-  #page-calc .calc-result-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  #page-calc .calc-result-card {
-    min-height: 274px;
-  }
-
-  #page-calc .calc-damage-meta {
-    min-height: 58px;
-  }
-}
-
-@media (max-width: 860px) {
-  #page-calc .calc-result-card {
-    grid-template-columns: 1fr;
-  }
-
-  #page-calc .calc-result-card-main {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "top"
-      "range"
-      "info";
-  }
-
-  #page-calc .calc-ko-badge {
-    min-width: 96px;
-  }
-}
-
-@media (max-width: 620px) {
-  #page-calc .calc-result-grid {
-    grid-template-columns: 1fr;
-  }
-
-  #page-calc .calc-result-card {
-    min-height: 0;
-  }
-
-  #page-calc .calc-damage-meta {
-    min-height: 0;
-  }
-}
-
-@media (max-width: 560px) {
-  #page-calc .battle-field-select-frame {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  #page-calc .battle-field-select-frame .ui-field-label {
-    font-size: 11px;
-  }
-
-  #page-calc .battle-field-select-frame .cb-input {
-    height: 34px;
-    padding-left: 8px;
-    padding-right: 22px;
-    font-size: 12px;
-  }
-
-  #page-calc .battle-field-select-frame .combobox::after {
-    right: 8px;
-  }
-
-  #page-calc .calc-field-effects-frame {
-    grid-template-columns: 1fr;
-  }
-
-  #page-calc .calc-speed-row {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    gap: 6px;
-    padding: var(--ui-subframe-content-padding);
-  }
-
-  #page-calc .calc-speed-side {
-    grid-template-columns: minmax(0, 1fr) auto;
-    justify-items: center;
-    gap: 5px;
-    padding: 4px 2px;
-  }
-
-  #page-calc .calc-speed-side--def {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  #page-calc .calc-speed-side--def .calc-speed-value-wrap {
-    order: initial;
-  }
-
-  #page-calc .calc-speed-side--def .calc-speed-identity {
-    order: initial;
-  }
-
-  #page-calc .calc-speed-identity {
-    flex-direction: column;
-    gap: 3px;
-    white-space: nowrap;
-  }
-
-  #page-calc .calc-speed-role {
-    font-size: 10px;
-  }
-
-  #page-calc .calc-speed-pokemon {
-    max-width: 100%;
-    font-size: 14px;
-    text-align: center;
-  }
-
-  #page-calc .calc-speed-value {
-    min-width: 42px;
-    height: 28px;
-    padding: 0 8px;
-    font-size: 18px;
-  }
-
-  #page-calc .calc-speed-entry-note {
-    min-height: 22px;
-    padding: 0 6px;
-    font-size: 10px;
-  }
-
 }

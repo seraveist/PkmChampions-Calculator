@@ -10,7 +10,6 @@
 .ui-control-grid,
 .ui-action-row,
 .ui-panel-actions,
-.ui-panel-tag,
 .ui-stat-grid,
 .ui-metric-row,
 .ui-subframe,
@@ -40,7 +39,6 @@
 .ui-meter-fill,
 .ui-meta-row,
 .ui-status-badge,
-.ui-popover-trigger,
 .ui-index,
 .ui-popover,
 .tool-settings-layout,
@@ -198,6 +196,21 @@ white-space: nowrap;
 .ui-choice-combobox .ui-choice-surface {
 padding-right: 28px;
 }
+.ui-choice-surface:hover,
+.ui-choice-combobox .cb-input:hover {
+border-color: var(--ui-control-hover-border);
+background: var(--bg-input);
+color: var(--text);
+}
+.ui-choice-surface:focus,
+.ui-choice-surface:focus-visible,
+.ui-choice-combobox .cb-input:focus,
+.ui-choice-combobox .cb-input:focus-visible,
+.ui-choice-combobox .cb-input[aria-expanded="true"] {
+outline: 0;
+border-color: var(--ui-control-focus-border);
+box-shadow: var(--ui-pokemon-focus-ring);
+}
 .tool-settings-subframe {
 padding-block: var(--ui-subframe-content-padding);
 padding-inline: var(--ui-subframe-edge-padding-inline);
@@ -268,6 +281,22 @@ white-space: nowrap;
 }
 .tool-settings-choice-combobox .tool-settings-choice-surface {
 padding-right: 28px;
+}
+.tool-settings-choice-surface:hover,
+.tool-settings-choice-combobox .cb-input:hover {
+border-color: var(--ui-control-hover-border);
+background: var(--bg-input);
+color: var(--text);
+}
+.tool-settings-choice-surface:focus,
+.tool-settings-choice-surface:focus-visible,
+.tool-settings-choice-surface:focus-within,
+.tool-settings-choice-combobox .cb-input:focus,
+.tool-settings-choice-combobox .cb-input:focus-visible,
+.tool-settings-choice-combobox .cb-input[aria-expanded="true"] {
+outline: 0;
+border-color: var(--ui-control-focus-border);
+box-shadow: var(--ui-pokemon-focus-ring);
 }
 .tool-settings-hp-control.tool-settings-choice-surface {
 display: grid;

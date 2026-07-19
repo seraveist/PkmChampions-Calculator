@@ -510,6 +510,54 @@ async function main() {
       return delta;
     })()`, true);
     check(natureColumnDelta <= 1, 'nature dropdown header and option columns align', String(natureColumnDelta));
+    const calculatorControlContract = await client.evaluate(`(() => {
+      const typeControl = document.querySelector('#atk-body .tool-pokemon-meta-actions .type-pill-combobox:not(.type-none)');
+      const typeInput = typeControl?.querySelector(':scope > .cb-input');
+      const typeName = [...(typeControl?.classList || [])].find(name => name.startsWith('t-'))?.slice(2) || '';
+      const typeProbe = document.createElement('span');
+      typeProbe.className = typeName ? 't-' + typeName : '';
+      typeProbe.style.cssText = 'position:fixed;left:-9999px;top:0;';
+      document.body.appendChild(typeProbe);
+      const typeStyle = typeControl ? getComputedStyle(typeControl) : null;
+      const inputStyle = typeInput ? getComputedStyle(typeInput) : null;
+      const probeStyle = getComputedStyle(typeProbe);
+      const powerControl = document.querySelector('#atk-body .tool-move-power-control');
+      const powerInput = powerControl?.querySelector('.tool-move-power-input');
+      const powerControlStyle = powerControl ? getComputedStyle(powerControl) : null;
+      const powerInputStyle = powerInput ? getComputedStyle(powerInput) : null;
+      const result = {
+        typeName,
+        typeControlBg: typeStyle?.backgroundColor || '',
+        typeControlFg: typeStyle?.color || '',
+        typeInputBg: inputStyle?.backgroundColor || '',
+        typeInputFg: inputStyle?.color || '',
+        typeProbeBg: probeStyle.backgroundColor,
+        typeProbeFg: probeStyle.color,
+        powerControlBorder: powerControlStyle?.borderTopWidth || '',
+        powerInputBorder: powerInputStyle?.borderTopWidth || '',
+        powerInputBg: powerInputStyle?.backgroundColor || '',
+        powerInputShadow: powerInputStyle?.boxShadow || '',
+      };
+      typeProbe.remove();
+      return result;
+    })()`);
+    check(
+      !!calculatorControlContract.typeName
+        && calculatorControlContract.typeControlBg === calculatorControlContract.typeProbeBg
+        && calculatorControlContract.typeControlFg === calculatorControlContract.typeProbeFg
+        && calculatorControlContract.typeInputBg === 'rgba(0, 0, 0, 0)'
+        && calculatorControlContract.typeInputFg === calculatorControlContract.typeProbeFg,
+      'selected Pokemon type controls retain their type palette',
+      JSON.stringify(calculatorControlContract),
+    );
+    check(
+      calculatorControlContract.powerControlBorder !== '0px'
+        && calculatorControlContract.powerInputBorder === '0px'
+        && calculatorControlContract.powerInputBg === 'rgba(0, 0, 0, 0)'
+        && calculatorControlContract.powerInputShadow === 'none',
+      'move power input renders as a single framed control',
+      JSON.stringify(calculatorControlContract),
+    );
     const fontContract = await client.evaluate(`(async () => {
       let loadStatus = 'loaded';
       try {
@@ -642,12 +690,29 @@ async function main() {
             return optionRect ? Math.max(Math.abs(headerRect.left - optionRect.left), Math.abs(headerRect.right - optionRect.right)) : 999;
           }))
         : 999;
+      const pokemonColumnWidths = option
+        ? [...option.children].map(cell => Math.round(cell.getBoundingClientRect().width * 10) / 10)
+        : [];
+      input?.click();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const moveInput = document.querySelector('#atk-body [data-cb-type="move"]');
+      moveInput?.click();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const moveOptions = document.querySelector('.tool-move-options-portal.open')
+        || moveInput?.closest('.combobox')?.querySelector('.combobox-options.open');
+      const moveOption = moveOptions?.querySelector('.combobox-option.move-option:not(.empty)');
+      const moveColumnWidths = moveOption
+        ? [...moveOption.children].map(cell => Math.round(cell.getBoundingClientRect().width * 10) / 10)
+        : [];
+      moveInput?.click();
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         collapsed,
         expanded,
         dropdown: rect ? { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom } : null,
         pokemonColumnDelta,
+        pokemonColumnWidths,
+        moveColumnWidths,
         summaryVisible: !document.getElementById('calcMobileSummary').hidden,
       };
     })()`, true);
@@ -656,6 +721,18 @@ async function main() {
     check(mobile.expanded.statDisplay !== 'none' && mobile.expanded.ariaExpanded === 'true', 'mobile detail toggle reveals stat controls');
     check(mobile.dropdown && mobile.dropdown.left >= 0 && mobile.dropdown.right <= 375, 'mobile Pokemon dropdown stays inside viewport', JSON.stringify(mobile.dropdown));
     check(mobile.pokemonColumnDelta <= 1, 'Pokemon dropdown header and option columns align', JSON.stringify(mobile));
+    check(
+      mobile.pokemonColumnWidths.length === 8
+        && mobile.pokemonColumnWidths.slice(2).every(width => width <= 22),
+      'mobile Pokemon portal uses compact stat columns',
+      JSON.stringify(mobile.pokemonColumnWidths),
+    );
+    check(
+      mobile.moveColumnWidths.length === 4
+        && mobile.moveColumnWidths.slice(1).every(width => width <= 32),
+      'mobile move portal uses compact category, type, and power columns',
+      JSON.stringify(mobile.moveColumnWidths),
+    );
     check(mobile.summaryVisible, 'mobile recommendation summary is visible after calculation');
     await client.evaluate(`
       document.activeElement?.blur();
@@ -685,6 +762,15 @@ async function main() {
       const backdropStyle = backdrop ? getComputedStyle(backdrop) : null;
       const backdropRect = backdrop?.getBoundingClientRect();
       const modalRect = modal?.getBoundingClientRect();
+      const modalHead = modal?.querySelector('.party-preset-modal-head');
+      const evInput = document.createElement('input');
+      evInput.className = 'party-preset-ev-input';
+      evInput.style.position = 'fixed';
+      evInput.style.left = '-9999px';
+      modal?.appendChild(evInput);
+      const modalHeadStyle = modalHead ? getComputedStyle(modalHead) : null;
+      const evInputRect = evInput?.getBoundingClientRect();
+      evInput.remove();
       return {
         activeId: document.activeElement?.id || '',
         attributeEscaping,
@@ -699,6 +785,11 @@ async function main() {
           right: backdropRect?.right,
         } : null,
         modalBox: modalRect ? { left: modalRect.left, right: modalRect.right, width: modalRect.width } : null,
+        responsiveLayout: {
+          headDirection: modalHeadStyle?.flexDirection || '',
+          evWidth: evInputRect?.width || 0,
+          evHeight: evInputRect?.height || 0,
+        },
       };
     })()`, true);
     check(partyModalFocus.activeId === 'partyPresetClose', 'party preset modal receives initial focus', JSON.stringify(partyModalFocus));
@@ -711,6 +802,13 @@ async function main() {
       JSON.stringify(partyModalFocus.attributeEscaping),
     );
     check(partyModalFocus.backdropOverflow <= 1 && partyModalFocus.modalOverflow <= 1, 'party preset modal fits the mobile viewport', JSON.stringify(partyModalFocus));
+    check(
+      partyModalFocus.responsiveLayout?.headDirection === 'column'
+        && partyModalFocus.responsiveLayout.evWidth <= 34.5
+        && partyModalFocus.responsiveLayout.evHeight === 32,
+      'party preset mobile geometry wins over desktop defaults',
+      JSON.stringify(partyModalFocus.responsiveLayout),
+    );
     await checkAxe(client, 'party preset modal');
     const partyModalReturnFocus = await client.evaluate(`(async () => {
       document.getElementById('partyPresetClose')?.click();
