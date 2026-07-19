@@ -23,16 +23,43 @@ function read(file) {
 
 check(existsSync(STYLE_DIR), 'style directory exists');
 
-const cssFiles = existsSync(STYLE_DIR)
-  ? readdirSync(STYLE_DIR).filter(file => file.endsWith('.css')).sort()
-  : [];
-const cssByFile = new Map(cssFiles.map(file => [file, read(path.join(STYLE_DIR, file))]));
+function listCssFiles(dir, relativeDir = '') {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true })
+    .filter(entry => !entry.name.startsWith('.'))
+    .flatMap(entry => {
+      const relativePath = relativeDir ? `${relativeDir}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) return listCssFiles(path.join(dir, entry.name), relativePath);
+      return entry.isFile() && entry.name.endsWith('.css') ? [relativePath] : [];
+    })
+    .sort((a, b) => a.localeCompare(b));
+}
+
+const cssFiles = listCssFiles(STYLE_DIR);
+const cssByFile = new Map(cssFiles.map(file => [
+  file,
+  read(path.join(STYLE_DIR, ...file.split('/'))),
+]));
 const allCss = [...cssByFile.values()].join('\n');
 const importantCount = (allCss.match(/!important/g) || []).length;
 const mediaQueryCount = (allCss.match(/@media/g) || []).length;
 
 check(importantCount <= 70, `CSS important budget (${importantCount}/70)`);
 check(mediaQueryCount <= 36, `CSS media-query budget (${mediaQueryCount}/36)`);
+check(cssByFile.has('00-tokens.css'), 'semantic token stylesheet exists');
+
+[
+  '--color-surface-canvas',
+  '--color-surface-panel',
+  '--color-border-default',
+  '--color-text-primary',
+  '--color-side-attack',
+  '--color-side-defense',
+  '--shadow-surface',
+  '--layout-content-max',
+].forEach(token => {
+  check((cssByFile.get('00-tokens.css') || '').includes(token), `${token} semantic token exists`);
+});
 
 [
   '.page-frame',
@@ -276,6 +303,13 @@ check(
 
 if (existsSync(GENERATED)) {
   const generated = read(GENERATED);
+  check(
+    generated.includes('@layer reset, tokens, base, legacy-pages, legacy-foundation, components, layouts, pages, utilities, themes, legacy-polish;'),
+    'generated CSS declares deterministic cascade layer order'
+  );
+  ['tokens', 'legacy-foundation', 'pages', 'themes', 'legacy-polish'].forEach(layer => {
+    check(generated.includes(`@layer ${layer} {`), `generated CSS contains ${layer} layer`);
+  });
   ['ui-frame', 'ui-frame-head', 'ui-frame-body', 'ui-control-frame', 'ui-action-row'].forEach(className => {
     check(generated.includes(className), `generated HTML contains ${className}`);
   });

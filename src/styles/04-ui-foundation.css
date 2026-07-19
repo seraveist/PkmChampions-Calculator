@@ -6,43 +6,39 @@
 :root {
   color-scheme: light;
 
-  --bg: #f4f6f8;
-  --bg-elev: #ffffff;
-  --bg-panel: #ffffff;
-  --bg-input: #f8fafc;
-  --bg-muted: #eef2f6;
-  --bg-overlay: rgba(15, 23, 42, 0.36);
-  --bg-overlay-soft: rgba(15, 23, 42, 0.28);
-  --bg-header: rgba(255, 255, 255, 0.94);
+  --bg: var(--color-surface-canvas);
+  --bg-elev: var(--color-surface-elevated);
+  --bg-panel: var(--color-surface-panel);
+  --bg-input: var(--color-surface-input);
+  --bg-muted: var(--color-surface-muted);
+  --bg-overlay: var(--color-surface-overlay);
+  --bg-overlay-soft: var(--color-surface-overlay-soft);
+  --bg-header: var(--color-surface-header);
 
-  --border: #d9e1ea;
-  --border-bright: #aebdcb;
-  --border-soft: rgba(104, 122, 142, 0.16);
-  --border-header: rgba(104, 122, 142, 0.18);
+  --border: var(--color-border-default);
+  --border-bright: var(--color-border-strong);
+  --border-soft: var(--color-border-soft);
+  --border-header: var(--color-border-header);
 
-  --text: #17202a;
-  --text-dim: #5b6978;
-  --text-faint: #8b98a6;
+  --text: var(--color-text-primary);
+  --text-dim: var(--color-text-secondary);
+  --text-faint: var(--color-text-tertiary);
 
-  --atk: #d64c56;
-  --atk-deep: #9f2834;
-  --def: #167fa5;
-  --def-deep: #0e5c78;
-  --warn: #b7791f;
-  --ok: #257a57;
-  --tera: #7f57bf;
+  --atk: var(--color-side-attack);
+  --atk-deep: var(--color-side-attack-strong);
+  --def: var(--color-side-defense);
+  --def-deep: var(--color-side-defense-strong);
+  --warn: var(--color-status-warning);
+  --ok: var(--color-status-positive);
+  --tera: var(--color-accent-tera);
   --accent-red: var(--atk);
   --accent-green: var(--ok);
 
-  --surface-shadow: 0 14px 36px rgba(28, 40, 52, 0.08);
-  --surface-shadow-soft: 0 8px 20px rgba(28, 40, 52, 0.06);
-  --focus-ring: 0 0 0 3px rgba(183, 121, 31, 0.18);
-  --ui-pokemon-focus-ring: 0 0 0 2px rgba(183, 121, 31, 0.18);
-  --header-shadow: 0 10px 28px rgba(28, 40, 52, 0.08);
-
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --surface-shadow: var(--shadow-surface);
+  --surface-shadow-soft: var(--shadow-surface-soft);
+  --focus-ring: var(--shadow-focus);
+  --ui-pokemon-focus-ring: var(--shadow-focus-compact);
+  --header-shadow: var(--shadow-header);
 
   --ui-surface: var(--bg-panel);
   --ui-surface-soft: var(--bg-input);
@@ -177,53 +173,47 @@
   --ui-check-inline-height: 22px;
   --ui-check-inline-width: 54px;
 
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-
-  --app-content-max: 1500px;
-  --ad-rail-width: 160px;
-  --app-shell-gap: 18px;
-  --app-shell-gutter: 24px;
+  --app-content-max: var(--layout-content-max);
+  --ad-rail-width: var(--layout-ad-rail-width);
+  --app-shell-gap: var(--layout-shell-gap);
+  --app-shell-gutter: var(--layout-shell-gutter);
   --app-shell-max: calc(var(--app-content-max) + (var(--ad-rail-width) * 2) + (var(--app-shell-gap) * 2));
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #0f1621;
-  --bg-elev: #182231;
-  --bg-panel: #1b2635;
-  --bg-input: #131c29;
-  --bg-muted: #223044;
-  --bg-overlay: rgba(3, 7, 18, 0.66);
-  --bg-overlay-soft: rgba(3, 7, 18, 0.5);
-  --bg-header: rgba(16, 24, 36, 0.94);
+  --bg: var(--color-surface-canvas);
+  --bg-elev: var(--color-surface-elevated);
+  --bg-panel: var(--color-surface-panel);
+  --bg-input: var(--color-surface-input);
+  --bg-muted: var(--color-surface-muted);
+  --bg-overlay: var(--color-surface-overlay);
+  --bg-overlay-soft: var(--color-surface-overlay-soft);
+  --bg-header: var(--color-surface-header);
 
-  --border: #324257;
-  --border-bright: #53677f;
-  --border-soft: rgba(148, 163, 184, 0.2);
-  --border-header: rgba(148, 163, 184, 0.18);
+  --border: var(--color-border-default);
+  --border-bright: var(--color-border-strong);
+  --border-soft: var(--color-border-soft);
+  --border-header: var(--color-border-header);
 
-  --text: #edf3fa;
-  --text-dim: #b7c3d2;
-  --text-faint: #8290a3;
+  --text: var(--color-text-primary);
+  --text-dim: var(--color-text-secondary);
+  --text-faint: var(--color-text-tertiary);
 
-  --atk: #ef6b73;
-  --atk-deep: #f08a91;
-  --def: #4bb3d7;
-  --def-deep: #7bcbea;
-  --warn: #dfb25f;
-  --ok: #61c08f;
-  --tera: #a98be0;
+  --atk: var(--color-side-attack);
+  --atk-deep: var(--color-side-attack-strong);
+  --def: var(--color-side-defense);
+  --def-deep: var(--color-side-defense-strong);
+  --warn: var(--color-status-warning);
+  --ok: var(--color-status-positive);
+  --tera: var(--color-accent-tera);
 
-  --surface-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
-  --surface-shadow-soft: 0 10px 26px rgba(0, 0, 0, 0.24);
-  --focus-ring: 0 0 0 3px rgba(223, 178, 95, 0.24);
-  --ui-pokemon-focus-ring: 0 0 0 2px rgba(223, 178, 95, 0.24);
-  --header-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  --surface-shadow: var(--shadow-surface);
+  --surface-shadow-soft: var(--shadow-surface-soft);
+  --focus-ring: var(--shadow-focus);
+  --ui-pokemon-focus-ring: var(--shadow-focus-compact);
+  --header-shadow: var(--shadow-header);
 
   --ui-action-bg: #1f2b3a;
   --ui-action-active-bg: rgba(223, 178, 95, 0.16);

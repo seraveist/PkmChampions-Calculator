@@ -217,6 +217,34 @@ async function main() {
     check(desktop.headings >= 4, 'calculator uses semantic panel headings', String(desktop.headings));
     check(desktop.resultCards >= 1, 'calculator renders a damage result card');
     check(desktop.detailToggleDisplay === 'none', 'desktop hides the mobile detail toggle', desktop.detailToggleDisplay);
+    const themeTokens = await client.evaluate(`(() => {
+      const root = document.documentElement;
+      const panel = document.querySelector('#page-calc .ui-panel');
+      delete root.dataset.theme;
+      const light = {
+        canvas: getComputedStyle(root).getPropertyValue('--color-surface-canvas').trim(),
+        body: getComputedStyle(document.body).backgroundColor,
+        panel: getComputedStyle(panel).backgroundColor,
+      };
+      root.dataset.theme = 'dark';
+      const dark = {
+        canvas: getComputedStyle(root).getPropertyValue('--color-surface-canvas').trim(),
+        body: getComputedStyle(document.body).backgroundColor,
+        panel: getComputedStyle(panel).backgroundColor,
+      };
+      delete root.dataset.theme;
+      return { light, dark };
+    })()`);
+    check(
+      themeTokens.light.canvas && themeTokens.dark.canvas && themeTokens.light.canvas !== themeTokens.dark.canvas,
+      'semantic surface tokens switch with the theme',
+      JSON.stringify(themeTokens)
+    );
+    check(
+      themeTokens.light.body !== themeTokens.dark.body && themeTokens.light.panel !== themeTokens.dark.panel,
+      'legacy UI aliases resolve through semantic theme tokens',
+      JSON.stringify(themeTokens)
+    );
     await captureScreenshot(client, 'calculator-desktop-1440');
 
     await setViewport(client, 375, 812);

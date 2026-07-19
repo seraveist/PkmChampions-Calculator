@@ -461,11 +461,70 @@ async function build() {
   const template = fs.readFileSync(templatePath, 'utf8');
 
   // 분할된 src/styles/*.css, src/js/*.js 를 알파벳순으로 concat 한다.
-  // 파일명 접두사(01-, 02-, ...)가 곧 의존성 순서를 결정하므로 Array.sort() 면 충분.
+  // CSS 는 페이지 단위 이전을 지원하도록 명시적인 cascade layer 로 감싼다.
+  // legacy layer 는 현재 파일 간 우선순위를 그대로 보존하며, 이전이 끝나면 제거한다.
   function concatDir(dir, ext) {
     if (!fs.existsSync(dir)) return '';
     const files = fs.readdirSync(dir).filter(f => f.endsWith(ext) && !f.startsWith('.')).sort();
     return files.map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n\n');
+  }
+  const CSS_LAYER_ORDER = [
+    'reset',
+    'tokens',
+    'base',
+    'legacy-pages',
+    'legacy-foundation',
+    'components',
+    'layouts',
+    'pages',
+    'utilities',
+    'themes',
+    'legacy-polish',
+  ];
+  const CSS_LEGACY_LAYERS = new Map([
+    ['01-base.css', 'reset'],
+    ['02-pages.css', 'base'],
+    ['03-calc-redesign.css', 'legacy-pages'],
+    ['04-ui-foundation.css', 'legacy-foundation'],
+    ['05-calc-sample-layout.css', 'pages'],
+    ['06-dex-redesign.css', 'pages'],
+    ['07-tools-redesign.css', 'pages'],
+    ['08-theme-bridge.css', 'themes'],
+    ['09-product-polish.css', 'legacy-polish'],
+  ]);
+  function listFilesRecursive(dir, ext, relativeDir = '') {
+    if (!fs.existsSync(dir)) return [];
+    return fs.readdirSync(dir, { withFileTypes: true })
+      .filter(entry => !entry.name.startsWith('.'))
+      .flatMap(entry => {
+        const relativePath = relativeDir ? `${relativeDir}/${entry.name}` : entry.name;
+        if (entry.isDirectory()) {
+          return listFilesRecursive(path.join(dir, entry.name), ext, relativePath);
+        }
+        return entry.isFile() && entry.name.endsWith(ext) ? [relativePath] : [];
+      })
+      .sort((a, b) => a.localeCompare(b));
+  }
+  function styleLayerFor(relativePath) {
+    if (relativePath === '00-tokens.css') return 'tokens';
+    if (relativePath === '01-reset.css') return 'reset';
+    if (relativePath === '02-base.css') return 'base';
+    if (relativePath.startsWith('components/')) return 'components';
+    if (relativePath.startsWith('layouts/')) return 'layouts';
+    if (relativePath.startsWith('pages/')) return 'pages';
+    if (relativePath === 'utilities.css') return 'utilities';
+    if (relativePath === 'themes.css') return 'themes';
+    return CSS_LEGACY_LAYERS.get(relativePath) || 'legacy-polish';
+  }
+  function concatStyles(dir) {
+    const files = listFilesRecursive(dir, '.css');
+    const prelude = `@layer ${CSS_LAYER_ORDER.join(', ')};`;
+    const layeredFiles = files.map(relativePath => {
+      const layer = styleLayerFor(relativePath);
+      const source = fs.readFileSync(path.join(dir, ...relativePath.split('/')), 'utf8');
+      return `@layer ${layer} {\n${source}\n}`;
+    });
+    return [prelude, ...layeredFiles].join('\n\n');
   }
   function compactCssForInline(source) {
     return source
@@ -526,7 +585,7 @@ self.onmessage = event => {
 `;
   }
 
-  const styleSource = concatDir(path.join(ROOT, 'src', 'styles'), '.css');
+  const styleSource = concatStyles(path.join(ROOT, 'src', 'styles'));
   const inlineCss = compactCssForInline(styleSource);
   const jsDir = path.join(ROOT, 'src', 'js');
   const inlineJs = concatDir(jsDir, '.js');
