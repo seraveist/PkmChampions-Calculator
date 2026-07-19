@@ -15,6 +15,9 @@
 - 기존 `--bg`, `--ui-*` 계열 토큰은 semantic token을 참조하는 호환 alias로 유지했다.
 - CSS 구조 검사에 layer 순서, semantic token, 하위 디렉터리 탐색 검증을 추가했다.
 - 브라우저 검사에 라이트/다크 token 전환과 기존 UI alias 해석 검증을 추가했다.
+- 공통 패널/프레임 규칙을 `components/panels.css`로 이동하고 기존 규칙을 제거했다.
+- 공통 버튼과 상태 규칙을 `components/buttons.css`로 이동하고 기존 규칙을 제거했다.
+- 구조 검사가 공통 컴포넌트의 단일 소유권을 확인하도록 강화했다.
 
 ## Cascade layer 순서
 
@@ -43,7 +46,7 @@ src/styles/
 
 ## 다음 이전 순서
 
-1. 공통 버튼, 입력 필드, 패널 스타일을 `components/`로 이동한다.
+1. 공통 입력 필드와 콤보박스 스타일을 `components/`로 이동한다.
 2. 앱 셸과 도구 페이지 골격을 `layouts/`로 이동한다.
 3. 대미지 계산기 규칙을 `pages/calculator.css`로 이동한다.
 4. 이동한 규칙을 `03`, `04`, `05`, `09` 파일에서 제거한다.

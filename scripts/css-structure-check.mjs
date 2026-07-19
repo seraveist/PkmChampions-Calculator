@@ -61,6 +61,32 @@ check(cssByFile.has('00-tokens.css'), 'semantic token stylesheet exists');
   check((cssByFile.get('00-tokens.css') || '').includes(token), `${token} semantic token exists`);
 });
 
+const panelComponentCss = cssByFile.get('components/panels.css') || '';
+const buttonComponentCss = cssByFile.get('components/buttons.css') || '';
+const legacyFoundationCss = cssByFile.get('04-ui-foundation.css') || '';
+check(Boolean(panelComponentCss), 'panel component stylesheet exists');
+check(
+  panelComponentCss.includes('.ui-frame.ui-panel')
+    && panelComponentCss.includes('.ui-panel-body.ui-subframe-stack'),
+  'panel component owns shared frame and panel structure'
+);
+check(
+  !legacyFoundationCss.includes('.ui-frame.ui-panel')
+    && !legacyFoundationCss.includes('.ui-panel-body.ui-subframe-stack'),
+  'legacy foundation releases shared panel ownership'
+);
+check(Boolean(buttonComponentCss), 'button component stylesheet exists');
+check(
+  buttonComponentCss.includes('.ui-btn-primary')
+    && buttonComponentCss.includes('.ui-btn-secondary.active'),
+  'button component owns shared button variants and states'
+);
+check(
+  !legacyFoundationCss.includes('.ui-btn-primary')
+    && !legacyFoundationCss.includes('.ui-btn-secondary.active'),
+  'legacy foundation releases shared button ownership'
+);
+
 [
   '.page-frame',
   '.ui-frame',
