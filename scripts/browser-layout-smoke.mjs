@@ -290,6 +290,29 @@ async function main() {
     `);
     await captureScreenshot(client, 'calculator-mobile-375');
 
+    const dex = await client.evaluate(`(async () => {
+      document.querySelector('.nav-tab[data-page="dex"]')?.click();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const firstPageRows = [...document.querySelectorAll('#dexBodyPokemon tr[data-dex-id]')];
+      const firstId = firstPageRows[0]?.dataset.dexId || '';
+      const nextButton = document.querySelector('#dexPagination-pokemon [data-dex-page="2"]');
+      nextButton?.click();
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      const secondPageRows = [...document.querySelectorAll('#dexBodyPokemon tr[data-dex-id]')];
+      return {
+        overflow: document.documentElement.scrollWidth - window.innerWidth,
+        firstCount: firstPageRows.length,
+        secondCount: secondPageRows.length,
+        firstId,
+        secondId: secondPageRows[0]?.dataset.dexId || '',
+        pageLabel: document.querySelector('#dexPagination-pokemon .dex-page-current')?.textContent?.trim() || '',
+      };
+    })()`, true);
+    check(dex.overflow <= 1, 'mobile dex has no horizontal page overflow', String(dex.overflow));
+    check(dex.firstCount > 0 && dex.firstCount <= 50, 'dex limits the initial Pokemon DOM to 50 rows', JSON.stringify(dex));
+    check(dex.secondCount > 0 && dex.secondCount <= 50 && dex.secondId !== dex.firstId, 'dex pagination renders the next Pokemon slice', JSON.stringify(dex));
+    check(dex.pageLabel.startsWith('2 / '), 'dex pagination exposes the current page', dex.pageLabel);
+
     const reverse = await client.evaluate(`(async () => {
       revCalcState.my = makeSideState('primarina');
       revCalcState.opp = { pokemonIdx: 'archaludon', ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: 'none' };

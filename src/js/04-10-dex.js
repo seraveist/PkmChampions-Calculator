@@ -6,10 +6,12 @@ let currentDex = 'pokemon';
 let dexTypeFilter = [];          // 빈 배열 = 전체. 포켓몬 탭은 최대 2개, 기술 탭은 최대 1개.
 let dexItemCategory = null;      // 도구 탭의 카테고리 필터 (null = 전체, 'equip'/'berry'/'mega')
 const DEX_TABS = ['pokemon', 'moves', 'abilities', 'items'];
+const DEX_PAGE_SIZE = 50;
 const dexViewState = Object.fromEntries(DEX_TABS.map(tab => [tab, {
   query: '',
   typeFilter: [],
   itemCategory: null,
+  page: 1,
   scrollTop: 0,
   scrollLeft: 0,
 }]));
@@ -286,6 +288,40 @@ function applyDexSort(data, tab = currentDex) {
   });
 }
 
+function resetDexPage(tab = currentDex) {
+  if (dexViewState[tab]) dexViewState[tab].page = 1;
+}
+
+function paginateDex(data, tab = currentDex) {
+  const state = dexViewState[tab] || { page: 1 };
+  const pageCount = Math.max(1, Math.ceil(data.length / DEX_PAGE_SIZE));
+  const page = Math.min(Math.max(1, Number(state.page) || 1), pageCount);
+  state.page = page;
+  const startIndex = (page - 1) * DEX_PAGE_SIZE;
+  return {
+    items: data.slice(startIndex, startIndex + DEX_PAGE_SIZE),
+    page,
+    pageCount,
+    total: data.length,
+    start: data.length ? startIndex + 1 : 0,
+    end: Math.min(startIndex + DEX_PAGE_SIZE, data.length),
+  };
+}
+
+function renderDexPagination(tab, pageData) {
+  const pagination = document.getElementById(`dexPagination-${tab}`);
+  if (!pagination) return;
+  const { page, pageCount, total, start, end } = pageData;
+  pagination.innerHTML = `
+    <span class="dex-page-status">${total ? `${start}-${end} / ${total}` : '검색 결과 없음'}</span>
+    <span class="dex-page-actions">
+      <button type="button" class="dex-page-button" data-dex-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}>이전</button>
+      <span class="dex-page-current" aria-label="전체 ${pageCount}페이지 중 ${page}페이지">${page} / ${pageCount}</span>
+      <button type="button" class="dex-page-button" data-dex-page="${page + 1}" ${page >= pageCount ? 'disabled' : ''}>다음</button>
+    </span>
+  `;
+}
+
 document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
   const typeBtn = e.target.closest('[data-filter-type]');
   if (typeBtn) {
@@ -294,6 +330,7 @@ document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
     const t = typeBtn.dataset.filterType;
     if (t === '') dexTypeFilter = [];   // 전체 클릭 → 모두 해제
     else toggleTypeFilter(t);
+    resetDexPage();
     renderTypeFilter();
     renderDexContent(dexSearchEl?.value || '');
     return;
@@ -304,6 +341,7 @@ document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
     // 같은 카테고리를 다시 누르면 해제 (전체로 자동 복귀)
     if (c === '' || dexItemCategory === c) dexItemCategory = null;
     else dexItemCategory = c;
+    resetDexPage();
     renderTypeFilter();
     renderDexContent(dexSearchEl?.value || '');
     return;
@@ -312,7 +350,10 @@ document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
 
 const dexSearchEl = document.getElementById('dexSearch');
 if (dexSearchEl) {
-  const handleDexSearch = debounce((query) => renderDexContent(query), 200);
+  const handleDexSearch = debounce((query) => {
+    resetDexPage();
+    renderDexContent(query);
+  }, 200);
   dexSearchEl.addEventListener('input', e => handleDexSearch(e.target.value));
 }
 
@@ -326,6 +367,7 @@ document.getElementById('dexResetFilters')?.addEventListener('click', () => {
     dexViewState[currentDex].query = '';
     dexViewState[currentDex].typeFilter = [];
     dexViewState[currentDex].itemCategory = null;
+    dexViewState[currentDex].page = 1;
     dexViewState[currentDex].scrollTop = 0;
     dexViewState[currentDex].scrollLeft = 0;
   }
@@ -380,8 +422,20 @@ document.querySelectorAll('.dex-table th.sortable').forEach(th => {
       sort.key = th.dataset.sort;
       sort.dir = th.classList.contains('num') ? 'desc' : 'asc';
     }
+    resetDexPage(tab);
     renderDexContent(dexSearchEl?.value || '');
   });
+});
+
+document.getElementById('page-dex')?.addEventListener('click', e => {
+  const button = e.target.closest('[data-dex-page]');
+  if (!button || button.disabled) return;
+  const tab = button.closest('.dex-content')?.id?.replace('dex-', '');
+  if (!tab || tab !== currentDex || !dexViewState[tab]) return;
+  dexViewState[tab].page = Number(button.dataset.dexPage) || 1;
+  const wrap = dexTableWrap(tab);
+  if (wrap) wrap.scrollTop = 0;
+  renderDexContent(dexSearchEl?.value || '');
 });
 
 // 도감 렌더링 함수들
@@ -413,11 +467,13 @@ function renderPokemonDex(query) {
   applyDexSort(data, 'pokemon');
   const tbody = document.getElementById('dexBodyPokemon');
   if(!tbody) return;
-  tbody.innerHTML = data.map(p => {
+  const pageData = paginateDex(data, 'pokemon');
+  tbody.innerHTML = pageData.items.map(p => {
     const ab = p.ab || {};
     const nameCell = `<span class="dex-pokemon-name-wrap">${pokemonSpriteSlot(p, { size: 'md', className: 'dex-list-sprite' })}<span class="dex-pokemon-name-text">${pokemonListName(p)}</span></span>`;
     return `<tr data-dex-id="${p.id}"><td class="dex-name-cell">${nameCell}</td><td class="dex-type-cell">${p.types.map(t => dexTypePill(t)).join(' ')}</td><td class="num">${p.bs.hp}</td><td class="num">${p.bs.atk}</td><td class="num">${p.bs.def}</td><td class="num">${p.bs.spa}</td><td class="num">${p.bs.spd}</td><td class="num">${p.bs.spe}</td><td class="num dex-bst">${p.bst}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab[0])}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab[1])}</td><td class="dim dex-ability-cell">${dexAbilityLabel(ab.H)}</td></tr>`;
   }).join('');
+  renderDexPagination('pokemon', pageData);
 }
 function renderMovesDex(query) {
   let data = [...MOVES];
@@ -426,11 +482,13 @@ function renderMovesDex(query) {
   applyDexSort(data, 'moves');
   const tbody = document.getElementById('dexBodyMoves');
   if(!tbody) return;
-  tbody.innerHTML = data.map(m => {
+  const pageData = paginateDex(data, 'moves');
+  tbody.innerHTML = pageData.items.map(m => {
     const powerLabel = movePowerLabel(m);
     const variableBadge = VARIABLE_BP_NOTE[m.id] && powerLabel !== '가변' ? '<span class="dex-var-badge">가변</span>' : '';
     return `<tr data-dex-id="${m.id}"><td class="dex-name-cell">${escapeHTML(mvName(m))}</td><td class="dex-type-cell">${dexTypePill(m.type)}</td><td>${dexMoveCategoryBadge(m.cat)}</td><td class="num">${powerLabel}${variableBadge}</td><td class="num">${moveAccuracyLabel(m)}</td><td class="num">${m.pri || 0}</td><td class="desc-cell">${escapeHTML(m.desc || '')}</td></tr>`;
   }).join('');
+  renderDexPagination('moves', pageData);
 }
 function renderAbilitiesDex(query) {
   let data = [...ABILITIES];
@@ -438,7 +496,9 @@ function renderAbilitiesDex(query) {
   applyDexSort(data, 'abilities');
   const tbody = document.getElementById('dexBodyAbilities');
   if(!tbody) return;
-  tbody.innerHTML = data.map(a => `<tr data-dex-id="${a.id}"><td class="dex-name-cell">${escapeHTML(abName(a))}</td><td class="dim dex-en-cell">${escapeHTML(a.name)}</td><td class="desc-cell">${escapeHTML(a.desc || '')}</td></tr>`).join('');
+  const pageData = paginateDex(data, 'abilities');
+  tbody.innerHTML = pageData.items.map(a => `<tr data-dex-id="${a.id}"><td class="dex-name-cell">${escapeHTML(abName(a))}</td><td class="dim dex-en-cell">${escapeHTML(a.name)}</td><td class="desc-cell">${escapeHTML(a.desc || '')}</td></tr>`).join('');
+  renderDexPagination('abilities', pageData);
 }
 function renderItemsDex(query) {
   let data = [...ITEMS];
@@ -454,10 +514,11 @@ function renderItemsDex(query) {
   });
   const tbody = document.getElementById('dexBodyItems');
   if(!tbody) return;
+  const pageData = paginateDex(data, 'items');
   // 카테고리별 그룹 헤더가 있는 단일 테이블 — 행 사이에 헤더 row 삽입
   const rows = [];
   let lastCat = null;
-  for (const i of data) {
+  for (const i of pageData.items) {
     const cat = itemCategoryOf(i);
     if (cat !== lastCat) {
       rows.push(`<tr class="dex-cat-header"><td colspan="4">${ITEM_CATEGORY_LABEL[cat]}</td></tr>`);
@@ -471,6 +532,7 @@ function renderItemsDex(query) {
     rows.push(`<tr data-dex-id="${i.id}"><td class="dex-name-cell">${escapeHTML(itName(i))}</td><td class="dim dex-en-cell">${escapeHTML(i.name)}</td><td class="desc-cell">${escapeHTML(i.desc || '')}</td><td>${tag}</td></tr>`);
   }
   tbody.innerHTML = rows.join('');
+  renderDexPagination('items', pageData);
 }
 
 

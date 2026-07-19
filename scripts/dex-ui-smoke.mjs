@@ -12,10 +12,16 @@ const html = readFileSync(htmlPath, 'utf8');
 const template = readFileSync(templatePath, 'utf8');
 const viewSource = readViewSource(ROOT);
 const calcUiSource = readCalcUiSource(ROOT);
-const css = readdirSync(stylesDir)
-  .filter(file => file.endsWith('.css') && !file.startsWith('.'))
-  .sort()
-  .map(file => readFileSync(path.join(stylesDir, file), 'utf8'))
+function listCssFiles(dir) {
+  return readdirSync(dir, { withFileTypes: true })
+    .filter(entry => !entry.name.startsWith('.'))
+    .flatMap(entry => entry.isDirectory()
+      ? listCssFiles(path.join(dir, entry.name))
+      : (entry.isFile() && entry.name.endsWith('.css') ? [path.join(dir, entry.name)] : []))
+    .sort((a, b) => a.localeCompare(b));
+}
+const css = listCssFiles(stylesDir)
+  .map(file => readFileSync(file, 'utf8'))
   .join('\n\n');
 
 let failed = false;
@@ -139,6 +145,7 @@ expectText(template, 'id="dexFullPageDetail"', 'template is missing dex full-pag
 expectText(template, 'id="dexDetailModal"', 'template is missing dex modal dialog');
 expectText(template, 'id="dexDetailBody"', 'template is missing dex modal body');
 expectText(template, 'id="dexDetailActions"', 'template is missing dex modal actions');
+expectText(template, 'id="dexPagination-pokemon"', 'template is missing Pokemon pagination');
 expectText(template, 'id="partyPresetOpen"', 'template is missing party preset open button');
 expectText(template, 'data-party-import-target="matchup"', 'template is missing matchup party import target');
 expectPattern(calcUiSource, /['"]data-party-import-target['"]:\s*`calc:\$\{sideKey\}`/, 'damage calculator is missing side party import targets');
@@ -155,6 +162,8 @@ expectPattern(viewSource, /applyDexAction\(btn\.dataset\.dexApply, dexFullPageCt
 expectPattern(viewSource, /dexModalCtx = \{ type: null, id: null, parent: null \};/, 'modal context should reset on close');
 expectPattern(viewSource, /row\('1배', 'x1', buckets\.x1\)/, 'defensive matchup should include neutral 1x row');
 expectText(viewSource, 'dexItemUserTerms', 'item search should include dedicated-user aliases');
+expectText(viewSource, 'const DEX_PAGE_SIZE = 50', 'dex should cap each rendered page at 50 rows');
+expectPattern(viewSource, /data\.slice\(startIndex, startIndex \+ DEX_PAGE_SIZE\)/, 'dex pagination should slice filtered data before rendering');
 expectText(viewSource, 'partyPresetExportPayload', 'party preset JSON export helper is missing');
 expectText(viewSource, 'importPartyPresetJsonFile', 'party preset JSON import helper is missing');
 expectText(viewSource, 'partyPresetParseShowdownSet', 'party preset Showdown parser is missing');
@@ -166,7 +175,7 @@ expectText(viewSource, 'partyPresetApplyPartyToMatchup', 'party preset should lo
 expectText(viewSource, 'partyPresetCollapsedParties', 'party preset party collapse state is missing');
 expectText(viewSource, 'partyPresetExpandedSlots', 'party preset slot expand state is missing');
 
-for (const selector of ['.dex-modal', '.dex-modal .ui-frame-body', '.dex-fullpage-head', '.dex-fullpage-body', '.dex-link', '.learnset-filter-row', '.matchup-grid', '.matchup-label.x1']) {
+for (const selector of ['.dex-modal', '.dex-modal .ui-frame-body', '.dex-fullpage-head', '.dex-fullpage-body', '.dex-link', '.learnset-filter-row', '.dex-pagination', '.matchup-grid', '.matchup-label.x1']) {
   expectText(css, selector, `CSS is missing ${selector}`);
 }
 expectPattern(css, /#page-dex \.dex-content\s*\{[\s\S]*?display:\s*none;[\s\S]*?\}/, 'inactive dex tab pages should be hidden');

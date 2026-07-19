@@ -310,7 +310,7 @@ check(allCss.includes('#page-calc .ui-stat-readout'), 'calculator stat readouts 
 check(!allCss.includes('--calc-radius'), 'calculator panels do not define a legacy radius token');
 check(!allCss.includes('--calc-shadow'), 'calculator panels do not define a legacy shadow token');
 
-const pageCss = ['pages/calculator-base.css', 'pages/calculator.css', '06-dex-redesign.css', '07-tools-redesign.css']
+const pageCss = ['pages/calculator-base.css', 'pages/calculator.css', 'pages/dex.css', '07-tools-redesign.css']
   .map(file => cssByFile.get(file) || '')
   .join('\n');
 check(!pageCss.includes('--panel-point-height'), 'page CSS does not override panel point height');
@@ -357,10 +357,17 @@ check(allCss.includes(':root[data-theme="dark"]'), 'dark theme token block exist
 
 const calcLayoutCss = cssByFile.get('pages/calculator.css') || '';
 const calcBaseCss = cssByFile.get('pages/calculator-base.css') || '';
+const dexPageCss = cssByFile.get('pages/dex.css') || '';
 check(Boolean(calcLayoutCss), 'calculator page stylesheet exists');
 check(Boolean(calcBaseCss), 'calculator page visual base stylesheet exists');
 check(!cssByFile.has('05-calc-sample-layout.css'), 'legacy calculator layout stylesheet is removed');
 check(!cssByFile.has('03-calc-redesign.css'), 'legacy calculator redesign stylesheet is removed');
+check(Boolean(dexPageCss), 'dex page stylesheet exists');
+check(!cssByFile.has('06-dex-redesign.css'), 'legacy dex redesign stylesheet is removed');
+check(
+  dexPageCss.includes('.dex-pagination') && dexPageCss.includes('.dex-page-button'),
+  'dex page owns paginated list controls'
+);
 check(
   /\.tool-move-list--critical\s+\.tool-move-power-readout\s*\{[^}]*grid-column:\s*6/s.test(calcLayoutCss),
   'calculator critical layout places power readout in sixth column'

@@ -79,5 +79,12 @@ git diff --check
 - Removed the legacy `03-calc-redesign.css` and `05-calc-sample-layout.css` build mappings.
 - Updated CSS ownership and mobile dropdown contracts to read the page-owned styles directly.
 
+### Dex pagination and page ownership
+
+- Moved the dex stylesheet to `pages/dex.css` and removed the legacy top-level mapping.
+- Added 50-row pagination to Pokemon, move, ability, and item lists after filtering and sorting.
+- Preserved each dex tab's query, filters, page, and scroll position while switching tabs or opening details.
+- Extended browser smoke coverage to verify the 50-row DOM limit, next-page data, and mobile overflow.
+
 이번 단계에서는 위 검증이 모두 통과했다. 브라우저 검사는 데스크톱/모바일 가로 넘침, 계산 결과,
 모바일 상세 토글과 드롭다운, 라이트/다크 semantic token, 역계산 Worker 응답성을 확인한다.

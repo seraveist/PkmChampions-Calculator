@@ -1,4 +1,4 @@
-/* PokeChamps Lab - Dex redesign layer */
+/* PokeChamps Lab - Dex page */
 
 #page-dex,
 .dex-modal {
@@ -348,6 +348,54 @@
   max-height: min(70vh, 760px);
   overflow: auto;
   border-radius: var(--radius-lg);
+}
+
+#page-dex .dex-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border-soft);
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+#page-dex .dex-page-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#page-dex .dex-page-button {
+  min-width: 64px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--ui-action-border);
+  border-radius: var(--radius-md);
+  background: var(--ui-action-bg);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+#page-dex .dex-page-button:hover:not(:disabled),
+#page-dex .dex-page-button:focus-visible {
+  border-color: var(--ui-action-hover-border);
+  background: var(--ui-action-hover-bg);
+}
+
+#page-dex .dex-page-button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+#page-dex .dex-page-current {
+  min-width: 52px;
+  color: var(--text);
+  text-align: center;
 }
 
 #page-dex .dex-table {
@@ -1593,6 +1641,18 @@
     gap: 5px;
     margin-top: 8px;
     padding: 8px 0 0;
+  }
+
+  #page-dex .dex-pagination {
+    gap: 8px;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  #page-dex .dex-page-button {
+    min-width: 58px;
+    min-height: 36px;
+    padding: 0 10px;
   }
 
   #page-dex .type-filter-btn,

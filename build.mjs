@@ -484,7 +484,6 @@ async function build() {
   const CSS_LEGACY_LAYERS = new Map([
     ['02-pages.css', 'base'],
     ['04-ui-foundation.css', 'legacy-foundation'],
-    ['06-dex-redesign.css', 'pages'],
     ['07-tools-redesign.css', 'pages'],
     ['08-theme-bridge.css', 'themes'],
     ['09-product-polish.css', 'legacy-polish'],
