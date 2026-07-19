@@ -20,7 +20,19 @@ const ItemById      = Object.fromEntries(ITEMS.map(i => [i.id, i]));
 // XSS 및 특수문자 방지 헬퍼
 function escapeHTML(str) {
   if (!str) return '';
-  return str.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return str.toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Central HTML rendering boundary. Markup passed here is application-owned;
+// every interpolated data or user string must be escaped with escapeHTML first.
+function renderTrustedHTML(target, markup) {
+  if (!target) return;
+  target.innerHTML = String(markup ?? '');
 }
 
 

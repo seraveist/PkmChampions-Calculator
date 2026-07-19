@@ -350,6 +350,25 @@ async function main() {
     await installAxe(client);
     const initialFeatureRequests = await client.evaluate(`performance.getEntriesByType('resource').filter(entry => /feature-(?:dex|matchup|finetune|revcalc)\./.test(entry.name)).length`);
     check(initialFeatureRequests === 0, 'page feature bundles are not requested during calculator startup', String(initialFeatureRequests));
+    const pageLoadUi = await client.evaluate(`(() => {
+      const dexTab = document.getElementById('nav-dex');
+      const calcTab = document.getElementById('nav-calc');
+      const status = document.getElementById('pageLoadStatus');
+      setMainPageLoadState(dexTab, 'loading', '도감 화면을 불러오는 중입니다.');
+      const pending = {
+        busy: dexTab?.getAttribute('aria-busy') || '',
+        loading: dexTab?.classList.contains('is-loading') || false,
+        statusVisible: !status?.hidden,
+        live: status?.getAttribute('aria-live') || '',
+      };
+      setMainPageLoadState(calcTab);
+      return {
+        pending,
+        cleared: !dexTab?.classList.contains('is-loading') && !!status?.hidden,
+      };
+    })()`);
+    check(pageLoadUi.pending.busy === 'true' && pageLoadUi.pending.loading && pageLoadUi.pending.statusVisible && pageLoadUi.pending.live === 'polite', 'lazy page navigation exposes an accessible loading state', JSON.stringify(pageLoadUi));
+    check(pageLoadUi.cleared, 'switching navigation clears a stale page loading state', JSON.stringify(pageLoadUi));
 
     await setViewport(client, 1440, 1000);
     const desktop = await client.evaluate(`(() => {
@@ -391,6 +410,168 @@ async function main() {
       desktop.moveLayout.readoutWidth >= 90 && !desktop.moveLayout.readoutClipped && desktop.moveLayout.criticalVisible,
       'calculator reserves readable power output beside the critical checkbox',
       JSON.stringify(desktop.moveLayout),
+    );
+    const moveOptionPoint = await client.evaluate(`(async () => {
+      const input = document.querySelector('#atk-body [data-cb-type="move"]');
+      input?.click();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const list = document.querySelector('.combobox-options-portal.open')
+        || input?.closest('.combobox')?.querySelector('.combobox-options.open');
+      const option = [...(list?.querySelectorAll('.combobox-option:not(.empty)') || [])]
+        .find(candidate => {
+          const candidateRect = candidate.getBoundingClientRect();
+          const candidateX = candidateRect.left + candidateRect.width / 2;
+          const candidateY = candidateRect.top + candidateRect.height / 2;
+          const hitOption = document.elementFromPoint(candidateX, candidateY)?.closest('.combobox-option');
+          return candidate.dataset.id
+            && candidate.dataset.id !== state.atk.moves[0]
+            && candidateRect.top >= 0
+            && candidateRect.bottom <= window.innerHeight
+            && hitOption === candidate;
+        });
+      const header = list?.querySelector('.move-option-header');
+      const columnDelta = header && option
+        ? Math.max(...[...header.children].map((cell, index) => {
+            const headerRect = cell.getBoundingClientRect();
+            const optionRect = option.children[index]?.getBoundingClientRect();
+            return optionRect ? Math.max(Math.abs(headerRect.left - optionRect.left), Math.abs(headerRect.right - optionRect.right)) : 999;
+          }))
+        : 999;
+      const rect = option?.getBoundingClientRect();
+      if (!rect) return null;
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const hit = document.elementFromPoint(x, y);
+      return {
+        x,
+        y,
+        inputId: input?.id || '',
+        optionId: option.dataset.id || '',
+        selectedBefore: state.atk.moves[0] || '',
+        hitClass: hit?.className || '',
+        columnDelta,
+        headerLayout: header ? {
+          left: header.getBoundingClientRect().left,
+          width: header.getBoundingClientRect().width,
+          display: getComputedStyle(header).display,
+          columns: getComputedStyle(header).gridTemplateColumns,
+          padding: getComputedStyle(header).padding,
+          borderLeft: getComputedStyle(header).borderLeftWidth,
+          cells: [...header.children].map(cell => [cell.getBoundingClientRect().left, cell.getBoundingClientRect().right]),
+        } : null,
+        optionLayout: option ? {
+          left: option.getBoundingClientRect().left,
+          width: option.getBoundingClientRect().width,
+          display: getComputedStyle(option).display,
+          columns: getComputedStyle(option).gridTemplateColumns,
+          padding: getComputedStyle(option).padding,
+          borderLeft: getComputedStyle(option).borderLeftWidth,
+          cells: [...option.children].map(cell => [cell.getBoundingClientRect().left, cell.getBoundingClientRect().right]),
+        } : null,
+      };
+    })()`, true);
+    check(!!moveOptionPoint, 'calculator exposes a selectable move option', JSON.stringify(moveOptionPoint));
+    check(moveOptionPoint?.columnDelta <= 1, 'move dropdown header and option columns align', JSON.stringify(moveOptionPoint));
+    if (moveOptionPoint) {
+      const { x, y } = moveOptionPoint;
+      await client.send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', buttons: 1, clickCount: 1 });
+      await client.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', buttons: 0, clickCount: 1 });
+      await sleep(80);
+      const comboboxAfterSelection = await client.evaluate(`(() => ({
+        openLists: document.querySelectorAll('.combobox-options.open, .combobox-options-portal.open').length,
+        expandedControls: document.querySelectorAll('.cb-input[aria-expanded="true"]').length,
+        expandedIds: [...document.querySelectorAll('.cb-input[aria-expanded="true"]')].map(control => control.id || control.dataset.cbType || control.className),
+        openOwners: [...document.querySelectorAll('.combobox-options.open, .combobox-options-portal.open')].map(list => list.dataset.portalOwner || list.closest('.combobox')?.dataset.cb || list.className),
+        selectedAfter: state.atk.moves[0] || '',
+      }))()`);
+      check(
+        comboboxAfterSelection.openLists === 0 && comboboxAfterSelection.expandedControls === 0,
+        'move option click closes without opening a control behind the dropdown',
+        JSON.stringify({ ...moveOptionPoint, ...comboboxAfterSelection }),
+      );
+    }
+    const natureColumnDelta = await client.evaluate(`(async () => {
+      const input = document.querySelector('#atk-body [data-cb-type="nature"]');
+      input?.click();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const list = document.querySelector('.combobox-options-portal.open')
+        || input?.closest('.combobox')?.querySelector('.combobox-options.open');
+      const header = list?.querySelector('.nature-option-header');
+      const option = list?.querySelector('.combobox-option.nature-option:not(.empty)');
+      const delta = header && option
+        ? Math.max(...[...header.children].map((cell, index) => {
+            const headerRect = cell.getBoundingClientRect();
+            const optionRect = option.children[index]?.getBoundingClientRect();
+            return optionRect ? Math.max(Math.abs(headerRect.left - optionRect.left), Math.abs(headerRect.right - optionRect.right)) : 999;
+          }))
+        : 999;
+      option?.click();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      return delta;
+    })()`, true);
+    check(natureColumnDelta <= 1, 'nature dropdown header and option columns align', String(natureColumnDelta));
+    const fontContract = await client.evaluate(`(async () => {
+      await document.fonts.load('14px "Noto Sans KR"');
+      const selectors = ['body', '.brand-sub', '.ui-stat-readout', 'input', 'button'];
+      return {
+        available: document.fonts.check('14px "Noto Sans KR"'),
+        families: selectors.map(selector => [selector, getComputedStyle(document.querySelector(selector)).fontFamily]),
+      };
+    })()`, true);
+    check(fontContract.available && fontContract.families.every(([, family]) => family.includes('Noto Sans KR') && !/Fira Code|JetBrains Mono/.test(family)), 'all UI font roles resolve to Noto Sans KR', JSON.stringify(fontContract));
+    const typeContracts = await client.evaluate(`(() => {
+      const types = ['Normal', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Fighting', 'Poison', 'Ground', 'Flying', 'Psychic', 'Bug', 'Rock', 'Ghost', 'Dragon', 'Dark', 'Steel', 'Fairy'];
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;left:-9999px;top:0;';
+      document.body.appendChild(probe);
+      const contracts = Object.fromEntries(types.map(type => {
+        const card = document.createElement('span');
+        card.className = 't-' + type;
+        const filter = document.createElement('button');
+        filter.className = 'type-filter-btn type-pill-mini active';
+        filter.dataset.filterType = type;
+        document.getElementById('page-dex').appendChild(filter);
+        probe.appendChild(card);
+        const palette = partyPresetMoveTypePalette(type, {});
+        const swatch = document.createElement('span');
+        swatch.style.color = palette.bg;
+        probe.appendChild(swatch);
+        const cardStyle = getComputedStyle(card);
+        const filterStyle = getComputedStyle(filter);
+        const result = {
+          cardBg: cardStyle.backgroundColor,
+          cardFg: cardStyle.color,
+          filterBg: filterStyle.backgroundColor,
+          filterFg: filterStyle.color,
+          exportBg: getComputedStyle(swatch).color,
+          exportFg: palette.fg,
+          filterAttr: filter.getAttribute('data-filter-type') || '',
+          filterMatchesTypeRule: filter.matches('#page-dex .type-filter-btn.type-pill-mini:not([data-filter-type=""]).active'),
+          filterTokenBg: filterStyle.getPropertyValue('--dex-filter-bg').trim(),
+        };
+        filter.remove();
+        return [type, result];
+      }));
+      probe.remove();
+      return contracts;
+    })()`);
+    const brightTypeNames = ['Electric', 'Ice', 'Ground', 'Flying', 'Bug', 'Steel', 'Fairy'];
+    const defaultTypeNames = ['Normal', 'Fire', 'Water', 'Grass', 'Fighting', 'Poison', 'Psychic', 'Rock', 'Ghost', 'Dragon', 'Dark'];
+    check(
+      defaultTypeNames.every(type => typeContracts[type].cardFg === 'rgb(255, 255, 255)')
+        && brightTypeNames.every(type => typeContracts[type].cardFg === 'rgb(26, 26, 26)'),
+      'type cards use white text with dark text reserved for bright colors',
+      JSON.stringify(typeContracts),
+    );
+    check(
+      Object.values(typeContracts).every(type => type.cardBg === type.filterBg && type.cardBg === type.exportBg),
+      'type cards, Dex filters, and party image exports share one background palette',
+      JSON.stringify(typeContracts),
+    );
+    check(
+      Object.values(typeContracts).every(type => type.cardFg === type.filterFg && type.cardFg === type.exportFg.replace('#ffffff', 'rgb(255, 255, 255)').replace('#1a1a1a', 'rgb(26, 26, 26)')),
+      'type cards, Dex filters, and party image exports share one foreground palette',
+      JSON.stringify(typeContracts),
     );
     const themeTokens = await client.evaluate(`(() => {
       const root = document.documentElement;
@@ -446,11 +627,21 @@ async function main() {
       await new Promise(resolve => setTimeout(resolve, 80));
       const options = document.querySelector('.combobox-options-portal.open') || input.closest('.combobox').querySelector('.combobox-options.open');
       const rect = options?.getBoundingClientRect();
+      const header = options?.querySelector('.pokemon-option-header');
+      const option = options?.querySelector('.combobox-option.pokemon-option:not(.empty)');
+      const pokemonColumnDelta = header && option
+        ? Math.max(...[...header.children].map((cell, index) => {
+            const headerRect = cell.getBoundingClientRect();
+            const optionRect = option.children[index]?.getBoundingClientRect();
+            return optionRect ? Math.max(Math.abs(headerRect.left - optionRect.left), Math.abs(headerRect.right - optionRect.right)) : 999;
+          }))
+        : 999;
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         collapsed,
         expanded,
         dropdown: rect ? { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom } : null,
+        pokemonColumnDelta,
         summaryVisible: !document.getElementById('calcMobileSummary').hidden,
       };
     })()`, true);
@@ -458,6 +649,7 @@ async function main() {
     check(mobile.collapsed.statDisplay === 'none' && mobile.collapsed.compactDisplay !== 'none', 'mobile starts with compact stat summary');
     check(mobile.expanded.statDisplay !== 'none' && mobile.expanded.ariaExpanded === 'true', 'mobile detail toggle reveals stat controls');
     check(mobile.dropdown && mobile.dropdown.left >= 0 && mobile.dropdown.right <= 375, 'mobile Pokemon dropdown stays inside viewport', JSON.stringify(mobile.dropdown));
+    check(mobile.pokemonColumnDelta <= 1, 'Pokemon dropdown header and option columns align', JSON.stringify(mobile));
     check(mobile.summaryVisible, 'mobile recommendation summary is visible after calculation');
     await client.evaluate(`
       document.activeElement?.blur();
@@ -468,12 +660,51 @@ async function main() {
 
     const partyModalFocus = await client.evaluate(`(async () => {
       const trigger = document.getElementById('partyPresetOpen');
+      const originalName = partyPresetData.parties[0].name;
+      const hostileName = '\" autofocus onfocus=\"x';
+      partyPresetData.parties[0].name = hostileName;
       trigger.focus();
       trigger.click();
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      return document.activeElement?.id || '';
+      const nameInput = document.querySelector('[data-party-name-index="0"]');
+      const attributeEscaping = {
+        valuePreserved: nameInput?.value === hostileName,
+        autofocusInjected: nameInput?.hasAttribute('autofocus') || false,
+        handlerInjected: nameInput?.hasAttribute('onfocus') || false,
+        dataInjected: nameInput?.getAttribute('data-injected') || '',
+      };
+      partyPresetData.parties[0].name = originalName;
+      const backdrop = document.querySelector('.party-preset-modal-backdrop');
+      const modal = document.querySelector('.party-preset-modal');
+      const backdropStyle = backdrop ? getComputedStyle(backdrop) : null;
+      const backdropRect = backdrop?.getBoundingClientRect();
+      const modalRect = modal?.getBoundingClientRect();
+      return {
+        activeId: document.activeElement?.id || '',
+        attributeEscaping,
+        backdropOverflow: backdrop ? backdrop.scrollWidth - backdrop.clientWidth : 0,
+        modalOverflow: modal ? modal.scrollWidth - modal.clientWidth : 0,
+        backdropBox: backdropStyle ? {
+          boxSizing: backdropStyle.boxSizing,
+          width: backdropStyle.width,
+          paddingLeft: backdropStyle.paddingLeft,
+          paddingRight: backdropStyle.paddingRight,
+          left: backdropRect?.left,
+          right: backdropRect?.right,
+        } : null,
+        modalBox: modalRect ? { left: modalRect.left, right: modalRect.right, width: modalRect.width } : null,
+      };
     })()`, true);
-    check(partyModalFocus === 'partyPresetClose', 'party preset modal receives initial focus', partyModalFocus);
+    check(partyModalFocus.activeId === 'partyPresetClose', 'party preset modal receives initial focus', JSON.stringify(partyModalFocus));
+    check(
+      partyModalFocus.attributeEscaping?.valuePreserved
+        && !partyModalFocus.attributeEscaping?.autofocusInjected
+        && !partyModalFocus.attributeEscaping?.handlerInjected
+        && !partyModalFocus.attributeEscaping?.dataInjected,
+      'party preset names remain inert inside HTML attributes',
+      JSON.stringify(partyModalFocus.attributeEscaping),
+    );
+    check(partyModalFocus.backdropOverflow <= 1 && partyModalFocus.modalOverflow <= 1, 'party preset modal fits the mobile viewport', JSON.stringify(partyModalFocus));
     await checkAxe(client, 'party preset modal');
     const partyModalReturnFocus = await client.evaluate(`(async () => {
       document.getElementById('partyPresetClose')?.click();
@@ -491,6 +722,11 @@ async function main() {
       nextButton?.click();
       await new Promise(resolve => requestAnimationFrame(resolve));
       const secondPageRows = [...document.querySelectorAll('#dexBodyPokemon tr[data-dex-id]')];
+      const controlHead = document.querySelector('#page-dex .dex-control-head');
+      const tableWrap = document.querySelector('#dex-pokemon .dex-table-wrap');
+      const firstCardRect = secondPageRows[0]?.getBoundingClientRect();
+      const bstCell = secondPageRows[0]?.querySelector('.dex-bst');
+      const bstRect = bstCell?.getBoundingClientRect();
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         firstCount: firstPageRows.length,
@@ -500,16 +736,29 @@ async function main() {
         pageLabel: document.querySelector('#dexPagination-pokemon .dex-page-current')?.textContent?.trim() || '',
         cardDisplay: getComputedStyle(secondPageRows[0]).display,
         labeledStats: secondPageRows[0]?.querySelectorAll('td.num[data-label]').length || 0,
+        controlOverflowY: controlHead ? getComputedStyle(controlHead).overflowY : '',
+        tableOverflowY: tableWrap ? getComputedStyle(tableWrap).overflowY : '',
+        tableMaxHeight: tableWrap ? getComputedStyle(tableWrap).maxHeight : '',
+        bstLayout: bstRect && firstCardRect ? {
+          cardLeft: firstCardRect.left,
+          cardRight: firstCardRect.right,
+          left: bstRect.left,
+          right: bstRect.right,
+          width: bstRect.width,
+          gridColumn: getComputedStyle(bstCell).gridColumn,
+        } : null,
         featureResources: performance.getEntriesByType('resource')
           .filter(entry => /feature-(?:dex|matchup|finetune|revcalc)\./.test(entry.name))
           .map(entry => entry.name.split('/').pop()),
       };
     })()`, true);
     check(dex.overflow <= 1, 'mobile dex has no horizontal page overflow', String(dex.overflow));
-    check(dex.firstCount > 0 && dex.firstCount <= 50, 'dex limits the initial Pokemon DOM to 50 rows', JSON.stringify(dex));
-    check(dex.secondCount > 0 && dex.secondCount <= 50 && dex.secondId !== dex.firstId, 'dex pagination renders the next Pokemon slice', JSON.stringify(dex));
+    check(dex.firstCount > 0 && dex.firstCount <= 24, 'dex limits the initial Pokemon DOM to 24 rows', JSON.stringify(dex));
+    check(dex.secondCount > 0 && dex.secondCount <= 24 && dex.secondId !== dex.firstId, 'dex pagination renders the next Pokemon slice', JSON.stringify(dex));
     check(dex.pageLabel.startsWith('2 / '), 'dex pagination exposes the current page', dex.pageLabel);
     check(dex.cardDisplay === 'grid' && dex.labeledStats === 7, 'mobile dex renders labeled information cards', JSON.stringify(dex));
+    check(dex.bstLayout && dex.bstLayout.left >= dex.bstLayout.cardLeft && dex.bstLayout.right <= dex.bstLayout.cardRight && dex.bstLayout.width > 120, 'mobile dex total stat stays inside the full card row', JSON.stringify(dex.bstLayout));
+    check(dex.controlOverflowY === 'hidden' && dex.tableOverflowY === 'visible' && dex.tableMaxHeight === 'none', 'mobile dex uses one document scroll instead of nested vertical scrollers', JSON.stringify(dex));
     check(dex.featureResources.length <= 1 && (!dex.featureResources.length || dex.featureResources[0].startsWith('feature-dex.')), 'dex entry requests only its page feature bundle', JSON.stringify(dex.featureResources));
     const dexKeyboard = await client.evaluate(`(() => {
       const sortButton = document.querySelector('#dexTablePokemon th[data-sort="hp"] .dex-sort-button');
@@ -527,6 +776,94 @@ async function main() {
     check(dexKeyboard.activeTag === 'BUTTON' && ['ascending', 'descending'].includes(dexKeyboard.ariaSort), 'dex sorting exposes keyboard and aria-sort state', JSON.stringify(dexKeyboard));
     check(dexKeyboard.rowButtonTag === 'BUTTON' && dexKeyboard.rowButtonLabel.endsWith('상세 보기'), 'dex rows expose a keyboard detail action', JSON.stringify(dexKeyboard));
     await checkAxe(client, 'dex');
+
+    await setViewport(client, 1440, 1000);
+    const reverseDesktopStats = await client.evaluate(`(async () => {
+      await activateMainPage('revcalc', { updateHash: false });
+      revCalcState.my = makeSideState('charizard');
+      renderRevCalcAll();
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const grid = document.querySelector('#page-revcalc .rc-stats-grid');
+      const headerCells = [...(grid?.querySelectorAll('.rc-stat-head-row > *') || [])];
+      const rows = [...(grid?.querySelectorAll('.rc-stat-row') || [])];
+      const firstCells = [...(rows[0]?.children || [])];
+      const columnDelta = headerCells.length === firstCells.length && headerCells.length
+        ? Math.max(...headerCells.map((cell, index) => {
+            const headerRect = cell.getBoundingClientRect();
+            const rowRect = firstCells[index].getBoundingClientRect();
+            return Math.max(Math.abs(headerRect.left - rowRect.left), Math.abs(headerRect.right - rowRect.right));
+          }))
+        : 999;
+      const myPanel = document.querySelector('#page-revcalc .rc-my')?.getBoundingClientRect();
+      const oppPanel = document.querySelector('#page-revcalc .rc-opp')?.getBoundingClientRect();
+      const guide = document.querySelector('#rc-input-body .ui-empty--compact')?.getBoundingClientRect();
+      return {
+        columns: getComputedStyle(grid).gridTemplateColumns.split(/\\s+/).filter(Boolean).length,
+        headerCells: headerCells.length,
+        rowCells: rows.map(row => row.children.length),
+        columnDelta,
+        overflow: grid.scrollWidth - grid.clientWidth,
+        panelTopDelta: myPanel && oppPanel ? Math.abs(myPanel.top - oppPanel.top) : 999,
+        myPanelHeight: myPanel?.height || 0,
+        oppPanelHeight: oppPanel?.height || 0,
+        inputStage: document.getElementById('rc-input-panel')?.dataset.stageState || '',
+        resultStage: document.getElementById('rc-results-panel')?.dataset.stageState || '',
+        guideHeight: guide?.height || 999,
+      };
+    })()`, true);
+    check(
+      reverseDesktopStats.columns === 5
+        && reverseDesktopStats.headerCells === 5
+        && reverseDesktopStats.rowCells.every(count => count === 5)
+        && reverseDesktopStats.columnDelta <= 1
+        && reverseDesktopStats.overflow <= 1,
+      'desktop reverse stat headers and five data columns align',
+      JSON.stringify(reverseDesktopStats),
+    );
+    check(
+      reverseDesktopStats.panelTopDelta <= 1
+        && reverseDesktopStats.oppPanelHeight < reverseDesktopStats.myPanelHeight
+        && reverseDesktopStats.inputStage === 'locked'
+        && reverseDesktopStats.resultStage === 'locked'
+        && reverseDesktopStats.guideHeight <= 80,
+      'reverse panels align to the top and locked stages remain compact',
+      JSON.stringify(reverseDesktopStats),
+    );
+    await captureScreenshot(client, 'reverse-desktop-1440');
+
+    const breakpointLayouts = {};
+    for (const width of [761, 760, 681, 680]) {
+      await setViewport(client, width, 900);
+      breakpointLayouts[width] = await client.evaluate(`(async () => {
+        await activateMainPage('calc', { updateHash: false });
+        const calcMovePanel = document.querySelector('#page-calc .tool-move-panel');
+        const calcIndexWidth = getComputedStyle(calcMovePanel).getPropertyValue('--tool-move-index-width').trim();
+        const calcOverflow = document.documentElement.scrollWidth - window.innerWidth;
+
+        await activateMainPage('revcalc', { updateHash: false });
+        revCalcState.my = makeSideState('primarina');
+        revCalcState.opp = { pokemonIdx: 'archaludon', ranks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: 'none' };
+        renderRevCalcAll();
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const toggles = document.querySelector('#page-revcalc .rc-toggle-grid');
+        return {
+          calcIndexWidth,
+          calcOverflow,
+          reverseToggleColumns: getComputedStyle(toggles).gridTemplateColumns.split(/\\s+/).filter(Boolean).length,
+          reverseOverflow: document.documentElement.scrollWidth - window.innerWidth,
+        };
+      })()`, true);
+    }
+    check(
+      Object.values(breakpointLayouts).every(layout => layout.calcOverflow <= 1 && layout.reverseOverflow <= 1)
+        && breakpointLayouts[681].calcIndexWidth === '20px'
+        && breakpointLayouts[680].calcIndexWidth === '18px'
+        && breakpointLayouts[761].reverseToggleColumns > 1
+        && breakpointLayouts[760].reverseToggleColumns === 1,
+      'calculator and reverse layouts switch cleanly at 680px and 760px boundaries',
+      JSON.stringify(breakpointLayouts),
+    );
+    await setViewport(client, 375, 812);
 
     const stagedTools = await client.evaluate(`(async () => {
       await activateMainPage('finetune', { updateHash: false });
@@ -551,6 +888,8 @@ async function main() {
         rowDisplay: getComputedStyle(document.querySelector('#page-revcalc .rc-stat-row')).display,
         maxOverflow: Math.max(0, ...reverseFrames.map(frame => frame.scrollWidth - frame.clientWidth)),
         nextRankDisplay: getComputedStyle(nextRankProbe.querySelector('.rc-next-rank-row')).display,
+        inputStage: document.getElementById('rc-input-panel')?.dataset.stageState || '',
+        resultStage: document.getElementById('rc-results-panel')?.dataset.stageState || '',
       };
       nextRankProbe.remove();
 
@@ -563,6 +902,9 @@ async function main() {
         gated: !!document.querySelector('#rc-input-body .rc-prerequisite'),
         hasObservation: !!document.querySelector('#rc-input-body [data-rc-action="observedMyHp"]'),
         analyzeDisabled: document.getElementById('rcAnalyze').disabled,
+        inputStage: document.getElementById('rc-input-panel')?.dataset.stageState || '',
+        resultStage: document.getElementById('rc-results-panel')?.dataset.stageState || '',
+        compactGuide: document.querySelector('#rc-input-body .ui-empty--compact')?.getBoundingClientRect().height || 999,
       };
       fineTuneState.my = makeSideState('');
       renderFineTuneAll();
@@ -574,10 +916,10 @@ async function main() {
       };
       return { reverse, finetune, fineTuneMobile, reverseMobile };
     })()`, true);
-    check(stagedTools.reverse.gated && !stagedTools.reverse.hasObservation && stagedTools.reverse.analyzeDisabled, 'reverse observations wait for both participants', JSON.stringify(stagedTools.reverse));
+    check(stagedTools.reverse.gated && !stagedTools.reverse.hasObservation && stagedTools.reverse.analyzeDisabled && stagedTools.reverse.inputStage === 'locked' && stagedTools.reverse.resultStage === 'locked' && stagedTools.reverse.compactGuide <= 80, 'reverse observations wait for both participants in compact locked stages', JSON.stringify(stagedTools.reverse));
     check(stagedTools.finetune.hidden && stagedTools.finetune.display === 'none' && !stagedTools.finetune.hasHpColumn, 'fine-tune hides empty HP results on mobile', JSON.stringify(stagedTools.finetune));
     check(stagedTools.fineTuneMobile.rowDisplay === 'grid' && stagedTools.fineTuneMobile.overflow <= 1, 'mobile fine-tune stats use non-scrolling cards', JSON.stringify(stagedTools.fineTuneMobile));
-    check(stagedTools.reverseMobile.rowDisplay === 'grid' && stagedTools.reverseMobile.maxOverflow <= 1 && stagedTools.reverseMobile.nextRankDisplay === 'grid', 'mobile reverse stats and next ranks use non-scrolling cards', JSON.stringify(stagedTools.reverseMobile));
+    check(stagedTools.reverseMobile.rowDisplay === 'grid' && stagedTools.reverseMobile.maxOverflow <= 1 && stagedTools.reverseMobile.nextRankDisplay === 'grid' && stagedTools.reverseMobile.inputStage === 'ready' && stagedTools.reverseMobile.resultStage === 'ready', 'mobile reverse stats, next ranks, and ready stages use non-scrolling cards', JSON.stringify(stagedTools.reverseMobile));
 
     const matchup = await client.evaluate(`(async () => {
       await activateMainPage('matchup', { updateHash: true });
@@ -644,12 +986,28 @@ async function main() {
       const narrowDark = await client.evaluate(`(async () => {
         await activateMainPage(${JSON.stringify(pageKey)}, { updateHash: false });
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const partyButton = document.getElementById('partyPresetOpen');
+        const partyStyle = partyButton ? getComputedStyle(partyButton) : null;
         return {
           overflow: document.documentElement.scrollWidth - window.innerWidth,
           active: document.getElementById(${JSON.stringify(`page-${pageKey}`)})?.classList.contains('active') || false,
+          partyButton: partyStyle ? {
+            color: partyStyle.color,
+            background: partyStyle.backgroundColor,
+            opacity: partyStyle.opacity,
+            hovered: partyButton.matches(':hover'),
+            disabled: partyButton.disabled,
+          } : null,
         };
       })()`, true);
       check(narrowDark.active && narrowDark.overflow <= 1, `${pageKey} reflows at 320px in dark theme`, JSON.stringify(narrowDark));
+      if (pageKey === 'calc') {
+        check(
+          narrowDark.partyButton?.color === 'rgb(237, 243, 250)' && narrowDark.partyButton?.opacity === '1',
+          'dark mobile header actions retain full-contrast text',
+          JSON.stringify(narrowDark.partyButton),
+        );
+      }
       await checkAxe(client, `${pageKey} dark 320px`);
     }
     await captureScreenshot(client, 'dex-dark-320');

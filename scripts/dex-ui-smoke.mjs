@@ -162,7 +162,7 @@ expectPattern(viewSource, /applyDexAction\(btn\.dataset\.dexApply, dexFullPageCt
 expectPattern(viewSource, /dexModalCtx = \{ type: null, id: null, parent: null \};/, 'modal context should reset on close');
 expectPattern(viewSource, /row\('1배', 'x1', buckets\.x1\)/, 'defensive matchup should include neutral 1x row');
 expectText(viewSource, 'dexItemUserTerms', 'item search should include dedicated-user aliases');
-expectText(viewSource, 'const DEX_PAGE_SIZE = 50', 'dex should cap each rendered page at 50 rows');
+expectText(viewSource, 'const DEX_PAGE_SIZE = 24', 'dex should cap each rendered page at 24 rows');
 expectPattern(viewSource, /data\.slice\(startIndex, startIndex \+ DEX_PAGE_SIZE\)/, 'dex pagination should slice filtered data before rendering');
 expectText(viewSource, 'partyPresetExportPayload', 'party preset JSON export helper is missing');
 expectText(viewSource, 'importPartyPresetJsonFile', 'party preset JSON import helper is missing');

@@ -121,7 +121,7 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
     if (!matches.length) {
       html.push('<div class="combobox-option empty" aria-disabled="true"><b>검색 결과 없음</b></div>');
     }
-    optsEl.innerHTML = html.join('');
+    renderTrustedHTML(optsEl, html.join(''));
     getOptionEls().forEach((option, index) => {
       option.id = `${optsEl.id}-opt-${index}`;
     });
@@ -272,15 +272,21 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
     if (!opt || opt.classList.contains('empty')) return;
     e.preventDefault();
     e.stopPropagation();
-    if (isButtonTrigger && (e.type === 'mousedown' || e.type === 'touchstart')) return;
     selectOption(opt);
   }
 
-  optsEl.addEventListener('mousedown', handleOptionSelect);
-  optsEl.addEventListener('click', e => {
-    if (!isButtonTrigger) return;
-    handleOptionSelect(e);
+  optsEl.addEventListener('mousedown', e => {
+    if (touchOptions.shouldIgnoreMouseEvent(e)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    const opt = e.target.closest('.combobox-option');
+    if (!opt || opt.classList.contains('empty')) return;
+    e.preventDefault();
+    e.stopPropagation();
   });
+  optsEl.addEventListener('click', handleOptionSelect);
   optsEl.addEventListener('mouseover', e => {
     const opt = e.target.closest('.tooltip-option[data-tooltip]');
     if (opt && optsEl.contains(opt)) showOptionTooltip(opt);

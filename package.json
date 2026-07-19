@@ -1,8 +1,12 @@
 {
   "name": "pkmchampions-calculator",
   "version": "2.0.0",
-  "description": "Pokemon Champions Damage Calculator",
+  "private": true,
+  "description": "Pokemon Champions battle calculator and team analysis toolkit",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "npm run build:standalone",
     "build:standalone": "node build.mjs",

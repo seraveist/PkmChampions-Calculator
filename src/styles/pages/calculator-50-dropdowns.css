@@ -1,0 +1,237 @@
+/* Calculator dropdown grids and move critical controls. */
+/* Dropdown option grids need to be self-contained; the old base CSS used to
+   provide some of this sizing before the calculator CSS diet. */
+#page-calc .pokemon-select .combobox-options,
+#page-calc .tool-move-combobox .combobox-options {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: min(100%, calc(100vw - 24px));
+  overflow-x: hidden;
+}
+
+#page-calc .pokemon-select .pokemon-option-header,
+#page-calc .pokemon-select .combobox-option.pokemon-option {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns:
+    minmax(82px, 1.45fr)
+    minmax(58px, 0.9fr)
+    repeat(6, minmax(22px, 0.34fr));
+  column-gap: clamp(2px, 0.7vw, 6px);
+  padding-left: clamp(5px, 1vw, 10px);
+  padding-right: clamp(5px, 1vw, 10px);
+}
+
+#page-calc .pokemon-select .combobox-option.pokemon-option {
+  border-left: 3px solid transparent;
+  padding-left: clamp(5px, 1vw, 10px);
+}
+
+#page-calc .pokemon-select .combobox-option.pokemon-option.selected {
+  box-shadow: none;
+}
+
+#page-calc .ui-panel.atk .pokemon-select .combobox-option.pokemon-option.selected {
+  border-left-color: var(--atk);
+}
+
+#page-calc .ui-panel.def .pokemon-select .combobox-option.pokemon-option.selected {
+  border-left-color: var(--def);
+}
+
+#page-calc .pokemon-select .pokemon-option-header span,
+#page-calc .pokemon-select .pokemon-option-name,
+#page-calc .pokemon-select .pokemon-option-types,
+#page-calc .pokemon-select .pokemon-option-stat {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#page-calc .pokemon-select .pokemon-option-types {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: clamp(1px, 0.35vw, 3px);
+}
+
+#page-calc .pokemon-select .badge-mini {
+  min-width: clamp(22px, 6.2vw, 40px);
+  height: clamp(16px, 3.8vw, 22px);
+  padding: 0 clamp(2px, 0.8vw, 6px);
+  font-size: clamp(0.56rem, 1.5vw, 0.72rem);
+  line-height: 1;
+}
+
+#page-calc .pokemon-select .pokemon-option-name {
+  font-size: clamp(0.72rem, 1.8vw, 0.86rem);
+}
+
+#page-calc .pokemon-select .pokemon-option-header,
+#page-calc .pokemon-select .pokemon-option-stat {
+  font-size: clamp(0.6rem, 1.45vw, 0.72rem);
+}
+
+#page-calc .move-option-header,
+#page-calc .combobox-option.move-option {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns:
+    minmax(74px, 1fr)
+    minmax(30px, 0.3fr)
+    minmax(34px, 0.34fr)
+    minmax(34px, 0.34fr);
+  column-gap: clamp(1px, 0.6vw, 5px);
+  padding-left: clamp(4px, 0.9vw, 10px);
+  padding-right: clamp(4px, 0.9vw, 10px);
+}
+
+#page-calc .move-option-header span,
+#page-calc .move-option-name,
+#page-calc .move-option-category,
+#page-calc .move-option-type,
+#page-calc .move-option-power {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#page-calc .move-option-name {
+  font-size: clamp(0.72rem, 1.8vw, 0.86rem);
+}
+
+#page-calc .move-option-header,
+#page-calc .move-option-power {
+  font-size: clamp(0.58rem, 1.35vw, 0.72rem);
+}
+
+#page-calc .move-option-power {
+  text-align: center;
+  overflow: visible;
+  text-overflow: clip;
+  font-variant-numeric: tabular-nums;
+}
+
+#page-calc .move-option-type-badge,
+#page-calc .move-option-category .cat-badge {
+  min-width: clamp(24px, 5.4vw, 42px);
+  height: clamp(16px, 3.8vw, 22px);
+  padding: 0 clamp(2px, 0.8vw, 6px);
+  font-size: clamp(0.54rem, 1.45vw, 0.72rem);
+  line-height: 1;
+}
+
+#page-calc .tool-move-combobox .combobox-options {
+  left: 0;
+  right: auto;
+  width: min(330px, calc(100vw - 40px));
+  min-width: min(300px, calc(100vw - 40px));
+}
+
+#page-calc .move-option-header,
+#page-calc .combobox-option.move-option {
+  grid-template-columns: minmax(86px, 1fr) 40px 44px 38px;
+  column-gap: 4px;
+  padding-left: 7px;
+  padding-right: 7px;
+}
+
+#page-calc .move-option-type-badge,
+#page-calc .move-option-category .cat-badge {
+  min-width: 36px;
+  height: 20px;
+  padding: 0 4px;
+  font-size: 0.64rem;
+}
+
+#page-calc .move-option-power {
+  display: block;
+  min-width: 38px;
+  text-align: center;
+  font-size: 0.68rem;
+}
+
+#page-calc .pokemon-select .pokemon-option-header span {
+  text-align: center;
+}
+
+#page-calc .pokemon-select .cb-input,
+#page-calc .calc-control-cell .cb-input {
+  height: var(--ui-control-height);
+  min-height: var(--ui-control-height);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+#page-calc .hp-percent-input {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+#page-calc .hp-status-cell .hp-inline-control input.hp-percent-input,
+#page-calc .hp-status-cell .hp-inline-control input.hp-percent-input:hover,
+#page-calc .hp-status-cell .hp-inline-control input.hp-percent-input:focus,
+#page-calc .hp-status-cell .hp-inline-control input.hp-percent-input:focus-visible {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#page-calc .tool-move-list--critical {
+  --tool-move-critical-width: 40px;
+  --tool-move-readout-width: clamp(96px, 18%, 116px);
+  --tool-move-grid-template:
+    var(--tool-move-index-width)
+    var(--tool-move-name-width)
+    var(--tool-move-type-width)
+    var(--tool-move-power-width)
+    var(--tool-move-critical-width)
+    var(--tool-move-readout-width);
+}
+
+#page-calc .tool-move-list--critical .tool-move-power-readout {
+  grid-column: 6;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+#page-calc .tool-move-col-critical {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  text-align: center;
+}
+
+#page-calc .calc-move-critical-input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+#page-calc .calc-move-critical-input:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+@media (max-width: 430px) {
+  #page-calc .tool-move-list--critical {
+    --tool-move-critical-width: 30px;
+    --tool-move-readout-width: 72px;
+  }
+
+  #page-calc .calc-move-critical-input {
+    width: 15px;
+    height: 15px;
+  }
+}

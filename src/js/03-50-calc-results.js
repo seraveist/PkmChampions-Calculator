@@ -12,7 +12,7 @@ function runCalc() {
   const body = document.getElementById('calc-results-body');
   const mobileSummary = document.getElementById('calcMobileSummary');
   if (!atkP || !defP) {
-    if (body) body.innerHTML = '<div class="empty-state ui-empty">공격측과 방어측 포켓몬을 선택하면 계산 결과가 표시됩니다.</div>';
+    if (body) renderTrustedHTML(body, '<div class="empty-state ui-empty">공격측과 방어측 포켓몬을 선택하면 계산 결과가 표시됩니다.</div>');
     if (mobileSummary) mobileSummary.hidden = true;
     return;
   }
@@ -60,15 +60,15 @@ function runCalc() {
     .sort(compareCalcMoveRecommendations)[0];
   if (mobileSummary) {
     mobileSummary.hidden = !recommendedResult;
-    mobileSummary.innerHTML = recommendedResult ? `
+    renderTrustedHTML(mobileSummary, recommendedResult ? `
       <span class="calc-mobile-summary-label">추천 기술</span>
       <strong>${escapeHTML(mvName(recommendedResult.move))}</strong>
       <span class="calc-mobile-summary-range">${recommendedResult.minPct.toFixed(1)}~${recommendedResult.maxPct.toFixed(1)}%</span>
       <b class="calc-mobile-summary-ko">${escapeHTML(`${recommendedResult.hko.label} ${recommendedResult.hko.turns}`)}</b>
-    ` : '';
+    ` : '');
   }
 
-  body.innerHTML = `
+  renderTrustedHTML(body, `
     ${moldBreakerActive ? `
     <div class="calc-mold-breaker-info ui-control-frame ui-subframe ui-meta-row">
       <span class="calc-mold-breaker-tag">${AbilityById[atkAb]?.koName || atkAb}</span>
@@ -107,7 +107,7 @@ function runCalc() {
     <div class="calc-result-grid ui-control-frame ui-subframe ui-card-grid">
       ${moveResults.map(r => renderMoveCard(r)).join('')}
     </div>
-  `;
+  `);
   body.querySelectorAll('[data-meter-percent]').forEach((meter) => {
     const percent = Math.max(0, Math.min(100, Number(meter.dataset.meterPercent) || 0));
     meter.style.width = `${percent}%`;

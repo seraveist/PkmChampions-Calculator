@@ -1,5 +1,7 @@
 # UI Handoff: Calculator And Reverse Calculator Complete
 
+> 이 문서는 이전 UI 작업의 이력 보존용이다. 현재 구조와 검증 기준은 `README.md`, `docs/ui-css-html-audit-2026-07-19.md`, `docs/ui-breakpoints.md`를 우선한다.
+
 이 문서는 다른 PC에서 UI 정리 작업을 이어받기 위한 기준 문서다. 2026-05-20 현재
 대미지 계산기와 내구 역계산은 완성 기준으로 본다. 다음 작업은 세부조정 메뉴를 이
 구조에 맞춰 따라오는 것이다.

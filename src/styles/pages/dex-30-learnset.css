@@ -1,0 +1,215 @@
+/* Dex matchup and learnset detail sections. */
+.matchup-grid {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 7px 10px;
+  align-items: start;
+}
+
+.matchup-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.matchup-label.x4 { background: rgba(214, 76, 86, 0.1); color: #9f2834; }
+.matchup-label.x2 { background: rgba(183, 121, 31, 0.11); color: #8a560f; }
+.matchup-label.x1 { background: rgba(104, 122, 142, 0.1); color: var(--text-dim); }
+.matchup-label.x05 { background: rgba(37, 122, 87, 0.1); color: #257a57; }
+.matchup-label.x025 { background: rgba(22, 127, 165, 0.1); color: #167fa5; }
+.matchup-label.x0 { background: rgba(126, 87, 194, 0.1); color: #5d3a9b; }
+
+.matchup-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.learnset-filter-row {
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  padding: 7px;
+  box-shadow: none;
+}
+
+.dex-learnset-section {
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-input));
+}
+
+.dex-learnset-section .dex-modal-section-title {
+  margin-bottom: 10px;
+}
+
+.dex-learnset-section .learnset-filter-row {
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-input);
+}
+
+.dex-learnset-section .type-filter-btn {
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.learnset-type-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  margin: 12px 0 6px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+}
+
+.learnset-type-header:first-child {
+  margin-top: 0;
+}
+
+.learnset-type-header .count {
+  color: var(--text-faint);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.learnset-type-header .dex-type-pill,
+.dex-learnset-section .type-filter-btn.type-pill-mini {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.dex-learnset-section .dex-link-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 6px;
+  max-height: none;
+  overflow: visible;
+  padding: 8px;
+  border-color: var(--border);
+  background: var(--bg-input);
+}
+
+.dex-learnset-section .dex-link {
+  position: relative;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 9px;
+  overflow: visible;
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.dex-learnset-section .dex-link-text {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dex-learnset-section .dex-link[data-dex-tooltip]::after {
+  content: attr(data-dex-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 9px);
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  min-width: 138px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elev);
+  box-shadow: var(--surface-shadow);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.25;
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+  transform: translate(-50%, 4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+  white-space: nowrap;
+}
+
+.dex-learnset-section .dex-link[data-dex-tooltip]::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 3px);
+  z-index: 41;
+  width: 10px;
+  height: 10px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elev);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px) rotate(45deg);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.dex-learnset-section .dex-link[data-dex-tooltip]:hover::after,
+.dex-learnset-section .dex-link[data-dex-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.dex-learnset-section .dex-link[data-dex-tooltip]:hover::before,
+.dex-learnset-section .dex-link[data-dex-tooltip]:focus-visible::before {
+  opacity: 1;
+  transform: translate(-50%, 0) rotate(45deg);
+}
+
+:root[data-theme="dark"] #page-dex,
+:root[data-theme="dark"] .dex-modal {
+  --dex-accent: var(--tera);
+  --dex-chip-border: var(--border);
+  --dex-chip-bg: var(--bg-input);
+}
+
+:root[data-theme="dark"] #page-dex .type-filter-btn.type-pill-mini:not([data-filter-type=""]),
+:root[data-theme="dark"] .dex-modal .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]),
+:root[data-theme="dark"] #dexFullPageDetail .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]) {
+  background: color-mix(in srgb, var(--dex-filter-bg) 12%, var(--bg-input));
+  color: color-mix(in srgb, var(--dex-filter-bg) 62%, var(--text));
+}
+
+:root[data-theme="dark"] #page-dex .type-filter-btn.type-pill-mini:not([data-filter-type=""]):hover,
+:root[data-theme="dark"] .dex-modal .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]):hover,
+:root[data-theme="dark"] #dexFullPageDetail .type-filter-btn.type-pill-mini:not([data-learnset-filter=""]):hover {
+  background: color-mix(in srgb, var(--dex-filter-bg) 18%, var(--bg-input));
+  color: var(--text);
+}
+
+:root[data-theme="dark"] #page-dex .dex-table tbody tr:hover {
+  background: color-mix(in srgb, var(--warn) 12%, var(--bg-input));
+}
+
+:root[data-theme="dark"] .dex-modal::backdrop {
+  background: var(--bg-overlay);
+}

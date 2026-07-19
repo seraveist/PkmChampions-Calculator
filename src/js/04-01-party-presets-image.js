@@ -197,7 +197,7 @@ function partyPresetMovePalette(move, palette) {
   if (!move || move.empty) {
     return { bg: palette.box, fg: palette.faint, sub: palette.faint, border: palette.borderSoft };
   }
-  const typePalette = PARTY_PRESET_MOVE_TYPE_COLORS[move.type] || { bg: palette.accent, fg: '#ffffff' };
+  const typePalette = partyPresetMoveTypePalette(move.type, { bg: palette.accent, fg: '#ffffff' });
   return {
     bg: typePalette.bg,
     fg: typePalette.fg,

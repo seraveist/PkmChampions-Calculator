@@ -462,7 +462,6 @@ async function build() {
 
   // 분할된 src/styles/*.css, src/js/*.js 를 알파벳순으로 concat 한다.
   // CSS 는 소유권별 우선순위를 보장하도록 명시적인 cascade layer 로 감싼다.
-  // legacy-foundation 은 남은 공통 규칙의 컴포넌트 이전이 끝나면 제거한다.
   function concatDir(dir, ext) {
     if (!fs.existsSync(dir)) return '';
     const files = fs.readdirSync(dir).filter(f => f.endsWith(ext) && !f.startsWith('.')).sort();
@@ -472,7 +471,6 @@ async function build() {
     'reset',
     'tokens',
     'base',
-    'legacy-foundation',
     'components',
     'layouts',
     'pages',
@@ -482,7 +480,6 @@ async function build() {
   ];
   const CSS_FILE_LAYERS = new Map([
     ['02-pages.css', 'base'],
-    ['04-ui-foundation.css', 'legacy-foundation'],
     ['responsive.css', 'responsive'],
   ]);
   function listFilesRecursive(dir, ext, relativeDir = '') {
@@ -499,7 +496,7 @@ async function build() {
       .sort((a, b) => a.localeCompare(b));
   }
   function styleLayerFor(relativePath) {
-    if (relativePath === '00-tokens.css') return 'tokens';
+    if (relativePath === '00-tokens.css' || relativePath.startsWith('tokens/')) return 'tokens';
     if (relativePath === '01-reset.css') return 'reset';
     if (relativePath === '02-base.css') return 'base';
     if (relativePath.startsWith('components/')) return 'components';

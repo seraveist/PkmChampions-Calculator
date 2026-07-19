@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,6 +40,25 @@ function check(condition, label) {
     console.error(`[FAIL] ${label}`);
   }
 }
+
+const allJsFiles = readdirSync(JS_DIR).filter(file => file.endsWith('.js')).sort();
+const jsSourceByFile = new Map(allJsFiles.map(file => [file, readFileSync(path.join(JS_DIR, file), 'utf8')]));
+const directInnerHtmlWrites = [...jsSourceByFile].flatMap(([file, source]) =>
+  [...source.matchAll(/\.innerHTML\s*=/g)].map(match => `${file}:${match.index}`)
+);
+check(
+  directInnerHtmlWrites.length === 1 && directInnerHtmlWrites[0].startsWith('01-core.js:'),
+  'HTML writes pass through the shared render boundary',
+);
+check(
+  ![...jsSourceByFile.values()].some(source => source.includes('insertAdjacentHTML')),
+  'application source avoids unbounded adjacent HTML insertion',
+);
+const coreSource = jsSourceByFile.get('01-core.js') || '';
+check(
+  coreSource.includes(".replace(/\"/g, '&quot;')") && coreSource.includes(".replace(/'/g, '&#39;')"),
+  'HTML escaping protects quoted attribute values',
+);
 
 check(!existsSync(path.join(JS_DIR, '04-00-party-presets.js')), 'legacy party preset monolith is removed');
 for (const [file, ownershipNeedle] of PARTY_MODULES) {

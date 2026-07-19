@@ -11,10 +11,13 @@ const PAGE_OWNERS = new Map([
   ['pages/01-matchup.css', 'matchup'],
   ['pages/02-finetune.css', 'finetune'],
   ['pages/03-reverse.css', 'revcalc'],
-  ['pages/calculator.css', 'calc'],
-  ['pages/calculator-base.css', 'calc'],
-  ['pages/dex.css', 'dex'],
 ]);
+
+function pageOwner(relative) {
+  if (relative.startsWith('pages/calculator-')) return 'calc';
+  if (relative.startsWith('pages/dex-')) return 'dex';
+  return PAGE_OWNERS.get(relative);
+}
 
 function filesUnder(root, extension) {
   return readdirSync(root, { withFileTypes: true }).flatMap(entry => {
@@ -48,7 +51,7 @@ const duplicateIds = [...idCounts.entries()].filter(([, count]) => count > 1).ma
 const cssFiles = filesUnder(CSS_ROOT, '.css').map(file => {
   const source = read(file);
   const relative = rel(file, CSS_ROOT);
-  const expectedPage = PAGE_OWNERS.get(relative);
+  const expectedPage = pageOwner(relative);
   const pageReferences = [...new Set([...source.matchAll(/#page-(calc|revcalc|finetune|matchup|dex)\b/g)].map(match => match[1]))];
   return {
     file: relative,

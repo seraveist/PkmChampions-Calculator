@@ -75,11 +75,11 @@ function openDexDetail(type, id, parentCtx = null) {
   document.getElementById('dexDetailTitle').textContent = content.titleKo;
   document.getElementById('dexDetailTitleEn').textContent = content.titleEn !== content.titleKo ? content.titleEn : '';
   const detailBody = document.getElementById('dexDetailBody');
-  detailBody.innerHTML = content.body;
+  renderTrustedHTML(detailBody, content.body);
   applyDexDynamicStyles(detailBody);
   const actionsEl = document.getElementById('dexDetailActions');
   const actions = (content.actions || '').trim();
-  actionsEl.innerHTML = actions;
+  renderTrustedHTML(actionsEl, actions);
   actionsEl.hidden = !actions;
   if (!modal.open) modal.showModal();
 }
@@ -107,7 +107,7 @@ function openDexDetailPage(type, id) {
         </span>
       </div>
   `;
-  container.innerHTML = `
+  renderTrustedHTML(container, `
     <div class="dex-fullpage-head">
       <button type="button" class="dex-fullpage-back" id="dexFullPageBack">뒤로</button>
       ${titleBlock}
@@ -115,7 +115,7 @@ function openDexDetailPage(type, id) {
     </div>
     <div class="dex-fullpage-body" id="dexFullPageBody">${content.body}</div>
     ${footerActions}
-  `;
+  `);
   applyDexDynamicStyles(container);
   syncUiPanels(document.querySelectorAll('.dex-content'), container);
   setDexFullPageMode(true);
@@ -124,7 +124,7 @@ function openDexDetailPage(type, id) {
 function closeDexFullPage() {
   const container = document.getElementById('dexFullPageDetail');
   if (!container) return;
-  container.innerHTML = '';
+  renderTrustedHTML(container, '');
   container.classList.remove('active');
   dexFullPageCtx = { type: null, id: null };
   setDexFullPageMode(false);
@@ -605,7 +605,7 @@ function handleLearnsetFilterClick(e, scopeRoot, ctx) {
   if (p) {
     const learnable = (p.ls || []).map(mid => MoveById[mid]).filter(Boolean);
     const wrap = scopeRoot.querySelector('#learnsetWrap');
-    if (wrap) wrap.innerHTML = renderLearnsetByType(learnable);
+    if (wrap) renderTrustedHTML(wrap, renderLearnsetByType(learnable));
   }
   return true;
 }

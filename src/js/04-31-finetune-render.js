@@ -9,14 +9,14 @@ function renderFineTuneHp() {
   if (panel) panel.hidden = !hasPokemon;
   layout?.classList.toggle('has-hp-results', hasPokemon);
   if (!hasPokemon) {
-    container.innerHTML = '';
+    renderTrustedHTML(container, '');
     return;
   }
   const rows = ftHpBreakpoints(my)
     .filter(info => info.rule.relevant || info.current || info.next || info.prev);
   const groups = ftGroupHpBreakpoints(my, rows).sort(ftCompareBreakpointGroups);
 
-  container.innerHTML = `
+  renderTrustedHTML(container, `
     <section class="ft-hp-section ui-control-frame ui-subframe">
       <div class="ft-hp-title">
         <span>HP 기준점</span>
@@ -34,7 +34,7 @@ function renderFineTuneHp() {
         `).join('')}
       </div>
     </section>
-  `;
+  `);
 }
 
 function renderFineTuneMy() {
@@ -74,14 +74,14 @@ function renderFineTuneMy() {
     ` : '',
   });
   if (!p) {
-    container.innerHTML = `
+    renderTrustedHTML(container, `
       <div class="ft-setup-grid tool-settings-layout ui-control-grid">
         <div class="ft-pokemon-main-row ui-control-row">
           ${pokemonPicker}
         </div>
       </div>
       <div class="empty-state ui-empty">포켓몬 선택 필요</div>
-    `;
+    `);
     ftWireMyComboboxes();
     return;
   }
@@ -122,7 +122,7 @@ function renderFineTuneMy() {
     finalClass: 'ft-stat-final',
   });
 
-  container.innerHTML = `
+  renderTrustedHTML(container, `
     <div class="ft-setup-grid tool-settings-layout ui-control-grid">
       <div class="ft-pokemon-main-row ui-control-row">
         ${pokemonPicker}
@@ -177,7 +177,7 @@ function renderFineTuneMy() {
         specLabel: '특수 내구',
       })}
     </div>
-  `;
+  `);
   ftWireMyComboboxes();
 }
 
@@ -212,7 +212,7 @@ function renderFineTuneOpp() {
     value: p ? pkName(p) : '',
   });
 
-  container.innerHTML = `
+  renderTrustedHTML(container, `
     <section class="ft-opp-section ui-control-frame ui-subframe ui-subframe-stack">
       <div class="ft-opp-card-head">
         <span class="ft-section-title">상대 포켓몬</span>
@@ -250,7 +250,7 @@ function renderFineTuneOpp() {
         </div>
       </div>
     </section>
-  `;
+  `);
   ftWireOppComboboxes();
 }
 
@@ -262,7 +262,7 @@ function renderFineTuneSpeed() {
   const myP = PokemonById[my.pokemonIdx];
   const oppP = PokemonById[opp.pokemonIdx];
   if (!myP || !oppP) {
-    container.innerHTML = '<div class="empty-state ui-empty">양쪽 포켓몬 선택 필요</div>';
+    renderTrustedHTML(container, '<div class="empty-state ui-empty">양쪽 포켓몬 선택 필요</div>');
     return;
   }
   const rows = ftBuildSpeedTable();
@@ -278,7 +278,7 @@ function renderFineTuneSpeed() {
     (my.ranks?.spe || 0) !== 0 ? `<span class="ft-tag">랭크 ${my.ranks.spe > 0 ? '+' : ''}${my.ranks.spe}</span>` : '',
   ].filter(Boolean).join('');
 
-  container.innerHTML = `
+  renderTrustedHTML(container, `
     <div class="ft-speed-summary ui-control-frame ui-subframe">
       <div class="ft-current-speed-inline">
         <span>내 현재 속도</span>
@@ -311,7 +311,7 @@ function renderFineTuneSpeed() {
         `;
       }).join('')}
     </div>
-  `;
+  `);
 }
 
 function renderFineTuneAll() {

@@ -1,0 +1,336 @@
+/* Calculator stat editor and preset controls. */
+#page-calc .calc-stat-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+#page-calc .calc-stat-panel {
+  position: relative;
+}
+
+#page-calc .calc-stat-preset-toggle {
+  height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  border-color: var(--calc-line);
+  border-radius: var(--ui-label-action-radius);
+  background: #ffffff;
+  color: var(--calc-muted);
+}
+
+#page-calc .calc-stat-preset-toggle:hover,
+#page-calc .calc-stat-preset-toggle:focus-visible,
+#page-calc .calc-stat-preset-shell.is-preset-open .calc-stat-preset-toggle {
+  border-color: #c7d2fe;
+  background: #eef2ff;
+  color: #4338ca;
+  outline: 0;
+}
+
+#page-calc .calc-stat-total {
+  gap: var(--tool-stat-total-gap, 6px);
+  height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-head-action-height, var(--ui-pokemon-action-height));
+  min-width: 112px;
+  border-color: var(--calc-line-soft);
+  border-radius: var(--ui-label-action-radius);
+  background: #f9fafb;
+  color: var(--calc-muted);
+  font-family: "Noto Sans KR", sans-serif;
+}
+
+#page-calc .calc-stat-total b {
+  color: var(--calc-text);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 900;
+}
+
+#page-calc .calc-stat-total.over {
+  border-color: rgb(220 38 38 / 0.36);
+  background: rgb(254 242 242 / 0.88);
+  color: #dc2626;
+}
+
+#page-calc .calc-stat-body {
+  display: block;
+  width: 100%;
+}
+
+#page-calc .calc-stat-grid {
+  display: grid;
+  --calc-stat-name-label-width: 32px;
+  --calc-stat-nature-width: 12px;
+  --calc-stat-name-gap: 3px;
+  grid-template-columns:
+    minmax(60px, 0.64fr)
+    minmax(46px, 0.45fr)
+    minmax(170px, 1.8fr)
+    minmax(58px, 0.55fr)
+    minmax(92px, 1.02fr);
+  gap: 6px 10px;
+  align-items: center;
+  align-content: start;
+  width: 100%;
+}
+
+#page-calc .calc-stat-head {
+  display: flex;
+  align-items: center;
+  min-height: 18px;
+  padding: 0 2px 2px;
+  border-bottom: 1px solid var(--calc-line-soft);
+  color: var(--calc-muted);
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+#page-calc .calc-stat-head:nth-child(2),
+#page-calc .calc-stat-head:nth-child(3),
+#page-calc .calc-stat-head:nth-child(4),
+#page-calc .calc-stat-head:nth-child(5) {
+  justify-content: center;
+}
+
+#page-calc .calc-stat-head:nth-child(1) {
+  display: grid;
+  grid-template-columns: var(--calc-stat-name-label-width, 32px) var(--calc-stat-nature-width, 12px);
+  justify-content: center;
+  justify-items: center;
+  column-gap: var(--calc-stat-name-gap, 3px);
+}
+
+#page-calc .calc-stat-name {
+  display: grid;
+  grid-template-columns: var(--calc-stat-name-label-width, 32px) var(--calc-stat-nature-width, 12px);
+  align-items: center;
+  justify-content: center;
+  column-gap: var(--calc-stat-name-gap, 3px);
+  box-sizing: border-box;
+  padding-left: 0;
+  color: var(--calc-muted);
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+  text-align: left;
+  white-space: nowrap;
+}
+
+#page-calc .calc-stat-name-text {
+  display: block;
+  min-width: var(--calc-stat-name-label-width, 32px);
+  text-align: center;
+}
+
+#page-calc .nature-stat-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--calc-stat-nature-width, 12px);
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
+#page-calc .nature-stat-mark.up {
+  color: #dc2626;
+}
+
+#page-calc .nature-stat-mark.down {
+  color: #2563eb;
+}
+
+#page-calc .nature-stat-mark.empty {
+  visibility: hidden;
+}
+
+#page-calc .calc-stat-grid {
+  --tool-stat-control-border: 1px solid var(--border);
+  --tool-stat-control-hover-border: var(--border-bright);
+  --tool-stat-control-focus-border: var(--tool-accent, var(--border-bright));
+  --tool-stat-focus-ring: var(--focus-ring);
+  --tool-stat-button-bg: var(--ui-action-bg);
+  --tool-stat-button-hover-bg: var(--ui-action-hover-bg);
+  --tool-stat-button-focus-bg: var(--ui-action-bg);
+  --tool-stat-input-bg: var(--ui-control-bg);
+  --tool-stat-input-hover-bg: var(--bg-input);
+  --tool-stat-input-focus-bg: var(--ui-control-bg);
+  --tool-stat-input-color: var(--calc-text);
+  --tool-stat-rank-value-color: var(--calc-text);
+  --tool-stat-base-color: var(--calc-muted);
+  --tool-stat-final-color: var(--calc-text);
+  --tool-stat-positive-color: #dc2626;
+  --tool-stat-negative-color: #2563eb;
+}
+
+#page-calc .calc-stat-base,
+#page-calc .calc-stat-final {
+  color: var(--calc-text);
+  text-align: center;
+}
+
+#page-calc .calc-stat-base {
+  color: var(--calc-muted);
+}
+
+#page-calc .calc-stat-preset-menu {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--calc-line);
+  border-radius: 8px;
+  background: var(--calc-control-bg);
+}
+
+#page-calc .calc-stat-preset-popover {
+  position: absolute;
+  left: 0;
+  top: 40px;
+  z-index: 80;
+  display: none;
+  width: min(292px, 100%);
+  filter: drop-shadow(0 18px 32px rgb(15 23 42 / 0.18));
+}
+
+#page-calc .calc-stat-preset-shell.is-preset-open .calc-stat-preset-popover {
+  display: block;
+}
+
+#page-calc .calc-stat-preset-popover .calc-stat-preset-menu {
+  border-color: #c7d2fe;
+  background: #ffffff;
+}
+
+#page-calc .calc-stat-preset-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  color: var(--calc-muted);
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+#page-calc .calc-stat-preset-label--secondary {
+  margin-top: 8px;
+}
+
+#page-calc .calc-stat-preset-label .calc-stat-reset-button {
+  min-height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--calc-line);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--calc-muted);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+#page-calc .calc-stat-preset-label .calc-stat-reset-button:hover {
+  border-color: #c7d2fe;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+#page-calc .calc-stat-preset-row,
+#page-calc .calc-stat-preset-row--natures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+#page-calc .calc-stat-preset-row:not(.calc-stat-preset-row--natures) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#page-calc .calc-stat-preset-row--natures {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+#page-calc .calc-stat-preset-option {
+  position: relative;
+  min-height: 31px;
+  padding: 0 5px;
+  border: 1px solid var(--calc-line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--calc-muted);
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+#page-calc .calc-stat-preset-option.calc-stat-nature-option {
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0;
+}
+
+#page-calc .calc-stat-preset-row--natures .calc-stat-preset-option {
+  min-height: 30px;
+  padding: 0 3px;
+  font-size: 0.66rem;
+}
+
+#page-calc .calc-stat-preset-option[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  z-index: 10001;
+  width: max-content;
+  max-width: 220px;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 14px 34px rgb(15 23 42 / 0.18);
+  color: #475569;
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: left;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(2px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+#page-calc .calc-stat-preset-option[data-tooltip]:hover::after,
+#page-calc .calc-stat-preset-option[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+#page-calc .calc-stat-preset-option:hover {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+#page-calc .calc-stat-preset-option.active {
+  border-color: #c7d2fe;
+  background: #eef2ff;
+  color: #4338ca;
+}

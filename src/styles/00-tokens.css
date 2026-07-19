@@ -1,23 +1,21 @@
-/* Product-level semantic tokens. Legacy --bg/--ui-* aliases remain in
- * 04-ui-foundation.css until each page is migrated to the new structure.
- */
+/* Product-level semantic tokens. UI aliases live in tokens/ui-aliases.css. */
 
 :root {
   color-scheme: light;
 
-  --color-surface-canvas: #f4f6f8;
+  --color-surface-canvas: #eef2f6;
   --color-surface-elevated: #ffffff;
-  --color-surface-panel: #ffffff;
-  --color-surface-input: #f8fafc;
-  --color-surface-muted: #eef2f6;
+  --color-surface-panel: #fbfcfe;
+  --color-surface-input: #f4f7fa;
+  --color-surface-muted: #e7edf3;
   --color-surface-overlay: rgba(15, 23, 42, 0.36);
   --color-surface-overlay-soft: rgba(15, 23, 42, 0.28);
-  --color-surface-header: rgba(255, 255, 255, 0.94);
+  --color-surface-header: rgba(250, 252, 255, 0.94);
 
-  --color-border-default: #d9e1ea;
-  --color-border-strong: #aebdcb;
-  --color-border-soft: rgba(104, 122, 142, 0.16);
-  --color-border-header: rgba(104, 122, 142, 0.18);
+  --color-border-default: #ced8e3;
+  --color-border-strong: #9eafbf;
+  --color-border-soft: rgba(83, 105, 128, 0.18);
+  --color-border-header: rgba(83, 105, 128, 0.2);
 
   --color-text-primary: #17202a;
   --color-text-secondary: #5b6978;
@@ -31,15 +29,15 @@
   --color-status-positive: #257a57;
   --color-accent-tera: #7f57bf;
 
-  --shadow-surface: 0 14px 36px rgba(28, 40, 52, 0.08);
-  --shadow-surface-soft: 0 8px 20px rgba(28, 40, 52, 0.06);
-  --shadow-header: 0 10px 28px rgba(28, 40, 52, 0.08);
+  --shadow-surface: 0 14px 34px rgba(28, 40, 52, 0.1);
+  --shadow-surface-soft: 0 5px 16px rgba(28, 40, 52, 0.07);
+  --shadow-header: 0 7px 22px rgba(28, 40, 52, 0.08);
   --shadow-focus: 0 0 0 3px rgba(183, 121, 31, 0.18);
   --shadow-focus-compact: 0 0 0 2px rgba(183, 121, 31, 0.18);
 
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -51,6 +49,28 @@
   --layout-ad-rail-width: 160px;
   --layout-shell-gap: 18px;
   --layout-shell-gutter: 24px;
+
+  /* Canonical Pokemon type palette. Cards, filters, and canvas exports read these tokens. */
+  --type-normal-bg: #74745c; --type-normal-fg: #ffffff; --type-normal-border: #61614a; --type-normal-text: #56563f;
+  --type-fire-bg: #b9471f; --type-fire-fg: #ffffff; --type-fire-border: #963615; --type-fire-text: #8f3516;
+  --type-water-bg: #3d70c5; --type-water-fg: #ffffff; --type-water-border: #315ba8; --type-water-text: #2e57a0;
+  --type-grass-bg: #477e31; --type-grass-fg: #ffffff; --type-grass-border: #376326; --type-grass-text: #315d20;
+  --type-electric-bg: #e8c42e; --type-electric-fg: #1a1a1a; --type-electric-border: #cfab1a; --type-electric-text: #846900;
+  --type-ice-bg: #7ec8d0; --type-ice-fg: #1a1a1a; --type-ice-border: #62adb6; --type-ice-text: #3d7d85;
+  --type-fighting-bg: #b33a2e; --type-fighting-fg: #ffffff; --type-fighting-border: #963024; --type-fighting-text: #7d271d;
+  --type-poison-bg: #9a4ea0; --type-poison-fg: #ffffff; --type-poison-border: #813e87; --type-poison-text: #69306d;
+  --type-ground-bg: #d4b06a; --type-ground-fg: #1a1a1a; --type-ground-border: #ba9752; --type-ground-text: #82612b;
+  --type-flying-bg: #9a86e8; --type-flying-fg: #1a1a1a; --type-flying-border: #806bd2; --type-flying-text: #5e4aad;
+  --type-psychic-bg: #c9345d; --type-psychic-fg: #ffffff; --type-psychic-border: #a52648; --type-psychic-text: #98233f;
+  --type-bug-bg: #a4b42a; --type-bug-fg: #1a1a1a; --type-bug-border: #89971f; --type-bug-text: #667318;
+  --type-rock-bg: #81702f; --type-rock-fg: #ffffff; --type-rock-border: #68591f; --type-rock-text: #5f501d;
+  --type-ghost-bg: #6a5598; --type-ghost-fg: #ffffff; --type-ghost-border: #55447d; --type-ghost-text: #443665;
+  --type-dragon-bg: #6838e0; --type-dragon-fg: #ffffff; --type-dragon-border: #5630ba; --type-dragon-text: #45269a;
+  --type-dark-bg: #5e4a3c; --type-dark-fg: #ffffff; --type-dark-border: #49392f; --type-dark-text: #49392f;
+  --type-steel-bg: #a8a8c0; --type-steel-fg: #1a1a1a; --type-steel-border: #8f8fa9; --type-steel-text: #64647b;
+  --type-fairy-bg: #e892b8; --type-fairy-fg: #1a1a1a; --type-fairy-border: #d778a3; --type-fairy-text: #a94d75;
+  --type-stellar-bg: #8368d8; --type-stellar-fg: #ffffff; --type-stellar-border: #6d54bd; --type-stellar-text: #57429c;
+  --type-stellar-surface: linear-gradient(135deg, #ffd700, #c084fc, #33b7ff);
 }
 
 :root[data-theme="dark"] {

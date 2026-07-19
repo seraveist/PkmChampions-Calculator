@@ -150,10 +150,10 @@ function renderSide(sideKey) {
     ` : '',
   });
   if (!p) {
-    container.innerHTML = `
+    renderTrustedHTML(container, `
       ${pokemonPicker}
       <div class="empty-state ui-empty">포켓몬 선택 필요</div>
-    `;
+    `);
     syncCalcDetailState(sideKey);
     wireSide(sideKey);
     return;
@@ -227,7 +227,7 @@ function renderSide(sideKey) {
     finalClass: 'calc-stat-final',
   });
 
-  container.innerHTML = `
+  renderTrustedHTML(container, `
     <!-- 포켓몬 선택 -->
     ${pokemonPicker}
 
@@ -337,7 +337,7 @@ function renderSide(sideKey) {
       </div>
     </div>
 
-  `;
+  `);
 
   syncCalcDetailState(sideKey);
   wireSide(sideKey);

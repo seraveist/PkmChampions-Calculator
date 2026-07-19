@@ -154,7 +154,7 @@ function renderPartyPresetModal() {
   ensurePartyPresetModal();
   const body = document.getElementById('partyPresetBody');
   if (!body) return;
-  body.innerHTML = partyPresetData.parties.map((party, partyIndex) => {
+  renderTrustedHTML(body, partyPresetData.parties.map((party, partyIndex) => {
     const isCollapsed = partyPresetCollapsedParties.has(partyIndex);
     const filledCount = partyPresetFilledMembers(party).length;
     const partyName = normalizePartyPresetName(party.name, partyIndex);
@@ -176,7 +176,7 @@ function renderPartyPresetModal() {
       </div>
     </section>
     `;
-  }).join('');
+  }).join(''));
   wirePartyPresetInputs();
 }
 
@@ -186,7 +186,7 @@ function ensurePartyPresetModal() {
   modal.id = 'partyPresetModal';
   modal.className = 'party-preset-modal-backdrop';
   modal.hidden = true;
-  modal.innerHTML = `
+  renderTrustedHTML(modal, `
     <div class="party-preset-modal ui-frame" role="dialog" aria-modal="true" aria-labelledby="partyPresetTitle" aria-describedby="partyPresetBackupNote">
       <div class="party-preset-modal-head ui-frame-head">
         <div>
@@ -219,7 +219,7 @@ function ensurePartyPresetModal() {
         </div>
       </div>
     </div>
-  `;
+  `);
   document.body.appendChild(modal);
 }
 
@@ -253,7 +253,7 @@ function ensurePartyPresetPickerModal() {
   modal.id = 'partyPresetPickerModal';
   modal.className = 'party-preset-picker-backdrop';
   modal.hidden = true;
-  modal.innerHTML = `
+  renderTrustedHTML(modal, `
     <div class="party-preset-picker ui-frame" role="dialog" aria-modal="true" aria-labelledby="partyPresetPickerTitle">
       <div class="party-preset-picker-head ui-frame-head">
         <div>
@@ -264,7 +264,7 @@ function ensurePartyPresetPickerModal() {
       </div>
       <div class="party-preset-picker-body ui-frame-body ui-subframe-stack" id="partyPresetPickerBody"></div>
     </div>
-  `;
+  `);
   document.body.appendChild(modal);
 }
 
@@ -281,7 +281,7 @@ function renderPartyPresetPicker() {
   title.textContent = mode === 'party' ? '파티 불러오기' : '포켓몬 불러오기';
 
   if (mode === 'party') {
-    body.innerHTML = `
+    renderTrustedHTML(body, `
       <section class="party-preset-picker-section party-preset-picker-party-section ui-control-frame ui-subframe">
         <div class="party-preset-picker-party-grid">
           ${partyPresetData.parties.map((party, partyIndex) => {
@@ -299,11 +299,11 @@ function renderPartyPresetPicker() {
           }).join('')}
         </div>
       </section>
-    `;
+    `);
     return;
   }
 
-  body.innerHTML = partyPresetData.parties.map((party, partyIndex) => {
+  renderTrustedHTML(body, partyPresetData.parties.map((party, partyIndex) => {
     const members = partyPresetFilledMembers(party);
     return `
       <section class="party-preset-picker-section ui-control-frame ui-subframe">
@@ -322,7 +322,7 @@ function renderPartyPresetPicker() {
         </div>
       </section>
     `;
-  }).join('');
+  }).join(''));
 }
 
 function openPartyPresetPicker(target) {
@@ -495,7 +495,7 @@ function wirePartyPresetCombobox(input) {
 
   const showOptions = query => {
     closePartyPresetComboboxes(input);
-    optsEl.innerHTML = renderPartyPresetOptions(type, member, query, currentId());
+    renderTrustedHTML(optsEl, renderPartyPresetOptions(type, member, query, currentId()));
     optsEl.classList.add('open');
     input.setAttribute('aria-expanded', 'true');
   };

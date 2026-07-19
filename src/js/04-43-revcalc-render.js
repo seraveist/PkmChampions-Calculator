@@ -1,4 +1,13 @@
 /* Reverse calculator rendering. */
+function rcSetStagePanelState(panelId, state, label) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  panel.dataset.stageState = state;
+  panel.setAttribute('aria-disabled', state === 'locked' ? 'true' : 'false');
+  const status = panel.querySelector('.rc-stage-status');
+  if (status) status.textContent = label;
+}
+
 function renderRevCalcMy() {
   const container = document.getElementById('rc-my-body');
   if (!container) return;
@@ -29,14 +38,14 @@ function renderRevCalcMy() {
     placeholder: '포켓몬 검색...',
   });
   if (!p) {
-    container.innerHTML = `
+    renderTrustedHTML(container, `
       <div class="rc-setup-grid tool-settings-layout ui-control-grid">
         <div class="rc-pokemon-main-row ui-control-row">
           ${pokemonPicker}
         </div>
       </div>
-      <div class="empty-state ui-empty">포켓몬 선택 필요</div>
-    `;
+      <div class="empty-state ui-empty ui-empty--compact ui-empty--guide">포켓몬 선택 필요</div>
+    `);
     rcWireMyComboboxes();
     return;
   }
@@ -85,7 +94,7 @@ function renderRevCalcMy() {
     finalClass: 'rc-stat-final',
   });
 
-  container.innerHTML = `
+  renderTrustedHTML(container, `
     <div class="rc-setup-grid tool-settings-layout ui-control-grid">
       <div class="rc-pokemon-main-row ui-control-row">
         ${pokemonPicker}
@@ -143,7 +152,7 @@ function renderRevCalcMy() {
         </div>
       </div>
     </div>
-  `;
+  `);
   rcWireMyComboboxes();
   rcWireMoveComboboxes(container);
 }
@@ -200,7 +209,7 @@ function renderRevCalcOpp() {
     baseClass: 'rc-opp-stat-base',
   });
 
-  container.innerHTML = `
+  renderTrustedHTML(container, `
     <div class="rc-setup-grid rc-opp-setup tool-settings-layout ui-control-grid">
       <div class="rc-pokemon-main-row ui-control-row">
         ${pokemonPicker}
@@ -235,7 +244,7 @@ function renderRevCalcOpp() {
         </div>
       </div>
     ` : ''}
-  `;
+  `);
   rcWireOppComboboxes();
 }
 
@@ -245,15 +254,21 @@ function renderRevCalcInputs() {
   const my = revCalcState.my;
   const myP = PokemonById[my.pokemonIdx];
   const oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  const participantsReady = !!myP && !!oppP;
+  rcSetStagePanelState(
+    'rc-input-panel',
+    participantsReady ? 'ready' : 'locked',
+    participantsReady ? '입력 가능' : '선택 필요'
+  );
 
-  if (!myP || !oppP) {
+  if (!participantsReady) {
     const missing = !myP && !oppP ? '내 포켓몬과 상대 포켓몬' : (!myP ? '내 포켓몬' : '상대 포켓몬');
-    container.innerHTML = `
-      <div class="rc-prerequisite empty-state ui-empty" role="status">
+    renderTrustedHTML(container, `
+      <div class="rc-prerequisite empty-state ui-empty ui-empty--compact ui-empty--guide" role="status">
         <strong>${missing}을 먼저 선택해 주세요.</strong>
         <span>참가 포켓몬이 준비되면 관측 데이터 입력이 열립니다.</span>
       </div>
-    `;
+    `);
     return;
   }
 
@@ -274,7 +289,7 @@ function renderRevCalcInputs() {
     </label>
   `).join('');
 
-  container.innerHTML = `
+  renderTrustedHTML(container, `
     <div class="rc-input-grid ui-control-grid">
       <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
         <div class="rc-section-title ui-section-title">내 행동</div>
@@ -344,7 +359,7 @@ function renderRevCalcInputs() {
         </div>
       </div>
     </div>
-  `;
+  `);
   rcWireMoveComboboxes(container);
   rcWireOppItemComboboxes(container);
   rcWireTurnOrderComboboxes(container);
@@ -357,6 +372,14 @@ function renderRevCalcResults() {
   const analyzeButton = document.getElementById('rcAnalyze');
   const participantsReady = !!PokemonById[revCalcState.my.pokemonIdx]
     && !!PokemonById[revCalcState.opp.pokemonIdx];
+  const resultState = !participantsReady
+    ? ['locked', '대기']
+    : revCalcState.analyzing
+      ? ['working', '분석 중']
+      : revCalcState.results
+        ? ['complete', '분석 완료']
+        : ['ready', '분석 준비'];
+  rcSetStagePanelState('rc-results-panel', resultState[0], resultState[1]);
   if (analyzeButton) {
     analyzeButton.textContent = revCalcState.analyzing ? '분석 취소' : '형태 분석';
     analyzeButton.classList.toggle('is-analyzing', !!revCalcState.analyzing);
@@ -366,31 +389,31 @@ function renderRevCalcResults() {
   }
   container.setAttribute('aria-busy', revCalcState.analyzing ? 'true' : 'false');
   if (revCalcState.analyzing) {
-    container.innerHTML = `
+    renderTrustedHTML(container, `
       <div class="rc-analysis-progress ui-control-frame ui-subframe" role="status" aria-live="polite">
         <span class="rc-analysis-spinner" aria-hidden="true"></span>
         <span class="rc-analysis-copy"><strong>형태 분석 중</strong><span>후보 조합을 계산하고 있습니다.</span></span>
         <span class="rc-analysis-track" aria-hidden="true"><span></span></span>
       </div>
-    `;
+    `);
     return;
   }
   const r = revCalcState.results;
   if (!r) {
-    container.innerHTML = participantsReady
-      ? '<div class="empty-state ui-empty">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>'
-      : '<div class="empty-state ui-empty">참가 포켓몬을 선택하면 형태 분석을 준비합니다.</div>';
+    renderTrustedHTML(container, participantsReady
+      ? '<div class="empty-state ui-empty ui-empty--compact ui-empty--guide">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>'
+      : '<div class="empty-state ui-empty ui-empty--compact ui-empty--guide">참가 포켓몬을 선택하면 형태 분석을 준비합니다.</div>');
     return;
   }
   if (r.error) {
-    container.innerHTML = `<div class="empty-state error ui-empty">분석 오류: ${escapeHTML(r.error)}</div>`;
+    renderTrustedHTML(container, `<div class="empty-state error ui-empty">분석 오류: ${escapeHTML(r.error)}</div>`);
     return;
   }
 
   if (!r.results.length) {
-    container.innerHTML = `
+    renderTrustedHTML(container, `
       <div class="empty-state ui-empty">66포인트 룰과 관측값을 동시에 만족하는 형태가 없습니다.</div>
-    `;
+    `);
     return;
   }
 
@@ -486,14 +509,14 @@ function renderRevCalcResults() {
     `;
   }).join('');
 
-  container.innerHTML = `
+  renderTrustedHTML(container, `
     <div class="rc-briefing ui-control-frame ui-subframe">
       <div class="rc-briefing-title">요약</div>
       <div>${escapeHTML(briefing)}</div>
     </div>
     ${rcRenderNextRankPanel()}
     <div class="rc-results-list">${rows}</div>
-  `;
+  `);
   rcWireMoveComboboxes(container);
 }
 

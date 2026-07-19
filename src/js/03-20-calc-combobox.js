@@ -723,11 +723,11 @@ function wirePokemonSelectCombobox(input, {
       : renderHeader !== null
         ? renderHeader
         : calcComboboxHeaderHtml('pokemon');
-    optsEl.innerHTML = visibleMatches.length
+    renderTrustedHTML(optsEl, visibleMatches.length
       ? headerHtml + visibleMatches.map(option => (
           optionTemplate(option, currentId())
         )).join('')
-      : '<div class="combobox-option empty" aria-disabled="true"><b>검색 결과 없음</b></div>';
+      : '<div class="combobox-option empty" aria-disabled="true"><b>검색 결과 없음</b></div>');
     closeSiblingComboboxOptions(optsEl, input);
 
     const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : fn => setTimeout(fn, 0);
@@ -802,6 +802,18 @@ function wirePokemonSelectCombobox(input, {
     }, closeDelay);
   });
 
+  const handleOptionMouseDown = e => {
+    if (touchOptions.shouldIgnoreMouseEvent(e)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    const opt = e.target.closest('.combobox-option');
+    if (!opt || opt.classList.contains('empty')) return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   const handleOptionSelect = e => {
     if (touchOptions.shouldIgnoreMouseEvent(e)) {
       e.preventDefault();
@@ -811,11 +823,11 @@ function wirePokemonSelectCombobox(input, {
     const opt = e.target.closest('.combobox-option');
     if (!opt || opt.classList.contains('empty')) return;
     e.preventDefault();
-    if (isButtonTrigger && e.type === 'mousedown') return;
+    e.stopPropagation();
     combo?.select(opt);
   };
 
-  optsEl.addEventListener('mousedown', handleOptionSelect);
+  optsEl.addEventListener('mousedown', handleOptionMouseDown);
   optsEl.addEventListener('click', handleOptionSelect);
   optsEl.addEventListener('scroll', calcHideOptionTooltip);
 

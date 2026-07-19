@@ -896,7 +896,7 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 430px) {
   .tool-stat-grid {
     --tool-stat-control-height: 24px;
     --tool-stat-point-input-width: 40px;

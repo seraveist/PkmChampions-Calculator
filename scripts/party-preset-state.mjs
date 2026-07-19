@@ -44,9 +44,15 @@ function loadPartyPresetApi() {
     setSideDamageBlockActive() {},
   });
 
-  const source = `${readFileSync(path.join(ROOT, 'src', 'js', '04-00-party-presets-state.js'), 'utf8')}
+  const coreSource = readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8');
+  const escapeHtmlSource = coreSource.match(/function escapeHTML\(str\) \{[\s\S]*?\n\}/)?.[0];
+  if (!escapeHtmlSource) throw new Error('escapeHTML source is missing');
+
+  const source = `${escapeHtmlSource}
+    ${readFileSync(path.join(ROOT, 'src', 'js', '04-00-party-presets-state.js'), 'utf8')}
     ${readFileSync(path.join(ROOT, 'src', 'js', '04-02-party-presets-integration.js'), 'utf8')}
     globalThis.__partyApi = {
+      escapeHTML,
       normalizePartyPresetEvs,
       normalizePartyPresetMember,
       normalizePartyPresetData,
@@ -78,6 +84,12 @@ function assertJsonEqual(actual, expected, label) {
 }
 
 const api = loadPartyPresetApi();
+
+assertEqual(
+  api.escapeHTML(`'\"<&>`),
+  '&#39;&quot;&lt;&amp;&gt;',
+  'HTML escaping protects quoted attribute values',
+);
 
 const legal = api.normalizePartyPresetEvs({ hp: 32, atk: 32, def: 2 });
 assertJsonEqual(legal, { hp: 32, atk: 32, def: 2, spa: 0, spd: 0, spe: 0 }, 'legal party spread is preserved');

@@ -46,6 +46,41 @@
 #page-revcalc .rc-grid{
   display: grid;
   grid-template-columns: minmax(0, 1.22fr) minmax(340px, 0.78fr);
+  align-items: start;
+}
+
+#page-revcalc .rc-stage-panel {
+  scroll-margin-top: 96px;
+  transition: border-color 0.16s ease, opacity 0.16s ease;
+}
+
+#page-revcalc .rc-stage-panel[data-stage-state="locked"] {
+  border-color: color-mix(in srgb, var(--tool-line) 72%, transparent);
+}
+
+#page-revcalc .rc-stage-panel[data-stage-state="locked"] > .ui-panel-head {
+  background: var(--bg-input);
+}
+
+#page-revcalc .rc-stage-status {
+  min-width: 66px;
+  border-color: var(--tool-line);
+  background: var(--bg-input);
+  color: var(--tool-muted);
+  text-align: center;
+}
+
+#page-revcalc .rc-stage-panel[data-stage-state="ready"] .rc-stage-status {
+  border-color: color-mix(in srgb, var(--tool-info) 34%, var(--tool-line));
+  background: color-mix(in srgb, var(--tool-info) 8%, var(--bg-panel));
+  color: var(--tool-info);
+}
+
+#page-revcalc .rc-stage-panel[data-stage-state="working"] .rc-stage-status,
+#page-revcalc .rc-stage-panel[data-stage-state="complete"] .rc-stage-status {
+  border-color: color-mix(in srgb, var(--tool-good) 34%, var(--tool-line));
+  background: color-mix(in srgb, var(--tool-good) 8%, var(--bg-panel));
+  color: var(--tool-good);
 }
 
 #page-revcalc .rc-my{
@@ -175,9 +210,12 @@
 }
 
 #page-revcalc .rc-stats-grid{
+  display: grid;
   width: 100%;
   grid-template-columns: var(--rc-stat-grid-template);
   gap: var(--rc-stat-grid-gap);
+  align-items: center;
+  min-width: 0;
 }
 
 #page-revcalc .rc-stat-grid .rc-stat-name{
@@ -451,7 +489,7 @@
   border-radius: 10px;
   background: var(--rc-result-accent-bg);
   color: var(--rc-result-accent-text);
-  font-family: "Fira Code", "JetBrains Mono", monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 14px;
   font-weight: 900;
   place-items: center;
@@ -586,7 +624,7 @@
 }
 
 #page-revcalc .rc-next-rank-table[hidden]{
-  display: none !important;
+  display: none;
 }
 
 #page-revcalc .rc-next-rank-group-label{
@@ -621,7 +659,7 @@
   justify-self: center;
   min-width: 0;
   color: var(--tool-muted);
-  font-family: "Fira Code", "JetBrains Mono", monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 10.5px;
   font-weight: 900;
 }
@@ -780,6 +818,23 @@
 }
 
 @media (max-width: 760px) {
+  #page-revcalc .rc-toggle-grid{
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  #page-revcalc .rc-action-block .rc-toggle-grid > .ui-check{
+    justify-content: flex-start;
+    min-height: 34px;
+    padding-right: 10px;
+    padding-left: 10px;
+    white-space: normal;
+  }
+
+  #page-revcalc .rc-action-block .rc-toggle-grid > label.ui-check.rc-compact-toggle{
+    width: 100%;
+    overflow: visible;
+  }
 
 
 
@@ -968,38 +1023,6 @@
 
 }
 
-@media (max-width: 760px) {
-  #page-revcalc .rc-toggle-grid{
-    grid-template-columns: minmax(0, 1fr);
-    gap: 7px;
-  }
-
-  #page-revcalc .rc-action-block .rc-toggle-grid > .ui-check{
-    justify-content: flex-start;
-    min-height: 34px;
-    padding-right: 10px;
-    padding-left: 10px;
-    white-space: normal;
-  }
-
-  #page-revcalc .rc-action-block .rc-toggle-grid > label.ui-check.rc-compact-toggle{
-    width: 100%;
-    overflow: visible;
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-}
-
 /* Page-owned rules moved from sibling tool styles. */
 #page-revcalc .ui-panel-actions {
   min-width: 0;
@@ -1032,7 +1055,7 @@
   display: grid;
   justify-items: start;
   gap: 4px;
-  min-height: 96px;
+  min-height: 0;
 }
 
 #page-revcalc .rc-prerequisite strong {
@@ -1042,14 +1065,6 @@
 #page-revcalc .rc-prerequisite span {
   color: var(--tool-muted);
   font-size: 12px;
-}
-
-#page-revcalc .rc-stats-grid {
-  display: grid;
-  grid-template-columns: 68px 52px minmax(146px, 1fr) minmax(54px, 0.28fr) 58px 88px;
-  gap: 7px 6px;
-  align-items: center;
-  min-width: 0;
 }
 
 #page-revcalc .rc-stat-head-row > div,

@@ -7,7 +7,7 @@ let currentDex = 'pokemon';
 let dexTypeFilter = [];          // 빈 배열 = 전체. 포켓몬 탭은 최대 2개, 기술 탭은 최대 1개.
 let dexItemCategory = null;      // 도구 탭의 카테고리 필터 (null = 전체, 'equip'/'berry'/'mega')
 const DEX_TABS = ['pokemon', 'moves', 'abilities', 'items'];
-const DEX_PAGE_SIZE = 50;
+const DEX_PAGE_SIZE = 24;
 const dexViewState = Object.fromEntries(DEX_TABS.map(tab => [tab, {
   query: '',
   typeFilter: [],
@@ -162,7 +162,7 @@ function renderTypeFilter() {
       });
     }).join('');
     const limit = currentDex === 'pokemon' ? '<span class="dex-filter-limit">최대 2개</span>' : '';
-    el.innerHTML = `${all}${buttons}${limit}`;
+    renderTrustedHTML(el, `${all}${buttons}${limit}`);
   } else if (currentDex === 'items') {
     el.style.display = 'flex';
     const isAll = dexItemCategory === null;
@@ -177,7 +177,7 @@ function renderTypeFilter() {
         'data-filter-itemcat': cat,
       });
     }).join('');
-    el.innerHTML = `${all}${buttons}`;
+    renderTrustedHTML(el, `${all}${buttons}`);
   } else {
     el.style.display = 'none';
   }
@@ -222,6 +222,23 @@ function restoreDexScroll(tab = currentDex) {
     if (!wrap) return;
     wrap.scrollTop = state.scrollTop || 0;
     wrap.scrollLeft = state.scrollLeft || 0;
+  });
+}
+
+function resetDexListPosition(tab = currentDex, { reveal = false } = {}) {
+  const state = dexViewState[tab];
+  if (state) {
+    state.scrollTop = 0;
+    state.scrollLeft = 0;
+  }
+  requestAnimationFrame(() => {
+    const wrap = dexTableWrap(tab);
+    if (!wrap) return;
+    wrap.scrollTop = 0;
+    wrap.scrollLeft = 0;
+    if (reveal && window.matchMedia('(max-width: 760px)').matches) {
+      wrap.scrollIntoView({ block: 'start', behavior: 'auto' });
+    }
   });
 }
 function updateDexSortIndicators(tab = currentDex) {
@@ -320,14 +337,14 @@ function renderDexPagination(tab, pageData) {
   const pagination = document.getElementById(`dexPagination-${tab}`);
   if (!pagination) return;
   const { page, pageCount, total, start, end } = pageData;
-  pagination.innerHTML = `
+  renderTrustedHTML(pagination, `
     <span class="dex-page-status">${total ? `${start}-${end} / ${total}` : '검색 결과 없음'}</span>
     <span class="dex-page-actions">
       <button type="button" class="dex-page-button" data-dex-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}>이전</button>
       <span class="dex-page-current" aria-label="전체 ${pageCount}페이지 중 ${page}페이지">${page} / ${pageCount}</span>
       <button type="button" class="dex-page-button" data-dex-page="${page + 1}" ${page >= pageCount ? 'disabled' : ''}>다음</button>
     </span>
-  `;
+  `);
 }
 
 document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
@@ -441,9 +458,8 @@ document.getElementById('page-dex')?.addEventListener('click', e => {
   const tab = button.closest('.dex-content')?.id?.replace('dex-', '');
   if (!tab || tab !== currentDex || !dexViewState[tab]) return;
   dexViewState[tab].page = Number(button.dataset.dexPage) || 1;
-  const wrap = dexTableWrap(tab);
-  if (wrap) wrap.scrollTop = 0;
   renderDexContent(dexSearchEl?.value || '');
+  resetDexListPosition(tab, { reveal: true });
 });
 
 // 도감 렌더링 함수들
@@ -476,11 +492,11 @@ function renderPokemonDex(query) {
   const tbody = document.getElementById('dexBodyPokemon');
   if(!tbody) return;
   const pageData = paginateDex(data, 'pokemon');
-  tbody.innerHTML = pageData.items.map(p => {
+  renderTrustedHTML(tbody, pageData.items.map(p => {
     const ab = p.ab || {};
     const nameCell = `<span class="dex-pokemon-name-wrap">${pokemonSpriteSlot(p, { size: 'md', className: 'dex-list-sprite' })}<span class="dex-pokemon-name-text">${pokemonListName(p)}</span></span>`;
     return `<tr data-dex-id="${p.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(pkName(p), nameCell)}</td><td class="dex-type-cell" data-label="타입">${p.types.map(t => dexTypePill(t)).join(' ')}</td><td class="num" data-label="HP">${p.bs.hp}</td><td class="num" data-label="공격">${p.bs.atk}</td><td class="num" data-label="방어">${p.bs.def}</td><td class="num" data-label="특공">${p.bs.spa}</td><td class="num" data-label="특방">${p.bs.spd}</td><td class="num" data-label="스피드">${p.bs.spe}</td><td class="num dex-bst" data-label="합계">${p.bst}</td><td class="dim dex-ability-cell" data-label="특성 1">${dexAbilityLabel(ab[0])}</td><td class="dim dex-ability-cell" data-label="특성 2">${dexAbilityLabel(ab[1])}</td><td class="dim dex-ability-cell" data-label="숨겨진 특성">${dexAbilityLabel(ab.H)}</td></tr>`;
-  }).join('');
+  }).join(''));
   renderDexPagination('pokemon', pageData);
 }
 function renderMovesDex(query) {
@@ -491,11 +507,11 @@ function renderMovesDex(query) {
   const tbody = document.getElementById('dexBodyMoves');
   if(!tbody) return;
   const pageData = paginateDex(data, 'moves');
-  tbody.innerHTML = pageData.items.map(m => {
+  renderTrustedHTML(tbody, pageData.items.map(m => {
     const powerLabel = movePowerLabel(m);
     const variableBadge = VARIABLE_BP_NOTE[m.id] && powerLabel !== '가변' ? '<span class="dex-var-badge">가변</span>' : '';
     return `<tr data-dex-id="${m.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(mvName(m), escapeHTML(mvName(m)))}</td><td class="dex-type-cell" data-label="타입">${dexTypePill(m.type)}</td><td data-label="분류">${dexMoveCategoryBadge(m.cat)}</td><td class="num" data-label="위력">${powerLabel}${variableBadge}</td><td class="num" data-label="명중">${moveAccuracyLabel(m)}</td><td class="num" data-label="우선도">${m.pri || 0}</td><td class="desc-cell" data-label="설명">${escapeHTML(m.desc || '')}</td></tr>`;
-  }).join('');
+  }).join(''));
   renderDexPagination('moves', pageData);
 }
 function renderAbilitiesDex(query) {
@@ -505,7 +521,7 @@ function renderAbilitiesDex(query) {
   const tbody = document.getElementById('dexBodyAbilities');
   if(!tbody) return;
   const pageData = paginateDex(data, 'abilities');
-  tbody.innerHTML = pageData.items.map(a => `<tr data-dex-id="${a.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(abName(a), escapeHTML(abName(a)))}</td><td class="dim dex-en-cell" data-label="영문명">${escapeHTML(a.name)}</td><td class="desc-cell" data-label="설명">${escapeHTML(a.desc || '')}</td></tr>`).join('');
+  renderTrustedHTML(tbody, pageData.items.map(a => `<tr data-dex-id="${a.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(abName(a), escapeHTML(abName(a)))}</td><td class="dim dex-en-cell" data-label="영문명">${escapeHTML(a.name)}</td><td class="desc-cell" data-label="설명">${escapeHTML(a.desc || '')}</td></tr>`).join(''));
   renderDexPagination('abilities', pageData);
 }
 function renderItemsDex(query) {
@@ -539,6 +555,6 @@ function renderItemsDex(query) {
         : dexTag('장착형', 'equip'));
     rows.push(`<tr data-dex-id="${i.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(itName(i), escapeHTML(itName(i)))}</td><td class="dim dex-en-cell" data-label="영문명">${escapeHTML(i.name)}</td><td class="desc-cell" data-label="설명">${escapeHTML(i.desc || '')}</td><td data-label="분류">${tag}</td></tr>`);
   }
-  tbody.innerHTML = rows.join('');
+  renderTrustedHTML(tbody, rows.join(''));
   renderDexPagination('items', pageData);
 }

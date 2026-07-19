@@ -1,8 +1,8 @@
 /* Responsive density, touch targets, and compact data views. */
 
 :root {
-  --app-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
-  --app-font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  --app-font-sans: "Noto Sans KR", sans-serif;
+  --app-font-mono: "Noto Sans KR", sans-serif;
   --ui-number-font: var(--app-font-mono);
 }
 
@@ -125,7 +125,7 @@ textarea {
   }
 
   .header-title-row h1 {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .brand-sub {
@@ -134,13 +134,14 @@ textarea {
 
   .party-preset-button,
   .theme-toggle-button {
-    min-height: 40px;
+    min-height: 36px;
   }
 
   .main-nav {
     gap: 3px;
-    margin-top: 8px;
+    margin-top: 6px;
     overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior-x: contain;
   }
 
@@ -148,8 +149,8 @@ textarea {
   .nav-tab:nth-child(n) {
     flex: 1 0 auto;
     min-width: 64px;
-    min-height: 44px;
-    padding: 9px 6px 10px;
+    min-height: 38px;
+    padding: 7px 6px 8px;
     font-size: 11px;
   }
 
@@ -601,9 +602,13 @@ textarea {
     min-width: 0;
   }
 
-  #page-dex .dex-control-head,
+  #page-dex .dex-control-head {
+    overflow: hidden;
+  }
+
   #page-dex .dex-nav {
     overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior-x: contain;
   }
 
@@ -612,7 +617,9 @@ textarea {
   }
 
   #page-dex .dex-table-wrap {
-    max-height: 68vh;
+    max-height: none;
+    overflow: visible;
+    scroll-margin-top: 98px;
     padding: 8px;
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
@@ -662,6 +669,7 @@ textarea {
     content: attr(data-label);
     font-size: 10px;
     font-weight: 900;
+    white-space: nowrap;
   }
 
   #page-dex .dex-table .dex-name-cell {
@@ -677,6 +685,17 @@ textarea {
   #page-dex .dex-table .dex-row-open {
     width: 100%;
     min-height: 36px;
+    justify-content: flex-start;
+    line-height: 1.35;
+    text-align: left;
+    white-space: normal;
+  }
+
+  #page-dex .dex-pokemon-name-text {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: keep-all;
   }
 
   #page-dex .dex-table .dex-type-cell {
@@ -699,24 +718,32 @@ textarea {
     margin-right: 0;
   }
 
-  #dexTablePokemon tbody tr {
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+  #page-dex #dexTablePokemon tbody tr {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  #dexTablePokemon .dex-type-cell,
-  #dexTablePokemon .dex-name-cell {
+  #page-dex #dexTablePokemon .dex-type-cell,
+  #page-dex #dexTablePokemon .dex-name-cell {
     grid-column: 1 / -1;
   }
 
-  #dexTablePokemon .dex-ability-cell {
-    grid-column: span 2;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
+  #page-dex #dexTablePokemon .dex-ability-cell {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
   }
 
-  #dexTablePokemon .dex-ability-cell:last-child {
-    grid-column: span 3;
+  #page-dex #dexTablePokemon .dex-ability-cell:last-child {
+    grid-column: 1 / -1;
+  }
+
+  #page-dex #dexTablePokemon .dex-bst {
+    grid-column: 1 / -1;
+    width: auto;
+    justify-self: stretch;
+    flex-direction: row;
+    gap: 6px;
   }
 
   #dexTableMoves .desc-cell,
@@ -886,16 +913,67 @@ textarea {
 }
 
 @media (max-width: 430px) {
+  .header-top {
+    gap: 6px;
+  }
+
   .header-title-row {
-    flex-wrap: wrap;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .header-title-row h1 {
+    font-size: 15px;
+  }
+
+  .header-title-row h1::before {
+    display: none;
   }
 
   .header-actions {
-    width: 100%;
+    width: auto;
   }
 
   .theme-toggle-button {
-    width: 100%;
+    width: 36px;
+    min-width: 36px;
+    padding: 0;
+  }
+
+  .theme-toggle-button::before {
+    content: "☾";
+    color: var(--text);
+    font-size: 17px;
+    line-height: 1;
+  }
+
+  .theme-toggle-button[aria-pressed="true"]::before {
+    content: "☀";
+  }
+
+  .theme-toggle-text {
+    display: none;
+  }
+
+  .party-preset-button {
+    appearance: none;
+    padding-right: 8px;
+    padding-left: 8px;
+    font-size: 11px;
+  }
+
+  :root[data-theme="dark"] :where(.party-preset-button, .theme-toggle-button) {
+    border-color: var(--color-border-default);
+    background: var(--color-surface-input);
+    color: var(--color-text-primary);
+  }
+
+  .party-preset-label-full {
+    display: none;
+  }
+
+  .party-preset-label-short {
+    display: inline;
   }
 
   #page-calc .calc-mobile-summary:not([hidden]) {

@@ -7,7 +7,7 @@
 <meta name="description" content="포켓몬 챔피언스 룰에 맞춘 대미지 계산기, 형태 역계산, 세부조정, 상성표, 도감을 한 화면에서 다루는 정적 웹앱입니다.">
 <meta name="application-name" content="포켓몬 챔피언스 랩">
 <meta name="apple-mobile-web-app-title" content="포켓몬 챔피언스 랩">
-<meta name="theme-color" content="#f4f6f8">
+<meta name="theme-color" content="#eef2f6">
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="index,follow">
 <meta property="og:site_name" content="포켓몬 챔피언스 랩">
@@ -40,12 +40,15 @@
       <div class="brand-sub">POKEMON CHAMPIONS LAB</div>
       <div class="header-title-row">
         <h1>포켓몬 챔피언스 랩</h1>
-        <button type="button" class="party-preset-button ui-popover-trigger" id="partyPresetOpen">파티 프리셋</button>
+        <button type="button" class="party-preset-button ui-popover-trigger" id="partyPresetOpen" aria-label="파티 프리셋 열기">
+          <span class="party-preset-label-full">파티 프리셋</span>
+          <span class="party-preset-label-short" aria-hidden="true">파티</span>
+        </button>
       </div>
     </div>
     <div class="header-actions" aria-label="화면 설정">
       <button type="button" class="theme-toggle-button" id="themeToggle" aria-pressed="false">
-        <span class="theme-toggle-text">다크 모드</span>
+        <span class="theme-toggle-text">다크</span>
       </button>
     </div>
   </div>
@@ -56,6 +59,7 @@
     <button type="button" id="nav-matchup" class="nav-tab" data-page="matchup" role="tab" aria-controls="page-matchup" aria-selected="false" tabindex="-1">상성표</button>
     <button type="button" id="nav-dex" class="nav-tab" data-page="dex" role="tab" aria-controls="page-dex" aria-selected="false" tabindex="-1">도감</button>
   </nav>
+  <div id="pageLoadStatus" class="page-load-status" role="status" aria-live="polite" hidden></div>
 </header>
 
 <div class="site-shell">
@@ -188,22 +192,24 @@
         </section>
       </div>
 
-      <section class="ui-frame ui-panel">
+      <section class="ui-frame ui-panel rc-stage-panel" id="rc-input-panel" data-rc-stage="observations" data-stage-state="locked" aria-disabled="true">
         <div class="ui-frame-head ui-panel-head">
           <h2 class="ui-panel-title">관측 데이터</h2>
+          <span class="ui-panel-tag rc-stage-status" id="rc-input-stage-status">선택 필요</span>
         </div>
         <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-input-body"></div>
       </section>
 
-      <section class="ui-frame ui-panel">
+      <section class="ui-frame ui-panel rc-stage-panel" id="rc-results-panel" data-rc-stage="results" data-stage-state="locked" aria-disabled="true">
         <div class="ui-frame-head ui-panel-head">
           <h2 class="ui-panel-title">형태 분석 결과</h2>
           <div class="ui-action-row ui-panel-actions">
+            <span class="ui-panel-tag rc-stage-status" id="rc-results-stage-status">대기</span>
             <button type="button" class="btn-calculate rc-analyze-btn ui-btn ui-btn-primary" id="rcAnalyze" aria-controls="rc-results-body" aria-pressed="false">형태 분석</button>
           </div>
         </div>
         <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-results-body">
-          <div class="empty-state ui-empty">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>
+          <div class="empty-state ui-empty ui-empty--compact ui-empty--guide">참가 포켓몬을 선택하면 형태 분석을 준비합니다.</div>
         </div>
       </section>
     </section>

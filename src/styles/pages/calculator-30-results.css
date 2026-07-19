@@ -1,0 +1,169 @@
+/* Calculator result cards and durability metrics. */
+#page-calc .calc-result-grid {
+  gap: 7px;
+}
+
+#page-calc .calc-result-card {
+  height: var(--calc-result-card-height);
+  min-height: var(--calc-result-card-height);
+  gap: 6px;
+  padding: 8px;
+  border-color: var(--calc-result-card-outline);
+  overflow: hidden;
+}
+
+#page-calc .calc-result-card-main {
+  grid-template-rows: auto auto var(--calc-result-info-height);
+  gap: 6px;
+  min-height: 0;
+}
+
+#page-calc .calc-result-card-head {
+  min-height: 46px;
+  gap: 5px;
+  padding-right: 100px;
+  padding-bottom: 5px;
+}
+
+#page-calc .calc-result-title-row {
+  gap: 7px;
+}
+
+#page-calc .calc-result-card .calc-result-slot {
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
+}
+
+#page-calc .calc-result-card .calc-result-move-name {
+  font-size: 14px;
+  line-height: 1.22;
+}
+
+#page-calc .calc-move-badges {
+  gap: 3px;
+}
+
+#page-calc .calc-move-badges .type-pill,
+#page-calc .calc-move-badges .cat-badge,
+#page-calc .calc-move-badges .calc-stab-badge,
+#page-calc .calc-move-badges .calc-effectiveness-badge,
+#page-calc .calc-move-badges .calc-move-meta-badge {
+  min-height: 20px;
+  padding: 0 6px;
+}
+
+#page-calc .calc-damage-range {
+  gap: 5px;
+  padding: 6px 7px;
+}
+
+#page-calc .calc-damage-percent {
+  font-size: 15px;
+}
+
+#page-calc .calc-damage-meta {
+  height: var(--calc-result-info-height);
+  min-height: var(--calc-result-info-height);
+  max-height: var(--calc-result-info-height);
+  gap: 3px 4px;
+  line-height: 1;
+  overflow: hidden;
+}
+
+#page-calc .calc-ko-badge {
+  top: 6px;
+  right: 6px;
+  min-width: 86px;
+  max-width: 100px;
+  min-height: 44px;
+  padding: 5px 8px;
+}
+
+#page-calc .calc-ko-main {
+  font-size: 13px;
+}
+
+#page-calc .calc-stat-bulk-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#page-calc .calc-stat-bulk-strip--compact {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+#page-calc .calc-stat-bulk-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  height: var(--tool-stat-bulk-card-height, var(--ui-pokemon-action-height));
+  min-height: var(--tool-stat-bulk-card-height, var(--ui-pokemon-action-height));
+  padding: var(--tool-stat-bulk-card-padding, 0 10px);
+  border: 1px solid #e5e7eb;
+  border-left: 0;
+  border-radius: 999px;
+  background: #f8fafc;
+}
+
+#page-calc .calc-stat-bulk-card.calc-stat-bulk-phys,
+#page-calc .calc-stat-bulk-card.calc-stat-bulk-spec {
+  border-left: 0;
+}
+
+#page-calc .calc-stat-bulk-card::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 999px;
+  background: #9ca3af;
+}
+
+#page-calc .calc-stat-bulk-card.calc-stat-bulk-phys::before {
+  background: #b77945;
+}
+
+#page-calc .calc-stat-bulk-card.calc-stat-bulk-spec::before {
+  background: #5277a3;
+}
+
+#page-calc .calc-stat-bulk-card:nth-child(2) {
+  background: #f8fafc;
+}
+
+#page-calc .calc-stat-bulk-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--tool-stat-bulk-content-height, 16px);
+  color: var(--calc-muted);
+  font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: var(--tool-stat-bulk-content-height, 16px);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+#page-calc .calc-stat-bulk-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--tool-stat-bulk-content-height, 16px);
+  margin-top: 0;
+  color: #334155;
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: var(--tool-stat-bulk-content-height, 16px);
+  text-align: center;
+  white-space: nowrap;
+}

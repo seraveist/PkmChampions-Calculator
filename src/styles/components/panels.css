@@ -82,13 +82,13 @@
 .ui-panel.atk .ui-panel-head {
   background:
     linear-gradient(90deg, rgba(214, 76, 86, 0.13), transparent 56%),
-    #f8fafc;
+    var(--bg-input);
 }
 
 .ui-panel.def .ui-panel-head {
   background:
     linear-gradient(90deg, rgba(22, 127, 165, 0.13), transparent 56%),
-    #f8fafc;
+    var(--bg-input);
 }
 
 .ui-panel-title,

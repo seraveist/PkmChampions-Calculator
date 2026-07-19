@@ -102,20 +102,20 @@ function rcWireMyComboboxes() {
       const s = (q || '').toLowerCase();
       if (target === 'my') {
         const matches = sortPokemonForCalcSelect(POKEMON).filter(d => calcMatches(s, d.koName || pkName(d)));
-        optsEl.innerHTML = calcComboboxHeaderHtml('pokemon') + matches.map(m => calcRenderPokemonOption(m, revCalcState.my.pokemonIdx)).join('');
+        renderTrustedHTML(optsEl, calcComboboxHeaderHtml('pokemon') + matches.map(m => calcRenderPokemonOption(m, revCalcState.my.pokemonIdx)).join(''));
       } else if (target === 'myForm') {
         const matches = calcFormOptionDataForPokemon(revCalcState.my.pokemonIdx).filter(option => rcComboSearchMatches(s, option));
-        optsEl.innerHTML = matches.length
+        renderTrustedHTML(optsEl, matches.length
           ? matches.map(option => calcRenderComboboxOption('form', option, revCalcState.my.pokemonIdx)).join('')
-          : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
+          : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>');
       } else {
         const kind = rcComboKind(target);
         const allMatches = rcComboData(kind).filter(option => rcComboSearchMatches(s, option));
         const matches = s ? allMatches.slice(0, kind === 'item' ? 50 : 80) : allMatches;
         const header = kind === 'nature' ? calcComboboxHeaderHtml('nature') : '';
-        optsEl.innerHTML = matches.length
+        renderTrustedHTML(optsEl, matches.length
           ? header + matches.map(option => calcRenderComboboxOption(kind, option, rcCurrentComboId(kind))).join('')
-          : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
+          : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>');
       }
       closeSiblingComboboxOptions(optsEl, input);
       optsEl.classList.add('open');
@@ -263,14 +263,14 @@ function rcWireOppComboboxes() {
       const s = (q || '').toLowerCase();
       if (target === 'oppForm') {
         const matches = calcFormOptionDataForPokemon(revCalcState.opp.pokemonIdx).filter(option => rcComboSearchMatches(s, option));
-        optsEl.innerHTML = matches.length
+        renderTrustedHTML(optsEl, matches.length
           ? matches.map(option => calcRenderComboboxOption('form', option, revCalcState.opp.pokemonIdx)).join('')
-          : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
+          : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>');
       } else {
         const matches = sortPokemonForCalcSelect(POKEMON).filter(d => calcMatches(s, d.koName || pkName(d)));
-        optsEl.innerHTML = calcComboboxHeaderHtml('pokemon') + matches.map(m =>
+        renderTrustedHTML(optsEl, calcComboboxHeaderHtml('pokemon') + matches.map(m =>
           calcRenderPokemonOption(m, revCalcState.opp.pokemonIdx)
-        ).join('');
+        ).join(''));
       }
       closeSiblingComboboxOptions(optsEl, input);
       optsEl.classList.add('open');
@@ -375,9 +375,9 @@ function rcWireOppStatusComboboxes() {
     if (!optsEl) return;
 
     const show = () => {
-      optsEl.innerHTML = rcStatusOptions()
+      renderTrustedHTML(optsEl, rcStatusOptions()
         .map(option => rcStatusOptionTemplate(option, revCalcState.opp.status))
-        .join('');
+        .join(''));
       optsEl.classList.add('open');
       button.setAttribute('aria-expanded', 'true');
     };
@@ -454,9 +454,9 @@ function rcWireTurnOrderComboboxes(scope) {
       document.querySelectorAll('#page-revcalc .cb-input[aria-expanded="true"]').forEach(el => {
         if (el !== button) el.setAttribute('aria-expanded', 'false');
       });
-      optsEl.innerHTML = rcTurnOrderOptions()
+      renderTrustedHTML(optsEl, rcTurnOrderOptions()
         .map(option => rcTurnOrderOptionTemplate(option, revCalcState.turnOrder))
-        .join('');
+        .join(''));
       optsEl.classList.add('open');
       button.setAttribute('aria-expanded', 'true');
     };
@@ -564,9 +564,9 @@ function rcWireMoveComboboxes(scope) {
       const currentId = target === 'moveslot'
         ? rcMoveSet()[parseInt(slot, 10)] || ''
         : (revCalcState[target] || '');
-      optsEl.innerHTML = matches.length
+      renderTrustedHTML(optsEl, matches.length
         ? matches.map(m => rcRenderSimpleMoveOption(m, currentId)).join('')
-        : '<div class="combobox-option ui-option empty"><b>검색 결과 없음</b></div>';
+        : '<div class="combobox-option ui-option empty"><b>검색 결과 없음</b></div>');
       optsEl.classList.add('open');
     };
 
@@ -690,9 +690,9 @@ function rcWireOppItemComboboxes(scope) {
     const restore = () => { input.value = rcOppItemLabel(revCalcState.oppItemKnown); };
     const showOpts = query => {
       const matches = matchesFor(query);
-      optsEl.innerHTML = matches.length
+      renderTrustedHTML(optsEl, matches.length
         ? matches.map(option => calcRenderComboboxOption('item', option, revCalcState.oppItemKnown || '')).join('')
-        : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
+        : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>');
       optsEl.classList.add('open');
     };
     const applyItem = id => {

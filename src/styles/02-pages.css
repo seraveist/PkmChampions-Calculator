@@ -1,23 +1,23 @@
-/* Shared type colors. Page-specific UI lives in later scoped stylesheets. */
-.t-Normal   { background: #9a9a7a; color: #1a1a1a; }
-.t-Fire     { background: #e6743c; color: #1a1a1a; }
-.t-Water    { background: #5f8ee0; color: #1a1a1a; }
-.t-Grass    { background: #6ab04c; color: #1a1a1a; }
-.t-Electric { background: #e8c42e; color: #1a1a1a; }
-.t-Ice      { background: #7ec8d0; color: #1a1a1a; }
-.t-Fighting { background: #b33a2e; color: #fff; }
-.t-Poison   { background: #9a4ea0; color: #fff; }
-.t-Ground   { background: #d4b06a; color: #1a1a1a; }
-.t-Flying   { background: #9a86e8; color: #1a1a1a; }
-.t-Psychic  { background: #f05580; color: #1a1a1a; }
-.t-Bug      { background: #a4b42a; color: #1a1a1a; }
-.t-Rock     { background: #ac9540; color: #1a1a1a; }
-.t-Ghost    { background: #6a5598; color: #fff; }
-.t-Dragon   { background: #6838e0; color: #fff; }
-.t-Dark     { background: #5e4a3c; color: #fff; }
-.t-Steel    { background: #a8a8c0; color: #1a1a1a; }
-.t-Fairy    { background: #e892b8; color: #1a1a1a; }
-.t-Stellar  { background: linear-gradient(135deg, #ffd700, #c084fc, #33b7ff); color: white; }
+/* Shared type colors. White is the default; only bright surfaces use dark text. */
+.t-Normal   { background: var(--type-normal-bg); color: var(--type-normal-fg); }
+.t-Fire     { background: var(--type-fire-bg); color: var(--type-fire-fg); }
+.t-Water    { background: var(--type-water-bg); color: var(--type-water-fg); }
+.t-Grass    { background: var(--type-grass-bg); color: var(--type-grass-fg); }
+.t-Electric { background: var(--type-electric-bg); color: var(--type-electric-fg); }
+.t-Ice      { background: var(--type-ice-bg); color: var(--type-ice-fg); }
+.t-Fighting { background: var(--type-fighting-bg); color: var(--type-fighting-fg); }
+.t-Poison   { background: var(--type-poison-bg); color: var(--type-poison-fg); }
+.t-Ground   { background: var(--type-ground-bg); color: var(--type-ground-fg); }
+.t-Flying   { background: var(--type-flying-bg); color: var(--type-flying-fg); }
+.t-Psychic  { background: var(--type-psychic-bg); color: var(--type-psychic-fg); }
+.t-Bug      { background: var(--type-bug-bg); color: var(--type-bug-fg); }
+.t-Rock     { background: var(--type-rock-bg); color: var(--type-rock-fg); }
+.t-Ghost    { background: var(--type-ghost-bg); color: var(--type-ghost-fg); }
+.t-Dragon   { background: var(--type-dragon-bg); color: var(--type-dragon-fg); }
+.t-Dark     { background: var(--type-dark-bg); color: var(--type-dark-fg); }
+.t-Steel    { background: var(--type-steel-bg); color: var(--type-steel-fg); }
+.t-Fairy    { background: var(--type-fairy-bg); color: var(--type-fairy-fg); }
+.t-Stellar  { background: var(--type-stellar-surface); color: var(--type-stellar-fg); }
 
 .cat-stat {
   background: var(--text-faint);

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -6,7 +6,11 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const GENERATED = path.join(ROOT, 'pokemon-champions-calculator-v3.html');
 const COMBOBOX_JS = path.join(ROOT, 'src', 'js', '03-20-calc-combobox.js');
 const COMBOBOX_CSS = path.join(ROOT, 'src', 'styles', 'components', 'combobox.css');
-const CALC_CSS = path.join(ROOT, 'src', 'styles', 'pages', 'calculator.css');
+const PAGE_CSS_DIR = path.join(ROOT, 'src', 'styles', 'pages');
+const CALC_CSS_FILES = readdirSync(PAGE_CSS_DIR)
+  .filter(file => file.startsWith('calculator-') && file.endsWith('.css'))
+  .sort()
+  .map(file => path.join(PAGE_CSS_DIR, file));
 
 let failed = false;
 
@@ -26,12 +30,12 @@ function read(file) {
 const generated = read(GENERATED);
 const comboJs = read(COMBOBOX_JS);
 const comboboxCss = read(COMBOBOX_CSS);
-const calcCss = read(CALC_CSS);
+const calcCss = CALC_CSS_FILES.map(read).join('\n');
 
 check(existsSync(GENERATED), 'generated HTML exists');
 check(existsSync(COMBOBOX_JS), 'calculator combobox source exists');
 check(existsSync(COMBOBOX_CSS), 'combobox component CSS exists');
-check(existsSync(CALC_CSS), 'calculator CSS exists');
+check(CALC_CSS_FILES.length >= 2 && CALC_CSS_FILES.every(existsSync), 'calculator CSS modules exist');
 
 [
   'pokemon',

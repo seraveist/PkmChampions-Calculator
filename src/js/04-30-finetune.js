@@ -134,7 +134,7 @@ function ftRenderOppSpeedChipsHtml(opp = fineTuneState.opp) {
 
 function ftRefreshOppSpeedChips() {
   const el = document.querySelector?.('#ft-opp-body .ft-opp-speed-chips');
-  if (el) el.innerHTML = ftRenderOppSpeedChipsHtml();
+  if (el) renderTrustedHTML(el, ftRenderOppSpeedChipsHtml());
 }
 
 function ftFindMinSpeedEv(my, targetSpeed) {
@@ -326,9 +326,9 @@ function ftWireComboboxes(rootId) {
       const header = target === 'nature'
         ? (typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('nature') : '')
         : '';
-      optsEl.innerHTML = matches.length ? header + matches.map(option =>
+      renderTrustedHTML(optsEl, matches.length ? header + matches.map(option =>
         calcRenderComboboxOption(renderType, option, currentId)
-      ).join('') : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>';
+      ).join('') : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>');
       closeSiblingComboboxOptions(optsEl, input);
       optsEl.classList.add('open');
     };

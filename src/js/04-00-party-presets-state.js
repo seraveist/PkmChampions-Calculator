@@ -20,27 +20,22 @@ const PARTY_PRESET_LABELS = {
   emptySlot: '\uBE44\uC5B4 \uC788\uC74C',
   imageExport: '\uC774\uBBF8\uC9C0 \uCD9C\uB825',
 };
-const PARTY_PRESET_MOVE_TYPE_COLORS = {
-  Normal: { bg: '#9a9a7a', fg: '#ffffff' },
-  Fire: { bg: '#e6743c', fg: '#ffffff' },
-  Water: { bg: '#5f8ee0', fg: '#ffffff' },
-  Grass: { bg: '#6ab04c', fg: '#ffffff' },
-  Electric: { bg: '#e8c42e', fg: '#1a1a1a' },
-  Ice: { bg: '#7ec8d0', fg: '#1a1a1a' },
-  Fighting: { bg: '#b33a2e', fg: '#ffffff' },
-  Poison: { bg: '#9a4ea0', fg: '#ffffff' },
-  Ground: { bg: '#d4b06a', fg: '#1a1a1a' },
-  Flying: { bg: '#9a86e8', fg: '#ffffff' },
-  Psychic: { bg: '#f05580', fg: '#ffffff' },
-  Bug: { bg: '#a4b42a', fg: '#ffffff' },
-  Rock: { bg: '#ac9540', fg: '#ffffff' },
-  Ghost: { bg: '#6a5598', fg: '#ffffff' },
-  Dragon: { bg: '#6838e0', fg: '#ffffff' },
-  Dark: { bg: '#5e4a3c', fg: '#ffffff' },
-  Steel: { bg: '#a8a8c0', fg: '#1a1a1a' },
-  Fairy: { bg: '#e892b8', fg: '#1a1a1a' },
-  Stellar: { bg: '#8368d8', fg: '#ffffff' },
-};
+const PARTY_PRESET_TYPE_PALETTE_CACHE = new Map();
+
+function partyPresetMoveTypePalette(type, fallback = {}) {
+  const key = String(type || '').trim().toLowerCase();
+  if (!key || typeof getComputedStyle !== 'function') return fallback;
+  if (PARTY_PRESET_TYPE_PALETTE_CACHE.has(key)) return PARTY_PRESET_TYPE_PALETTE_CACHE.get(key);
+
+  const styles = getComputedStyle(document.documentElement);
+  const value = suffix => styles.getPropertyValue(`--type-${key}-${suffix}`).trim();
+  const palette = {
+    bg: value('bg') || fallback.bg,
+    fg: value('fg') || fallback.fg,
+  };
+  PARTY_PRESET_TYPE_PALETTE_CACHE.set(key, palette);
+  return palette;
+}
 const PARTY_PRESET_SHOWDOWN_STAT_ALIAS = {
   hp: 'hp', h: 'hp',
   atk: 'atk', attack: 'atk', a: 'atk',

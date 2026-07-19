@@ -135,12 +135,10 @@
 }
 
 .tool-page .ui-empty {
-  padding: 28px 18px;
   color: var(--tool-faint);
   font-family: "Noto Sans KR", sans-serif;
   font-size: 13px;
   font-weight: 700;
-  text-align: center;
 }
 
 .tool-page .ui-control-frame.ui-subframe {

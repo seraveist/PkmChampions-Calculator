@@ -40,10 +40,11 @@ function ensureMainPageInitialized(pageKey) {
     console.error(`[page-init:${pageKey}]`, error);
     const page = document.getElementById(`page-${pageKey}`);
     if (page && !page.querySelector('.page-init-error')) {
-      page.insertAdjacentHTML(
-        'afterbegin',
-        '<div class="page-init-error ui-control-frame ui-subframe" role="alert">화면을 불러오지 못했습니다. 메뉴를 다시 선택해 재시도해 주세요.</div>',
-      );
+      const alert = document.createElement('div');
+      alert.className = 'page-init-error ui-control-frame ui-subframe';
+      alert.setAttribute('role', 'alert');
+      alert.textContent = '화면을 불러오지 못했습니다. 메뉴를 다시 선택해 재시도해 주세요.';
+      page.prepend(alert);
     }
   }
 }

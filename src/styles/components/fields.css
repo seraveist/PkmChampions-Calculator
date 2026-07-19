@@ -173,17 +173,17 @@ input[type="radio"]:focus-visible {
   grid-template-columns: minmax(0, 1fr);
 }
 
-.ui-inline-number-input {
+input.ui-inline-number-input {
   display: block;
   width: 100%;
   height: calc(var(--ui-control-height) - 2px);
   min-height: 0;
-  padding: 0 !important;
-  border: 0 !important;
+  padding: 0;
+  border: 0;
   border-radius: 0;
-  outline: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
   color: inherit;
   font-family: var(--ui-number-font);
   font-size: var(--ui-number-font-size);
@@ -192,17 +192,17 @@ input[type="radio"]:focus-visible {
   text-align: center;
 }
 
-.ui-inline-number-input:hover,
-.ui-inline-number-input:focus,
-.ui-inline-number-input:focus-visible,
-.ui-inline-number-input:active {
-  border: 0 !important;
-  outline: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
+input.ui-inline-number-input:hover,
+input.ui-inline-number-input:focus,
+input.ui-inline-number-input:focus-visible,
+input.ui-inline-number-input:active {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.ui-inline-number-input:disabled {
+input.ui-inline-number-input:disabled {
   cursor: not-allowed;
   opacity: 0.65;
 }

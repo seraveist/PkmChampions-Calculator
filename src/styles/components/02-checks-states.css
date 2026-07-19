@@ -1,0 +1,118 @@
+/* Shared check controls, table surfaces, and status copy. */
+
+.ui-check,
+.checkbox-label {
+display: inline-flex;
+align-items: center;
+width: auto;
+min-height: var(--ui-check-card-min-height);
+padding: var(--ui-check-card-padding);
+gap: var(--ui-check-card-gap);
+border: 1px solid var(--border);
+background: var(--bg-input);
+border-radius: var(--ui-check-card-radius);
+color: var(--text-dim);
+font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+font-size: var(--ui-check-card-font-size);
+font-weight: var(--ui-check-card-font-weight);
+line-height: 1;
+letter-spacing: 0;
+white-space: nowrap;
+cursor: pointer;
+}
+.ui-check input,
+.checkbox-label input {
+flex: 0 0 auto;
+margin: 0;
+}
+.ui-check:hover,
+.checkbox-label:hover {
+border-color: var(--border-bright);
+background: var(--bg-elev);
+color: var(--text);
+}
+.ui-check:has(input:checked),
+.checkbox-label:has(input:checked) {
+border-color: color-mix(in srgb, var(--ok) 38%, transparent);
+background: color-mix(in srgb, var(--ok) 8%, transparent);
+color: var(--text);
+}
+.ui-check.is-disabled,
+.checkbox-label.is-disabled {
+opacity: 0.45;
+cursor: not-allowed;
+}
+.ui-check-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(var(--ui-check-grid-min, 150px), 1fr));
+gap: var(--ui-control-grid-gap);
+max-height: var(--ui-check-grid-max-height, none);
+overflow: var(--ui-check-grid-overflow, visible);
+}
+.dex-table-wrap,
+.matchup-table-wrap,
+.ft-speed-embedded,
+.rc-input-block,
+.rc-result-row,
+.rc-briefing,
+.rc-prediction-panel {
+border-radius: var(--radius-md);
+}
+.dex-table-wrap,
+.matchup-table-wrap {
+border: 1px solid var(--border);
+background: var(--bg-panel);
+box-shadow: var(--surface-shadow-soft);
+}
+.dex-table,
+.matchup-table {
+width: 100%;
+color: var(--text);
+}
+.dex-table th,
+.matchup-table th {
+background: var(--bg-muted);
+color: var(--text-dim);
+}
+.dex-table td,
+.matchup-table td {
+border-color: var(--border);
+}
+.ui-empty,
+.empty-state {
+color: var(--text-faint);
+}
+
+.ui-empty {
+display: grid;
+place-items: center;
+min-height: 72px;
+padding: 24px 18px;
+font-family: "Noto Sans KR", sans-serif;
+font-size: 13px;
+font-weight: 700;
+line-height: 1.6;
+text-align: center;
+}
+
+.ui-empty--compact {
+min-height: 0;
+padding: 14px 16px;
+}
+
+.ui-empty--guide {
+border: 1px dashed color-mix(in srgb, var(--border-bright) 64%, transparent);
+border-radius: var(--radius-md);
+background: color-mix(in srgb, var(--bg-input) 78%, transparent);
+}
+
+.ui-empty.error,
+.ui-empty[data-tone="error"] {
+border-color: color-mix(in srgb, var(--atk) 42%, var(--border));
+background: color-mix(in srgb, var(--atk) 7%, var(--bg-panel));
+color: var(--atk-deep);
+}
+
+.ui-empty[data-tone="loading"] {
+color: var(--text-dim);
+}

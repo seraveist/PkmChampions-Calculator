@@ -372,6 +372,33 @@ function bindUiTabKeyboard(tablist, options = {}) {
 }
 
 const mainPageFeatureLoads = new Map();
+let mainPageLoadRequestId = 0;
+
+function setMainPageLoadState(tab, state = '', message = '') {
+  const nav = document.querySelector('.main-nav');
+  const status = document.getElementById('pageLoadStatus');
+  const isLoading = state === 'loading';
+  const isError = state === 'error';
+
+  document.querySelectorAll('.nav-tab').forEach(candidate => {
+    candidate.classList.remove('is-loading');
+    candidate.removeAttribute('aria-busy');
+  });
+  if (tab) {
+    tab.classList.toggle('is-loading', isLoading);
+    tab.classList.toggle('is-error', isError);
+    if (isLoading) tab.setAttribute('aria-busy', 'true');
+  }
+  if (nav) {
+    if (isLoading) nav.setAttribute('aria-busy', 'true');
+    else nav.removeAttribute('aria-busy');
+  }
+  if (status) {
+    status.hidden = !message;
+    status.dataset.state = state;
+    status.textContent = message;
+  }
+}
 
 function ensureMainPageFeatureLoaded(pageKey) {
   const sourceHolder = document.getElementById('page-feature-assets');
@@ -379,15 +406,20 @@ function ensureMainPageFeatureLoaded(pageKey) {
   if (!source) return Promise.resolve();
   if (mainPageFeatureLoads.has(pageKey)) return mainPageFeatureLoads.get(pageKey);
 
+  let script = null;
   const load = new Promise((resolve, reject) => {
-    const script = document.createElement('script');
+    script = document.createElement('script');
     script.src = source;
     script.async = false;
     script.dataset.pageFeature = pageKey;
-    script.addEventListener('load', resolve, { once: true });
+    script.addEventListener('load', () => {
+      script.dataset.pageFeatureLoaded = 'true';
+      resolve();
+    }, { once: true });
     script.addEventListener('error', () => reject(new Error(`Failed to load page feature: ${pageKey}`)), { once: true });
     document.head.appendChild(script);
   }).catch(error => {
+    script?.remove();
     mainPageFeatureLoads.delete(pageKey);
     throw error;
   });
@@ -400,7 +432,28 @@ async function activateMainPage(pageKey, options = {}) {
   const activePage = document.getElementById(`page-${pageKey}`);
   if (!tab || !activePage) return false;
 
-  await ensureMainPageFeatureLoaded(pageKey);
+  const requestId = ++mainPageLoadRequestId;
+  const sourceHolder = document.getElementById('page-feature-assets');
+  const hasFeatureSource = !!sourceHolder?.getAttribute(`data-${pageKey}-src`);
+  const hasLoadedFeature = !!document.querySelector(`script[data-page-feature="${pageKey}"][data-page-feature-loaded="true"]`);
+  const requiresLoad = hasFeatureSource && !hasLoadedFeature;
+  const pageLabel = tab.textContent.trim();
+
+  setMainPageLoadState(tab);
+  if (requiresLoad) setMainPageLoadState(tab, 'loading', `${pageLabel} 화면을 불러오는 중입니다.`);
+
+  try {
+    await ensureMainPageFeatureLoaded(pageKey);
+  } catch (error) {
+    if (requestId === mainPageLoadRequestId) {
+      setMainPageLoadState(tab, 'error', `${pageLabel} 화면을 불러오지 못했습니다. 탭을 다시 눌러 주세요.`);
+    }
+    console.error(error);
+    return false;
+  }
+
+  if (requestId !== mainPageLoadRequestId) return false;
+  if (requiresLoad) setMainPageLoadState(tab);
   if (typeof ensureMainPageInitialized === 'function') ensureMainPageInitialized(pageKey);
   syncUiTabs(document.querySelectorAll('.nav-tab'), tab);
   syncUiPanels(document.querySelectorAll('.page'), activePage);

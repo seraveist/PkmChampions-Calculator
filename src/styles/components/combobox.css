@@ -92,6 +92,35 @@
   transition: background 0.12s, color 0.12s;
 }
 
+/* Multi-column option rows are portaled to <body>, so their layout must live
+   in the component layer instead of relying on page-scoped selectors. */
+.combobox-option.move-option {
+  display: grid;
+  grid-template-columns: minmax(86px, 1fr) 40px 44px 38px;
+  column-gap: 4px;
+  padding-right: 7px;
+  padding-left: 7px;
+}
+
+.combobox-option.pokemon-option {
+  display: grid;
+  grid-template-columns:
+    minmax(82px, 1.45fr)
+    minmax(58px, 0.9fr)
+    repeat(6, minmax(22px, 0.34fr));
+  column-gap: clamp(2px, 0.7vw, 6px);
+  padding-right: clamp(5px, 1vw, 10px);
+  padding-left: clamp(5px, 1vw, 10px);
+}
+
+.combobox-option.nature-option {
+  display: grid;
+  grid-template-columns: minmax(78px, 1fr) minmax(36px, 0.42fr) minmax(36px, 0.42fr);
+  gap: 3px;
+  padding-right: 8px;
+  padding-left: 8px;
+}
+
 .combobox-option > b,
 .combobox-option > span {
   min-width: 0;

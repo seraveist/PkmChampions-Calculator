@@ -400,7 +400,7 @@
 
 #page-finetune .ft-hp-title b{
   color: var(--tool-text);
-  font-family: "Fira Code", "JetBrains Mono", monospace;
+  font-family: "Noto Sans KR", sans-serif;
 }
 
 #page-finetune .ft-tag{
@@ -579,7 +579,7 @@
   justify-self: end;
   min-width: 32px;
   color: var(--tool-muted);
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 11px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -642,7 +642,7 @@
   height: var(--ft-opp-speed-control-h);
   min-height: var(--ft-opp-speed-control-h);
   text-align: center;
-  font-family: "Fira Code", "JetBrains Mono", monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-weight: 900;
 }
 
@@ -738,7 +738,7 @@
 
 #page-finetune .ft-speed-chip b{
   color: var(--tool-text);
-  font-family: "Fira Code", "JetBrains Mono", monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: clamp(12px, 1vw, 14px);
   font-weight: 900;
   text-align: right;
@@ -781,7 +781,7 @@
   max-height: 26px;
   padding: 0 4px;
   border-radius: 7px;
-  font-family: "Fira Code", "JetBrains Mono", monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 12px;
   font-weight: 900;
   line-height: 1;
@@ -818,7 +818,7 @@
   display: inline-flex;
   align-items: center;
   color: var(--tool-text);
-  font-family: "Fira Code", "JetBrains Mono", monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 13px;
   font-weight: 900;
   line-height: 1;
@@ -907,7 +907,7 @@
 #page-finetune .ft-speed-case-spe b,
 #page-finetune .ft-speed-case-need b{
   color: var(--tool-text);
-  font-family: "Fira Code", "JetBrains Mono", monospace;
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 13px;
   font-weight: 900;
 }
@@ -1005,50 +1005,6 @@
 
 #page-finetune .ft-breakpoint-deltas {
     justify-content: flex-start;
-  }
-
-}
-
-@media (max-width: 760px) {
-#page-finetune .ft-setup-grid {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "main"
-      "settings";
-  }
-
-#page-finetune .ft-settings-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-areas: "ability nature item";
-  }
-
-#page-finetune .ft-stats-grid {
-    min-width: 0;
-  }
-
-#page-finetune .ft-stats-column {
-    overflow-x: auto;
-  }
-
-#page-finetune .ft-speed-summary {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-#page-finetune .ft-speed-flags {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow: hidden;
-  }
-
-#page-finetune .ft-speed-flags .ft-tag,
-#page-finetune .ft-speed-muted {
-  align-items: center;
-  min-height: 22px;
-  white-space: nowrap;
-}
-
-#page-finetune .ft-speed-case-grid {
-    grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
   }
 
 }
@@ -1248,7 +1204,7 @@
 
 }
 
-@media (max-width: 420px) {
+@media (max-width: 430px) {
 #page-finetune .ft-stats-grid {
     --ft-magic-edge: 14px;
     --ft-magic-current: 16px;
@@ -1301,6 +1257,39 @@
 }
 
 @media (max-width: 760px) {
+#page-finetune .ft-setup-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "main"
+      "settings";
+  }
+
+#page-finetune .ft-settings-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas: "ability nature item";
+  }
+
+#page-finetune .ft-speed-summary {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+#page-finetune .ft-speed-flags {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+
+#page-finetune .ft-speed-flags .ft-tag,
+#page-finetune .ft-speed-muted {
+    align-items: center;
+    min-height: 22px;
+    white-space: nowrap;
+  }
+
+#page-finetune .ft-speed-case-grid {
+    grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
+  }
+
 #page-finetune .ft-stats-column {
     max-width: 100%;
     overflow-x: auto;

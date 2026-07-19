@@ -71,14 +71,13 @@ git diff --check
 
 ### Calculator page ownership
 
-- Moved the calculator visual base to `pages/calculator-base.css`.
-- Moved the calculator layout and responsive rules to `pages/calculator.css`.
+- Split the calculator visual base, layout, stat editor, results, responsive rules, and dropdown contracts into six `pages/calculator-*` modules.
 - Removed the legacy `03-calc-redesign.css` and `05-calc-sample-layout.css` build mappings.
 - Updated CSS ownership and mobile dropdown contracts to read the page-owned styles directly.
 
 ### Dex pagination and page ownership
 
-- Moved the dex stylesheet to `pages/dex.css` and removed the legacy top-level mapping.
+- Split the dex shell, list, detail, learnset, and responsive rules into five `pages/dex-*` modules and removed the legacy top-level mapping.
 - Added 50-row pagination to Pokemon, move, ability, and item lists after filtering and sorting.
 - Preserved each dex tab's query, filters, page, and scroll position while switching tabs or opening details.
 - Extended browser smoke coverage to verify the 50-row DOM limit, next-page data, and mobile overflow.
