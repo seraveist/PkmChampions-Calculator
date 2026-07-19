@@ -250,6 +250,7 @@ function scopeFor(kind) {
 function statusFor(row) {
   const inScope = scopeFor(row.kind).has(row.id);
   if (!inScope) return null;
+  if (row.expectation === 'unsupported') return '미지원';
   if (row.expectation === 'deferred') return '보류';
   const detected = supportEvidence(row).length > 0;
   if (row.expectation === 'missing') return detected ? '검토 필요' : '미구현';
@@ -285,6 +286,9 @@ const scopedCandidates = allCandidates.filter(row => statusFor(row));
 const missingRows = scopedCandidates
   .filter(row => ['미구현', '지원 근거 없음', '검토 필요'].includes(statusFor(row)))
   .sort((a, b) => stableCompare(a.kind, b.kind) || stableCompare(a.group, b.group) || stableCompare(a.id, b.id));
+const unsupportedRows = scopedCandidates
+  .filter(row => statusFor(row) === '미지원')
+  .sort((a, b) => stableCompare(a.kind, b.kind) || stableCompare(a.id, b.id));
 const deferredRows = scopedCandidates
   .filter(row => statusFor(row) === '보류')
   .sort((a, b) => stableCompare(a.kind, b.kind) || stableCompare(a.id, b.id));
@@ -314,6 +318,12 @@ const out = [
   '| 종류 | 그룹 | 항목 | 판정 | 비고 |',
   '| --- | --- | --- | --- | --- |',
   ...(missingRows.length ? missingRows.map(row => `| ${row.kind} | ${md(row.group)} | ${md(entityName(row.kind, row.id))} | ${statusFor(row)} | ${md(row.note)} |`) : ['| - | - | - | 없음 | - |']),
+  '',
+  '## 명시적 미지원 요약',
+  '',
+  '| 종류 | 그룹 | 항목 | 비고 |',
+  '| --- | --- | --- | --- |',
+  ...(unsupportedRows.length ? unsupportedRows.map(row => `| ${row.kind} | ${md(row.group)} | ${md(entityName(row.kind, row.id))} | ${md(row.note)} |`) : ['| - | - | - | - |']),
   '',
   '## 보류 요약',
   '',

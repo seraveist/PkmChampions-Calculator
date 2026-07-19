@@ -25,9 +25,13 @@
     "coverage:check": "node scripts/coverage-matrix.mjs --check",
     "state:entry": "node scripts/entry-effects-state.mjs",
     "state:finetune": "node scripts/fine-tune-state.mjs",
-    "test": "npm run check && npm run build:standalone && npm run html:structure && npm run css:structure && npm run ui:dropdowns && npm run spa:hosting && npm run build:public && npm run public:ready && npm run data:validate && npm run coverage:check && npm run dex:smoke && npm run damage:golden && npm run reverse:golden && npm run state:entry && npm run state:finetune",
+    "state:party": "node scripts/party-preset-state.mjs",
+    "test": "npm run check && npm run build:standalone && npm run html:structure && npm run css:structure && npm run ui:dropdowns && npm run spa:hosting && npm run build:public && npm run public:ready && npm run data:validate && npm run coverage:check && npm run dex:smoke && npm run damage:golden && npm run reverse:golden && npm run state:entry && npm run state:finetune && npm run state:party",
     "sync-data": "node scripts/sync-ps-data.mjs",
     "sync-data:dry": "node scripts/sync-ps-data.mjs --dry-run",
     "fetch-ko": "node scripts/fetch-ko.mjs"
+  },
+  "devDependencies": {
+    "ws": "^8.21.1"
   }
 }

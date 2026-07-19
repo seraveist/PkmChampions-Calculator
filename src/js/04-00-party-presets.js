@@ -90,12 +90,19 @@ function blankPartyPresetData() {
   };
 }
 
+function normalizePartyPresetEvs(source = {}) {
+  let remaining = 66;
+  return Object.fromEntries(STATS.map(stat => {
+    const numeric = Number(source?.[stat] ?? 0);
+    const requested = Number.isFinite(numeric) ? Math.trunc(numeric) : 0;
+    const value = Math.min(remaining, Math.max(0, Math.min(32, requested)));
+    remaining -= value;
+    return [stat, value];
+  }));
+}
+
 function normalizePartyPresetMember(member = {}) {
-  const evs = {};
-  STATS.forEach(stat => {
-    const value = Number(member.evs?.[stat] ?? 0);
-    evs[stat] = Math.max(0, Math.min(32, Number.isFinite(value) ? value : 0));
-  });
+  const evs = normalizePartyPresetEvs(member.evs);
   const moves = Array.from({ length: 4 }, (_, index) => member.moves?.[index] || '');
   return {
     pokemon: PokemonById[member.pokemon] ? member.pokemon : '',

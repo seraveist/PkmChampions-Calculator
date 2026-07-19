@@ -208,6 +208,7 @@ const sourceButtonMisses = jsFiles.flatMap(file => {
 check(sourceButtonMisses.length === 0, `rendered button literals declare type${sourceButtonMisses.length ? ` (${sourceButtonMisses.join(', ')})` : ''}`);
 
 check(template.includes('id="dexFullPageDetail"') && template.includes('aria-label="도감 상세"'), 'dex fullpage detail has structural region');
+check(template.includes('class="calc-field-scope-note"') && template.includes('Protect/Detect'), 'calculator declares Protect and Detect states unsupported');
 check(template.includes('id="matchupModeTabs"') && template.includes('aria-label="상성표 모드"'), 'matchup mode tabs expose structure');
 check(template.includes('aria-labelledby="dexDetailTitle"'), 'dex modal has accessible title wiring');
 

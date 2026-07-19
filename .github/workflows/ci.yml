@@ -31,6 +31,9 @@ jobs:
       - name: Run regression suite
         run: npm test
 
+      - name: Run public browser smoke
+        run: npm run ui:browser:public -- --require-browser --disable-browser-sandbox
+
       - name: Build Cloudflare Pages output
         run: npm run build:pages
 

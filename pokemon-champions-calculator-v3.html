@@ -7174,6 +7174,12 @@ align-items: center;
 padding-top: 10px;
 border-top-color: var(--calc-line-soft);
 }
+#page-calc .calc-field-scope-note {
+margin: 0;
+color: var(--text-dim);
+font-size: 11px;
+line-height: 1.5;
+}
 #page-calc .ui-check {
 display: inline-flex;
 grid-template-columns: none;
@@ -12243,6 +12249,7 @@ color: var(--text-faint);
               </label>
               <label class="checkbox-label ui-check"><input type="checkbox" id="gravity"><span>중력장</span></label>
             </div>
+            <p class="calc-field-scope-note" role="note">방어·판별(Protect/Detect) 계열의 보호 상태는 현재 계산에 반영되지 않습니다.</p>
           </div>
         </section>
       </div>
@@ -18849,12 +18856,19 @@ function blankPartyPresetData() {
   };
 }
 
+function normalizePartyPresetEvs(source = {}) {
+  let remaining = 66;
+  return Object.fromEntries(STATS.map(stat => {
+    const numeric = Number(source?.[stat] ?? 0);
+    const requested = Number.isFinite(numeric) ? Math.trunc(numeric) : 0;
+    const value = Math.min(remaining, Math.max(0, Math.min(32, requested)));
+    remaining -= value;
+    return [stat, value];
+  }));
+}
+
 function normalizePartyPresetMember(member = {}) {
-  const evs = {};
-  STATS.forEach(stat => {
-    const value = Number(member.evs?.[stat] ?? 0);
-    evs[stat] = Math.max(0, Math.min(32, Number.isFinite(value) ? value : 0));
-  });
+  const evs = normalizePartyPresetEvs(member.evs);
   const moves = Array.from({ length: 4 }, (_, index) => member.moves?.[index] || '');
   return {
     pokemon: PokemonById[member.pokemon] ? member.pokemon : '',

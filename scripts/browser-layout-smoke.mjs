@@ -4,9 +4,12 @@ import { createServer } from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import WebSocket from 'ws';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PUBLIC_MODE = process.argv.includes('--public');
+const REQUIRE_BROWSER = process.argv.includes('--require-browser') || process.env.CI === 'true';
+const DISABLE_BROWSER_SANDBOX = process.argv.includes('--disable-browser-sandbox') || process.env.UI_SMOKE_DISABLE_SANDBOX === '1';
 const PUBLIC_ROOT = path.join(ROOT, 'dist');
 const HTML_PATH = PUBLIC_MODE
   ? path.join(PUBLIC_ROOT, 'index.html')
@@ -120,30 +123,60 @@ async function waitFor(predicate, timeoutMs = 12000) {
 }
 
 class CdpClient {
-  constructor(url) {
+  constructor(url, timeoutMs = 12000) {
     this.url = url;
+    this.timeoutMs = timeoutMs;
     this.nextId = 1;
     this.pending = new Map();
     this.listeners = new Map();
+    this.closedError = null;
+  }
+
+  rejectPending(error) {
+    if (this.closedError) return;
+    this.closedError = error;
+    for (const { reject, timer } of this.pending.values()) {
+      clearTimeout(timer);
+      reject(error);
+    }
+    this.pending.clear();
   }
 
   async connect() {
     this.socket = new WebSocket(this.url);
-    this.socket.addEventListener('message', event => {
-      const message = JSON.parse(event.data);
-      if (!message.id) {
-        for (const listener of this.listeners.get(message.method) || []) listener(message.params || {});
-        return;
+    this.socket.addEventListener('message', async event => {
+      try {
+        const raw = typeof event.data === 'string'
+          ? event.data
+          : typeof event.data?.text === 'function'
+            ? await event.data.text()
+            : Buffer.from(event.data).toString('utf8');
+        const message = JSON.parse(raw);
+        if (!message.id) {
+          for (const listener of this.listeners.get(message.method) || []) listener(message.params || {});
+          return;
+        }
+        if (!this.pending.has(message.id)) return;
+        const { resolve, reject, timer } = this.pending.get(message.id);
+        this.pending.delete(message.id);
+        clearTimeout(timer);
+        if (message.error) reject(new Error(message.error.message));
+        else resolve(message.result);
+      } catch (error) {
+        this.rejectPending(new Error(`Invalid browser debugging message: ${error.message}`));
       }
-      if (!this.pending.has(message.id)) return;
-      const { resolve, reject } = this.pending.get(message.id);
-      this.pending.delete(message.id);
-      if (message.error) reject(new Error(message.error.message));
-      else resolve(message.result);
+    });
+    this.socket.addEventListener('close', () => {
+      this.rejectPending(new Error('Browser debugging connection closed unexpectedly'));
+    });
+    this.socket.addEventListener('error', event => {
+      const detail = event?.error?.message || event?.message || '';
+      this.rejectPending(new Error(`Browser debugging connection failed${detail ? `: ${detail}` : ''}`));
     });
     await new Promise((resolve, reject) => {
       this.socket.addEventListener('open', resolve, { once: true });
       this.socket.addEventListener('error', reject, { once: true });
+      this.socket.addEventListener('close', () => reject(new Error('Browser debugging connection closed before opening')), { once: true });
     });
   }
 
@@ -154,9 +187,17 @@ class CdpClient {
   }
 
   send(method, params = {}) {
+    if (this.closedError) return Promise.reject(this.closedError);
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      return Promise.reject(new Error(`Browser debugging connection is unavailable for ${method}`));
+    }
     const id = this.nextId++;
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`Browser command timed out: ${method}`));
+      }, this.timeoutMs);
+      this.pending.set(id, { resolve, reject, timer });
       this.socket.send(JSON.stringify({ id, method, params }));
     });
   }
@@ -174,6 +215,11 @@ class CdpClient {
   }
 
   close() {
+    for (const { reject, timer } of this.pending.values()) {
+      clearTimeout(timer);
+      reject(new Error('Browser debugging client closed'));
+    }
+    this.pending.clear();
     this.socket?.close();
   }
 }
@@ -209,6 +255,7 @@ async function main() {
   check(existsSync(HTML_PATH), `${PUBLIC_MODE ? 'public index' : 'generated HTML'} exists`);
   const chrome = findChrome();
   if (!chrome) {
+    if (REQUIRE_BROWSER) throw new Error('Chrome/Edge executable is required but was not found.');
     console.log('[SKIP] Chrome/Edge executable was not found; browser layout smoke did not run.');
     return;
   }
@@ -217,17 +264,29 @@ async function main() {
   const userDataDir = mkdtempSync(path.join(os.tmpdir(), 'pkmchampions-ui-'));
   const activePortFile = path.join(userDataDir, 'DevToolsActivePort');
   const url = `${publicServer?.url || pathToFileURL(HTML_PATH).href}#calc`;
-  const browser = spawn(chrome, [
+  const browserArgs = [
     '--headless=new',
-    '--disable-gpu',
+    '--disable-gpu-sandbox',
+    '--disable-gpu-shader-disk-cache',
+    '--enable-unsafe-swiftshader',
+    '--use-gl=angle',
+    '--use-angle=swiftshader',
     '--disable-extensions',
     '--disable-background-networking',
+    '--disable-dev-shm-usage',
     '--no-first-run',
     '--no-default-browser-check',
+    '--remote-allow-origins=*',
     '--remote-debugging-port=0',
     `--user-data-dir=${userDataDir}`,
-    url,
-  ], { stdio: 'ignore', windowsHide: true });
+  ];
+  if (DISABLE_BROWSER_SANDBOX) browserArgs.push('--no-sandbox');
+  browserArgs.push('about:blank');
+  const browser = spawn(chrome, browserArgs, { stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true });
+  let browserDiagnostics = '';
+  browser.stderr?.on('data', chunk => {
+    if (browserDiagnostics.length < 16000) browserDiagnostics += chunk.toString();
+  });
 
   let client;
   try {
@@ -256,10 +315,8 @@ async function main() {
     await client.send('Runtime.enable');
     await client.send('Page.enable');
     await client.send('Log.enable');
-    if (PUBLIC_MODE) {
-      await client.send('Page.navigate', { url });
-      await sleep(200);
-    }
+    await client.send('Page.navigate', { url });
+    await sleep(200);
     await waitFor(() => client.evaluate(`document.readyState === 'complete'`));
     const appReady = await waitFor(
       () => client.evaluate(`typeof applyPokemonToCalcSide === 'function'`),
@@ -470,6 +527,10 @@ async function main() {
     })()`, true);
     check(!reverse.error && reverse.total > 0, 'reverse Worker returns candidate results', JSON.stringify(reverse));
     check(reverse.heartbeats >= 2, 'reverse Worker keeps the main thread responsive', JSON.stringify(reverse));
+  } catch (error) {
+    const detail = browserDiagnostics.trim().split(/\r?\n/).slice(-6).join(' | ');
+    if (detail) error.message = `${error.message} (${detail})`;
+    throw error;
   } finally {
     if (client) {
       try {
