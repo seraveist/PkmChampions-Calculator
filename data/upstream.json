@@ -1,7 +1,7 @@
 {
   "repository": "smogon/pokemon-showdown",
   "ref": "master",
-  "commit": "00c061991c64240ffc939f1e450316182f8764f6",
+  "commit": "9d8e5c22a8741473d63fe328c1b4962f1a052ce9",
   "files": [
     "data/pokedex.ts",
     "data/moves.ts",
@@ -38,7 +38,7 @@
     "data/learnsets.ts": "a528380689497c018af77730aa9a13da0c1d8499e269e1a8db3f67f363d2875f",
     "data/typechart.ts": "7b0eae126bdcf98edfd71cbe75af00b763f5f0d5db36024b6f3e7c5e4aea95ac",
     "data/natures.ts": "5cfefee4c23dd19f629deb9a67f75361226bd24fe34cefe9a13d30d985428416",
-    "data/formats-data.ts": "1b978e242a216b9acec3a3449956bc19ed5ee506a878bebb4d0197e830ff32ef",
+    "data/formats-data.ts": "f0cb84ad520688e25088dc6b9a90b4427924a9145c5a7b021e54bdcb1335ecf6",
     "data/conditions.ts": "03ec1b90913f864a0baab0574a70abb856d5e84f722acf96ab11a7601a72fc35",
     "data/aliases.ts": "74fb99dad6085eb0d6e4ac42e58c1d6d6427a46adc40c7d87579cc4bf9851707",
     "data/tags.ts": "7433a57eb90d0ce1b1943905dac7716785aaf77af36167695920faf94f1fc886",
