@@ -1,7 +1,7 @@
 {
   "repository": "smogon/pokemon-showdown",
   "ref": "master",
-  "commit": "f0039f571384310ef99f64a0fb2a80d82eb60ac6",
+  "commit": "d43fb79a049f624c079c387d043ef53f62aed226",
   "files": [
     "data/pokedex.ts",
     "data/moves.ts",
@@ -31,18 +31,18 @@
     "data/mods/champions/rulesets.ts"
   ],
   "fileHashes": {
-    "data/pokedex.ts": "0aba8712ababae8e356bdd9d6c6ffa73a5169d39a3ac831a853ae88fe653e6bc",
+    "data/pokedex.ts": "1ef21d85befbcba8111b13827e04b54c8a689679a465552d27b386969c9f8a44",
     "data/moves.ts": "f541faead2379951830576787fd2a9a22f82467df2464a819f10feea228b3095",
     "data/abilities.ts": "04bfce5baf9333ed86fcb80c081429287b7fefbcea4b8b736761a5f2c7200013",
     "data/items.ts": "fd7a7b798ac872e53f7ee41806b3ec5692fa5bebcd720b544dd45bbed79a0a14",
-    "data/learnsets.ts": "a528380689497c018af77730aa9a13da0c1d8499e269e1a8db3f67f363d2875f",
+    "data/learnsets.ts": "725fe7c63817ee2847a21e2e49b195035341adc75c389db73172773e630c3feb",
     "data/typechart.ts": "7b0eae126bdcf98edfd71cbe75af00b763f5f0d5db36024b6f3e7c5e4aea95ac",
     "data/natures.ts": "5cfefee4c23dd19f629deb9a67f75361226bd24fe34cefe9a13d30d985428416",
-    "data/formats-data.ts": "d5434f5cf2242b829ce26c6a403ecf21dc1408b80a5a948a73586ee0872c9b2b",
+    "data/formats-data.ts": "1e5bb419cc39448561af1f6d7ba1121cc6b9a30fbed516752edd1c41a125099e",
     "data/conditions.ts": "03ec1b90913f864a0baab0574a70abb856d5e84f722acf96ab11a7601a72fc35",
     "data/aliases.ts": "70c3b336c8859823adfcc6879bc433566783cf91cfdf49f8447950298dcbae7a",
     "data/tags.ts": "7433a57eb90d0ce1b1943905dac7716785aaf77af36167695920faf94f1fc886",
-    "data/rulesets.ts": "89a487f8e5949c438b232010570cf467e0b60cb109ec836abeaad8553e8e885a",
+    "data/rulesets.ts": "d3213c061c6f73d3fa26b5a1910d249fd3e7e93ee744058dd2b9a257c32cbd4d",
     "data/scripts.ts": "54c7522b3d5d05f6a020d78b129589e7b2e57fbb9d095800c78c33a64a8ff383",
     "data/pokemongo.ts": "182ba1083390e7c6627f1bbfe5a68173623d3c68f75f04ca2adeb72460675e78",
     "data/text/pokedex.ts": "49bfe8315270a75296ee1ddeac7aba830e4a9eafead5f7044506a6e9010d5874",
