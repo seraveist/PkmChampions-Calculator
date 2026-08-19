@@ -21,11 +21,16 @@ npm run build
 
 독립 실행 결과는 루트의 `pokemon-champions-calculator-v3.html`이다. 이 파일명의 `v3`는 기존 배포 링크와 오프라인 산출물 호환을 위해 유지하는 레거시 식별자이며, 현재 제품 버전은 v2.0.0이다.
 
-공개 정적 사이트 산출물은 다음 명령으로 `dist/`에 생성한다.
+Cloudflare Pages용 광고 없는 공개 산출물은 다음 명령으로 `dist/`에 생성한다.
 
 ```powershell
-npm run build:public
+npm run build:pages
+npm run pages:ready
 ```
+
+Cloudflare Pages의 Production branch는 `main`, Build command는 `npm run build:pages`, Build output directory는 `dist`, Node.js 버전은 20 이상을 사용한다. 이 산출물은 검색 노출을 허용하지만 광고 레일은 포함하지 않으며, 존재하지 않는 경로는 `404.html`로 응답한다.
+
+광고 레일을 포함한 공개 후보본은 `npm run build:public`, 검색 노출과 광고를 모두 끈 비공개 미리보기는 `npm run build:preview`로 별도 생성할 수 있다. 오프라인 단일 HTML 산출물은 계속 `npm run build:standalone`으로 만든다.
 
 ## Validation
 
@@ -34,6 +39,7 @@ npm test
 npm run ui:audit
 npm run ui:browser -- --require-browser
 npm run ui:browser:public -- --require-browser
+npm run ui:browser:pages -- --require-browser
 ```
 
 `npm test`는 소스·HTML·CSS·JavaScript 구조, 데이터 무결성, 공개 배포 준비, 대미지·역계산 golden test와 상태 회귀를 검사한다. 브라우저 smoke test는 레이아웃, 지연 로딩, 키보드 계약, 접근성, 다크 테마와 320px 모바일 화면을 실제 Chromium 계열 브라우저에서 검증한다.
