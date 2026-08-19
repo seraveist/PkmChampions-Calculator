@@ -4,8 +4,12 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PRIVATE_TEST = process.argv.includes('--private-test');
+const AD_FREE = process.argv.includes('--ad-free');
+if (PRIVATE_TEST && AD_FREE) throw new Error('Choose either --private-test or --ad-free, not both.');
+const RAIL_FREE = PRIVATE_TEST || AD_FREE;
 const DIST = path.join(ROOT, 'dist');
 const INDEX = path.join(DIST, 'index.html');
+const NOT_FOUND = path.join(DIST, '404.html');
 const HEADERS = path.join(DIST, '_headers');
 const ROBOTS = path.join(DIST, 'robots.txt');
 const MANIFEST = path.join(DIST, 'deploy-manifest.json');
@@ -50,6 +54,7 @@ function read(file) {
 for (const [file, label] of [
   [STANDALONE, 'standalone artifact'],
   [INDEX, 'public index'],
+  [NOT_FOUND, '404 page'],
   [HEADERS, 'hosting headers'],
   [ROBOTS, 'robots policy'],
   [MANIFEST, 'deploy manifest'],
@@ -57,10 +62,11 @@ for (const [file, label] of [
   check(existsSync(file), `${label} exists`);
 }
 
-if (![STANDALONE, INDEX, HEADERS, ROBOTS, MANIFEST].every(existsSync)) process.exit(1);
+if (![STANDALONE, INDEX, NOT_FOUND, HEADERS, ROBOTS, MANIFEST].every(existsSync)) process.exit(1);
 
 const standalone = read(STANDALONE);
 const index = read(INDEX);
+const notFound = read(NOT_FOUND);
 const headers = read(HEADERS);
 const robots = read(ROBOTS);
 let manifest = null;
@@ -80,6 +86,9 @@ check(!index.includes('<style'), 'public index has no inline style blocks');
 check(!/\sstyle=["']/.test(index), 'public index has no inline style attributes');
 check(!/\son[a-z]+=["']/.test(index), 'public index has no inline event handlers');
 check(!/__[A-Z0-9_]+__/.test(index), 'public index has no unresolved build placeholders');
+check(notFound.includes('<!DOCTYPE html>') && notFound.includes('href="/"'), '404 page is a complete document with a home link');
+check(notFound.includes('<meta name="robots" content="noindex,follow">'), '404 page is excluded from search results');
+check(/<link rel="stylesheet" href="\/assets\/[a-z-]+\.[a-f0-9]{12}\.css">/.test(notFound), '404 page uses a root-relative hashed stylesheet');
 
 const stylesheetHrefs = [...index.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map((match) => match[1]);
 const scriptSrcs = [...index.matchAll(/<script\s+src="([^"]+)"\s*><\/script>/g)].map((match) => match[1]);
@@ -119,14 +128,21 @@ check(headers.includes('max-age=31536000, immutable'), 'hashed assets have immut
 if (PRIVATE_TEST) {
   check(headers.includes('X-Robots-Tag: noindex'), 'private test headers block indexing');
   check(robots.includes('Disallow: /'), 'private test robots policy blocks crawling');
-  check(!/class="(?:ad-rail|side-rail)/.test(index), 'private test index omits advertising rails');
 } else {
   check(!headers.includes('X-Robots-Tag: noindex'), 'public headers do not block indexing');
   check(robots.includes('Allow: /') && !robots.includes('Disallow: /'), 'public robots policy allows crawling');
 }
+if (RAIL_FREE) {
+  check(!/class="(?:ad-rail|side-rail)/.test(index), `${PRIVATE_TEST ? 'private test' : 'ad-free public'} index omits advertising rails`);
+  check(index.includes('<body class="deployment-rail-free">'), `${PRIVATE_TEST ? 'private test' : 'ad-free public'} index declares the rail-free layout variant`);
+} else {
+  check(/class="(?:ad-rail|side-rail)/.test(index), 'advertising-ready public index retains advertising rails');
+  check(!index.includes('deployment-rail-free'), 'advertising-ready public index does not enable the rail-free layout variant');
+}
 
 if (manifest) {
-  check(manifest.mode === (PRIVATE_TEST ? 'private-test' : 'public'), `deploy manifest records ${PRIVATE_TEST ? 'private test' : 'public'} mode`);
+  const expectedMode = PRIVATE_TEST ? 'private-test' : AD_FREE ? 'public-ad-free' : 'public';
+  check(manifest.mode === expectedMode, `deploy manifest records ${expectedMode} mode`);
   check(manifest.artifact === 'index.html', 'deploy manifest records index artifact');
   check(manifest.sizeBytes === statSync(INDEX).size, 'deploy manifest records the current index size');
   check(

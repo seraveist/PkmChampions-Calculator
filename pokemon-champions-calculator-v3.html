@@ -4080,6 +4080,17 @@ display: grid;
 grid-template-columns: var(--ad-rail-width) minmax(0, var(--app-content-max)) var(--ad-rail-width);
 align-items: start;
 }
+body.deployment-rail-free header > .header-top,
+body.deployment-rail-free header > .main-nav {
+max-width: var(--app-content-max);
+}
+body.deployment-rail-free .site-shell {
+max-width: calc(var(--app-content-max) + (var(--app-shell-gutter) * 2));
+grid-template-columns: minmax(0, var(--app-content-max));
+}
+body.deployment-rail-free .app-content {
+grid-column: 1;
+}
 .app-content,
 .ad-rail {
 min-width: 0;

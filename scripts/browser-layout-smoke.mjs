@@ -10,6 +10,7 @@ import WebSocket from 'ws';
 const require = createRequire(import.meta.url);
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PUBLIC_MODE = process.argv.includes('--public');
+const AD_FREE = process.argv.includes('--ad-free');
 const REQUIRE_BROWSER = process.argv.includes('--require-browser') || process.env.CI === 'true';
 const DISABLE_BROWSER_SANDBOX = process.argv.includes('--disable-browser-sandbox') || process.env.UI_SMOKE_DISABLE_SANDBOX === '1';
 const PUBLIC_ROOT = path.join(ROOT, 'dist');
@@ -347,6 +348,10 @@ async function main() {
       3000,
     ).catch(() => false);
     check(appReady, `${PUBLIC_MODE ? 'public' : 'standalone'} app runtime initializes`, browserErrors.join(' | '));
+    if (PUBLIC_MODE && AD_FREE) {
+      const advertisingRailCount = await client.evaluate(`document.querySelectorAll('.ad-rail, .side-rail').length`);
+      check(advertisingRailCount === 0, 'ad-free public runtime contains no advertising rails', String(advertisingRailCount));
+    }
     await installAxe(client);
     const initialFeatureRequests = await client.evaluate(`performance.getEntriesByType('resource').filter(entry => /feature-(?:dex|matchup|finetune|revcalc)\./.test(entry.name)).length`);
     check(initialFeatureRequests === 0, 'page feature bundles are not requested during calculator startup', String(initialFeatureRequests));
