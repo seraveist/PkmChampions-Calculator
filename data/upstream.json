@@ -1,7 +1,7 @@
 {
   "repository": "smogon/pokemon-showdown",
   "ref": "master",
-  "commit": "d43fb79a049f624c079c387d043ef53f62aed226",
+  "commit": "20b129d594806fd0e9971cccfb51a02905cff4f0",
   "files": [
     "data/pokedex.ts",
     "data/moves.ts",
