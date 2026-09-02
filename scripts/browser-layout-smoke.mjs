@@ -1033,7 +1033,8 @@ async function main() {
     const matchup = await client.evaluate(`(async () => {
       await activateMainPage('matchup', { updateHash: true });
       matchupSlots.fill(null);
-      matchupSlots[0] = 'charizard';
+      matchupAbilities.fill('');
+      matchupSetSlotPokemon(0, 'charizard');
       renderMatchupSlots();
       renderMatchupTable();
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
@@ -1047,10 +1048,28 @@ async function main() {
       const compact = document.getElementById('matchupTable').classList.contains('matchup-table-compact');
       const compactHintVisible = !hint.hidden && getComputedStyle(hint).display !== 'none';
       ['charizard', 'blastoise', 'venusaur', 'pikachu', 'gengar', 'dragonite'].forEach((id, index) => {
-        matchupSlots[index] = id;
+        matchupSetSlotPokemon(index, id);
       });
       renderMatchupTable();
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const fullHeaders = document.querySelectorAll('#matchupHead th').length;
+      const fullHintVisible = !hint.hidden && getComputedStyle(hint).display !== 'none';
+      matchupSlots.fill(null);
+      matchupAbilities.fill('');
+      matchupSetSlotPokemon(0, 'delphoxmega', { abilityId: 'levitate' });
+      matchupSetSlotPokemon(1, 'vaporeon', { abilityId: 'waterabsorb' });
+      matchupSetSlotPokemon(2, 'gengar');
+      renderMatchupSlots();
+      renderMatchupTable();
+      const cellText = (type, index) => {
+        const row = [...document.querySelectorAll('#matchupBody tr')]
+          .find(candidate => candidate.querySelector('.matchup-table-type')?.classList.contains('t-' + type));
+        return row?.querySelectorAll('td')[index]?.textContent.trim() || '';
+      };
+      const levitateLabel = cellText('Ground', 1);
+      const waterAbsorbLabel = cellText('Water', 2);
+      matchupSetSlotPokemon(0, 'delphox');
+      renderMatchupTable();
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         slotHeight: slot.getBoundingClientRect().height,
@@ -1059,14 +1078,18 @@ async function main() {
         compactHeaders,
         compact,
         compactHintVisible,
-        fullHeaders: document.querySelectorAll('#matchupHead th').length,
-        fullHintVisible: !hint.hidden && getComputedStyle(hint).display !== 'none',
+        fullHeaders,
+        fullHintVisible,
+        levitateLabel,
+        waterAbsorbLabel,
+        baseDelphoxGround: cellText('Ground', 1),
       };
     })()`, true);
     check(matchup.overflow <= 1, 'mobile matchup has no horizontal page overflow', String(matchup.overflow));
-    check(matchup.slotHeight <= 60 && matchup.centerSpread <= 4 && matchup.spriteDisplay === 'none', 'mobile matchup uses compact single-row party slots', JSON.stringify(matchup));
+    check(matchup.slotHeight <= 92 && matchup.centerSpread <= 4 && matchup.spriteDisplay === 'none', 'mobile matchup keeps compact party slots with form controls', JSON.stringify(matchup));
     check(matchup.compact && matchup.compactHeaders === 3 && !matchup.compactHintVisible, 'mobile matchup omits empty comparison columns', JSON.stringify(matchup));
     check(matchup.fullHeaders === 8 && matchup.fullHintVisible, 'mobile matchup announces scrolling only for a full comparison', JSON.stringify(matchup));
+    check(matchup.levitateLabel === '부유' && matchup.waterAbsorbLabel === '저수' && matchup.baseDelphoxGround !== '부유', 'matchup displays concise ability immunity labels by selected form and ability', JSON.stringify(matchup));
     await checkAxe(client, 'matchup');
 
     const reverse = await client.evaluate(`(async () => {

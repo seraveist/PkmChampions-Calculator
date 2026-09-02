@@ -75,7 +75,10 @@ function partyPresetApplyPartyToMatchup(partyIndex) {
   if (!party) return false;
   Array.from({ length: PARTY_PRESET_MAX_MEMBERS }).forEach((_, slotIndex) => {
     const member = partyPresetMemberClone(party.members?.[slotIndex]);
-    matchupSlots[slotIndex] = member.pokemon && PokemonById[member.pokemon] ? member.pokemon : null;
+    matchupSetSlotPokemon(slotIndex, member.pokemon, {
+      abilityId: member.ability,
+      itemId: member.item,
+    });
     matchupCoverageMoves[slotIndex] = matchupSlots[slotIndex]
       ? partyPresetAttackingMoves(member)
       : [null, null, null, null];

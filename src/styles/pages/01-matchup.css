@@ -88,6 +88,35 @@
   padding: 7px 8px;
 }
 
+#page-matchup .matchup-slot-config{
+  display: flex;
+  grid-column: 3 / 5;
+  gap: 6px;
+  min-width: 0;
+}
+
+#page-matchup .matchup-form-select,
+#page-matchup .matchup-ability-select{
+  min-width: 0;
+  height: 26px;
+  padding: 0 24px 0 7px;
+  border: 1px solid var(--tool-line);
+  border-radius: 7px;
+  background: var(--tool-surface);
+  color: var(--tool-muted);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+#page-matchup .matchup-form-select{
+  flex: 1 1 55%;
+}
+
+#page-matchup .matchup-ability-select{
+  flex: 1 1 45%;
+}
+
 #page-matchup .matchup-slot.filled{
   border-color: var(--matchup-active-border);
   background: var(--matchup-accent-soft);
@@ -595,6 +624,10 @@
   font-family: "Noto Sans KR", "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif;
   font-size: 14px;
   line-height: 1;
+}
+
+#page-matchup .matchup-table td.ability-immune{
+  font-size: 11px;
 }
 
 #page-matchup .matchup-table td.coverage-hit{

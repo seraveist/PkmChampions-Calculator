@@ -36,7 +36,8 @@
     "state:entry": "node scripts/entry-effects-state.mjs",
     "state:finetune": "node scripts/fine-tune-state.mjs",
     "state:party": "node scripts/party-preset-state.mjs",
-    "test": "npm run check && npm run build:standalone && npm run html:structure && npm run css:structure && npm run css:cascade && npm run js:structure && npm run ui:dropdowns && npm run spa:hosting && npm run build:public && npm run public:ready && npm run build:pages && npm run pages:ready && npm run data:validate && npm run coverage:check && npm run dex:smoke && npm run damage:golden && npm run reverse:golden && npm run state:entry && npm run state:finetune && npm run state:party",
+    "state:matchup": "node scripts/matchup-state.mjs",
+    "test": "npm run check && npm run build:standalone && npm run html:structure && npm run css:structure && npm run css:cascade && npm run js:structure && npm run ui:dropdowns && npm run spa:hosting && npm run build:public && npm run public:ready && npm run build:pages && npm run pages:ready && npm run data:validate && npm run coverage:check && npm run dex:smoke && npm run damage:golden && npm run reverse:golden && npm run state:entry && npm run state:finetune && npm run state:party && npm run state:matchup",
     "sync-data": "node scripts/sync-ps-data.mjs",
     "sync-data:dry": "node scripts/sync-ps-data.mjs --dry-run",
     "fetch-ko": "node scripts/fetch-ko.mjs"

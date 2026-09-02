@@ -456,8 +456,8 @@ check(
 );
 check(
   toolPageCss.includes('.matchup-scroll-hint[hidden]')
-    && responsiveCss.includes('grid-template-areas: "number input types clear"'),
-  'matchup page provides a scroll hint and compact single-row mobile slots'
+    && responsiveCss.includes('". config config ."'),
+  'matchup page provides a scroll hint and compact mobile form controls'
 );
 check(
   /\.tool-move-list--critical\s+\.tool-move-power-readout\s*\{[^}]*grid-column:\s*6/s.test(calcLayoutCss),

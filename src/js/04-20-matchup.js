@@ -2,6 +2,7 @@
  * Loaded before 05-init.js by build.mjs alphabetical concatenation.
  */
 const matchupSlots = [null, null, null, null, null, null];
+const matchupAbilities = ['', '', '', '', '', ''];
 const matchupCoverageMoves = Array.from({ length: 6 }, () => [null, null, null, null]);
 let matchupMode = 'defense';
 
@@ -42,8 +43,104 @@ function defenseScoreLabel(score) {
   return { label: '안전', cls: 'safe' };
 }
 
-function defenseTypeProfile(type, pokes) {
-  const effects = pokes.map(p => typeEff(type, p.types));
+function matchupAbilityIds(pokemon) {
+  return [...new Set(Object.values(pokemon?.ab || {})
+    .map(name => toId(name))
+    .filter(id => id && AbilityById[id]))];
+}
+
+function matchupDefaultAbilityId(pokemon) {
+  const ids = matchupAbilityIds(pokemon);
+  const defaultId = defaultPokemonAbilityId(pokemon);
+  return ids.includes(defaultId) ? defaultId : (ids[0] || '');
+}
+
+function matchupSelectedAbilityId(slot, pokemon) {
+  const abilityIds = matchupAbilityIds(pokemon);
+  return abilityIds.includes(matchupAbilities[slot])
+    ? matchupAbilities[slot]
+    : matchupDefaultAbilityId(pokemon);
+}
+
+function matchupFormOptions(pokemon) {
+  if (!pokemon) return [];
+  const forms = new Map([[pokemon.id, pokemon]]);
+  const group = calcFormGroupForPokemon(pokemon);
+  group?.forms?.forEach(form => forms.set(form.id, form));
+
+  const isSwitchableForm = pokemon.mega || pokemon.primal || pokemon.battleOnly || pokemon.changesFrom || pokemon.requiredItem;
+  const baseId = isSwitchableForm
+    ? toId(pokemon.base || pokemon.battleOnly || pokemon.changesFrom)
+    : pokemon.id;
+  const base = PokemonById[baseId];
+  if (base) forms.set(base.id, base);
+  POKEMON.forEach(candidate => {
+    const candidateSwitches = candidate.mega || candidate.primal || candidate.battleOnly || candidate.changesFrom || candidate.requiredItem;
+    if (candidateSwitches && matchupSameFormFamily(pokemon, candidate)) {
+      forms.set(candidate.id, candidate);
+    }
+  });
+  return [...forms.values()];
+}
+
+function matchupSameFormFamily(left, right) {
+  if (!left || !right) return false;
+  const familyId = pokemon => toId(
+    (pokemon.mega || pokemon.primal || pokemon.battleOnly || pokemon.changesFrom)
+      ? (pokemon.base || pokemon.battleOnly || pokemon.changesFrom)
+      : (pokemon.base || pokemon.name)
+  );
+  return familyId(left) === familyId(right);
+}
+
+function matchupResolveItemForm(pokemonId, itemId) {
+  const pokemon = PokemonById[pokemonId];
+  const item = ItemById[itemId];
+  if (!pokemon || !item) return pokemonId;
+
+  const megaTarget = Object.values(item.ms || item.megaStone || {})
+    .map(target => PokemonById[toId(target)])
+    .find(Boolean);
+  if (megaTarget && matchupSameFormFamily(pokemon, megaTarget)) return megaTarget.id;
+
+  const requiredForm = POKEMON.find(candidate => (
+    toId(candidate.requiredItem) === itemId
+    && matchupSameFormFamily(pokemon, candidate)
+  ));
+  return requiredForm?.id || pokemonId;
+}
+
+function matchupSetSlotPokemon(slot, pokemonId, { abilityId = '', itemId = '' } = {}) {
+  const resolvedId = matchupResolveItemForm(pokemonId, itemId);
+  const pokemon = PokemonById[resolvedId];
+  if (!pokemon) {
+    matchupSlots[slot] = null;
+    matchupAbilities[slot] = '';
+    return;
+  }
+  matchupSlots[slot] = pokemon.id;
+  const abilityIds = matchupAbilityIds(pokemon);
+  matchupAbilities[slot] = abilityIds.includes(abilityId)
+    ? abilityId
+    : matchupDefaultAbilityId(pokemon);
+}
+
+function matchupAbilityTypeImmunity(type, abilityId) {
+  const ability = abilityData(abilityId);
+  const blocksType = (ability.immunities || []).some(immunity => immunity.types?.includes(type));
+  return blocksType ? ability : null;
+}
+
+function matchupDefenseEffect(type, entry) {
+  const pokemon = entry?.pokemon || entry;
+  const typeEffect = pokemon ? typeEff(type, pokemon.types) : 1;
+  if (typeEffect === 0) return { eff: 0, ability: null };
+  const ability = matchupAbilityTypeImmunity(type, entry?.abilityId || '');
+  return ability ? { eff: 0, ability } : { eff: typeEffect, ability: null };
+}
+
+function defenseTypeProfile(type, entries) {
+  const effects = entries.map(entry => matchupDefenseEffect(type, entry).eff);
   const rawScore = effects.reduce((sum, eff) => sum + (DEFENSE_CONSISTENCY_SCORE[eff] ?? 0.15), 0);
   const score = Math.max(0, rawScore);
   const weakCount = effects.filter(eff => eff > 1).length;
@@ -143,6 +240,8 @@ function renderMatchupSlots() {
   if (!container) return;
   renderTrustedHTML(container, matchupSlots.map((id, i) => {
     const p = id ? PokemonById[id] : null;
+    const forms = matchupFormOptions(p);
+    const abilities = matchupAbilityIds(p).map(abilityId => AbilityById[abilityId]).filter(Boolean);
     return `
       <div class="matchup-slot ui-control-frame ui-subframe ui-control-grid ${p ? 'filled' : ''}" data-slot="${i}">
         <div class="matchup-slot-num">${i + 1}</div>
@@ -156,6 +255,14 @@ function renderMatchupSlots() {
           ${p ? p.types.map(t => `<span class="type-pill matchup-type-pill t-${t}">${TYPE_KO[t]}</span>`).join('') : ''}
         </div>
         ${p ? `<button type="button" class="matchup-slot-clear" data-slot="${i}" title="비우기">✕</button>` : ''}
+        ${p ? `<div class="matchup-slot-config">
+          ${forms.length > 1 ? `<select class="matchup-form-select" data-slot="${i}" aria-label="${i + 1}번 슬롯 폼 선택">
+            ${forms.map(form => `<option value="${escapeHTML(form.id)}" ${form.id === p.id ? 'selected' : ''}>${escapeHTML(pkName(form))}</option>`).join('')}
+          </select>` : ''}
+          <select class="matchup-ability-select" data-slot="${i}" aria-label="${i + 1}번 슬롯 특성 선택">
+            ${abilities.map(ability => `<option value="${escapeHTML(ability.id)}" ${ability.id === matchupSelectedAbilityId(i, p) ? 'selected' : ''}>${escapeHTML(abName(ability))}</option>`).join('')}
+          </select>
+        </div>` : ''}
       </div>
     `;
   }).join(''));
@@ -179,17 +286,37 @@ function wireMatchupSlots() {
       wiredKey: 'matchupPokemonWired',
       onSelect: id => {
         if (!id || !PokemonById[id]) return;
-        matchupSlots[slot] = id;
+        matchupSetSlotPokemon(slot, id);
         renderMatchupSlots();
         renderMatchupCoverageInputs();
         renderMatchupTable();
       },
     });
   });
+  container.querySelectorAll('.matchup-form-select').forEach(select => {
+    select.addEventListener('change', () => {
+      const slot = parseInt(select.dataset.slot, 10);
+      matchupSetSlotPokemon(slot, select.value);
+      renderMatchupSlots();
+      renderMatchupCoverageInputs();
+      renderMatchupTable();
+    });
+  });
+  container.querySelectorAll('.matchup-ability-select').forEach(select => {
+    select.addEventListener('change', () => {
+      const slot = parseInt(select.dataset.slot, 10);
+      const pokemon = PokemonById[matchupSlots[slot]];
+      matchupAbilities[slot] = matchupAbilityIds(pokemon).includes(select.value)
+        ? select.value
+        : matchupDefaultAbilityId(pokemon);
+      renderMatchupTable();
+    });
+  });
   container.querySelectorAll('.matchup-slot-clear').forEach(btn => {
     btn.addEventListener('click', () => {
       const slot = parseInt(btn.dataset.slot, 10);
       matchupSlots[slot] = null;
+      matchupAbilities[slot] = '';
       matchupCoverageMoves[slot] = [null, null, null, null];
       renderMatchupSlots();
       renderMatchupCoverageInputs();
@@ -402,13 +529,13 @@ function renderMatchupMeta(kind, context = {}) {
   const box = document.getElementById('matchupMeta');
   if (!box) return;
   if (kind === 'defensiveThreats') {
-    const pokes = context.pokes || [];
-    if (pokes.length < 3) {
+    const entries = context.entries || [];
+    if (entries.length < 3) {
       renderTrustedHTML(box, '<div class="matchup-side-title">주의 포켓몬</div><div class="matchup-side-empty">3마리 이상 선택하면 메타 위협의 타입별 위험도를 표시합니다.</div>');
       return;
     }
     const rows = matchupMetaPokemon('defensiveThreats').map(p => {
-      const profiles = (p.types || []).map(type => defenseTypeProfile(type, pokes));
+      const profiles = (p.types || []).map(type => defenseTypeProfile(type, entries));
       const visibleProfiles = profiles.filter(profile => profile.grade.cls === 'danger' || profile.grade.cls === 'caution' || profile.grade.cls === 'max');
       const maxScore = Math.max(...visibleProfiles.map(s => s.score), 0);
       const maxRank = Math.max(...visibleProfiles.map(s => THREAT_RANK[s.grade.cls] || 0), 0);
@@ -523,7 +650,11 @@ function replaceMatchupColgroup(table, widths) {
 
 function selectedMatchupEntries() {
   return matchupSlots
-    .map((id, slot) => ({ slot, pokemon: id ? PokemonById[id] : null }))
+    .map((id, slot) => ({
+      slot,
+      pokemon: id ? PokemonById[id] : null,
+      abilityId: matchupSelectedAbilityId(slot, PokemonById[id]),
+    }))
     .filter(entry => entry.pokemon);
 }
 
@@ -545,7 +676,7 @@ function renderDefenseMatchupTable() {
 
   const entries = selectedMatchupEntries();
   const valid = entries.map(entry => entry.pokemon);
-  renderMatchupMeta('defensiveThreats', { pokes: valid });
+  renderMatchupMeta('defensiveThreats', { entries });
 
   // colgroup 으로 고정 열 너비 강제 (table-layout: fixed 와 함께)
   // 슬롯 채워지든 비어 있든 동일한 폭을 유지한다.
@@ -567,14 +698,14 @@ function renderDefenseMatchupTable() {
 
   // 본문: 18 행 × 6 셀 + 요약
   renderTrustedHTML(body, BATTLE_TYPES.map(t => {
-    const cells = entries.map(({ pokemon: p }) => {
-      const eff = typeEff(t, p.types);
-      const sym = EFF_SYMBOL[eff] !== undefined ? EFF_SYMBOL[eff] : eff + '×';
+    const cells = entries.map(entry => {
+      const { eff, ability } = matchupDefenseEffect(t, entry);
+      const sym = ability ? abName(ability) : (EFF_SYMBOL[eff] !== undefined ? EFF_SYMBOL[eff] : eff + '×');
       const cls = EFF_CLASS[eff] || '';
-      return `<td class="${cls}">${sym}</td>`;
+      return `<td class="${cls} ${ability ? 'ability-immune' : ''}">${escapeHTML(sym)}</td>`;
     }).join('');
 
-    const profile = defenseTypeProfile(t, valid);
+    const profile = defenseTypeProfile(t, entries);
 
     return `
       <tr>

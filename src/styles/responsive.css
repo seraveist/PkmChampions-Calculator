@@ -379,9 +379,11 @@
 
   #page-matchup .matchup-slot {
     grid-template-columns: 26px minmax(0, 1fr) minmax(76px, auto) 36px;
-    grid-template-areas: "number input types clear";
+    grid-template-areas:
+      "number input types clear"
+      ". config config .";
     gap: 6px;
-    min-height: 52px;
+    min-height: 84px;
     padding: 6px;
   }
 
@@ -401,6 +403,11 @@
     grid-area: types;
     min-height: 0;
     gap: 3px;
+  }
+
+  #page-matchup .matchup-slot-config {
+    grid-area: config;
+    grid-column: auto;
   }
 
   #page-matchup .matchup-slot-types .matchup-type-pill {

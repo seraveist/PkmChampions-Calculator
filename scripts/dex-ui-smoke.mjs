@@ -172,6 +172,9 @@ expectText(viewSource, "if (target === 'calc:def')", 'party preset should load d
 expectText(viewSource, "if (target === 'finetune:my')", 'party preset should load fine-tune side');
 expectText(viewSource, "if (target === 'revcalc:my')", 'party preset should load reverse-calc side');
 expectText(viewSource, 'partyPresetApplyPartyToMatchup', 'party preset should load matchup parties');
+expectText(viewSource, 'matchupAbilities', 'matchup slots should track selected abilities');
+expectText(viewSource, 'matchupResolveItemForm', 'matchup presets should resolve item-triggered forms');
+expectPattern(viewSource, /ability \? abName\(ability\)/, 'matchup immunity cells should display concise ability names');
 expectText(viewSource, 'partyPresetCollapsedParties', 'party preset party collapse state is missing');
 expectText(viewSource, 'partyPresetExpandedSlots', 'party preset slot expand state is missing');
 
