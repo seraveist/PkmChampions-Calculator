@@ -13,10 +13,23 @@ function rcNextObservedState(side, role) {
   const controls = role === 'my' ? rcNextMyRanks() : rcNextOpponentRanks();
   const ranks = { ...side.ranks };
   for (const stat of ['atk','def','spa','spd','spe']) ranks[stat] = Math.max(-6, Math.min(6, (ranks[stat] || 0) + (controls[stat] || 0) - (initial?.[stat] || 0)));
-  return { ...side, ranks, wasHit: false, receivedDamage: null };
+  return { ...side, ranks, wasHit: false, receivedDamage: null, fickleBeamMode: 'auto' };
 }
 
 function rcMemberList(c) { return c.members || [c]; }
+
+// A card reports the damage of a landed move at the next turn's starting state.
+// Observation replay still uses capped HP and real survival effects separately.
+function rcCardHitOutcomes(a, d, move, field, cache) {
+  const key = `card:${rcDamageCacheKey(a, d, move, field)}`;
+  if (cache.has(key)) return cache.get(key);
+  const first = calculateDamage(a, d, move, { ...field, singleHitCalculation: true, powerHitIndex: 0 });
+  if (!first?.koContext) return [];
+  const model = makePowerAttackModel(a, d, move, { ...field, singleHitCalculation: true }, first);
+  const result = resolvePowerMoveUse(model, rcHp(d), false, true);
+  cache.set(key, result);
+  return result;
+}
 
 function rcForecastStartState(path, role) {
   const side = path[role], other = path[role === 'my' ? 'opp' : 'my'];
@@ -58,11 +71,15 @@ function rcForecastDirect(c, moveId, role, speedActive, selectedMyMoveId = null)
   const move = MoveById[moveId];
   if (!move || move.cat === 'Status') return move ? { move, statusMove: true, badges: ['직접 피해 없음'] } : null;
   if (!c.paths && !c.members) return null;
+  if (['firstimpression', 'fakeout'].includes(moveId)) return { move, unavailable: true, badges: ['이 대면의 첫 행동 이후 사용 불가'] };
+  if (moveId === 'doubleshock' && (role === 'my' ? revCalcState.myMove : revCalcState.oppMove) === moveId) return { move, unavailable: true, badges: ['전기 타입 소실로 재사용 불가'] };
+  if (move.fixedDamageKind === 'receivedDamage') return { move, unavailable: true, badges: ['다음 턴 피격에 따라 결정되는 기술'] };
   const cache = new Map();
   const speedCache = new Map();
   const seenEvaluations = new Set();
   const bounds = rcDamageBounds();
   let formCertain = 0, formPossible = 0, formImpossible = 0, count = 0, incomplete = false;
+  let allTied = true;
   const orders = new Set();
   const predicted = MoveById[revCalcState.predictedOppMove || revCalcState.oppMove];
   for (const member of rcMemberList(c)) {
@@ -75,36 +92,36 @@ function rcForecastDirect(c, moveId, role, speedActive, selectedMyMoveId = null)
       const values = !stat || known ? [stat ? opp.evs[stat] || 0 : 0] : Array.from({ length: max + 1 }, (_, i) => i);
       for (const value of values) {
         const defenderOrAttacker = { ...opp, evs: { ...opp.evs, ...(stat ? { [stat]: value } : {}) } };
-        for (const spe of rcForecastSpeedValues(member, path, defenderOrAttacker, move, role === 'my' ? predicted : MoveById[selectedMyMoveId || revCalcState.myMove], speedCache)) {
+        for (const spe of rcForecastSpeedValues(member, path, defenderOrAttacker, move, role === 'my' ? predicted : MoveById[selectedMyMoveId || revCalcState.nextMyMove || revCalcState.myMove], speedCache)) {
           const o = { ...defenderOrAttacker, evs: { ...defenderOrAttacker.evs, spe } };
           const field = { ...path.field, ...revCalcState.observedFields?.[role === 'my' ? 'dealt' : 'received'], isCritical: false };
-          const myMove = role === 'my' ? move : MoveById[selectedMyMoveId || revCalcState.myMove];
+          const myMove = role === 'my' ? move : MoveById[selectedMyMoveId || revCalcState.nextMyMove || revCalcState.myMove];
           const opposingMove = role === 'my' ? predicted : move;
-          for (const order of rcBattleOrder(my, o, myMove, opposingMove, field)) {
+          const possibleOrders = rcBattleOrder(my, o, myMove, opposingMove, field);
+          if (possibleOrders.length === 1) allTied = false;
+          for (const order of possibleOrders) {
             orders.add(order);
-            const a = role === 'my' ? my : o, d = role === 'my' ? o : my;
+            const goesFirst = (role === 'my') === (order === 'my-first');
+            const a = role === 'my' ? my : o;
+            let d = role === 'my' ? o : my;
+            // Glaive Rush ends when its user acts, before a slower opponent's hit.
+            if (d.glaiveRushExposed && !goesFirst) d = { ...d, glaiveRushExposed: false };
             const block = AbilityById[d.ability]?.damageBlock;
             if (block?.manual && damageBlockApplies(block, PokemonById[d.pokemonIdx], { ...d, damageBlockActive: true }, move, move.cat === 'Physical')) { incomplete = true; continue; }
-            const goesFirst = (role === 'my') === (order === 'my-first');
             const f = { ...field, atkMovesFirst: goesFirst, atkMovesSecond: !goesFirst };
-            const preceding = role === 'my' ? opposingMove : myMove;
-            const precedingField = { ...path.field, ...revCalcState.observedFields?.[role === 'my' ? 'received' : 'dealt'], isCritical: false };
-            // A different, unobserved offensive axis can change the first hit and its consequences.
-            // Do not turn the zero-investment placeholder into a survival guarantee.
-            const precedingStat = role === 'my' && preceding && rcMoveOffenseStat(preceding);
-            if (!goesFirst && precedingStat && ![member.atkStat, member.defStat, 'hp'].includes(precedingStat)) incomplete = true;
-            const evaluationKey = `${rcDamageCacheKey(a, d, move, f)}|${!goesFirst && preceding ? rcDamageCacheKey(d, a, preceding, precedingField) : ''}`;
+            const evaluationKey = rcDamageCacheKey(a, d, move, f);
             if (seenEvaluations.has(evaluationKey)) continue;
             seenEvaluations.add(evaluationKey);
-            const outcomes = rcForecastHit(a, d, move, preceding, f, goesFirst, cache, precedingField);
+            const outcomes = rcCardHitOutcomes(a, d, move, f, cache);
             if (!outcomes.length) { incomplete = true; continue; }
             let chance = 0;
             for (const outcome of outcomes) {
               const pct = outcome.damage / calcStats(d).hp * 100;
               bounds.rawMin = Math.min(bounds.rawMin, outcome.damage); bounds.rawMax = Math.max(bounds.rawMax, outcome.damage);
               bounds.pctMin = Math.min(bounds.pctMin, pct); bounds.pctMax = Math.max(bounds.pctMax, pct);
-              if (outcome.hp <= 0) chance += outcome.chance;
             }
+            // Survival effects and in-move recovery determine KO without clipping the displayed damage.
+            for (const outcome of rcHitOutcomes(a, d, move, f, cache)) if (outcome.hp <= 0) chance += outcome.chance;
             count++;
             if (chance >= 1 - 1e-9) formCertain++;
             else if (chance > 1e-9) formPossible++;
@@ -120,32 +137,63 @@ function rcForecastDirect(c, moveId, role, speedActive, selectedMyMoveId = null)
   const summary = { rawMin: bounds.rawMin, rawMax: bounds.rawMax, pctMin: bounds.pctMin, pctMax: bounds.pctMax,
     koClass: state === 'KO 확정' ? 'ko-certain' : state === 'KO 불가' ? 'ko-none' : 'ko-roll', koState: state,
     survival: state === 'KO 확정' ? '확정으로 쓰러짐' : state === 'KO 불가' ? '확정 생존' : state === 'KO 난수' ? '난수로 쓰러짐' : state,
-    order: orders.size > 1 ? '동속 또는 후보별 선후공 차이' : orders.has('my-first') ? '내 선공' : '상대 선공',
+    order: !predicted && role === 'my' ? '상대 기술 미확인' : orders.size > 1 ? (allTied ? '동속' : '후보에 따라 선후공 다름') : orders.has('my-first') ? '내 선공' : '상대 선공',
     formCertain, formPossible, formImpossible };
-  return { move, summary, badges: ['공방 후 HP 기준', '잔여 HP 한도 내 피해', 'HP 우선 후보 기준'] };
+  return { move, summary, badges: ['다음 턴 시작 상태 · 적중 시', 'HP 우선 후보 기준'] };
 }
 
 function rcRenderExchangeSummary(result) {
   const forecast = result.forecast;
   if (!forecast) return result.pendingForecastKey ? '<div class="rc-exchange-summary ui-control-frame ui-subframe" role="status">다음 공격 판단을 갱신하고 있습니다.</div>' : result.forecastError ? '<p class="rc-mini-note" role="status">다음 공격 판단을 갱신하지 못했습니다. 분석을 다시 실행해 주세요.</p>' : '';
-  return `<div class="rc-exchange-summary ui-control-frame ui-subframe"><strong>다음 공격 판단</strong>
-    <p class="rc-mini-note">HP 우선 후보 기준 · 기술 적중 시 · 상대 예상 기술: ${escapeHTML(mvName(MoveById[forecast.opponentMove] || { name: '미입력' }))}</p>
-    <div class="rc-exchange-moves">${forecast.my.map(r => `<div class="rc-exchange-move"><b>${escapeHTML(mvName(r.move))}</b><em class="${r.summary.koClass}">상대 처치: ${escapeHTML(r.summary.koState)}</em><span>${escapeHTML(r.summary.order)}</span><span>내 생존: ${escapeHTML(r.incoming?.summary?.survival || (r.incoming?.statusMove ? '변화기 효과 별도 확인' : '상대 기술 미확인'))}</span></div>`).join('')}</div>
-    <p class="rc-mini-note">선택한 기술 조합의 선후공과 피격 후 변화를 반영합니다. 기술 명중·별도 급소 없음 기준이며, 미확인 기술 조건은 확정 판단에서 제외합니다.</p></div>`;
+  return `<div class="rc-exchange-summary ui-control-frame ui-subframe"><strong>다음 턴 비교 기준</strong>
+    <p class="rc-mini-note">각 형태 카드에서 상태 변화·선후공·양쪽 기술의 대미지를 확인하세요. 다음 턴 시작 상태에서 기술 적중·추가 급소 없음 기준입니다.</p>
+    <div class="rc-reference-moves ui-control-grid"><label class="ui-field"><span class="ui-field-label">상대 기술과 선후공을 비교할 내 기술</span>${rcRenderMoveCombobox('nextMyMove', revCalcState.nextMyMove || revCalcState.myMove, {compact:true})}</label><label class="ui-field"><span class="ui-field-label">내 기술과 선후공을 비교할 상대 기술</span>${rcRenderMoveCombobox('predictedOppMove', forecast.opponentMove, {compact:true,placeholder:'관측 기술 없음'})}</label></div></div>`;
 }
 
-function rcComputeExchangeForecast(result) {
+function rcComputeExchangeForecast(result, { allCandidates = false } = {}) {
+  const started = Date.now();
   const ids = [...new Set(rcVisibleMoveSet())];
   const opponentMove = revCalcState.predictedOppMove || revCalcState.oppMove;
-  const key = JSON.stringify([ids, opponentMove, rcNextMyRanks(), rcNextOpponentRanks()]);
-  if (result.forecast?.key === key) return result.forecast;
+  const key = rcForecastKey();
+  if (result.forecast?.key === key && (!allCandidates || result.forecast.allCandidates)) return result.forecast;
   const all = { members: result.candidates || [] };
-  const my = ids.map(id => {
+  const my = (allCandidates ? ids : []).map(id => {
     const own = rcForecastDirect(all, id, 'my', result.speedActive);
     if (!own?.summary) return null;
     own.incoming = opponentMove ? rcForecastDirect(all, opponentMove, 'opp', result.speedActive, id) : null;
     return own;
   }).filter(Boolean);
-  result.forecast = { key, opponentMove, my };
+  result.forecast = { key, opponentMove, my, allCandidates };
+  for (const group of result.results || []) {
+    group.cardReport = {
+      key,
+      my: ids.map(id => rcForecastDirect(group, id, 'my', result.speedActive)).filter(Boolean),
+      opp: rcKnownOpponentMoves().map(id => rcForecastDirect(group, id, 'opp', result.speedActive)).filter(Boolean),
+      state: rcNextStateSummary(group),
+    };
+  }
+  result.timings = { ...result.timings, cardsMs: Date.now() - started };
   return result.forecast;
+}
+
+function rcNextStateSummary(c) {
+  const summary = {};
+  for (const role of ['my', 'opp']) {
+    const ranks = Object.fromEntries(['atk','def','spa','spd','spe'].map(s => [s, new Set()]));
+    const events = new Map(), items = new Set();
+    let pathCount = 0;
+    let unknownItem = false;
+    let hpMin = Infinity, hpMax = 0, pctMin = Infinity, pctMax = 0;
+    for (const member of rcMemberList(c)) for (const path of member.paths || []) {
+      const side = rcForecastStartState(path, role), hp = rcHp(side), pct = hp / calcStats(side).hp * 100;
+      pathCount++;
+      hpMin = Math.min(hpMin, hp); hpMax = Math.max(hpMax, hp); pctMin = Math.min(pctMin, pct); pctMax = Math.max(pctMax, pct);
+      for (const s of Object.keys(ranks)) ranks[s].add(side.ranks[s] || 0);
+      for (const event of new Set(side.stateEvents || [])) events.set(event, (events.get(event) || 0) + 1);
+      items.add(side.item || '');
+      if (role === 'opp' && !member.item && rcKnownOpponentItem() === null) unknownItem = true;
+    }
+    summary[role] = { hpMin, hpMax, pctMin, pctMax, unknownItem, ranks: Object.fromEntries(Object.entries(ranks).map(([s,v]) => [s, [...v].sort((a,b) => a-b)])), events: [...events].map(([event,n]) => event + (n < pathCount ? ' (일부 후보)' : '')), items: [...items] };
+  }
+  return summary;
 }

@@ -1,19 +1,24 @@
 [
   {
-    "analysisMs": 2566,
-    "total": 7234,
+    "analysisMs": 10218,
+    "unknownItems": true,
+    "total": 35414,
+    "timings": {
+      "inferenceMs": 8794,
+      "cardsMs": 144
+    },
     "forecast": {
-      "rawMin": 64,
+      "rawMin": 70,
       "rawMax": 93,
       "pctMin": 37.83783783783784,
-      "pctMax": 54.385964912280706,
-      "koClass": "ko-roll",
-      "koState": "형태에 따라 다름",
-      "survival": "형태에 따라 다름",
-      "order": "동속 또는 후보별 선후공 차이",
+      "pctMax": 50.27027027027027,
+      "koClass": "ko-none",
+      "koState": "KO 불가",
+      "survival": "확정 생존",
+      "order": "후보에 따라 선후공 다름",
       "formCertain": 0,
-      "formPossible": 48,
-      "formImpossible": 2498
+      "formPossible": 0,
+      "formImpossible": 76
     },
     "h32": 32
   },

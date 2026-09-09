@@ -356,38 +356,51 @@ async function main() {
     }
 
     const report=[];
+    await client.evaluate('globalThis.__reverseUnknownItems='+process.argv.includes('--unknown-items'));
     await client.evaluate("activateMainPage('revcalc', { updateHash: false })",true);
-    await client.evaluate("revCalcState.my=makeSideState('garchomp'); revCalcState.opp={pokemonIdx:'typhlosion',ranks:{atk:0,def:0,spa:0,spd:0,spe:0},status:'none'}; revCalcState.myMove='dragonclaw'; revCalcState.myMoveSet=['dragonclaw','','','']; revCalcState.oppMove='eruption'; revCalcState.predictedOppMove='eruption'; revCalcState.oppItemKnown=''; revCalcState.observedTheirPct='54'; revCalcState.observedMyHp='154'; revCalcState.turnOrder='my-first'; renderRevCalcAll(); document.getElementById('rcAnalyze').click();");
+    await client.evaluate("revCalcState.my=makeSideState('garchomp'); revCalcState.opp={pokemonIdx:'typhlosion',ranks:{atk:0,def:0,spa:0,spd:0,spe:0},status:'none'}; revCalcState.myMove='dragonclaw'; revCalcState.myMoveSet=['dragonclaw','earthquake','rockslide','firefang']; revCalcState.oppMove='eruption'; revCalcState.predictedOppMove='eruption'; revCalcState.oppItemKnown=globalThis.__reverseUnknownItems?'unknown':''; revCalcState.observedTheirPct='54'; revCalcState.observedMyHp='154'; revCalcState.turnOrder='my-first'; renderRevCalcAll(); document.getElementById('rcAnalyze').click();");
     const started=Date.now();
     check(await client.evaluate("!!revCalcState.analyzing"),'analysis runs without blocking the page');
     await waitFor(()=>client.evaluate("!revCalcState.analyzing"),60000);
-    const result=await client.evaluate("({error:revCalcState.results?.error,total:revCalcState.results?.total,forecast:revCalcState.results?.forecast?.my?.[0]?.summary,h32:revCalcState.results?.results?.[0]?.hpEv})");
+    const result=await client.evaluate("({error:revCalcState.results?.error,total:revCalcState.results?.total,timings:revCalcState.results?.timings,forecast:revCalcState.results?.results?.[0]?.cardReport?.my?.[0]?.summary,h32:revCalcState.results?.results?.[0]?.hpEv})");
     check(result.total>0 && !!result.forecast,'worker returns matching candidates and the full forecast',JSON.stringify(result));
-    report.push({analysisMs:Date.now()-started,...result});
+    report.push({analysisMs:Date.now()-started,unknownItems:process.argv.includes('--unknown-items'),...result});
     for(const width of [1440,375,320]) {
       await setViewport(client,width,1000);
       await client.evaluate("document.querySelector('#rc-input-panel details').open=true; document.getElementById('rc-input-panel').scrollIntoView({block:'start'})");
       await captureScreenshot(client,'reverse-exchange-inputs-'+width);
-      const layout=await client.evaluate("({overflow:document.documentElement.scrollWidth-innerWidth,buttons:document.querySelectorAll('button.rc-result-rank').length,missingConditions:['myStartHp','oppStartHpPct','observationTiming','oppAbilityKnown'].filter(k=>!document.querySelector('[data-rc-action=\"'+k+'\"]'))})");
+      const layout=await client.evaluate("({overflow:document.documentElement.scrollWidth-innerWidth,buttons:document.querySelectorAll('button.rc-result-rank').length,missingConditions:['myStartHp','oppStartHpPct','oppAbilityKnown'].filter(k=>!document.querySelector('[data-rc-action=\"'+k+'\"]'))})");
       check(layout.overflow<=1,'no horizontal overflow at '+width+'px',JSON.stringify(layout));
       check(layout.buttons>0 && !layout.missingConditions.length,'candidate buttons and optional observation inputs at '+width+'px');
       await client.evaluate("document.getElementById('rc-results-panel').scrollIntoView({block:'start'})");
       await captureScreenshot(client,'reverse-exchange-results-'+width);
+      const clipped = await client.evaluate("[...document.querySelectorAll('.rc-reference-moves input, .rc-followup-damage')].filter(e=>e.getBoundingClientRect().width>0 && (e.scrollWidth>e.clientWidth+1 || e.getBoundingClientRect().right>e.closest('.rc-exchange-summary,.rc-followup-chip').getBoundingClientRect().right+1)).map(e=>({text:e.value||e.innerText,width:e.clientWidth,scroll:e.scrollWidth}))");
+      check(clipped.length===0,'card damage and comparison controls fit at '+width+'px',JSON.stringify(clipped));
       report.push({width,...layout});
     }
-    await client.evaluate("document.querySelector('button.rc-result-rank').focus()");
+    await client.evaluate("revCalcState.openResultIndexes=[];renderRevCalcResults();document.querySelector('button.rc-result-rank').focus()");
     await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
     await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
     check(await client.evaluate("document.querySelector('button.rc-result-rank').getAttribute('aria-expanded')==='true'"),'Enter expands a candidate');
-    await client.evaluate("revCalcState.nextMyRanks.atk=1; renderRevCalcResults()");
+    await client.evaluate("rcSetMovePickerValue('knownOppMove','flamethrower',0);renderRevCalcResults()");
     await waitFor(()=>client.evaluate("!!revCalcState.results?.forecast && !revCalcState.results?.pendingForecastKey"),60000);
-    check(await client.evaluate("JSON.parse(revCalcState.results.forecast.key)[2].atk===1"),'next-rank changes refresh the worker forecast');
+    check(await client.evaluate("revCalcState.results.results[0].cardReport.opp.some(r=>r.move.id==='flamethrower') && document.querySelector('.rc-prediction-panel').innerText.includes('화염방사')"),'known opponent moves refresh cards through the worker');
+    check(await client.evaluate("!!document.querySelector('.rc-next-state') && document.querySelector('.rc-followup-damage').innerText.includes('%')"),'cards show final state and damage ranges');
+    await installAxe(client);
+    await checkAxe(client, 'reverse rebuilt cards');
+    await client.evaluate("document.documentElement.dataset.theme='dark'");
+    await checkAxe(client, 'reverse rebuilt cards in dark theme');
+    await captureScreenshot(client,'reverse-exchange-dark');
+    await client.evaluate("document.documentElement.dataset.theme='light'");
     await client.evaluate("const e=document.querySelector('[data-rc-action=\"observedTheirPct\"]');e.value='0';e.dispatchEvent(new Event('input',{bubbles:true}));");
     await sleep(100);
     check(await client.evaluate("revCalcState.results===null && revCalcState.resultsStale"),'editing observed HP removes stale conclusions');
     await client.evaluate("revCalcState.observedTheirPct='54';renderRevCalcInputs();document.getElementById('rcAnalyze').click();var changedInput=document.querySelector('[data-rc-action=\"observedTheirPct\"]');changedInput.value='53';changedInput.dispatchEvent(new Event('input',{bubbles:true}));");
     await sleep(100);
     check(await client.evaluate("!revCalcState.analyzing && !revCalcState.results"),'changed inputs cancel a running analysis');
+    await client.evaluate("revCalcState.observedTheirPct='54';renderRevCalcInputs();document.getElementById('rcAnalyze').click();document.getElementById('rcNewObservation').click();");
+    await sleep(150);
+    check(await client.evaluate("!revCalcState.analyzing&&!revCalcState.results&&revCalcState.myMoveSet[0]==='dragonclaw'&&revCalcState.observedMyHp===''&&!revCalcState.opp.pokemonIdx&&rcKnownOpponentMoves().length===0"),'new observation cancels pending work, clears observations and preserves the build');
     const exceptions=browserErrors.filter(e=>!/(net::ERR|Failed to load resource|favicon|pokeapi|pokemonshowdown)/i.test(e));
     check(!exceptions.length,'no runtime exceptions',exceptions.join(' | '));
     writeFileSync(path.join(ROOT,'docs/reverse-exchange-browser-verification.json'),JSON.stringify(report,null,2)+'\n');

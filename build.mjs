@@ -322,6 +322,8 @@ async function build() {
         drain: m.drain || undefined,
         selfdestruct: m.selfdestruct || undefined,
         selfBoosts: m.self?.boosts || (m.selfBoost?.chance === 100 ? m.selfBoost.boosts : undefined),
+        statusBoosts: m.category === 'Status' && m.target === 'self' ? m.boosts : undefined,
+        statusHeal: m.category === 'Status' && m.target === 'self' ? m.heal : undefined,
         damage: m.damage || undefined,
         ohko: m.ohko || undefined,
         willCrit: m.willCrit || undefined,

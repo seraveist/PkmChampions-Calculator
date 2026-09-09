@@ -88,7 +88,7 @@ function measure(f,label,cell,options={}){
  const included=r.candidates?.some(c=>matches(c,f))||false;
  const top1=r.results?.[0]?.members?.some(c=>matches(c,f))||false;
  const top5=r.results?.some(g=>g.members?.some(c=>matches(c,f)))||false;
- const forecast=r.total&&!options.noForecast?api.rcComputeExchangeForecast(r):null;
+ const forecast=r.total&&!options.noForecast?api.rcComputeExchangeForecast(r, {allCandidates:true}):null;
  const actions=(forecast?.my||[]).map(row=>{const truth=actualNext(cell.paths,row.move.id,f.oppMove);const own=row.summary.koState,inc=row.incoming?.summary?.koState;return {move:row.move.id,own,death:row.incoming?.summary?.survival,order:row.summary.order,truth,unsupportedCertain:falseCertain(own,truth.ko)||falseCertain(inc,truth.death)};});
  const candidates=r.candidates||[];
  const range=key=>candidates.length?[Math.min(...candidates.map(c=>c[key]||0)),Math.max(...candidates.map(c=>c[key]||0))]:null;

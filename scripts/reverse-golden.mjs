@@ -86,7 +86,7 @@ function loadReverseApi() {
     `
       globalThis.__reverseApi = {
         PokemonById, MoveById, revCalcState, makeSideState,
-        rcAnalysisField, rcAnalyze, rcStage1Defense, rcStage3OffenseRefine,
+        rcAnalysisField, rcAnalyze, rcComputeExchangeForecast, rcStage1Defense, rcStage3OffenseRefine,
         rcApplyMyPokemonSelection, renderRevCalcAll, renderRevCalcResults, calcStats, rcCandidateEvParts, rcRoleCompletionInfo,
         rcMovePoolForPicker, rcFilterMovePool, rcBestMoveForTypedName,
         __elements
@@ -312,7 +312,7 @@ assertIncludes(reverseSource, 'rcObservedMyMoveIds', 'Reverse source limits obse
 assertIncludes(reverseSource, 'openResultIndexes', 'Reverse source tracks individually expanded result cards');
 assertIncludes(reverseSource, 'data-rc-toggle-result', 'Reverse result cards toggle open state on click');
 assertIncludes(reverseSource, 'rc-result-expanded-body', 'Reverse expanded cards use a three-column detail body');
-assertIncludes(reverseSource, '상대 다음 기술', 'Reverse expanded cards label the opponent prediction column');
+assertIncludes(reverseSource, '상대 관측 기술', 'Reverse expanded cards label observed opponent moves');
 assertIncludes(reverseSource, 'nextMyRanks', 'Reverse source stores next-action own rank controls');
 assertIncludes(reverseSource, 'nextOppRanks', 'Reverse source stores next-action opponent rank controls');
 assertIncludes(reverseSource, 'abilityIds', 'Reverse source groups all possible damage-relevant abilities for display');
@@ -323,7 +323,7 @@ assertIncludes(reverseSource, '속도 미확인', 'Reverse source marks priority
 
 const initialHtml = reverseRenderedHtml();
 assertIncludes(initialHtml, 'data-rc-pick="my"', 'Reverse initial render exposes blank Pokemon selection');
-assertIncludes(initialHtml, '참가 포켓몬이 준비되면 관측 데이터 입력이 열립니다.', 'Reverse initial render gates observation inputs');
+assertIncludes(initialHtml, '내 포켓몬과 상대 포켓몬을 먼저 선택해 주세요.', 'Reverse initial render gates observation inputs');
 assertNotIncludes(initialHtml, 'data-rc-action="observedMyHp"', 'Reverse initial render omits premature observation inputs');
 assertNotIncludes(initialHtml, '기술 1', 'Reverse move slots omit numbered move labels');
 for (const stale of ['undefined', 'NaN']) {
@@ -363,6 +363,7 @@ assertOk(result81.debug.refined > 0, 'Full reverse finds candidates when my rema
 
 configurePrimarinaArchaludon(api, 81, { itemCandidates: DEFAULT_RC_ITEM_CANDIDATES, turnOrder: 'opp-first' });
 const rankedResult = api.rcAnalyze();
+api.rcComputeExchangeForecast(rankedResult);
 api.revCalcState.results = rankedResult;
 const top = rankedResult.results[0];
 assertOk(top.hpEv === 32 && top.defEv === 0, 'H32 with no extra defense outranks a lower-HP preferred nature', JSON.stringify(top, (key,value) => ['paths','members'].includes(key) ? undefined : value));
@@ -376,9 +377,8 @@ const rankedHtml = reverseRenderedHtml();
 assertIncludes(rankedHtml, '관측 투자 범위', 'Reverse briefing explains observed investment ranges');
 assertIncludes(rankedHtml, '완성 66', 'Reverse rows show full 66 point completion assumption');
 assertNotIncludes(rankedHtml, '내 기술들</span>', 'Reverse rows start collapsed without follow-up damage section');
-assertNotIncludes(rankedHtml, 'data-rc-move-picker="predictedOppMove"', 'Reverse rows start collapsed without predicted move selector');
-assertIncludes(rankedHtml, 'rc-next-rank-panel', 'Reverse rows expose next-action opponent rank controls');
-assertIncludes(rankedHtml, '내 랭크', 'Reverse next-action panel exposes own ranks');
+assertIncludes(rankedHtml, 'data-rc-move-picker="predictedOppMove"', 'Reverse exposes the shared observed-move comparison selector');
+assertNotIncludes(rankedHtml, 'rc-next-rank-panel', 'Reverse does not require manual re-entry of automatic rank changes');
 assertIncludes(rankedHtml, 'rc-result-nature-badge', 'Reverse rows render nature as a badge');
 api.revCalcState.openResultIndexes = [0, 1];
 const expandedHtml = reverseRenderedHtml();
@@ -387,12 +387,12 @@ assertIncludes(expandedHtml, 'rc-followup-chip', 'Reverse expanded rows render f
 assertIncludes(expandedHtml, 'rc-followup-damage', 'Reverse expanded rows color follow-up damage predictions');
 assertIncludes(expandedHtml, 'data-rc-move-picker="predictedOppMove"', 'Reverse expanded row renders predicted move as a compact combobox');
 assertIncludes(expandedHtml, '예상 정보', 'Reverse expanded row labels the opponent form information column');
-assertIncludes(expandedHtml, '상대 다음 기술', 'Reverse expanded row labels the opponent next-move column');
+assertIncludes(expandedHtml, '상대 관측 기술', 'Reverse expanded row labels observed opponent moves');
 assertIncludes(expandedHtml, 'rc-form-result open', 'Reverse can keep multiple result cards open');
 assertNotIncludes(rankedHtml, 'class="rc-results-summary"', 'Reverse rendered results omit the old mode summary panel');
 assertNotIncludes(rankedHtml, 'rc-result-stars', 'Reverse rendered results omit internal match score column');
-assertIncludes(expandedHtml, '상대 다음 기술', 'Reverse expanded row renders opponent prediction selector');
-assertNotIncludes(rankedHtml, '추가 관측', 'Reverse briefing omits the old extra-observation wording');
+assertIncludes(expandedHtml, '다음 턴 시작 상태', 'Reverse expanded row shows the final state used by the card');
+assertNotIncludes(rankedHtml, '추천 기술', 'Reverse provides comparison data without a recommended action');
 assertNotIncludes(rankedHtml, '남은 포인트는 미관측 스탯으로 66까지 배분됩니다', 'Reverse briefing omits the old leftover-budget sentence');
 
 const stage1ForExpected = api.rcStage1Defense(
@@ -441,11 +441,13 @@ assertOk(
 );
 
 configurePrimarinaArchaludon(api, 80);
+api.revCalcState.oppItemKnown = '';
 const result80 = api.rcAnalyze();
 assertOk(result80.debug.stage1 > 0, 'Impossible received HP still reports defensive candidates', JSON.stringify(result80.debug));
 assertOk(result80.debug.refined === 0, 'My remaining HP 80 is rejected because no Thunderbolt roll leaves exactly 80 HP', JSON.stringify(result80.debug));
 
 configureArchaludonPrimarina(api, 55, { itemCandidates: DEFAULT_RC_ITEM_CANDIDATES, turnOrder: 'my-first' });
+api.revCalcState.oppItemKnown = 'unknown';
 const hpPriorityResult = api.rcAnalyze();
 assertOk(
   hpPriorityResult.debug.stage1Trimmed === hpPriorityResult.debug.stage1,

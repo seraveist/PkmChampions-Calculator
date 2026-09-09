@@ -36,8 +36,8 @@ const ASSET_BUDGETS = {
   featureFinetune: { sizeBytes: 70 * 1024, gzipBytes: 24 * 1024 },
   featureRevcalc: { sizeBytes: 240 * 1024, gzipBytes: 60 * 1024 },
 };
-// M-C adds 35 selectable forms, 18 items and 15 moves (~9 KB gzip).
-const TOTAL_GZIP_BUDGET = 440 * 1024;
+// M-C data plus rebuilt reverse cards/state handling add about 5 KiB gzip over the prior release.
+const TOTAL_GZIP_BUDGET = 448 * 1024;
 
 let failed = false;
 

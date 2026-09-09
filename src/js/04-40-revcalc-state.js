@@ -16,8 +16,10 @@ const revCalcState = {
   observedTheirPct: '',
   oppMove: '',
   oppMoveBp: '',
+  knownOppMoves: ['', '', ''],
   oppItemKnown: 'unknown',
   predictedOppMove: '',
+  nextMyMove: '',
   selectedResultIndex: 0,
   openResultIndexes: [],
   nextRankOpen: false,
@@ -34,7 +36,7 @@ const revCalcState = {
     dealt: { defReflect: false, defLightScreen: false, isCritical: false },
     received: { defReflect: false, defLightScreen: false, isCritical: false },
   },
-  // 도구 후보 — 기본은 빈 도구, 구애스카프, type-boost 도구. 사용자가 추가/제거 가능.
+  // 미관측 도구는 현재 기술과 포켓몬에 맞춰 자동으로 구성한다.
   itemCandidates: [],
   itemCandidatesOpen: false,
   results: null,
@@ -161,6 +163,14 @@ function rcVisibleMoveSet() {
   return moves.slice(0, RC_MOVESET_SIZE);
 }
 
+function rcKnownOpponentMoves() {
+  return [...new Set([revCalcState.oppMove, ...(revCalcState.knownOppMoves || [])].filter(id => MoveById[id]))].slice(0, 4);
+}
+
+function rcForecastKey() {
+  return JSON.stringify([[...new Set(rcVisibleMoveSet())], rcKnownOpponentMoves(), revCalcState.predictedOppMove || revCalcState.oppMove, revCalcState.nextMyMove || revCalcState.myMove, rcNextMyRanks(), rcNextOpponentRanks()]);
+}
+
 function rcLearnableMovesForPokemon(p, includeStatus = false) {
   const pool = p?.ls?.length > 0
     ? MOVES.filter(m => p.ls.includes(m.id))
@@ -189,6 +199,8 @@ function rcObservedMyMoveIds() {
 
 function rcNormalizeObservedMyMove() {
   const ids = rcObservedMyMoveIds();
+  if (revCalcState.nextMyMove && !ids.includes(revCalcState.nextMyMove)) revCalcState.nextMyMove = '';
+  if (revCalcState.predictedOppMove && !rcKnownOpponentMoves().includes(revCalcState.predictedOppMove)) revCalcState.predictedOppMove = revCalcState.oppMove || '';
   if (revCalcState.myMove && !ids.includes(revCalcState.myMove)) {
     revCalcState.myMove = ids.find(id => MoveById[id]?.cat !== 'Status') || ids[0] || '';
   }
@@ -198,7 +210,9 @@ function rcMovePoolForPicker(target) {
   const myP = PokemonById[revCalcState.my.pokemonIdx];
   const oppP = PokemonById[revCalcState.opp.pokemonIdx];
   if (target === 'moveslot') return rcLearnableMovesForPokemon(myP, true);
-  if (target === 'oppMove' || target === 'predictedOppMove') return rcLearnableMovesForPokemon(oppP, true);
+  if (['oppMove', 'knownOppMove'].includes(target)) return rcLearnableMovesForPokemon(oppP, true);
+  if (target === 'predictedOppMove') return rcKnownOpponentMoves().map(id => MoveById[id]);
+  if (target === 'nextMyMove') return rcObservedMyMoveIds().map(id => MoveById[id]);
   if (target === 'myMove') return rcObservedMyMoveIds().map(id => MoveById[id]).filter(Boolean);
   return MOVES;
 }
@@ -217,6 +231,14 @@ function rcRenderMoveCombobox(target, value, options = {}) {
 
 function rcSetMovePickerValue(target, id, slot = null) {
   const moveId = id && MoveById[id] ? id : '';
+  if (target === 'knownOppMove') {
+    const index = Number(slot);
+    if (Number.isInteger(index) && index >= 0 && index < 3) {
+      revCalcState.knownOppMoves ||= ['', '', ''];
+      revCalcState.knownOppMoves[index] = moveId;
+    }
+    return;
+  }
   if (target === 'moveslot') {
     const idx = parseInt(slot, 10);
     if (Number.isInteger(idx) && idx >= 0 && idx < RC_MOVESET_SIZE) {
@@ -234,12 +256,14 @@ function rcSetMovePickerValue(target, id, slot = null) {
   if (target === 'oppMove') {
     revCalcState.oppMove = moveId;
     revCalcState.oppMoveBp = '';
-    if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = moveId;
+    revCalcState.predictedOppMove = moveId;
+    rcResetItemCandidatesForOpponent();
     return;
   }
   if (target === 'predictedOppMove') {
     revCalcState.predictedOppMove = moveId;
   }
+  if (target === 'nextMyMove') revCalcState.nextMyMove = moveId;
 }
 
 function rcTypeBoostItemIdsForTypes(types = []) {
@@ -251,6 +275,7 @@ function rcTypeBoostItemIdsForTypes(types = []) {
 
 const RC_ITEM_CANDIDATE_EXTRA_IDS = new Set([
   'leftovers',
+  'normalgem',
 ]);
 
 const RC_ITEM_CANDIDATE_EXCLUDED_IDS = new Set([
@@ -302,7 +327,17 @@ function rcSanitizeItemCandidateIds(ids = []) {
 
 function rcDefaultItemCandidatesForOpponent() {
   const oppP = PokemonById[revCalcState.opp.pokemonIdx];
-  return rcSanitizeItemCandidateIds(['', 'choicescarf', ...rcTypeBoostItemIdsForTypes(oppP?.types || [])]);
+  const outgoing = MoveById[revCalcState.oppMove], incoming = MoveById[revCalcState.myMove];
+  const types = outgoing ? [outgoing.type] : oppP?.types || [];
+  const ids = ['', 'choicescarf', ...rcTypeBoostItemIdsForTypes(types)];
+  if (outgoing && outgoing.cat !== 'Status') ids.push('lifeorb', 'expertbelt', outgoing.cat === 'Physical' ? 'choiceband' : 'choicespecs', ...(outgoing.type === 'Normal' ? ['normalgem'] : []));
+  if (incoming && incoming.cat !== 'Status') {
+    ids.push('leftovers', 'sitrusberry');
+    if (incoming.cat === 'Special') ids.push('assaultvest');
+    if (oppP?.nfe) ids.push('eviolite');
+    ids.push(...ITEMS.filter(item => item.resistBerryType === incoming.type).map(item => item.id));
+  }
+  return rcSanitizeItemCandidateIds(ids);
 }
 
 function rcResetItemCandidatesForOpponent() {
@@ -321,11 +356,8 @@ function rcKnownOpponentItem() {
 function rcActiveItemCandidates() {
   const known = rcKnownOpponentItem();
   if (known !== null) return [known];
-  const candidates = revCalcState.itemCandidates?.length ? revCalcState.itemCandidates : rcDefaultItemCandidatesForOpponent();
+  const candidates = rcDefaultItemCandidatesForOpponent();
   const normalized = rcSanitizeItemCandidateIds(candidates);
-  if (revCalcState.itemCandidates?.length && normalized.length !== candidates.length) {
-    revCalcState.itemCandidates = normalized;
-  }
   return normalized.includes('') ? normalized : ['', ...normalized];
 }
 

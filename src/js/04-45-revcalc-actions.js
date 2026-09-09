@@ -28,7 +28,7 @@ function rcScheduleForecastRefresh() {
   if (typeof Worker !== 'function') return;
   const result = revCalcState.results;
   if (!result?.candidates?.length || revCalcState.analyzing || result.forecastError) return;
-  const key = JSON.stringify([[...new Set(rcVisibleMoveSet())], revCalcState.predictedOppMove || revCalcState.oppMove, rcNextMyRanks(), rcNextOpponentRanks()]);
+  const key = rcForecastKey();
   if (result.forecast?.key === key || result.pendingForecastKey === key) return;
   result.pendingForecastKey = key;
   result.forecast = null;
@@ -36,6 +36,7 @@ function rcScheduleForecastRefresh() {
   rcAnalyzeCachedAsync().then(updated => {
     if (request !== rcForecastRefreshId || revCalcState.results !== result || rcAnalysisCacheKey() !== inputKey) return;
     result.forecast = updated.forecast;
+    result.results?.forEach((group, i) => { group.cardReport = updated.results?.[i]?.cardReport; });
     result.pendingForecastKey = '';
     renderRevCalcResults();
   }).catch(() => { if (revCalcState.results === result) { result.pendingForecastKey = ''; result.forecastError = true; renderRevCalcResults(); } });
@@ -295,7 +296,7 @@ document.getElementById('rcAnalyze')?.addEventListener('click', async () => {
     revCalcState.results = result;
     revCalcState.pendingInputKey = '';
     revCalcState.selectedResultIndex = 0;
-    revCalcState.openResultIndexes = [];
+    revCalcState.openResultIndexes = [0];
     if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
   } catch (e) {
     if (runId !== revCalcState.analysisRunId || e?.message === 'RC_ANALYSIS_CANCELLED') return;
@@ -341,6 +342,7 @@ function rcApplyResultToCalc(idx) {
 // 계산기 → 형태 역계산 sync
 function loadSideToRevCalc(sideKey) {
   const src = state[sideKey];
+  rcNewObservation({ render: false });
   revCalcState.my = cloneCalcValue(src);
   revCalcState.nextMyRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(src.ranks || {}) };
   revCalcState.myMoveSet = [...(src.moves || [])].slice(0, RC_MOVESET_SIZE);
@@ -364,3 +366,28 @@ function loadSideToRevCalc(sideKey) {
   renderRevCalcAll();
 }
 window.loadSideToRevCalc = loadSideToRevCalc;
+
+function rcNewObservation({ opponentId = '', keepField = false, render = true } = {}) {
+  revCalcState.analysisRunId++;
+  rcForecastRefreshId++;
+  clearTimeout(rcInputRefreshTimer);
+  rcCancelAnalysis();
+  rcAnalysisCache.clear();
+  const ranks = () => ({ atk: 0, def: 0, spa: 0, spd: 0, spe: 0 });
+  const build = revCalcState.my;
+  revCalcState.my = { ...makeSideState(build.pokemonIdx), evs: { ...build.evs }, nature: build.nature,
+    ability: build.ability, item: build.item, moves: [...(build.moves || [])] };
+  Object.assign(revCalcState, {
+    opp: { pokemonIdx: opponentId, ranks: ranks(), status: 'none' },
+    myMove: '', myMoveBp: '', oppMove: '', oppMoveBp: '', knownOppMoves: ['', '', ''],
+    observedTheirPct: '', observedMyHp: '', oppStartHpPct: 100, observationTiming: 'end', hpTolerance: 0,
+    oppItemKnown: rcDefaultKnownOpponentItemForPokemon(PokemonById[opponentId]), oppAbilityKnown: 'unknown',
+    predictedOppMove: '', nextMyMove: '', nextMyRanks: ranks(), nextOppRanks: ranks(), nextRankOpen: false,
+    turnOrder: 'unknown', observedMoveOptions: { my: {}, opp: {} },
+    observedFields: { dealt: { defReflect:false, defLightScreen:false, isCritical:false }, received: { defReflect:false, defLightScreen:false, isCritical:false } },
+    field: keepField ? revCalcState.field : rcDefaultField(), itemCandidates: [], itemCandidatesOpen: false,
+    results: null, resultsStale: false, pendingInputKey: '', analyzing: false, selectedResultIndex: 0, openResultIndexes: [],
+  });
+  if (render) renderRevCalcAll();
+}
+document.getElementById('rcNewObservation')?.addEventListener('click', () => rcNewObservation());

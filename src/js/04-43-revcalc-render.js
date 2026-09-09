@@ -78,7 +78,7 @@ function renderRevCalcMy() {
       }),
       pointOptions: {
         zeroAttrs: { 'data-rc-evset': s, 'data-rc-evval': '0' },
-        inputAttrs: { 'data-rc-ev': s, min: '0', max: '32' },
+        inputAttrs: { 'data-rc-ev': s, min: '0', max: '32', 'aria-label': `내 ${STAT_KO[s]} 능력 포인트` },
         maxAttrs: { 'data-rc-evset': s, 'data-rc-evval': '32' },
       },
       rankOptions: {
@@ -122,6 +122,7 @@ function renderRevCalcMy() {
         </div>
       </div>
     </div>
+      <label class="rc-start-hp ui-field"><span class="ui-field-label">관측 시작 내 HP</span><input type="number" data-rc-action="myStartHp" min="1" max="${stats.hp}" value="${rcHp(my)}"><small>최대 ${stats.hp} · 아래 랭크도 관측 시작 시점 기준</small></label>
       <div class="rc-my-build-row ui-control-row">
       <div class="tool-stat-panel tool-stat-set tool-stat-set--revcalc tool-stat-has-nature ui-control-frame ui-subframe ui-subframe-stack ui-field">
         <div class="tool-stat-panel-head ui-section-head">
@@ -228,6 +229,7 @@ function renderRevCalcOpp() {
       ` : ''}
     </div>
     ${p ? `
+      <label class="rc-start-hp ui-field"><span class="ui-field-label">관측 시작 상대 HP %</span><input type="number" data-rc-action="oppStartHpPct" min="1" max="100" value="${revCalcState.oppStartHpPct ?? 100}"><small>아래 랭크도 관측 시작 시점 기준</small></label>
       <div class="rc-opp-stat-panel tool-stat-panel tool-stat-set tool-stat-set--revcalc-opponent ui-control-frame ui-subframe ui-subframe-stack ui-field">
         <div class="tool-stat-panel-head ui-section-head">
           <div class="tool-stat-panel-title ui-section-title">능력 상태</div>
@@ -267,134 +269,68 @@ function rcRenderObservationMoveOptions(role) {
 function renderRevCalcInputs() {
   const container = document.getElementById('rc-input-body');
   if (!container) return;
-  const my = revCalcState.my;
-  const myP = PokemonById[my.pokemonIdx];
-  const oppP = PokemonById[revCalcState.opp.pokemonIdx];
-  const participantsReady = !!myP && !!oppP;
-  rcSetStagePanelState(
-    'rc-input-panel',
-    participantsReady ? 'ready' : 'locked',
-    participantsReady ? '입력 가능' : '선택 필요'
-  );
-
-  if (!participantsReady) {
-    const missing = !myP && !oppP ? '내 포켓몬과 상대 포켓몬' : (!myP ? '내 포켓몬' : '상대 포켓몬');
-    renderTrustedHTML(container, `
-      <div class="rc-prerequisite empty-state ui-empty ui-empty--compact ui-empty--guide" role="status">
-        <strong>${missing}을 먼저 선택해 주세요.</strong>
-        <span>참가 포켓몬이 준비되면 관측 데이터 입력이 열립니다.</span>
-      </div>
-    `);
+  const my = revCalcState.my, oppP = PokemonById[revCalcState.opp.pokemonIdx];
+  const ready = !!PokemonById[my.pokemonIdx] && !!oppP;
+  rcSetStagePanelState('rc-input-panel', ready ? 'ready' : 'locked', ready ? '입력 가능' : '선택 필요');
+  if (!ready) {
+    renderTrustedHTML(container, '<div class="rc-prerequisite empty-state ui-empty ui-empty--compact ui-empty--guide">내 포켓몬과 상대 포켓몬을 먼저 선택해 주세요.</div>');
     return;
   }
-
-  // 내 관측 기술은 입력한 기술폭 4개 안에서 선택하고, 상대 기술은 변화기 관측까지 허용한다.
   rcNormalizeObservedMyMove();
-
-  const myCurrentHp = rcCurrentHpValue(my);
-
-  // 도구 후보 체크박스 (type-boost 도구 + 그외 사용 가능 도구)
-  const itemMaster = rcItemCandidateMasterList();
-  const knownOppItem = rcKnownOpponentItem();
-  const itemCandidates = knownOppItem === null ? rcActiveItemCandidates() : [];
-  const itemPanelOpen = !!revCalcState.itemCandidatesOpen;
-  const itemBoxes = itemMaster.map(i => `
-    <label class="rc-item-chk ui-check ${knownOppItem !== null ? 'is-disabled disabled' : ''}">
-      <input type="checkbox" data-rc-item="${i.id}" ${knownOppItem === null && itemCandidates.includes(i.id) ? 'checked' : ''} ${knownOppItem !== null ? 'disabled' : ''}>
-      <span>${escapeHTML(itName(i))}</span>
-    </label>
-  `).join('');
-
+  const conditions = (role, title) => `<div class="rc-observation-conditions"><strong>${title}</strong>${rcRenderObservationMoveOptions(role === 'dealt' ? 'my' : 'opp')}<div class="rc-toggle-grid ui-control-grid">${[['defReflect','피격 측 리플렉터'],['defLightScreen','피격 측 빛의장막'],['isCritical','공격 급소']].map(([key,label]) => `<label class="checkbox-label ui-check"><input type="checkbox" data-rc-observed-field="${role}" data-rc-field-key="${key}" ${revCalcState.observedFields[role][key] ? 'checked' : ''}>${label}</label>`).join('')}</div></div>`;
   renderTrustedHTML(container, `
-    <p class="rc-mini-note">한 턴 공방 후의 최종 HP를 입력하세요. 관측한 먹다남은음식·열매는 도구에서 선택하면 반영합니다. 내구는 H32 이후 B/D를 추가하는 순서로 추정합니다.</p>
+    <p class="rc-mini-note">회복·열매 발동까지 끝난 턴 종료 HP를 입력하세요. 내구는 H32를 우선하고 필요한 B/D를 추가해 추정합니다.</p>
     <div class="rc-input-grid ui-control-grid">
       <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="rc-section-title ui-section-title">내 행동</div>
-        ${rcRenderObservationMoveOptions('my')}
-        <div class="rc-control-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
-          <label class="rc-field-wide ui-field">
-            <span class="ui-field-label">사용 기술</span>
-            ${rcRenderMoveCombobox('myMove', revCalcState.myMove, { placeholder: '사용 기술 선택' })}
-          </label>
-          <label class="rc-field-compact ui-field">
-            <span class="ui-field-label">상대 남은 HP %</span>
-            <input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="100" placeholder="0~100">
-          </label>
-        </div>
-        <div class="rc-side-condition-row rc-toggle-grid rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
-          <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defReflect" ${revCalcState.observedFields.dealt.defReflect ? 'checked' : ''}> 상대 리플렉터</label>
-          <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.dealt.defLightScreen ? 'checked' : ''}> 상대 빛의장막</label>
-          <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="dealt" data-rc-field-key="isCritical" ${revCalcState.observedFields.dealt.isCritical ? 'checked' : ''}> 내 공격 급소</label>
+        <div class="rc-section-title ui-section-title">내가 한 행동</div>
+        <div class="rc-control-row rc-observed-row ui-control-row">
+          <label class="ui-field rc-field-wide"><span class="ui-field-label">내가 사용한 기술</span>${rcRenderMoveCombobox('myMove', revCalcState.myMove, {placeholder:'기술배치에서 선택'})}</label>
+          <label class="ui-field rc-field-compact"><span class="ui-field-label">상대 남은 HP %</span><input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="100" placeholder="0~100"></label>
         </div>
       </div>
-
       <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="rc-section-title ui-section-title">상대 행동</div>
-        ${rcRenderObservationMoveOptions('opp')}
-        <div class="rc-control-row rc-observed-row rc-opponent-action-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
-          <label class="rc-field-wide ui-field">
-            <span class="ui-field-label">사용 기술</span>
-            ${rcRenderMoveCombobox('oppMove', revCalcState.oppMove, { placeholder: '상대 기술 선택' })}
-          </label>
-          <label class="rc-field-compact ui-field">
-            <span class="ui-field-label">내 남은 HP</span>
-            <input type="number" data-rc-action="observedMyHp" value="${revCalcState.observedMyHp}" min="0" max="${myCurrentHp}" placeholder="0~${myCurrentHp}">
-          </label>
-          <label class="rc-field-wide ui-field">
-            <span class="ui-field-label">상대 도구</span>
-            ${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}
-          </label>
-        </div>
-        <div class="rc-side-condition-row rc-toggle-grid rc-observed-subframe ui-control-frame ui-subframe ui-control-grid">
-          <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defReflect" ${revCalcState.observedFields.received.defReflect ? 'checked' : ''}> 내 리플렉터</label>
-          <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="defLightScreen" ${revCalcState.observedFields.received.defLightScreen ? 'checked' : ''}> 내 빛의장막</label>
-          <label class="checkbox-label rc-compact-toggle ui-check"><input type="checkbox" data-rc-observed-field="received" data-rc-field-key="isCritical" ${revCalcState.observedFields.received.isCritical ? 'checked' : ''}> 상대 공격 급소</label>
+        <div class="rc-section-title ui-section-title">상대가 한 행동</div>
+        <div class="rc-control-row rc-observed-row ui-control-row">
+          <label class="ui-field rc-field-wide"><span class="ui-field-label">상대가 사용한 기술</span>${rcRenderMoveCombobox('oppMove', revCalcState.oppMove, {placeholder:'관측한 기술 선택'})}</label>
+          <label class="ui-field rc-field-compact"><span class="ui-field-label">내 남은 HP</span><input type="number" data-rc-action="observedMyHp" value="${revCalcState.observedMyHp}" min="0" max="${calcStats(my).hp}" placeholder="실수치 입력"></label>
         </div>
       </div>
-
-      <div class="rc-input-block rc-speed-block ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="rc-section-title ui-section-title">선후공 | 필드 상태</div>
-        <label class="checkbox-label ui-check"><input type="checkbox" data-rc-field="trickRoom" ${revCalcState.field.trickRoom ? 'checked' : ''}> 트릭룸</label>
-        <div class="rc-control-row rc-speed-field-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
-          <label class="rc-field-compact ui-field">
-            <span class="ui-field-label">이번 턴 행동 순서</span>
-            ${rcRenderTurnOrderCombobox(revCalcState.turnOrder)}
-          </label>
-          <label class="battle-field-choice battle-weather-field ui-field ui-choice-field"><span class="ui-field-label ui-choice-label">날씨</span>
-            ${rcRenderFieldCombobox('weather', revCalcState.field.weather)}
-          </label>
-          <label class="battle-field-choice battle-terrain-field ui-field ui-choice-field"><span class="ui-field-label ui-choice-label">필드</span>
-            ${rcRenderFieldCombobox('terrain', revCalcState.field.terrain)}
-          </label>
+      <div class="rc-input-block rc-observed-facts ui-control-frame ui-subframe ui-subframe-stack">
+        <div class="rc-section-title ui-section-title">관측한 정보</div>
+        <div class="rc-facts-grid ui-control-grid">
+          <label class="ui-field"><span class="ui-field-label">이번 턴 행동 순서</span>${rcRenderTurnOrderCombobox(revCalcState.turnOrder)}</label>
+          <label class="ui-field"><span class="ui-field-label">관측한 상대 도구</span>${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}</label>
+          <label class="ui-field"><span class="ui-field-label">관측한 상대 특성</span><select data-rc-action="oppAbilityKnown"><option value="unknown">미관측</option>${rcPokemonAbilityIds(oppP).map(id => `<option value="${id}" ${revCalcState.oppAbilityKnown === id ? 'selected' : ''}>${escapeHTML(abName(AbilityById[id] || {name:id}))}</option>`).join('')}</select></label>
         </div>
+        <p class="rc-mini-note">도구가 미관측이면 피해·속도에 영향을 주는 관련 도구를 자동 검토합니다.</p>
       </div>
-
-      <details class="rc-input-block ui-control-frame ui-subframe"><summary>시작 HP·관측 시점·확인된 특성</summary>
-        <p class="rc-mini-note">두 포켓몬의 시작 HP는 기본 100%입니다. 변화기와 확률적인 부가 효과는 자동 재현하지 않으며, 맹독 피해는 첫 번째 턴 기준입니다.</p>
-        <div class="rc-toggle-grid ui-control-grid">
-          <label class="ui-field"><span class="ui-field-label">내 시작 HP</span><input type="number" data-rc-action="myStartHp" min="1" max="${calcStats(my).hp}" value="${rcHp(my)}"></label>
-          <label class="ui-field"><span class="ui-field-label">상대 시작 HP %</span><input type="number" data-rc-action="oppStartHpPct" min="1" max="100" value="${revCalcState.oppStartHpPct ?? 100}"></label>
-          <label class="ui-field"><span class="ui-field-label">HP 관측 시점</span><select data-rc-action="observationTiming"><option value="end" ${revCalcState.observationTiming !== 'hit' ? 'selected' : ''}>턴 종료 회복 후</option><option value="hit" ${revCalcState.observationTiming === 'hit' ? 'selected' : ''}>공방 직후·턴 종료 전</option></select></label>
-          <label class="ui-field"><span class="ui-field-label">확인된 상대 특성</span><select data-rc-action="oppAbilityKnown"><option value="unknown">미관측</option>${rcPokemonAbilityIds(oppP).map(id => `<option value="${id}" ${revCalcState.oppAbilityKnown === id ? 'selected' : ''}>${escapeHTML(abName(AbilityById[id] || {name:id}))}</option>`).join('')}</select></label>
-          <label class="ui-field"><span class="ui-field-label">내 상태</span><select data-rc-action="myStatus">${rcStatusOptions().map(s => `<option value="${s.id}" ${my.status === s.id ? 'selected' : ''}>${escapeHTML(s.label)}</option>`).join('')}</select></label>
+      <details class="rc-input-block rc-extra-observation ui-control-frame ui-subframe"><summary>날씨·필드·추가 관측</summary>
+        <div class="rc-extra-body ui-subframe-stack">
+          <div class="rc-facts-grid ui-control-grid">
+            <label class="ui-field"><span class="ui-field-label">날씨</span>${rcRenderFieldCombobox('weather', revCalcState.field.weather)}</label>
+            <label class="ui-field"><span class="ui-field-label">필드</span>${rcRenderFieldCombobox('terrain', revCalcState.field.terrain)}</label>
+            <label class="checkbox-label ui-check"><input type="checkbox" data-rc-field="trickRoom" ${revCalcState.field.trickRoom ? 'checked' : ''}>트릭룸</label>
+            <label class="ui-field"><span class="ui-field-label">내 상태</span><select data-rc-action="myStatus">${rcStatusOptions().map(s => `<option value="${s.id}" ${my.status === s.id ? 'selected' : ''}>${escapeHTML(s.label)}</option>`).join('')}</select></label>
+          </div>
+          ${conditions('dealt','내 공격의 관측 조건')}${conditions('received','상대 공격의 관측 조건')}
+          <div class="rc-known-moves"><strong>추가로 확인한 상대 기술</strong><p class="rc-mini-note">알고 있는 기술만 선택하세요. 이번 턴의 피해 추정에는 위에서 선택한 사용 기술만 쓰고, 추가 기술은 결과 카드에서 비교합니다.</p><div class="rc-facts-grid ui-control-grid">${[0,1,2].map(i => `<label class="ui-field"><span class="ui-field-label">추가 기술 ${i+1}</span>${rcRenderMoveCombobox('knownOppMove', revCalcState.knownOppMoves?.[i] || '', {slot:i,placeholder:'선택 사항'})}</label>`).join('')}</div></div>
         </div>
       </details>
-
-      <div class="rc-input-block rc-item-candidates-block ui-collapsible ui-control-frame ui-subframe ui-subframe-stack ${itemPanelOpen ? 'open' : 'collapsed is-collapsed'}">
-        <button type="button" class="rc-section-title ui-section-title rc-title-with-badge rc-collapse-head ui-collapse-head" data-rc-toggle-item-candidates aria-expanded="${itemPanelOpen ? 'true' : 'false'}">
-          <span>도구 후보</span>
-          <span class="rc-count-badge rc-item-candidate-count ui-count-badge">${knownOppItem === null ? rcItemCandidateCountLabel(itemCandidates) : '고정됨'}</span>
-        </button>
-        <div class="rc-item-candidates-body" ${itemPanelOpen ? '' : 'hidden'}>
-          <div class="rc-item-grid rc-observed-subframe ui-check-grid ui-control-frame ui-subframe">${itemBoxes}</div>
-        </div>
-      </div>
-    </div>
-  `);
+    </div>`);
   rcWireMoveComboboxes(container);
   rcWireOppItemComboboxes(container);
   rcWireTurnOrderComboboxes(container);
   rcWireFieldComboboxes(container);
+}
+
+function rcRenderNextStateSummary(summary) {
+  const labels = {atk:'공격',def:'방어',spa:'특공',spd:'특방',spe:'스피드'};
+  const range = (a,b) => a === b ? String(a) : `${a}~${b}`;
+  return `<div class="rc-next-state ui-control-frame ui-subframe"><div class="rc-followup-head"><span>다음 턴 시작 상태</span><small>공방·턴 종료 변화 반영</small></div><div class="rc-state-grid">${['my','opp'].map(role => {
+    const row = summary[role];
+    const ranks = Object.entries(row.ranks).filter(([,v]) => v.some(n => n !== 0)).map(([s,v]) => `${labels[s]} ${v.map(n => n > 0 ? '+'+n : n).join(' / ')}`);
+    return `<div class="rc-state-side"><strong>${role === 'my' ? '내 포켓몬' : '상대 포켓몬'}</strong><span>HP ${range(row.hpMin,row.hpMax)} (${range(Number(row.pctMin.toFixed(1)),Number(row.pctMax.toFixed(1)))}%)</span><span>${escapeHTML(ranks.join(' · ') || '랭크 변화 없음')}</span><span>도구: ${escapeHTML(row.items.map(id => id ? itName(ItemById[id] || {name:id}) : row.unknownItem ? '미확인 · 피해 보정 없음' : '없음').join(' / '))}</span>${row.events.length ? `<ul>${[...new Set(row.events)].map(event => `<li>${escapeHTML(event)}</li>`).join('')}</ul>` : ''}</div>`;
+  }).join('')}</div></div>`;
 }
 
 function renderRevCalcResults() {
@@ -494,29 +430,20 @@ function renderRevCalcResults() {
     const speedPlan = rcSpeedPlanLabel(c, r.speedActive);
     const roleInfo = rcRoleCompletionInfo(c, r.speedActive);
     const expanded = openIndexes.has(i);
-    const followupChips = (expanded ? followupMoveIds : [])
-      .map(moveId => rcRenderFollowupMoveChip(rcAnalyzeMyFollowupMove(c, moveId, r.speedActive)))
+    const report = c.cardReport?.key === rcForecastKey() ? c.cardReport : null;
+    const followupChips = (expanded ? report?.my || [] : [])
+      .map(rcRenderFollowupMoveChip)
       .filter(Boolean)
       .join('');
-    const predictedAnalysis = expanded && predictedMoveId
-      ? rcAnalyzeOpponentFollowupMove(c, predictedMoveId, r.speedActive)
-      : null;
     const predictedPanel = expanded ? `
       <div class="rc-prediction-panel ui-control-frame ui-subframe">
-        <label class="ui-field">
-          <span class="ui-field-label">상대 다음 기술</span>
-          ${rcRenderMoveCombobox('predictedOppMove', predictedMoveId, { compact: true, placeholder: '예상 기술' })}
-        </label>
-        <div class="rc-prediction-result">
-          ${predictedMoveId
-            ? (rcRenderFollowupMoveChip(predictedAnalysis) || '<span class="rc-mini-note">계산 가능한 공격 기술을 선택해 주세요.</span>')
-            : '<span class="rc-mini-note">상대 다음 기술을 선택하면 내 피해 범위를 표시합니다.</span>'}
-        </div>
+        <div class="rc-followup-head"><span>상대 관측 기술</span><small>내 최대 HP 대비 피해</small></div>
+        <div class="rc-followup-grid">${(report?.opp || []).map(rcRenderFollowupMoveChip).join('') || '<span class="rc-mini-note">관측한 상대 기술을 입력하면 피해 범위를 표시합니다.</span>'}</div>
       </div>
     ` : '';
     const followupPanel = expanded ? `
       <div class="rc-followup-panel ui-control-frame ui-subframe">
-        <div class="rc-followup-head"><span>내 기술들</span><small>현재 상대 HP 기준</small></div>
+        <div class="rc-followup-head"><span>내 기술들</span><small>상대 최대 HP 대비 피해</small></div>
         <div class="rc-followup-grid">
           ${followupChips || '<span class="rc-mini-note">내 기술폭 4개를 입력하면 후보별 다음 대미지를 표시합니다.</span>'}
         </div>
@@ -541,19 +468,19 @@ function renderRevCalcResults() {
       <div class="rc-result-row rc-form-result ${expanded ? 'open' : 'collapsed'} ui-control-frame ui-subframe" data-rc-toggle-result="${i}">
         <button type="button" class="rc-result-rank" data-rc-toggle-result="${i}" aria-label="후보 ${i + 1} ${expanded ? '접기' : '펼치기'}" aria-expanded="${expanded}">#${i + 1}</button>
         ${expanded
-          ? `<div class="rc-result-expanded-body">${infoPanel}${followupPanel}${predictedPanel}</div>`
+          ? `<div class="rc-result-expanded-body">${infoPanel}${report ? rcRenderNextStateSummary(report.state) : '<p class="rc-mini-note">다음 턴 정보를 계산하고 있습니다.</p>'}${followupPanel}${predictedPanel}</div>`
           : infoPanel}
       </div>
     `;
   }).join('');
 
   renderTrustedHTML(container, `
+    ${r.hpTolerance ? '<p class="rc-hp-approx ui-control-frame ui-subframe" role="status">HP 근사 일치 · 입력한 상대 HP의 ±1%p 범위에서 찾은 후보입니다. 아래 결과도 이 범위를 포함합니다.</p>' : ''}
     ${rcRenderExchangeSummary(r)}
     <div class="rc-briefing ui-control-frame ui-subframe">
       <div class="rc-briefing-title">요약</div>
       <div>${escapeHTML(briefing)}</div><p class="rc-mini-note">H32 → B/D 추가 우선 · ${r.total}개 후보 / ${r.groupTotal}개 그룹 중 대표 ${r.results.length}개 · 미관측 도구는 없음으로 확정하지 않습니다.</p>
     </div>
-    ${rcRenderNextRankPanel()}
     <div class="rc-results-list">${rows}</div>
   `);
   rcWireMoveComboboxes(container);

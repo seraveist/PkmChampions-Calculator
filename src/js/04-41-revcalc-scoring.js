@@ -561,7 +561,7 @@ function rcFormatPct(value) {
 
 function rcFormatDamage(summary) {
   const pct = `${rcFormatPct(summary.pctMin)}~${rcFormatPct(summary.pctMax)}`;
-  return pct;
+  return `${summary.rawMin}~${summary.rawMax} <small>(${pct})</small>`;
 }
 
 function rcRenderInfoBadges(badges) {
@@ -573,6 +573,7 @@ function rcRenderInfoBadges(badges) {
 function rcRenderFollowupMoveChip(analysis) {
   if (!analysis) return '';
   const badgeHtml = rcRenderInfoBadges(analysis.badges);
+  if (analysis.unavailable) return `<div class="rc-followup-chip status"><b>${escapeHTML(mvName(analysis.move))}</b><span class="rc-move-unavailable">${escapeHTML(analysis.badges.join(' · '))}</span></div>`;
   if (analysis.statusMove) {
     return `
       <div class="rc-followup-chip status">
@@ -589,7 +590,7 @@ function rcRenderFollowupMoveChip(analysis) {
       <em class="${koClass}">${escapeHTML(analysis.summary.koState)}</em>
       <b>${escapeHTML(mvName(analysis.move))}</b>
       <span class="rc-followup-damage ${koClass}">${rcFormatDamage(analysis.summary)}</span>
-      ${badgeHtml || '<span></span>'}
+      <span class="rc-move-order">${escapeHTML(analysis.summary.order || '')}</span>
     </div>
   `;
 }

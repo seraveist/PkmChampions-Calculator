@@ -162,7 +162,7 @@ function rcAnalyzeInWorker() {
 }
 
 async function rcAnalyzeCachedAsync() {
-  const key = `${rcAnalysisCacheKey()}|${JSON.stringify([rcVisibleMoveSet(), revCalcState.predictedOppMove, rcNextMyRanks(), rcNextOpponentRanks()])}`;
+  const key = `${rcAnalysisCacheKey()}|${rcForecastKey()}`;
   const cached = rcReadAnalysisCache(key);
   if (cached) return cached;
   const result = await rcAnalyzeInWorker();
@@ -431,7 +431,17 @@ function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedHp, fie
 
 // 분석 메인
 function rcAnalyze() {
-  return rcAnalyzeExchange();
+  revCalcState.hpTolerance = 0;
+  const exact = rcAnalyzeExchange();
+  if (exact.error || exact.total || !revCalcState.observedTheirPct || Number(revCalcState.observedTheirPct) >= 100 || Number(revCalcState.observedTheirPct) <= 0) return exact;
+  try {
+    revCalcState.hpTolerance = 1;
+    const nearby = rcAnalyzeExchange();
+    if (nearby.total) return { ...nearby, hpTolerance: 1 };
+    return exact;
+  } finally {
+    revCalcState.hpTolerance = 0;
+  }
 }
 
 // Retained for focused legacy-stage diagnostics; the UI uses the linked exchange.

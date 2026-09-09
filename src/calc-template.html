@@ -173,6 +173,7 @@
 
     <!-- 형태 역계산 -->
     <section id="page-revcalc" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-revcalc" aria-hidden="true" hidden>
+      <div class="rc-workflow-head ui-section-head"><p class="rc-mini-note">시작 상태 → 한 턴 관측 → 형태별 다음 턴 정보</p><button type="button" class="btn-secondary ui-btn ui-btn-secondary" id="rcNewObservation">새 관측</button></div>
       <div class="rc-grid ui-frame-row">
         <section class="ui-frame rc-my ui-panel">
           <div class="ui-frame-head ui-panel-head">
@@ -191,7 +192,7 @@
 
       <section class="ui-frame ui-panel rc-stage-panel" id="rc-input-panel" data-rc-stage="observations" data-stage-state="locked" aria-disabled="true">
         <div class="ui-frame-head ui-panel-head">
-          <h2 class="ui-panel-title">관측 데이터</h2>
+          <h2 class="ui-panel-title">한 턴 관측</h2>
           <span class="ui-panel-tag rc-stage-status" id="rc-input-stage-status">선택 필요</span>
         </div>
         <div class="ui-frame-body ui-panel-body ui-subframe-stack" id="rc-input-body"></div>

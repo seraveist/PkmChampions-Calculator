@@ -74,6 +74,7 @@ function rcSyncInputsFromDom() {
 
 function rcWireComboboxKeyboard(control, optsEl, { showOptions, onSelect, getQuery = null, onInvalidInput = null } = {}) {
   // Shared helper owns aria-activedescendant and active option movement.
+  if (!control.getAttribute('aria-expanded')) control.setAttribute('aria-expanded', 'false');
   return wireSharedComboboxKeyboard(control, optsEl, { showOptions, onSelect, getQuery, onInvalidInput });
 }
 
@@ -87,6 +88,7 @@ function rcWireMyComboboxes() {
         getCurrentId: () => revCalcState.my.pokemonIdx || '',
         getDisplayLabel: () => pkName(PokemonById[revCalcState.my.pokemonIdx] || { name: '' }),
         onSelect: id => {
+          rcNewObservation({ opponentId: revCalcState.opp.pokemonIdx, keepField: true, render: false });
           rcApplyMyPokemonSelection(id);
           renderRevCalcAll();
         },
@@ -228,6 +230,7 @@ function rcApplyMyPokemonSelection(id) {
 }
 
 function rcDefaultKnownOpponentItemForPokemon(pokemon) {
+  if (!pokemon) return 'unknown';
   const itemId = defaultPokemonItemId(pokemon);
   return itemId || 'unknown';
 }
@@ -243,6 +246,7 @@ function rcWireOppComboboxes() {
         getDisplayLabel: () => pkName(PokemonById[revCalcState.opp.pokemonIdx] || { name: '' }),
         onSelect: id => {
           revCalcState.opp.pokemonIdx = id;
+          rcNewObservation({ opponentId: id, keepField: true, render: false });
           revCalcState.oppAbilityKnown = 'unknown';
           revCalcState.observedMoveOptions = { my: {}, opp: {} };
           const pokemon = PokemonById[revCalcState.opp.pokemonIdx];
@@ -286,6 +290,7 @@ function rcWireOppComboboxes() {
         renderRevCalcAll();
         return;
       }
+      rcNewObservation({ opponentId: opt.dataset.id, keepField: true, render: false });
       revCalcState.opp.pokemonIdx = opt.dataset.id;
       revCalcState.oppAbilityKnown = 'unknown';
       revCalcState.observedMoveOptions = { my: {}, opp: {} };
@@ -570,6 +575,7 @@ function rcWireMoveComboboxes(scope) {
       const matches = [...noneMatches, ...rcFilterMovePool(pool, q)];
       const currentId = target === 'moveslot'
         ? rcMoveSet()[parseInt(slot, 10)] || ''
+        : target === 'knownOppMove' ? revCalcState.knownOppMoves?.[parseInt(slot, 10)] || ''
         : (revCalcState[target] || '');
       renderTrustedHTML(optsEl, matches.length
         ? matches.map(m => rcRenderSimpleMoveOption(m, currentId)).join('')
@@ -589,7 +595,7 @@ function rcWireMoveComboboxes(scope) {
       } else if (target === 'oppMove') {
         renderRevCalcInputs();
         renderRevCalcResults();
-      } else if (target === 'predictedOppMove') {
+      } else if (['predictedOppMove', 'nextMyMove', 'knownOppMove'].includes(target)) {
         renderRevCalcResults();
       }
     };

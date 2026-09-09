@@ -1076,6 +1076,10 @@ function calculateFinalDamageStage(ctx) {
   else if (stabMod === 9216) mods.push('다능 STAB×2.25');
 
   const finalMods = [];
+  if (defSide.glaiveRushExposed) {
+    finalMods.push(8192);
+    mods.push('대검돌격 이후 받는 피해×2');
+  }
   applyFieldRuleMods(fieldMechanics().finalMods, ctx, finalMods);
 
   if (!isCritical && !ctx.atkAbilityData?.ignoresScreens) {
