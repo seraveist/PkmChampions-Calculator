@@ -29,13 +29,15 @@ const ASSET_BUDGETS = {
   style: { sizeBytes: 360 * 1024, gzipBytes: 55 * 1024 },
   data: { sizeBytes: 950 * 1024, gzipBytes: 170 * 1024 },
   app: { sizeBytes: 400 * 1024, gzipBytes: 100 * 1024 },
-  worker: { sizeBytes: 220 * 1024, gzipBytes: 55 * 1024 },
+  // The on-demand worker now includes observed exchange transitions and next-action forecasts.
+  worker: { sizeBytes: 256 * 1024, gzipBytes: 68 * 1024 },
   featureDex: { sizeBytes: 80 * 1024, gzipBytes: 25 * 1024 },
   featureMatchup: { sizeBytes: 50 * 1024, gzipBytes: 18 * 1024 },
   featureFinetune: { sizeBytes: 70 * 1024, gzipBytes: 24 * 1024 },
   featureRevcalc: { sizeBytes: 240 * 1024, gzipBytes: 60 * 1024 },
 };
-const TOTAL_GZIP_BUDGET = 430 * 1024;
+// M-C adds 35 selectable forms, 18 items and 15 moves (~9 KB gzip).
+const TOTAL_GZIP_BUDGET = 440 * 1024;
 
 let failed = false;
 

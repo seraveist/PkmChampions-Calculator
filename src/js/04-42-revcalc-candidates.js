@@ -10,7 +10,7 @@ function rcRelevantOffenseItems(move) {
   });
 }
 
-const RC_ANALYSIS_CACHE_LIMIT = 6;
+const RC_ANALYSIS_CACHE_LIMIT = 2;
 const rcAnalysisCache = new Map();
 let rcAnalysisWorker = null;
 let rcAnalysisWorkerUrl = '';
@@ -32,6 +32,10 @@ function rcAnalysisCacheKey() {
     turnOrder: revCalcState.turnOrder,
     field: revCalcState.field,
     observedFields: revCalcState.observedFields,
+    observationTiming: revCalcState.observationTiming,
+    oppStartHpPct: revCalcState.oppStartHpPct,
+    oppAbilityKnown: revCalcState.oppAbilityKnown,
+    observedMoveOptions: revCalcState.observedMoveOptions,
   });
 }
 
@@ -57,9 +61,13 @@ function rcWriteAnalysisCache(key, result) {
 function rcAnalyzeCached() {
   const key = rcAnalysisCacheKey();
   const cached = rcReadAnalysisCache(key);
-  if (cached) return cached;
+  if (cached) {
+    if (revCalcState.includeForecast && cached.candidates?.length) rcComputeExchangeForecast(cached);
+    return cached;
+  }
   const result = rcAnalyze();
   rcWriteAnalysisCache(key, result);
+  if (revCalcState.includeForecast && result.candidates?.length) rcComputeExchangeForecast(result);
   return result;
 }
 
@@ -130,16 +138,17 @@ function rcCreateAnalysisWorker() {
 }
 
 function rcAnalysisSnapshot() {
-  const snapshot = cloneCalcValue(revCalcState);
+  const snapshot = cloneCalcValue({ ...revCalcState, results: null });
   snapshot.results = null;
   snapshot.analyzing = false;
+  snapshot.includeForecast = true;
   return snapshot;
 }
 
 function rcAnalyzeInWorker() {
   const worker = rcCreateAnalysisWorker();
   if (!worker) {
-    return new Promise(resolve => setTimeout(() => resolve(rcAnalyze()), 0));
+    return new Promise(resolve => setTimeout(() => { const result = rcAnalyze(); if (result.candidates?.length) rcComputeExchangeForecast(result); resolve(result); }, 0));
   }
   if (rcAnalysisWorkerPending) {
     rcTerminateAnalysisWorker(new Error('RC_ANALYSIS_CANCELLED'));
@@ -153,7 +162,7 @@ function rcAnalyzeInWorker() {
 }
 
 async function rcAnalyzeCachedAsync() {
-  const key = rcAnalysisCacheKey();
+  const key = `${rcAnalysisCacheKey()}|${JSON.stringify([rcVisibleMoveSet(), revCalcState.predictedOppMove, rcNextMyRanks(), rcNextOpponentRanks()])}`;
   const cached = rcReadAnalysisCache(key);
   if (cached) return cached;
   const result = await rcAnalyzeInWorker();
@@ -190,7 +199,22 @@ function rcBuildOpponentState(oppP, oppOverrides = {}) {
   };
 }
 
+function rcDefenseItemGroups(move) {
+  const groups = new Map();
+  for (const id of rcActiveItemCandidates()) {
+    const item = ItemById[id] || {};
+    const key = JSON.stringify(move.variableBpKind ? item : [
+      item.defenseStatBoost, item.resistBerryType, item.resistBerryRequiresWeakness,
+      item.groundImmunity, item.grounded, item.ignoresWeatherDamageModifiers, item.paradoxActivation,
+    ]);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(id);
+  }
+  return [...groups.values()];
+}
+
 function rcBuildDefenseMatches(my, oppP, myMove, observedPct, field, defStat, natureIds, abilityCandidates = null) {
+  const damageCache = new Map();
   if (!myMove) {
     return new Map(natureIds.map(nature => [nature, [{
       nature,
@@ -205,37 +229,46 @@ function rcBuildDefenseMatches(my, oppP, myMove, observedPct, field, defStat, na
   }
 
   const byNature = new Map(natureIds.map(nature => [nature, []]));
+  const itemGroups = rcDefenseItemGroups(myMove);
   abilityCandidates = abilityCandidates || rcOpponentAbilityCandidates(oppP, [{ role: 'def', move: myMove, field }]);
   for (const natureId of natureIds) {
     for (const abilityCandidate of abilityCandidates) {
+      for (const items of itemGroups) {
+      const item = items[0];
       for (let hpEv = 0; hpEv <= 32; hpEv++) {
         for (let defEv = 0; defEv <= 32; defEv++) {
           if (hpEv + defEv > 66) continue;
-          if (defEv > 0 && hpEv < 32) continue;
           const oppState = rcBuildOpponentState(oppP, {
             evs: { hp: hpEv, [defStat]: defEv },
             nature: natureId,
             ability: abilityCandidate.id,
+            item,
           });
-          const result = calculateDamage(my, oppState, myMove, field);
+          const stats = calcStats(oppState);
+          const coupledStats = AbilityById[oppState.ability]?.paradoxBoost || myMove.variableBpKind || myMove.overrideOffensivePokemon;
+          const key = JSON.stringify([abilityCandidate.id, item, coupledStats ? stats : [stats.hp, stats[defStat]]]);
+          if (!damageCache.has(key)) damageCache.set(key, calculateDamage(my, oppState, myMove, field));
+          const result = damageCache.get(key);
           if (!result || !result.damages) continue;
-          const oppHp = calcStats(oppState).hp;
+          const oppHp = stats.hp;
           const matches = rcMatchingRemainingPct(result.damages, observedPct, oppHp);
           if (matches > 0) {
-            byNature.get(natureId).push({
+            for (const matchedItem of items) byNature.get(natureId).push({
               nature: natureId,
               ability: abilityCandidate.id,
+              item: matchedItem,
               abilityImpact: !!abilityCandidate.impact,
               hpEv,
               defEv,
               defStat,
               defScore: matches / 16,
               oppHp,
-              oppDef: calcStats(oppState)[defStat],
+              oppDef: stats[defStat],
               damages: result.damages,
             });
           }
         }
+      }
       }
     }
   }
@@ -248,7 +281,7 @@ function rcBuildOffenseMatches(my, oppP, oppMove, observedHp, field, atkStat, na
       nature,
       atkEv: 0,
       atkStat: null,
-      item: '',
+      item: null,
       atkScore: 1,
       oppAtk: 0,
       myDamages: [],
@@ -293,10 +326,12 @@ function rcBuildOffenseMatches(my, oppP, oppMove, observedHp, field, atkStat, na
 
 function rcCombineReverseCandidates(defByNature, atkByNature, oppP, oppMove, field, speedActive, debug) {
   const shaped = [];
+  const speedCache = new Map();
   for (const [nature, defMatches] of defByNature.entries()) {
     const atkMatches = atkByNature.get(nature) || [];
     for (const defMatch of defMatches) {
       for (const atkMatch of atkMatches) {
+        if (defMatch.item != null && atkMatch.item != null && defMatch.item !== atkMatch.item) continue;
         if (defMatch.defStat && atkMatch.atkStat && defMatch.defStat === atkMatch.atkStat && defMatch.defEv !== atkMatch.atkEv) {
           debug.statConflictRemoved++;
           continue;
@@ -314,6 +349,7 @@ function rcCombineReverseCandidates(defByNature, atkByNature, oppP, oppMove, fie
           nature,
           ability,
           abilityImpact,
+          item: atkMatch.item ?? defMatch.item ?? rcKnownOpponentItem() ?? '',
           totalScore: (defMatch.defScore || 1) * (atkMatch.atkScore || 1),
         };
 
@@ -322,7 +358,9 @@ function rcCombineReverseCandidates(defByNature, atkByNature, oppP, oppMove, fie
           continue;
         }
 
-        const speedInfo = rcSpeedCandidateInfo(oppP, nature, baseCandidate.item || '', field);
+        const speedKey = `${nature}|${baseCandidate.item}|${ability}`;
+        if (!speedCache.has(speedKey)) speedCache.set(speedKey, rcSpeedCandidateInfo(oppP, nature, baseCandidate.item || '', field, ability));
+        const speedInfo = speedCache.get(speedKey);
         if (!speedInfo.valid) {
           debug.speedRemoved++;
           continue;
@@ -393,6 +431,11 @@ function rcStage3OffenseRefine(defCandidates, my, oppP, oppMove, observedHp, fie
 
 // 분석 메인
 function rcAnalyze() {
+  return rcAnalyzeExchange();
+}
+
+// Retained for focused legacy-stage diagnostics; the UI uses the linked exchange.
+function rcAnalyzeIndependent() {
   const my = revCalcState.my;
   const oppP = PokemonById[revCalcState.opp.pokemonIdx];
   if (!oppP) return { error: '상대 포켓몬을 선택해주세요.' };
@@ -456,7 +499,7 @@ function rcAnalyze() {
     presetRemoved: 0,
   };
 
-  const speedActive = revCalcState.turnOrder !== 'unknown';
+  const speedActive = rcSpeedCandidateInfo(oppP, 'hardy', '', field).active;
   const natureIds = hasAtk ? rcNatureCandidatesForMove(oppMove) : RC_NATURE_IDS;
   debug.natureCandidates = natureIds.join(',');
 
@@ -504,7 +547,7 @@ function rcAnalyze() {
   candidates.forEach(c => { c.hasNonScarfAlternative = hasNonScarfAlternative; });
 
   // 정렬 + Top 5
-  candidates.sort(rcCompareCandidates);
+  // 그룹에서 최상위 대표를 선택한 뒤 그룹만 정렬한다.
   const groupedResults = rcGroupCandidates(candidates);
 
   return {

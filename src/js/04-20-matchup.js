@@ -111,6 +111,7 @@ function matchupResolveItemForm(pokemonId, itemId) {
 }
 
 function matchupSetSlotPokemon(slot, pokemonId, { abilityId = '', itemId = '' } = {}) {
+  const previousId = matchupSlots[slot];
   const resolvedId = matchupResolveItemForm(pokemonId, itemId);
   const pokemon = PokemonById[resolvedId];
   if (!pokemon) {
@@ -119,6 +120,9 @@ function matchupSetSlotPokemon(slot, pokemonId, { abilityId = '', itemId = '' } 
     return;
   }
   matchupSlots[slot] = pokemon.id;
+  if (previousId && previousId !== pokemon.id) {
+    matchupCoverageMoves[slot] = matchupCoverageMoves[slot].map(id => pokemon.ls?.includes(id) ? id : null);
+  }
   const abilityIds = matchupAbilityIds(pokemon);
   matchupAbilities[slot] = abilityIds.includes(abilityId)
     ? abilityId
@@ -180,7 +184,15 @@ function selectedCoverageMoves() {
 }
 
 function coverageSlotHasType(slot, type) {
-  return (matchupCoverageMoves[slot] || []).some(moveId => MoveById[moveId]?.type === type);
+  return (matchupCoverageMoves[slot] || []).some(moveId => coverageMoveType(slot, MoveById[moveId]) === type);
+}
+
+function coverageMoveType(slot, move) {
+  if (!move || move.cat === 'Status') return '';
+  const pokemon = PokemonById[matchupSlots[slot]];
+  const change = abilityData(matchupSelectedAbilityId(slot, pokemon)).typeChange;
+  if (change && (!change.from || change.from === move.type) && (!change.flag || move.flags?.[change.flag])) return change.type;
+  return move.type;
 }
 
 function coverageCountByType(type, slot = null) {
@@ -190,8 +202,8 @@ function coverageCountByType(type, slot = null) {
 
 function coverageSlotCountForTypes(types) {
   const targets = new Set(types);
-  return matchupCoverageMoves.reduce((sum, slotMoves) => {
-    const hit = slotMoves.some(moveId => targets.has(MoveById[moveId]?.type));
+  return matchupCoverageMoves.reduce((sum, slotMoves, slot) => {
+    const hit = slotMoves.some(moveId => targets.has(coverageMoveType(slot, MoveById[moveId])));
     return sum + (hit ? 1 : 0);
   }, 0);
 }
@@ -309,6 +321,7 @@ function wireMatchupSlots() {
       matchupAbilities[slot] = matchupAbilityIds(pokemon).includes(select.value)
         ? select.value
         : matchupDefaultAbilityId(pokemon);
+      renderMatchupCoverageInputs();
       renderMatchupTable();
     });
   });
@@ -381,7 +394,7 @@ function renderMatchupCoverageInputs() {
             <div class="combobox-options"></div>
           </div>
           <span class="matchup-move-type-slot">
-            ${m ? `<span class="type-pill matchup-type-pill t-${m.type}">${TYPE_KO[m.type] || m.type}</span>` : ''}
+            ${m ? `<span class="type-pill matchup-type-pill t-${coverageMoveType(slot, m)}">${TYPE_KO[coverageMoveType(slot, m)] || coverageMoveType(slot, m)}</span>` : ''}
           </span>
           <button type="button" class="matchup-move-clear" data-slot="${slot}" data-move-index="${moveIndex}" title="비우기" ${m ? '' : 'disabled'}>✕</button>
         </div>

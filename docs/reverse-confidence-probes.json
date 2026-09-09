@@ -1,0 +1,2510 @@
+{
+  "method": "Known synthetic builds; low/central/high joint damage observations; same forward and inverse engine; no metagame sampling or accuracy calibration.",
+  "fixtures": [
+    {
+      "id": "multiscale",
+      "my": "garchomp",
+      "myNature": "adamant",
+      "myEvs": {
+        "hp": 32,
+        "atk": 16,
+        "def": 16,
+        "spe": 2
+      },
+      "myAbility": "sandveil",
+      "opp": "dragonite",
+      "nature": "adamant",
+      "evs": {
+        "hp": 32,
+        "atk": 32,
+        "spe": 2
+      },
+      "ability": "multiscale",
+      "item": "",
+      "myMove": "dragonclaw",
+      "oppMove": "dragonclaw",
+      "next": [
+        "dragonclaw",
+        "earthquake"
+      ],
+      "observationCells": 70,
+      "survivingProbability": 1,
+      "order": "my-first"
+    },
+    {
+      "id": "leftovers-bulk",
+      "my": "garchomp",
+      "myNature": "adamant",
+      "myEvs": {
+        "hp": 32,
+        "atk": 32,
+        "spe": 2
+      },
+      "myAbility": "sandveil",
+      "opp": "snorlax",
+      "nature": "impish",
+      "evs": {
+        "hp": 32,
+        "def": 20,
+        "atk": 14
+      },
+      "ability": "thickfat",
+      "item": "leftovers",
+      "myMove": "earthquake",
+      "oppMove": "bodyslam",
+      "next": [
+        "earthquake",
+        "dragonclaw"
+      ],
+      "observationCells": 63,
+      "survivingProbability": 1,
+      "order": "my-first"
+    },
+    {
+      "id": "fast-eruption",
+      "my": "garchomp",
+      "myNature": "jolly",
+      "myEvs": {
+        "hp": 2,
+        "atk": 32,
+        "spe": 32
+      },
+      "myAbility": "sandveil",
+      "opp": "typhlosion",
+      "nature": "timid",
+      "evs": {
+        "hp": 2,
+        "spa": 32,
+        "spe": 32
+      },
+      "ability": "flashfire",
+      "item": "",
+      "myMove": "dragonclaw",
+      "oppMove": "eruption",
+      "next": [
+        "dragonclaw",
+        "earthquake"
+      ],
+      "observationCells": 53,
+      "survivingProbability": 1,
+      "order": "my-first"
+    },
+    {
+      "id": "consumed-berry",
+      "my": "charizard",
+      "myNature": "modest",
+      "myEvs": {
+        "hp": 32,
+        "spa": 32,
+        "spe": 2
+      },
+      "myAbility": "blaze",
+      "opp": "scizor",
+      "nature": "careful",
+      "evs": {
+        "hp": 32,
+        "spd": 20,
+        "atk": 14
+      },
+      "ability": "technician",
+      "item": "occaberry",
+      "myMove": "flamethrower",
+      "oppMove": "ironhead",
+      "next": [
+        "flamethrower",
+        "airslash"
+      ],
+      "observationCells": 80,
+      "survivingProbability": 1,
+      "order": "my-first"
+    },
+    {
+      "id": "fast-archaludon",
+      "my": "primarina",
+      "myNature": "bold",
+      "myEvs": {
+        "hp": 32,
+        "def": 16,
+        "spa": 14,
+        "spe": 4
+      },
+      "myAbility": "torrent",
+      "opp": "archaludon",
+      "nature": "modest",
+      "evs": {
+        "hp": 2,
+        "spa": 32,
+        "spe": 32
+      },
+      "ability": "stamina",
+      "item": "",
+      "myMove": "moonblast",
+      "oppMove": "thunderbolt",
+      "next": [
+        "moonblast",
+        "hydropump"
+      ],
+      "observationCells": 100,
+      "survivingProbability": 1,
+      "order": "opp-first"
+    },
+    {
+      "id": "outside-split-bulk",
+      "my": "garchomp",
+      "myNature": "adamant",
+      "myEvs": {
+        "hp": 32,
+        "atk": 32,
+        "spe": 2
+      },
+      "myAbility": "sandveil",
+      "opp": "snorlax",
+      "nature": "impish",
+      "evs": {
+        "hp": 16,
+        "def": 16,
+        "atk": 32,
+        "spe": 2
+      },
+      "ability": "thickfat",
+      "item": "leftovers",
+      "myMove": "earthquake",
+      "oppMove": "bodyslam",
+      "next": [
+        "earthquake",
+        "dragonclaw"
+      ],
+      "observationCells": 90,
+      "survivingProbability": 1,
+      "order": "my-first"
+    },
+    {
+      "id": "hidden-expert-belt",
+      "my": "primarina",
+      "myNature": "bold",
+      "myEvs": {
+        "hp": 32,
+        "def": 16,
+        "spa": 14,
+        "spe": 4
+      },
+      "myAbility": "torrent",
+      "opp": "archaludon",
+      "nature": "modest",
+      "evs": {
+        "hp": 32,
+        "spa": 32,
+        "spe": 2
+      },
+      "ability": "stamina",
+      "item": "expertbelt",
+      "unknownItem": true,
+      "myMove": "moonblast",
+      "oppMove": "thunderbolt",
+      "next": [
+        "moonblast",
+        "hydropump"
+      ],
+      "observationCells": 100,
+      "survivingProbability": 1,
+      "order": "opp-first"
+    }
+  ],
+  "rows": [
+    {
+      "fixture": "multiscale",
+      "label": "low-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "63",
+        "myHp": "75"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        ""
+      ],
+      "total": 7269,
+      "groups": 62,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "impish",
+        "item": "",
+        "abilities": [
+          "multiscale"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          0,
+          6
+        ],
+        "atkStat": "atk",
+        "atk": [
+          18,
+          32
+        ],
+        "spe": [
+          0,
+          16
+        ]
+      },
+      "ranges": {
+        "hp": [
+          13,
+          32
+        ],
+        "def": [
+          0,
+          32
+        ],
+        "atk": [
+          0,
+          32
+        ],
+        "natures": 21
+      },
+      "actions": [
+        {
+          "move": "dragonclaw",
+          "own": "형태에 따라 다름",
+          "death": "형태에 따라 다름",
+          "order": "동속 또는 후보별 선후공 차이",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "earthquake",
+          "own": "KO 불가",
+          "death": "확정으로 쓰러짐",
+          "order": "동속 또는 후보별 선후공 차이",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              1,
+              1
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 2023
+    },
+    {
+      "fixture": "multiscale",
+      "label": "central",
+      "options": {},
+      "observed": {
+        "theirPct": "57",
+        "myHp": "69"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        ""
+      ],
+      "total": 8653,
+      "groups": 60,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "lonely",
+        "item": "",
+        "abilities": [
+          "multiscale"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          0,
+          17
+        ],
+        "atkStat": "atk",
+        "atk": [
+          6,
+          32
+        ],
+        "spe": [
+          0,
+          24
+        ]
+      },
+      "ranges": {
+        "hp": [
+          0,
+          32
+        ],
+        "def": [
+          0,
+          17
+        ],
+        "atk": [
+          6,
+          32
+        ],
+        "natures": 21
+      },
+      "actions": [
+        {
+          "move": "dragonclaw",
+          "own": "형태에 따라 다름",
+          "death": "형태에 따라 다름",
+          "order": "동속 또는 후보별 선후공 차이",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "earthquake",
+          "own": "KO 불가",
+          "death": "확정으로 쓰러짐",
+          "order": "동속 또는 후보별 선후공 차이",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              1,
+              1
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 2332
+    },
+    {
+      "fixture": "multiscale",
+      "label": "high-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "57",
+        "myHp": "47"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        ""
+      ],
+      "total": 435,
+      "groups": 8,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "lonely",
+        "item": "",
+        "abilities": [
+          "multiscale"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          0,
+          5
+        ],
+        "atkStat": "atk",
+        "atk": [
+          29,
+          32
+        ],
+        "spe": [
+          0,
+          5
+        ]
+      },
+      "ranges": {
+        "hp": [
+          2,
+          32
+        ],
+        "def": [
+          0,
+          5
+        ],
+        "atk": [
+          29,
+          32
+        ],
+        "natures": 4
+      },
+      "actions": [
+        {
+          "move": "dragonclaw",
+          "own": "형태에 따라 다름",
+          "death": "형태에 따라 다름",
+          "order": "동속 또는 후보별 선후공 차이",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "earthquake",
+          "own": "KO 불가",
+          "death": "확정으로 쓰러짐",
+          "order": "동속 또는 후보별 선후공 차이",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              1,
+              1
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 1510
+    },
+    {
+      "fixture": "leftovers-bulk",
+      "label": "low-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "68",
+        "myHp": "155"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        "leftovers"
+      ],
+      "total": 2913,
+      "groups": 35,
+      "truthRetained": true,
+      "top1ContainsTruth": true,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "impish",
+        "item": "leftovers",
+        "abilities": [
+          "thickfat",
+          "gluttony",
+          "immunity"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          18,
+          26
+        ],
+        "atkStat": "atk",
+        "atk": [
+          0,
+          14
+        ],
+        "spe": [
+          0,
+          16
+        ]
+      },
+      "ranges": {
+        "hp": [
+          32,
+          32
+        ],
+        "def": [
+          18,
+          32
+        ],
+        "atk": [
+          0,
+          16
+        ],
+        "natures": 21
+      },
+      "actions": [
+        {
+          "move": "earthquake",
+          "own": "KO 불가",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "dragonclaw",
+          "own": "KO 불가",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 802
+    },
+    {
+      "fixture": "leftovers-bulk",
+      "label": "central",
+      "options": {},
+      "observed": {
+        "theirPct": "66",
+        "myHp": "148"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        "leftovers"
+      ],
+      "total": 4347,
+      "groups": 18,
+      "truthRetained": true,
+      "top1ContainsTruth": true,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "impish",
+        "item": "leftovers",
+        "abilities": [
+          "thickfat",
+          "gluttony",
+          "immunity"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          13,
+          31
+        ],
+        "atkStat": "atk",
+        "atk": [
+          3,
+          21
+        ],
+        "spe": [
+          0,
+          18
+        ]
+      },
+      "ranges": {
+        "hp": [
+          32,
+          32
+        ],
+        "def": [
+          13,
+          32
+        ],
+        "atk": [
+          0,
+          21
+        ],
+        "natures": 18
+      },
+      "actions": [
+        {
+          "move": "earthquake",
+          "own": "KO 불가",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "dragonclaw",
+          "own": "KO 불가",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 1341
+    },
+    {
+      "fixture": "leftovers-bulk",
+      "label": "high-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "62",
+        "myHp": "143"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        "leftovers"
+      ],
+      "total": 6588,
+      "groups": 19,
+      "truthRetained": true,
+      "top1ContainsTruth": true,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "impish",
+        "item": "leftovers",
+        "abilities": [
+          "thickfat",
+          "gluttony",
+          "immunity"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          4,
+          22
+        ],
+        "atkStat": "atk",
+        "atk": [
+          12,
+          30
+        ],
+        "spe": [
+          0,
+          18
+        ]
+      },
+      "ranges": {
+        "hp": [
+          32,
+          32
+        ],
+        "def": [
+          4,
+          32
+        ],
+        "atk": [
+          0,
+          30
+        ],
+        "natures": 19
+      },
+      "actions": [
+        {
+          "move": "earthquake",
+          "own": "KO 불가",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "dragonclaw",
+          "own": "KO 불가",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 2751
+    },
+    {
+      "fixture": "fast-eruption",
+      "label": "low-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "45",
+        "myHp": "156"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        ""
+      ],
+      "total": 36400,
+      "groups": 71,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": {
+        "nature": "mild",
+        "item": "",
+        "abilities": [
+          "blaze",
+          "flashfire"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          0,
+          11
+        ],
+        "atkStat": "spa",
+        "atk": [
+          0,
+          18
+        ],
+        "spe": [
+          0,
+          32
+        ]
+      },
+      "ranges": {
+        "hp": [
+          0,
+          32
+        ],
+        "def": [
+          0,
+          11
+        ],
+        "atk": [
+          0,
+          32
+        ],
+        "natures": 25
+      },
+      "actions": [
+        {
+          "move": "dragonclaw",
+          "own": "형태에 따라 다름",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "earthquake",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 5493
+    },
+    {
+      "fixture": "fast-eruption",
+      "label": "central",
+      "options": {},
+      "observed": {
+        "theirPct": "41",
+        "myHp": "155"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        ""
+      ],
+      "total": 13992,
+      "groups": 50,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": {
+        "nature": "mild",
+        "item": "",
+        "abilities": [
+          "blaze",
+          "flashfire"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          0,
+          3
+        ],
+        "atkStat": "spa",
+        "atk": [
+          14,
+          32
+        ],
+        "spe": [
+          0,
+          20
+        ]
+      },
+      "ranges": {
+        "hp": [
+          0,
+          32
+        ],
+        "def": [
+          0,
+          4
+        ],
+        "atk": [
+          5,
+          32
+        ],
+        "natures": 21
+      },
+      "actions": [
+        {
+          "move": "dragonclaw",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "earthquake",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 2849
+    },
+    {
+      "fixture": "fast-eruption",
+      "label": "high-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "35",
+        "myHp": "158"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        ""
+      ],
+      "total": 2776,
+      "groups": 25,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": {
+        "nature": "mild",
+        "item": "",
+        "abilities": [
+          "blaze",
+          "flashfire"
+        ],
+        "hp": [
+          0,
+          20
+        ],
+        "defStat": "def",
+        "def": [
+          0,
+          0
+        ],
+        "atkStat": "spa",
+        "atk": [
+          11,
+          32
+        ],
+        "spe": [
+          0,
+          32
+        ]
+      },
+      "ranges": {
+        "hp": [
+          0,
+          20
+        ],
+        "def": [
+          0,
+          0
+        ],
+        "atk": [
+          11,
+          32
+        ],
+        "natures": 18
+      },
+      "actions": [
+        {
+          "move": "dragonclaw",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "earthquake",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 778
+    },
+    {
+      "fixture": "fast-eruption",
+      "label": "central-item-unknown",
+      "options": {
+        "unknownItem": true
+      },
+      "observed": {
+        "theirPct": "41",
+        "myHp": "155"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        "",
+        "choicescarf",
+        "charcoal"
+      ],
+      "total": 38414,
+      "groups": 116,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": {
+        "nature": "mild",
+        "item": "",
+        "abilities": [
+          "blaze",
+          "flashfire"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          0,
+          3
+        ],
+        "atkStat": "spa",
+        "atk": [
+          14,
+          32
+        ],
+        "spe": [
+          0,
+          20
+        ]
+      },
+      "ranges": {
+        "hp": [
+          0,
+          32
+        ],
+        "def": [
+          0,
+          4
+        ],
+        "atk": [
+          0,
+          32
+        ],
+        "natures": 25
+      },
+      "actions": [
+        {
+          "move": "dragonclaw",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "동속 또는 후보별 선후공 차이",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "earthquake",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "동속 또는 후보별 선후공 차이",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 7140
+    },
+    {
+      "fixture": "fast-eruption",
+      "label": "central-dealt-only",
+      "options": {
+        "dealtOnly": true,
+        "noForecast": true
+      },
+      "observed": {
+        "theirPct": "41",
+        "myHp": ""
+      },
+      "order": "unknown",
+      "assumedItems": [
+        ""
+      ],
+      "total": 926,
+      "groups": 79,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": {
+        "nature": "gentle",
+        "item": "",
+        "abilities": [
+          "blaze",
+          "flashfire"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          0,
+          3
+        ],
+        "atkStat": null,
+        "atk": [
+          0,
+          0
+        ],
+        "spe": [
+          0,
+          32
+        ]
+      },
+      "ranges": {
+        "hp": [
+          0,
+          32
+        ],
+        "def": [
+          0,
+          4
+        ],
+        "atk": [
+          0,
+          0
+        ],
+        "natures": 25
+      },
+      "actions": [],
+      "ms": 63
+    },
+    {
+      "fixture": "fast-eruption",
+      "label": "central-minus-1pct",
+      "options": {
+        "pctDelta": -1
+      },
+      "observed": {
+        "theirPct": "40",
+        "myHp": "155"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        ""
+      ],
+      "total": 10386,
+      "groups": 43,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": {
+        "nature": "mild",
+        "item": "",
+        "abilities": [
+          "blaze",
+          "flashfire"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          0,
+          0
+        ],
+        "atkStat": "spa",
+        "atk": [
+          10,
+          32
+        ],
+        "spe": [
+          0,
+          24
+        ]
+      },
+      "ranges": {
+        "hp": [
+          0,
+          32
+        ],
+        "def": [
+          0,
+          0
+        ],
+        "atk": [
+          7,
+          32
+        ],
+        "natures": 21
+      },
+      "actions": [
+        {
+          "move": "dragonclaw",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "earthquake",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 2390
+    },
+    {
+      "fixture": "fast-eruption",
+      "label": "central-plus-1pct",
+      "options": {
+        "pctDelta": 1
+      },
+      "observed": {
+        "theirPct": "42",
+        "myHp": "155"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        ""
+      ],
+      "total": 18080,
+      "groups": 54,
+      "truthRetained": false,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": {
+        "nature": "mild",
+        "item": "",
+        "abilities": [
+          "blaze",
+          "flashfire"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          0,
+          0
+        ],
+        "atkStat": "spa",
+        "atk": [
+          8,
+          27
+        ],
+        "spe": [
+          0,
+          26
+        ]
+      },
+      "ranges": {
+        "hp": [
+          0,
+          32
+        ],
+        "def": [
+          0,
+          5
+        ],
+        "atk": [
+          1,
+          32
+        ],
+        "natures": 25
+      },
+      "actions": [
+        {
+          "move": "dragonclaw",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "earthquake",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 3134
+    },
+    {
+      "fixture": "consumed-berry",
+      "label": "low-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "22",
+        "myHp": "147"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        "occaberry"
+      ],
+      "total": 1974,
+      "groups": 21,
+      "truthRetained": true,
+      "top1ContainsTruth": true,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "careful",
+        "item": "occaberry",
+        "abilities": [
+          "lightmetal",
+          "swarm",
+          "technician"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "spd",
+        "def": [
+          19,
+          32
+        ],
+        "atkStat": "atk",
+        "atk": [
+          0,
+          15
+        ],
+        "spe": [
+          0,
+          15
+        ]
+      },
+      "ranges": {
+        "hp": [
+          32,
+          32
+        ],
+        "def": [
+          19,
+          32
+        ],
+        "atk": [
+          0,
+          15
+        ],
+        "natures": 21
+      },
+      "actions": [
+        {
+          "move": "flamethrower",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "airslash",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 272
+    },
+    {
+      "fixture": "consumed-berry",
+      "label": "central",
+      "options": {},
+      "observed": {
+        "theirPct": "14",
+        "myHp": "145"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        "occaberry"
+      ],
+      "total": 11010,
+      "groups": 25,
+      "truthRetained": true,
+      "top1ContainsTruth": true,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "careful",
+        "item": "occaberry",
+        "abilities": [
+          "lightmetal",
+          "swarm",
+          "technician"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "spd",
+        "def": [
+          7,
+          30
+        ],
+        "atkStat": "atk",
+        "atk": [
+          0,
+          25
+        ],
+        "spe": [
+          0,
+          27
+        ]
+      },
+      "ranges": {
+        "hp": [
+          32,
+          32
+        ],
+        "def": [
+          7,
+          32
+        ],
+        "atk": [
+          0,
+          27
+        ],
+        "natures": 25
+      },
+      "actions": [
+        {
+          "move": "flamethrower",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "airslash",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 1357
+    },
+    {
+      "fixture": "consumed-berry",
+      "label": "high-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "7",
+        "myHp": "140"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        "occaberry"
+      ],
+      "total": 8592,
+      "groups": 19,
+      "truthRetained": true,
+      "top1ContainsTruth": true,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "careful",
+        "item": "occaberry",
+        "abilities": [
+          "lightmetal",
+          "swarm",
+          "technician"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "spd",
+        "def": [
+          0,
+          20
+        ],
+        "atkStat": "atk",
+        "atk": [
+          12,
+          32
+        ],
+        "spe": [
+          0,
+          22
+        ]
+      },
+      "ranges": {
+        "hp": [
+          32,
+          32
+        ],
+        "def": [
+          0,
+          32
+        ],
+        "atk": [
+          0,
+          32
+        ],
+        "natures": 19
+      },
+      "actions": [
+        {
+          "move": "flamethrower",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "airslash",
+          "own": "KO 확정",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              1,
+              1
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 1708
+    },
+    {
+      "fixture": "fast-archaludon",
+      "label": "low-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "38",
+        "myHp": "89"
+      },
+      "order": "opp-first",
+      "assumedItems": [
+        ""
+      ],
+      "total": 29916,
+      "groups": 25,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "rash",
+        "item": "",
+        "abilities": [
+          "stalwart",
+          "sturdy",
+          "stamina"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "spd",
+        "def": [
+          0,
+          9
+        ],
+        "atkStat": "spa",
+        "atk": [
+          3,
+          32
+        ],
+        "spe": [
+          0,
+          31
+        ]
+      },
+      "ranges": {
+        "hp": [
+          0,
+          32
+        ],
+        "def": [
+          0,
+          9
+        ],
+        "atk": [
+          3,
+          32
+        ],
+        "natures": 21
+      },
+      "actions": [
+        {
+          "move": "moonblast",
+          "own": "형태에 따라 다름",
+          "death": "형태에 따라 다름",
+          "order": "상대 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              1,
+              1
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "hydropump",
+          "own": "형태에 따라 다름",
+          "death": "형태에 따라 다름",
+          "order": "상대 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              1,
+              1
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 7212
+    },
+    {
+      "fixture": "fast-archaludon",
+      "label": "central",
+      "options": {},
+      "observed": {
+        "theirPct": "31",
+        "myHp": "85"
+      },
+      "order": "opp-first",
+      "assumedItems": [
+        ""
+      ],
+      "total": 10386,
+      "groups": 22,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": {
+        "nature": "rash",
+        "item": "",
+        "abilities": [
+          "stalwart",
+          "sturdy",
+          "stamina"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "spd",
+        "def": [
+          0,
+          0
+        ],
+        "atkStat": "spa",
+        "atk": [
+          9,
+          32
+        ],
+        "spe": [
+          0,
+          25
+        ]
+      },
+      "ranges": {
+        "hp": [
+          1,
+          32
+        ],
+        "def": [
+          0,
+          0
+        ],
+        "atk": [
+          9,
+          32
+        ],
+        "natures": 18
+      },
+      "actions": [
+        {
+          "move": "moonblast",
+          "own": "KO 불가",
+          "death": "확정으로 쓰러짐",
+          "order": "상대 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              1,
+              1
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "hydropump",
+          "own": "KO 불가",
+          "death": "확정으로 쓰러짐",
+          "order": "상대 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              1,
+              1
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 4115
+    },
+    {
+      "fixture": "fast-archaludon",
+      "label": "high-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "28",
+        "myHp": "71"
+      },
+      "order": "opp-first",
+      "assumedItems": [
+        ""
+      ],
+      "total": 240,
+      "groups": 4,
+      "truthRetained": true,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "rash",
+        "item": "",
+        "abilities": [
+          "stalwart",
+          "sturdy",
+          "stamina"
+        ],
+        "hp": [
+          0,
+          25
+        ],
+        "defStat": "spd",
+        "def": [
+          0,
+          0
+        ],
+        "atkStat": "spa",
+        "atk": [
+          31,
+          32
+        ],
+        "spe": [
+          0,
+          32
+        ]
+      },
+      "ranges": {
+        "hp": [
+          0,
+          25
+        ],
+        "def": [
+          0,
+          0
+        ],
+        "atk": [
+          31,
+          32
+        ],
+        "natures": 4
+      },
+      "actions": [
+        {
+          "move": "moonblast",
+          "own": "KO 불가",
+          "death": "확정으로 쓰러짐",
+          "order": "상대 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              1,
+              1
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "hydropump",
+          "own": "KO 불가",
+          "death": "확정으로 쓰러짐",
+          "order": "상대 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              1,
+              1
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 1047
+    },
+    {
+      "fixture": "outside-split-bulk",
+      "label": "low-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "65",
+        "myHp": "148"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        "leftovers"
+      ],
+      "total": 7443,
+      "groups": 22,
+      "truthRetained": false,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": {
+        "nature": "impish",
+        "item": "leftovers",
+        "abilities": [
+          "thickfat",
+          "gluttony",
+          "immunity"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          9,
+          29
+        ],
+        "atkStat": "atk",
+        "atk": [
+          3,
+          25
+        ],
+        "spe": [
+          0,
+          22
+        ]
+      },
+      "ranges": {
+        "hp": [
+          32,
+          32
+        ],
+        "def": [
+          9,
+          32
+        ],
+        "atk": [
+          0,
+          25
+        ],
+        "natures": 22
+      },
+      "actions": [
+        {
+          "move": "earthquake",
+          "own": "KO 불가",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "dragonclaw",
+          "own": "KO 불가",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 2088
+    },
+    {
+      "fixture": "outside-split-bulk",
+      "label": "central",
+      "options": {},
+      "observed": {
+        "theirPct": "62",
+        "myHp": "139"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        "leftovers"
+      ],
+      "total": 1704,
+      "groups": 18,
+      "truthRetained": false,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": {
+        "nature": "impish",
+        "item": "leftovers",
+        "abilities": [
+          "thickfat",
+          "gluttony",
+          "immunity"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          4,
+          13
+        ],
+        "atkStat": "atk",
+        "atk": [
+          21,
+          30
+        ],
+        "spe": [
+          0,
+          9
+        ]
+      },
+      "ranges": {
+        "hp": [
+          32,
+          32
+        ],
+        "def": [
+          4,
+          26
+        ],
+        "atk": [
+          8,
+          30
+        ],
+        "natures": 18
+      },
+      "actions": [
+        {
+          "move": "earthquake",
+          "own": "KO 불가",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "dragonclaw",
+          "own": "KO 불가",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 2162
+    },
+    {
+      "fixture": "outside-split-bulk",
+      "label": "high-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "57",
+        "myHp": "134"
+      },
+      "order": "my-first",
+      "assumedItems": [
+        "leftovers"
+      ],
+      "total": 2307,
+      "groups": 21,
+      "truthRetained": false,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": {
+        "nature": "impish",
+        "item": "leftovers",
+        "abilities": [
+          "thickfat",
+          "gluttony",
+          "immunity"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "def",
+        "def": [
+          0,
+          4
+        ],
+        "atkStat": "atk",
+        "atk": [
+          30,
+          32
+        ],
+        "spe": [
+          0,
+          4
+        ]
+      },
+      "ranges": {
+        "hp": [
+          12,
+          32
+        ],
+        "def": [
+          0,
+          18
+        ],
+        "atk": [
+          16,
+          32
+        ],
+        "natures": 18
+      },
+      "actions": [
+        {
+          "move": "earthquake",
+          "own": "형태에 따라 다름",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "dragonclaw",
+          "own": "KO 불가",
+          "death": "확정 생존",
+          "order": "내 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              0,
+              0
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 4177
+    },
+    {
+      "fixture": "hidden-expert-belt",
+      "label": "low-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "48",
+        "myHp": "69"
+      },
+      "order": "opp-first",
+      "assumedItems": [
+        "",
+        "choicescarf",
+        "dragonfang",
+        "metalcoat"
+      ],
+      "total": 0,
+      "groups": 0,
+      "truthRetained": false,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": null,
+      "ranges": {
+        "hp": null,
+        "def": null,
+        "atk": null,
+        "natures": 0
+      },
+      "actions": [],
+      "ms": 3959
+    },
+    {
+      "fixture": "hidden-expert-belt",
+      "label": "central",
+      "options": {},
+      "observed": {
+        "theirPct": "46",
+        "myHp": "55"
+      },
+      "order": "opp-first",
+      "assumedItems": [
+        "",
+        "choicescarf",
+        "dragonfang",
+        "metalcoat"
+      ],
+      "total": 0,
+      "groups": 0,
+      "truthRetained": false,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": null,
+      "ranges": {
+        "hp": null,
+        "def": null,
+        "atk": null,
+        "natures": 0
+      },
+      "actions": [],
+      "ms": 4025
+    },
+    {
+      "fixture": "hidden-expert-belt",
+      "label": "high-damage",
+      "options": {},
+      "observed": {
+        "theirPct": "39",
+        "myHp": "48"
+      },
+      "order": "opp-first",
+      "assumedItems": [
+        "",
+        "choicescarf",
+        "dragonfang",
+        "metalcoat"
+      ],
+      "total": 0,
+      "groups": 0,
+      "truthRetained": false,
+      "top1ContainsTruth": false,
+      "top5ContainsTruth": false,
+      "top": null,
+      "ranges": {
+        "hp": null,
+        "def": null,
+        "atk": null,
+        "natures": 0
+      },
+      "actions": [],
+      "ms": 4145
+    },
+    {
+      "fixture": "hidden-expert-belt",
+      "label": "central-belt-confirmed",
+      "options": {
+        "forceItem": "expertbelt"
+      },
+      "observed": {
+        "theirPct": "46",
+        "myHp": "55"
+      },
+      "order": "opp-first",
+      "assumedItems": [
+        "expertbelt"
+      ],
+      "total": 1692,
+      "groups": 7,
+      "truthRetained": true,
+      "top1ContainsTruth": true,
+      "top5ContainsTruth": true,
+      "top": {
+        "nature": "modest",
+        "item": "expertbelt",
+        "abilities": [
+          "stalwart",
+          "sturdy",
+          "stamina"
+        ],
+        "hp": [
+          32,
+          32
+        ],
+        "defStat": "spd",
+        "def": [
+          0,
+          12
+        ],
+        "atkStat": "spa",
+        "atk": [
+          22,
+          32
+        ],
+        "spe": [
+          0,
+          12
+        ]
+      },
+      "ranges": {
+        "hp": [
+          24,
+          32
+        ],
+        "def": [
+          0,
+          12
+        ],
+        "atk": [
+          22,
+          32
+        ],
+        "natures": 4
+      },
+      "actions": [
+        {
+          "move": "moonblast",
+          "own": "KO 불가",
+          "death": "확정으로 쓰러짐",
+          "order": "상대 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              1,
+              1
+            ]
+          },
+          "unsupportedCertain": false
+        },
+        {
+          "move": "hydropump",
+          "own": "KO 불가",
+          "death": "확정으로 쓰러짐",
+          "order": "상대 선공",
+          "truth": {
+            "ko": [
+              0,
+              0
+            ],
+            "death": [
+              1,
+              1
+            ]
+          },
+          "unsupportedCertain": false
+        }
+      ],
+      "ms": 1645
+    }
+  ],
+  "summary": {
+    "rows": 26,
+    "truthRetained": 19,
+    "top1ContainsTruth": 7,
+    "top5ContainsTruth": 12,
+    "empty": 3,
+    "actions": 44,
+    "falseCertainActions": 0
+  }
+}

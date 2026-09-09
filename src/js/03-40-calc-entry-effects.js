@@ -34,6 +34,8 @@ function cloneSideForCalc(side) {
     ranks: { ...side.ranks },
     types: Array.isArray(side.types) ? [...side.types] : [],
     moves: Array.isArray(side.moves) ? [...side.moves] : [],
+    moveHitCounts: [...(side.moveHitCounts || [null, null, null, null])],
+    beatUpParty: [...(side.beatUpParty || [])],
     moveBpOverrides: Array.isArray(side.moveBpOverrides) ? [...side.moveBpOverrides] : [null, null, null, null],
     moveTypeOverrides: Array.isArray(side.moveTypeOverrides) ? [...side.moveTypeOverrides] : [null, null, null, null],
     moveCriticalOverrides: Array.isArray(side.moveCriticalOverrides) ? [...side.moveCriticalOverrides] : [false, false, false, false],
@@ -159,7 +161,8 @@ function applyDerivedEntryRankEffects(calcState, meta) {
     const side = calcState[sideKey];
     const otherKey = otherCalcSideKey(sideKey);
     const other = calcState[otherKey];
-    const effect = ENTRY_EFFECTS[side.ability];
+    const abilities = battleAbilityContext(side, other);
+    const effect = ENTRY_EFFECTS[abilities.atkAb];
     if (!effect) continue;
 
     if (effect.selfBoost) {
@@ -171,17 +174,26 @@ function applyDerivedEntryRankEffects(calcState, meta) {
     }
 
     if (effect.opponentBoost) {
-      const otherAb = other.ability;
-      if (effect.blockable && INTIMIDATE_BLOCKERS.includes(otherAb)) {
-        const log = `${sideEntryLabel(sideKey)} 위협 무효 (${AbilityById[otherAb]?.koName || otherAb})`;
+      const otherAb = abilities.defAb;
+      const otherItem = effectiveBattleItem(other, otherAb);
+      const blocksIntimidate = INTIMIDATE_BLOCKERS.includes(otherAb) && !['rattled', 'guarddog'].includes(otherAb);
+      if (effect.blockable && (blocksIntimidate || otherAb === 'hypercutter' || otherItem === 'clearamulet')) {
+        const blocker = otherItem === 'clearamulet' ? displayName(ItemById[otherItem]) : displayName(AbilityById[otherAb], otherAb);
+        const log = `${sideEntryLabel(sideKey)} 위협 무효 (${blocker})`;
         meta.blocked.push(log);
         meta.logs.push(log);
       } else {
         let changed = false;
         for (const [stat, n] of Object.entries(effect.opponentBoost)) {
-          changed = applyRankDelta(other, meta, otherKey, stat, n) !== 0 || changed;
+          const delta = otherAb === 'contrary' || otherAb === 'guarddog' ? -n : otherAb === 'simple' ? n * 2 : n;
+          const applied = applyRankDelta(other, meta, otherKey, stat, delta);
+          changed = applied !== 0 || changed;
+          if (applied < 0 && otherAb === 'defiant') applyRankDelta(other, meta, otherKey, 'atk', 2);
+          if (applied < 0 && otherAb === 'competitive') applyRankDelta(other, meta, otherKey, 'spa', 2);
+          if (effect.blockable && otherAb === 'rattled') applyRankDelta(other, meta, otherKey, 'spe', 1);
         }
         if (changed) meta.logs.push(`${sideEntryLabel(sideKey)} 진입: ${effect.label}`);
+        if (['defiant', 'competitive', 'contrary', 'simple', 'guarddog', 'rattled'].includes(otherAb)) meta.logs.push(`${sideEntryLabel(otherKey)} ${displayName(AbilityById[otherAb])} 반응 반영`);
       }
     }
 
@@ -198,7 +210,7 @@ function applyDerivedEntryRankEffects(calcState, meta) {
 function applyContinuousAbilityEffects(calcState, meta) {
   for (const sideKey of ['atk', 'def']) {
     const side = calcState[sideKey];
-    const effect = ENTRY_EFFECTS[side.ability];
+    const effect = ENTRY_EFFECTS[battleAbilityContext(side, calcState[otherCalcSideKey(sideKey)]).atkAb];
     if (!effect) continue;
     if (effect.ruin) {
       const RUIN_MAP = { spd: 'ruinBeads', atk: 'ruinTablet', def: 'ruinSword', spa: 'ruinVessel' };
@@ -228,7 +240,7 @@ function makeCalcState() {
     def: cloneSideForCalc(state.def),
     field: cloneFieldForCalc(state.field),
   };
-  calcState.atk.fallenAllies = clampFallenAllies(calcState.atk.fallenAllies, calcState.field.gameType);
+  for (const side of [calcState.atk, calcState.def]) side.fallenAllies = clampFallenAllies(side.fallenAllies, calcState.field.gameType);
   calcState.entryMeta = applyEntryEffectsToCalcState(calcState);
   return calcState;
 }
@@ -262,6 +274,8 @@ function resetManualAutoFieldOverrides() {
 
 function syncFieldControls(fieldState = null) {
   const f = fieldState || makeCalcState().field;
+  document.querySelectorAll('[data-power-field]').forEach(input => { input.checked = !!f[input.dataset.powerField]; });
+  document.querySelectorAll('[data-power-choice]').forEach(input => { input.value = f[input.dataset.powerChoice] || 'auto'; });
   const setChecked = (id, value) => {
     const el = document.getElementById(id);
     if (el) el.checked = !!value;

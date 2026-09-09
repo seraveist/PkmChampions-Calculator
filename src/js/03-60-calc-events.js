@@ -1,6 +1,6 @@
 /* Damage calculator field controls and page-level events. */
 document.getElementById('calc-field-head').addEventListener('click', e => {
-  if (e.target.closest('input, button, label, .combobox, .calc-field-auto-toggle')) return;
+  if (e.target.closest('input, select, button, label, .combobox, .calc-field-auto-toggle')) return;
   document.getElementById('calc-field-panel').classList.toggle('collapsed');
 });
 
@@ -27,8 +27,9 @@ function wireFieldComboboxes() {
         } else if (field === 'gameType') {
           state.field.gameType = id || 'Singles';
           setComboboxValue('gameType', state.field.gameType, 'gameType');
-          state.atk.fallenAllies = clampFallenAllies(state.atk.fallenAllies);
+          for (const side of [state.atk, state.def]) side.fallenAllies = clampFallenAllies(side.fallenAllies);
           renderSide('atk');
+          renderSide('def');
         } else if (field === 'defSpikesLayers') {
           const layers = Math.max(1, Math.min(3, parseInt(id, 10) || 1));
           setComboboxValue('defSpikesLayers', String(layers), 'spikesLayers');
@@ -43,6 +44,18 @@ function wireFieldComboboxes() {
 }
 
 wireFieldComboboxes();
+document.querySelectorAll('[data-power-field]').forEach(input => {
+  input.addEventListener('change', () => {
+    state.field[input.dataset.powerField] = input.checked;
+    triggerCalc();
+  });
+});
+document.querySelectorAll('[data-power-choice]').forEach(input => {
+  input.addEventListener('change', () => {
+    state.field[input.dataset.powerChoice] = input.value;
+    triggerCalc();
+  });
+});
 
 function syncSpikesLayerControl(enabled = false) {
   const input = document.getElementById('defSpikesLayers');
@@ -64,8 +77,8 @@ document.getElementById('ruinTablet').addEventListener('change', e => { markManu
 document.getElementById('ruinBeads').addEventListener('change', e => { markManualAutoFieldOverride('ruinBeads'); state.field.ruinBeads = e.target.checked; triggerCalc(); });
 document.getElementById('ruinVessel').addEventListener('change', e => { markManualAutoFieldOverride('ruinVessel'); state.field.ruinVessel = e.target.checked; triggerCalc(); });
 // 진입 위험 (스텔스록 / 압정뿌리기)
-document.getElementById('defStealthRock').addEventListener('change', e => { state.field.defStealthRock = e.target.checked; triggerCalc(); });
-document.getElementById('defSpikes').addEventListener('change', e => {
+document.getElementById('defStealthRock')?.addEventListener('change', e => { state.field.defStealthRock = e.target.checked; triggerCalc(); });
+document.getElementById('defSpikes')?.addEventListener('change', e => {
   const layerInput = document.getElementById('defSpikesLayers');
   const layers = parseInt(layerInput?.dataset.value || layerInput?.value, 10) || 1;
   syncSpikesLayerControl(e.target.checked);

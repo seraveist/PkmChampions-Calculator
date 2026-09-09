@@ -1,0 +1,314 @@
+[
+  {
+    "width": 1440,
+    "ms": 221,
+    "observationTop": 818.390625,
+    "resultTop": 1664.390625,
+    "resultKeyboard": [
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      }
+    ],
+    "overflow": -15,
+    "stage": "complete",
+    "oldResultUnchanged": true,
+    "inputAfter": "0",
+    "analyzedInput": 50,
+    "groups": 212,
+    "total": 25224,
+    "rows": 5,
+    "inputs": [
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "action": "observedTheirPct"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "dealt"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "dealt"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "dealt"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "action": "observedMyHp"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "received"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "received"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "received"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "field": "trickRoom"
+      },
+      {
+        "tag": "BUTTON",
+        "aria": null,
+        "action": "turnOrder"
+      },
+      {
+        "tag": "BUTTON",
+        "aria": null,
+        "field": "weather"
+      },
+      {
+        "tag": "BUTTON",
+        "aria": null,
+        "field": "terrain"
+      }
+    ],
+    "text": "내 포켓몬\n포켓몬\n불러오기\n드래곤\n땅\n특성\n성격\n도구\n능력 포인트\n총합\n0\n/ 66\n능력\n종족값\n포인트\n실수치\n랭크\nHP\n108\n0\n32\n183\n공격\n130\n0\n32\n150\n-\n0\n+\n방어\n95\n0\n32\n115\n-\n0\n+\n특공\n80\n0\n32\n100\n-\n0\n+\n특방\n85\n0\n32\n105\n-\n0\n+\n속도\n102\n0\n32\n122\n-\n0\n+\n기술배치\n상대 포켓몬\n포켓몬\n벌레\n강철\n상태\n건강\n능력 상태\n능력\n종족값\n랭크\nHP\n70\n공격\n130\n-\n0\n+\n방어\n100\n-\n0\n+\n특공\n55\n-\n0\n+\n특방\n80\n-\n0\n+\n속도\n65\n-\n0\n+\n관측 데이터\n입력 가능\n내 행동\n사용 기술\n상대 남은 HP %\n상대 리플렉터\n상대 빛의장막\n내 공격 급소\n상대 행동\n사용 기술\n내 남은 HP\n상대 도구\n내 리플렉터\n내 빛의장막\n상대 공격 급소\n선후공 | 필드 상태\n트릭룸\n이번 턴 행동 순서\n미설정\n날씨\n없음\n필드\n없음\n도구 후보\n고정됨\n형태 분석 결과\n분석 완료\n형태 분석\n요약\n상위 후보는 도구 없음, 차분 성격입니다. 관측 투자 범위는 H+B 7~20포인트, A/C 0포인트, S 0포인트입니다. 속도 조건은 사용하지 않았습니다.\n다음 행동 랭크\n펼치기\n#1\nH7~20\n차분\n도구 없음\n특수막이형 · H20 / C14 / D32\n속도 미사용 · 속도 미사용 · 관측 7~52 / 완성 66\n#2\nH7~20\n신중\n도구 없음\n특수막이형 · H20 / C14 / D32\n속도 미사용 · 속도 미사용 · 관측 7~52 / 완성 66\n#3\nH1~14 / B1~17\n차분\n도구 없음\n특수막이형 · H14 / B1 / C19 / D32\n속도 미사용 · 속도 미사용 · 관측 2~50 / 완성 66\n#4\nH1~14 / B1~17\n신중\n도구 없음\n특수막이형 · H14 / B1 / C19 / D32\n속도 미사용 · 속도 미사용 · 관측 2~50 / 완성 66\n#5\nH1~14 / B1~17\n명랑\n도구 없음\n고속 어태커형 · H1 / B1 / C32 / S32\n속도 미사용 · 속도 미사용 · 관측 2~50 / 완성 66"
+  },
+  {
+    "width": 375,
+    "ms": 50,
+    "observationTop": 2386,
+    "resultTop": 3586,
+    "resultKeyboard": [
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      }
+    ],
+    "overflow": 0,
+    "stage": "complete",
+    "oldResultUnchanged": true,
+    "inputAfter": "0",
+    "analyzedInput": 50,
+    "groups": 212,
+    "total": 25224,
+    "rows": 5,
+    "inputs": [
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "action": "observedTheirPct"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "dealt"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "dealt"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "dealt"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "action": "observedMyHp"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "received"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "received"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "received"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "field": "trickRoom"
+      },
+      {
+        "tag": "BUTTON",
+        "aria": null,
+        "action": "turnOrder"
+      },
+      {
+        "tag": "BUTTON",
+        "aria": null,
+        "field": "weather"
+      },
+      {
+        "tag": "BUTTON",
+        "aria": null,
+        "field": "terrain"
+      }
+    ],
+    "text": "내 포켓몬\n포켓몬\n불러오기\n드래곤\n땅\n특성\n성격\n도구\n능력 포인트\n총합\n0\n/ 66\nHP\n108\n0\n32\n183\n공격\n130\n0\n32\n150\n-\n0\n+\n방어\n95\n0\n32\n115\n-\n0\n+\n특공\n80\n0\n32\n100\n-\n0\n+\n특방\n85\n0\n32\n105\n-\n0\n+\n속도\n102\n0\n32\n122\n-\n0\n+\n기술배치\n상대 포켓몬\n포켓몬\n벌레\n강철\n상태\n건강\n능력 상태\nHP\n70\n공격\n130\n-\n0\n+\n방어\n100\n-\n0\n+\n특공\n55\n-\n0\n+\n특방\n80\n-\n0\n+\n속도\n65\n-\n0\n+\n관측 데이터\n입력 가능\n내 행동\n사용 기술\n상대 남은 HP %\n상대 리플렉터\n상대 빛의장막\n내 공격 급소\n상대 행동\n사용 기술\n내 남은 HP\n상대 도구\n내 리플렉터\n내 빛의장막\n상대 공격 급소\n선후공 | 필드 상태\n트릭룸\n이번 턴 행동 순서\n미설정\n날씨\n없음\n필드\n없음\n도구 후보\n고정됨\n형태 분석 결과\n분석 완료\n형태 분석\n요약\n상위 후보는 도구 없음, 차분 성격입니다. 관측 투자 범위는 H+B 7~20포인트, A/C 0포인트, S 0포인트입니다. 속도 조건은 사용하지 않았습니다.\n다음 행동 랭크\n펼치기\n#1\nH7~20\n차분\n도구 없음\n특수막이형 · H20 / C14 / D32\n속도 미사용 · 속도 미사용 · 관측 7~52 / 완성 66\n#2\nH7~20\n신중\n도구 없음\n특수막이형 · H20 / C14 / D32\n속도 미사용 · 속도 미사용 · 관측 7~52 / 완성 66\n#3\nH1~14 / B1~17\n차분\n도구 없음\n특수막이형 · H14 / B1 / C19 / D32\n속도 미사용 · 속도 미사용 · 관측 2~50 / 완성 66\n#4\nH1~14 / B1~17\n신중\n도구 없음\n특수막이형 · H14 / B1 / C19 / D32\n속도 미사용 · 속도 미사용 · 관측 2~50 / 완성 66\n#5\nH1~14 / B1~17\n명랑\n도구 없음\n고속 어태커형 · H1 / B1 / C32 / S32\n속도 미사용 · 속도 미사용 · 관측 2~50 / 완성 66"
+  },
+  {
+    "width": 320,
+    "ms": 51,
+    "observationTop": 2386,
+    "resultTop": 3586,
+    "resultKeyboard": [
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      },
+      {
+        "tag": "DIV",
+        "tabIndex": -1,
+        "role": null
+      }
+    ],
+    "overflow": 0,
+    "stage": "complete",
+    "oldResultUnchanged": true,
+    "inputAfter": "0",
+    "analyzedInput": 50,
+    "groups": 212,
+    "total": 25224,
+    "rows": 5,
+    "inputs": [
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "action": "observedTheirPct"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "dealt"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "dealt"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "dealt"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "action": "observedMyHp"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "received"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "received"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "observedField": "received"
+      },
+      {
+        "tag": "INPUT",
+        "aria": null,
+        "field": "trickRoom"
+      },
+      {
+        "tag": "BUTTON",
+        "aria": null,
+        "action": "turnOrder"
+      },
+      {
+        "tag": "BUTTON",
+        "aria": null,
+        "field": "weather"
+      },
+      {
+        "tag": "BUTTON",
+        "aria": null,
+        "field": "terrain"
+      }
+    ],
+    "text": "내 포켓몬\n포켓몬\n불러오기\n드래곤\n땅\n특성\n성격\n도구\n능력 포인트\n총합\n0\n/ 66\nHP\n108\n0\n32\n183\n공격\n130\n0\n32\n150\n-\n0\n+\n방어\n95\n0\n32\n115\n-\n0\n+\n특공\n80\n0\n32\n100\n-\n0\n+\n특방\n85\n0\n32\n105\n-\n0\n+\n속도\n102\n0\n32\n122\n-\n0\n+\n기술배치\n상대 포켓몬\n포켓몬\n벌레\n강철\n상태\n건강\n능력 상태\nHP\n70\n공격\n130\n-\n0\n+\n방어\n100\n-\n0\n+\n특공\n55\n-\n0\n+\n특방\n80\n-\n0\n+\n속도\n65\n-\n0\n+\n관측 데이터\n입력 가능\n내 행동\n사용 기술\n상대 남은 HP %\n상대 리플렉터\n상대 빛의장막\n내 공격 급소\n상대 행동\n사용 기술\n내 남은 HP\n상대 도구\n내 리플렉터\n내 빛의장막\n상대 공격 급소\n선후공 | 필드 상태\n트릭룸\n이번 턴 행동 순서\n미설정\n날씨\n없음\n필드\n없음\n도구 후보\n고정됨\n형태 분석 결과\n분석 완료\n형태 분석\n요약\n상위 후보는 도구 없음, 차분 성격입니다. 관측 투자 범위는 H+B 7~20포인트, A/C 0포인트, S 0포인트입니다. 속도 조건은 사용하지 않았습니다.\n다음 행동 랭크\n펼치기\n#1\nH7~20\n차분\n도구 없음\n특수막이형 · H20 / C14 / D32\n속도 미사용 · 속도 미사용 · 관측 7~52 / 완성 66\n#2\nH7~20\n신중\n도구 없음\n특수막이형 · H20 / C14 / D32\n속도 미사용 · 속도 미사용 · 관측 7~52 / 완성 66\n#3\nH1~14 / B1~17\n차분\n도구 없음\n특수막이형 · H14 / B1 / C19 / D32\n속도 미사용 · 속도 미사용 · 관측 2~50 / 완성 66\n#4\nH1~14 / B1~17\n신중\n도구 없음\n특수막이형 · H14 / B1 / C19 / D32\n속도 미사용 · 속도 미사용 · 관측 2~50 / 완성 66\n#5\nH1~14 / B1~17\n명랑\n도구 없음\n고속 어태커형 · H1 / B1 / C32 / S32\n속도 미사용 · 속도 미사용 · 관측 2~50 / 완성 66"
+  }
+]

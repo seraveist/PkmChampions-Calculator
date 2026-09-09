@@ -433,7 +433,6 @@
   min-height: var(--tool-move-control-height);
   border: 0;
   border-radius: var(--tool-move-control-radius);
-  color: #ffffff;
 }
 
 .tool-move-power-control {

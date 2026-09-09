@@ -1,7 +1,7 @@
 {
   "repository": "smogon/pokemon-showdown",
   "ref": "master",
-  "commit": "2f5b273925862ac242b419086c1e7a8868b51da1",
+  "commit": "812501ede865eea397cd6e9a6f040d73ff57cc84",
   "files": [
     "data/pokedex.ts",
     "data/moves.ts",
@@ -31,10 +31,10 @@
     "data/mods/champions/rulesets.ts"
   ],
   "fileHashes": {
-    "data/pokedex.ts": "0e5de661ed6183386c7f23c9b9061b67bb97d407d72db3a86b37c93f4faf6704",
-    "data/moves.ts": "94b19d57228ec4b6dbecaae3f3e155296702caf859b873ffbee730c46885e85c",
+    "data/pokedex.ts": "44c4d39f4677f9bd52a7ed566fd23d009dfbc28e33d19dcdc39f523e51a3ee1a",
+    "data/moves.ts": "ebab3a759f1d27e2f89a3672fd8afa58d01f1da82ad2e26593d2d2b941af9a07",
     "data/abilities.ts": "818edd100c8eb5bdf4d4ded8dd1b1ce9d394f87f40f7d9d53a5414276e84f82b",
-    "data/items.ts": "fd7a7b798ac872e53f7ee41806b3ec5692fa5bebcd720b544dd45bbed79a0a14",
+    "data/items.ts": "36a6de57568fc70b50ec971af3a53721533fecd18969c6cc45092b643c7ff2ae",
     "data/learnsets.ts": "26969c5e9ca7310b701612da8c9cea217b7d43efb8cd22a7e46783a6ca9b386e",
     "data/typechart.ts": "7b0eae126bdcf98edfd71cbe75af00b763f5f0d5db36024b6f3e7c5e4aea95ac",
     "data/natures.ts": "5cfefee4c23dd19f629deb9a67f75361226bd24fe34cefe9a13d30d985428416",
@@ -49,11 +49,11 @@
     "data/text/moves.ts": "dfec678d8187debcfebab5834e956fc1d27e3a05ecd262b08643bc717645f6fe",
     "data/text/abilities.ts": "62d91e2833ea751e28493c08c038652b9f65b106bb7b126b88de1bab15f149ac",
     "data/text/items.ts": "6da3648ba93af5352290124c2c7cb86ec424125c2e611ffc758f4df9725cf1e6",
-    "data/mods/champions/formats-data.ts": "99a0010fc4435103837e858bea4e37c739989214a192b74cc2029aca065bfe6f",
-    "data/mods/champions/moves.ts": "d8ba4866ee50a4a4db8f960ea12bc7e30d2ddd83b112d2ddd2f6ec6f7176a42e",
-    "data/mods/champions/abilities.ts": "0e6b59e527a6aa50b2129ef977ed5136a41422ef7594dad8a78d2fe7757bff01",
-    "data/mods/champions/items.ts": "de9404d812bc0c998fbc60c36edb7fcff3ef57039e42f4c11e9594de03d15eab",
-    "data/mods/champions/learnsets.ts": "78fc395c01406008e054f63b168fe0b4ec7f7fec6ff6454f4d14a502147d2a9b",
+    "data/mods/champions/formats-data.ts": "214edb70f911838c06dc121bca7dd035899d00975d6423b414eb023894296dc9",
+    "data/mods/champions/moves.ts": "5467c62b1936d99d0f433809d844f56c94a507277c85fdc1cd23e53711de4616",
+    "data/mods/champions/abilities.ts": "ee7169db68cfa5cedf9367c4a2b412eafe9d73b784c3a0694e83671ff61db50b",
+    "data/mods/champions/items.ts": "64245bd903fa04da011abcd74d4eb7e20703824947e79fe4a12e0f0bbd774006",
+    "data/mods/champions/learnsets.ts": "5c35200a85a95ec326349405ca7bb9fad81eef75d59182fb52cb43b67c5b33d2",
     "data/mods/champions/scripts.ts": "8282488fa630255417e8bd4d6037d45e8d382ae28cdd84c230e59b33befa5fc2",
     "data/mods/champions/conditions.ts": "851507309dde0b58807e33b17d8ce7e607dad70893546f67bad294ad70249005",
     "data/mods/champions/rulesets.ts": "31671152a6ff1f09d81a5306baadaa1593ef235e5c7cdcc9180c67bac8e84cd9"

@@ -1190,3 +1190,41 @@
 #page-revcalc .rc-opp-stat-base {
   min-height: 36px;
 }
+
+#page-revcalc .rc-exchange-summary {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+#page-revcalc .rc-exchange-moves {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 10px;
+}
+
+#page-revcalc .rc-exchange-move {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--tool-line-soft);
+  border-radius: 10px;
+  color: var(--tool-text);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#page-revcalc .rc-next-rank-table > .rc-mini-note {
+  grid-column: 1 / -1;
+}
+
+#page-revcalc details > summary {
+  cursor: pointer;
+}
+
+#page-revcalc .rc-result-rank:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}

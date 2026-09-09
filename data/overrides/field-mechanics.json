@@ -1,11 +1,16 @@
 {
   "bpMods": [
+    { "field": "allyBattery", "gameType": "Doubles", "category": "Special", "mod": "x1_3", "label": "아군 배터리×1.3" },
+    { "field": "allyPowerSpot", "gameType": "Doubles", "mod": "x1_3", "label": "아군 파워스폿×1.3" },
     { "terrain": "Electric", "types": ["Electric"], "attackerGrounded": true, "mod": "x1_3", "label": "일렉트릭필드×1.3" },
     { "terrain": "Grassy", "types": ["Grass"], "attackerGrounded": true, "mod": "x1_3", "label": "그래스필드×1.3" },
     { "terrain": "Psychic", "types": ["Psychic"], "attackerGrounded": true, "mod": "x1_3", "label": "사이코필드×1.3" },
     { "terrain": "Misty", "types": ["Dragon"], "defenderGrounded": true, "mod": "x0_5", "label": "미스트필드 드래곤×0.5" },
     { "terrain": "Grassy", "moveFlag": "weakenedByGrassyTerrain", "mod": "x0_5", "label": "그래스필드 지진×0.5" },
     { "field": "atkHelpingHand", "mod": "x1_5", "label": "도우미×1.5" }
+  ],
+  "finalMods": [
+    { "field": "allyFriendGuard", "gameType": "Doubles", "mod": "x0_75", "label": "수비 아군 프렌드가드×0.75" }
   ],
   "weatherDamageMods": [
     { "weather": ["Sun", "Harsh Sunshine"], "types": ["Fire"], "mod": "x1_5", "label": "쾌청 불꽃×1.5" },

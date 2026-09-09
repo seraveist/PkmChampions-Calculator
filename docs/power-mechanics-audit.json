@@ -1,0 +1,4812 @@
+{
+  "abilities": [
+    {
+      "id": "adaptability",
+      "name": "적응력",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "stabBoost"
+      ],
+      "hooks": [
+        "onModifySTAB"
+      ]
+    },
+    {
+      "id": "aerilate",
+      "name": "스카이스킨",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeChange"
+      ],
+      "hooks": [
+        "onModifyType",
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "aftermath",
+      "name": "유폭",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "airlock",
+      "name": "에어록",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "suppressesWeather"
+      ],
+      "hooks": [
+        "onSwitchIn",
+        "onStart",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "analytic",
+      "name": "애널라이즈",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "angerpoint",
+      "name": "분노의경혈",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onHit"
+      ]
+    },
+    {
+      "id": "angershell",
+      "name": "분노의껍질",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamage",
+        "onTryEatItem",
+        "onAfterMoveSecondary"
+      ]
+    },
+    {
+      "id": "anticipation",
+      "name": "위험예지",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "arenatrap",
+      "name": "개미지옥",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onFoeTrapPokemon",
+        "onFoeMaybeTrapPokemon"
+      ]
+    },
+    {
+      "id": "armortail",
+      "name": "테일아머",
+      "policy": "선제 기술 차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [],
+      "hooks": [
+        "onFoeTryMove"
+      ]
+    },
+    {
+      "id": "aromaveil",
+      "name": "아로마베일",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAllyTryAddVolatile"
+      ]
+    },
+    {
+      "id": "asoneglastrier",
+      "name": "혼연일체",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt",
+        "blocksBerries"
+      ],
+      "hooks": [
+        "onStart",
+        "onEnd",
+        "onFoeTryEatItem",
+        "onSourceAfterFaint"
+      ]
+    },
+    {
+      "id": "asonespectrier",
+      "name": "혼연일체",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt",
+        "blocksBerries"
+      ],
+      "hooks": [
+        "onStart",
+        "onEnd",
+        "onFoeTryEatItem",
+        "onSourceAfterFaint"
+      ]
+    },
+    {
+      "id": "aurabreak",
+      "name": "오라브레이크",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "reversesAura"
+      ],
+      "hooks": [
+        "onStart",
+        "onAnyTryPrimaryHit"
+      ]
+    },
+    {
+      "id": "baddreams",
+      "name": "나이트메어",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onResidual"
+      ]
+    },
+    {
+      "id": "ballfetch",
+      "name": "볼줍기",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "battery",
+      "name": "배터리",
+      "policy": "더블 필드 입력: 공격 아군 배터리",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAllyBasePower"
+      ]
+    },
+    {
+      "id": "battlearmor",
+      "name": "전투무장",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "blocksCritical"
+      ],
+      "hooks": []
+    },
+    {
+      "id": "battlebond",
+      "name": "유대변화",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": [
+        "onSourceAfterFaint",
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "beadsofruin",
+      "name": "재앙의구슬",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "ruinExemption"
+      ],
+      "hooks": [
+        "onStart",
+        "onAnyModifySpD"
+      ]
+    },
+    {
+      "id": "beastboost",
+      "name": "비스트부스트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceAfterFaint"
+      ]
+    },
+    {
+      "id": "berserk",
+      "name": "발끈",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamage",
+        "onTryEatItem",
+        "onAfterMoveSecondary"
+      ]
+    },
+    {
+      "id": "bigpecks",
+      "name": "부풀린가슴",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryBoost"
+      ]
+    },
+    {
+      "id": "blaze",
+      "name": "맹화",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "bulletproof",
+      "name": "방탄",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onTryHit"
+      ]
+    },
+    {
+      "id": "cheekpouch",
+      "name": "볼주머니",
+      "policy": "회복·반감열매 섭취 때 최대 HP 1/3 추가 회복",
+      "mechanicKeys": [],
+      "hooks": [
+        "onEatItem"
+      ]
+    },
+    {
+      "id": "chillingneigh",
+      "name": "백의울음",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceAfterFaint"
+      ]
+    },
+    {
+      "id": "chlorophyll",
+      "name": "엽록소",
+      "policy": "직접 보정은 입력 조건에 따라 적용; 공통 실효 스피드 계산",
+      "mechanicKeys": [
+        "speedStatBoosts"
+      ],
+      "hooks": [
+        "onModifySpe"
+      ]
+    },
+    {
+      "id": "clearbody",
+      "name": "클리어바디",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryBoost"
+      ]
+    },
+    {
+      "id": "cloudnine",
+      "name": "날씨부정",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "suppressesWeather"
+      ],
+      "hooks": [
+        "onSwitchIn",
+        "onStart",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "colorchange",
+      "name": "변색",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAfterMoveSecondary"
+      ]
+    },
+    {
+      "id": "comatose",
+      "name": "절대안깸",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": [
+        "onStart",
+        "onSetStatus"
+      ]
+    },
+    {
+      "id": "commander",
+      "name": "사령탑",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAnySwitchIn",
+        "onStart",
+        "onUpdate"
+      ]
+    },
+    {
+      "id": "competitive",
+      "name": "승기",
+      "policy": "위협 자동 적용에 특공 상승 반응 포함",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAfterEachBoost"
+      ]
+    },
+    {
+      "id": "compoundeyes",
+      "name": "복안",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceModifyAccuracy"
+      ]
+    },
+    {
+      "id": "contrary",
+      "name": "심술꾸러기",
+      "policy": "위협·그로우펀치의 자동 랭크 변화 반전",
+      "mechanicKeys": [],
+      "hooks": [
+        "onChangeBoost"
+      ]
+    },
+    {
+      "id": "corrosion",
+      "name": "부식",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "costar",
+      "name": "협동",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "cottondown",
+      "name": "솜털",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "cudchew",
+      "name": "반추",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onEatItem",
+        "onResidual"
+      ]
+    },
+    {
+      "id": "curiousmedicine",
+      "name": "기묘한약",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "cursedbody",
+      "name": "저주받은바디",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "cutecharm",
+      "name": "헤롱헤롱바디",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "damp",
+      "name": "습기",
+      "policy": "자폭 계열 기술 차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAnyTryMove",
+        "onAnyDamage"
+      ]
+    },
+    {
+      "id": "dancer",
+      "name": "무희",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "darkaura",
+      "name": "다크오라",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "aura"
+      ],
+      "hooks": [
+        "onStart",
+        "onAnyBasePower"
+      ]
+    },
+    {
+      "id": "dauntlessshield",
+      "name": "불굴의방패",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "dazzling",
+      "name": "비비드바디",
+      "policy": "선제 기술 차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [],
+      "hooks": [
+        "onFoeTryMove"
+      ]
+    },
+    {
+      "id": "defeatist",
+      "name": "무기력",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "defiant",
+      "name": "오기",
+      "policy": "위협 자동 적용에 공격 상승 반응 포함",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAfterEachBoost"
+      ]
+    },
+    {
+      "id": "deltastream",
+      "name": "델타스트림",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onAnySetWeather",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "desolateland",
+      "name": "끝의대지",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onAnySetWeather",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "disguise",
+      "name": "탈",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "gasExempt",
+        "damageBlock"
+      ],
+      "hooks": [
+        "onDamage",
+        "onCriticalHit",
+        "onEffectiveness",
+        "onUpdate"
+      ]
+    },
+    {
+      "id": "download",
+      "name": "다운로드",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "dragonize",
+      "name": "드래곤스킨",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeChange"
+      ],
+      "hooks": [
+        "onModifyType",
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "dragonsmaw",
+      "name": "용의턱",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "drizzle",
+      "name": "잔비",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "drought",
+      "name": "가뭄",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "dryskin",
+      "name": "건조피부",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속; 직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities",
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onTryHit",
+        "onSourceBasePower",
+        "onWeather"
+      ]
+    },
+    {
+      "id": "earlybird",
+      "name": "일찍기상",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "eartheater",
+      "name": "흙먹기",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onTryHit"
+      ]
+    },
+    {
+      "id": "eelevate",
+      "name": "천정부지",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceAfterFaint"
+      ]
+    },
+    {
+      "id": "effectspore",
+      "name": "포자",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "electricsurge",
+      "name": "일렉트릭메이커",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "electromorphosis",
+      "name": "전기로바꾸기",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "embodyaspectcornerstone",
+      "name": "초상투영",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "embodyaspecthearthflame",
+      "name": "초상투영",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "embodyaspectteal",
+      "name": "초상투영",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "embodyaspectwellspring",
+      "name": "초상투영",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "emergencyexit",
+      "name": "위기회피",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onEmergencyExit"
+      ]
+    },
+    {
+      "id": "fairyaura",
+      "name": "페어리오라",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "aura"
+      ],
+      "hooks": [
+        "onStart",
+        "onAnyBasePower"
+      ]
+    },
+    {
+      "id": "filter",
+      "name": "필터",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onSourceModifyDamage"
+      ]
+    },
+    {
+      "id": "firemane",
+      "name": "불꽃의갈기",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "flamebody",
+      "name": "불꽃몸",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "flareboost",
+      "name": "열폭주",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "flashfire",
+      "name": "타오르는불꽃",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속; 직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities",
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onTryHit",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "flowergift",
+      "name": "플라워기프트",
+      "policy": "체리꼬 자신 보정; 다른 아군에 주는 보정은 별도 필드 입력 미지원; 직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts",
+        "defenseStatBoosts"
+      ],
+      "hooks": [
+        "onStart",
+        "onWeatherChange",
+        "onAllyModifyAtk",
+        "onAllyModifySpD"
+      ]
+    },
+    {
+      "id": "flowerveil",
+      "name": "플라워베일",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAllyTryBoost",
+        "onAllySetStatus",
+        "onAllyTryAddVolatile"
+      ]
+    },
+    {
+      "id": "fluffy",
+      "name": "복슬복슬",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onSourceModifyDamage"
+      ]
+    },
+    {
+      "id": "forecast",
+      "name": "기분파",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onWeatherChange"
+      ]
+    },
+    {
+      "id": "forewarn",
+      "name": "예지몽",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "friendguard",
+      "name": "프렌드가드",
+      "policy": "더블 필드 입력: 수비 아군 프렌드가드",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAnyModifyDamage"
+      ]
+    },
+    {
+      "id": "frisk",
+      "name": "통찰",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "fullmetalbody",
+      "name": "메탈프로텍트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryBoost"
+      ]
+    },
+    {
+      "id": "furcoat",
+      "name": "퍼코트",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defenseStatBoosts"
+      ],
+      "hooks": [
+        "onModifyDef"
+      ]
+    },
+    {
+      "id": "galewings",
+      "name": "질풍날개",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyPriority"
+      ]
+    },
+    {
+      "id": "galvanize",
+      "name": "일렉트릭스킨",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeChange"
+      ],
+      "hooks": [
+        "onModifyType",
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "gluttony",
+      "name": "먹보",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onDamage"
+      ]
+    },
+    {
+      "id": "goodasgold",
+      "name": "황금몸",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryHit"
+      ]
+    },
+    {
+      "id": "gooey",
+      "name": "미끈미끈",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "gorillatactics",
+      "name": "무아지경",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onStart",
+        "onBeforeMove",
+        "onModifyMove",
+        "onModifyAtk",
+        "onDisableMove",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "grasspelt",
+      "name": "풀모피",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defenseStatBoosts"
+      ],
+      "hooks": [
+        "onModifyDef"
+      ]
+    },
+    {
+      "id": "grassysurge",
+      "name": "그래스메이커",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "grimneigh",
+      "name": "흑의울음",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceAfterFaint"
+      ]
+    },
+    {
+      "id": "guarddog",
+      "name": "파수견",
+      "policy": "위협 반응 공격 상승",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDragOut",
+        "onTryBoost"
+      ]
+    },
+    {
+      "id": "gulpmissile",
+      "name": "그대로꿀꺽미사일",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": [
+        "onDamagingHit",
+        "onSourceTryPrimaryHit"
+      ]
+    },
+    {
+      "id": "guts",
+      "name": "근성",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts",
+        "burnBypass"
+      ],
+      "hooks": [
+        "onModifyAtk"
+      ]
+    },
+    {
+      "id": "hadronengine",
+      "name": "하드론엔진",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onStart",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "harvest",
+      "name": "수확",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onResidual"
+      ]
+    },
+    {
+      "id": "healer",
+      "name": "치유의마음",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onResidual"
+      ]
+    },
+    {
+      "id": "heatproof",
+      "name": "내열",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onSourceModifyAtk",
+        "onSourceModifySpA",
+        "onDamage"
+      ]
+    },
+    {
+      "id": "heavymetal",
+      "name": "헤비메탈",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "weightModifier"
+      ],
+      "hooks": [
+        "onModifyWeight"
+      ]
+    },
+    {
+      "id": "honeygather",
+      "name": "꿀모으기",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "hospitality",
+      "name": "대접",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "hugepower",
+      "name": "천하장사",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk"
+      ]
+    },
+    {
+      "id": "hungerswitch",
+      "name": "꼬르륵스위치",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onResidual"
+      ]
+    },
+    {
+      "id": "hustle",
+      "name": "의욕",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onSourceModifyAccuracy"
+      ]
+    },
+    {
+      "id": "hydration",
+      "name": "촉촉바디",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onResidual"
+      ]
+    },
+    {
+      "id": "hypercutter",
+      "name": "괴력집게",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryBoost"
+      ]
+    },
+    {
+      "id": "icebody",
+      "name": "아이스바디",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onWeather",
+        "onImmunity"
+      ]
+    },
+    {
+      "id": "iceface",
+      "name": "아이스페이스",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "gasExempt",
+        "damageBlock"
+      ],
+      "hooks": [
+        "onStart",
+        "onDamage",
+        "onCriticalHit",
+        "onEffectiveness",
+        "onUpdate",
+        "onWeatherChange"
+      ]
+    },
+    {
+      "id": "icescales",
+      "name": "얼음인분",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onSourceModifyDamage"
+      ]
+    },
+    {
+      "id": "illuminate",
+      "name": "발광",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryBoost",
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "illusion",
+      "name": "일루전",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onBeforeSwitchIn",
+        "onDamagingHit",
+        "onEnd",
+        "onFaint"
+      ]
+    },
+    {
+      "id": "immunity",
+      "name": "면역",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onSetStatus"
+      ]
+    },
+    {
+      "id": "imposter",
+      "name": "괴짜",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSwitchIn"
+      ]
+    },
+    {
+      "id": "infiltrator",
+      "name": "틈새포착",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "ignoresScreens"
+      ],
+      "hooks": [
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "innardsout",
+      "name": "내용물분출",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "innerfocus",
+      "name": "정신력",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryAddVolatile",
+        "onTryBoost"
+      ]
+    },
+    {
+      "id": "insomnia",
+      "name": "불면",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onSetStatus",
+        "onTryAddVolatile"
+      ]
+    },
+    {
+      "id": "intimidate",
+      "name": "위협",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "intrepidsword",
+      "name": "불요의검",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "ironbarbs",
+      "name": "철가시",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "ironfist",
+      "name": "철주먹",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "justified",
+      "name": "정의의마음",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "keeneye",
+      "name": "날카로운눈",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryBoost",
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "klutz",
+      "name": "서투름",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "suppressesItem"
+      ],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "leafguard",
+      "name": "리프가드",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSetStatus",
+        "onTryAddVolatile"
+      ]
+    },
+    {
+      "id": "levitate",
+      "name": "부유",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "grounded",
+        "immunities"
+      ],
+      "hooks": []
+    },
+    {
+      "id": "libero",
+      "name": "리베로",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "volatileStab"
+      ],
+      "hooks": [
+        "onPrepareHit"
+      ]
+    },
+    {
+      "id": "lightmetal",
+      "name": "라이트메탈",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "weightModifier"
+      ],
+      "hooks": [
+        "onModifyWeight"
+      ]
+    },
+    {
+      "id": "lightningrod",
+      "name": "피뢰침",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onTryHit",
+        "onAnyRedirectTarget"
+      ]
+    },
+    {
+      "id": "limber",
+      "name": "유연",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onSetStatus"
+      ]
+    },
+    {
+      "id": "lingeringaroma",
+      "name": "배어든냄새",
+      "policy": "접촉 후 후속 타격의 공격측 특성 변경",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "liquidooze",
+      "name": "해감액",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceTryHeal"
+      ]
+    },
+    {
+      "id": "liquidvoice",
+      "name": "촉촉보이스",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeChange"
+      ],
+      "hooks": [
+        "onModifyType"
+      ]
+    },
+    {
+      "id": "longreach",
+      "name": "원격",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "magicbounce",
+      "name": "매직미러",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryHit",
+        "onAllyTryHitSide"
+      ]
+    },
+    {
+      "id": "magicguard",
+      "name": "매직가드",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamage"
+      ]
+    },
+    {
+      "id": "magician",
+      "name": "매지션",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAfterMoveSecondarySelf"
+      ]
+    },
+    {
+      "id": "magmaarmor",
+      "name": "마그마의무장",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onImmunity"
+      ]
+    },
+    {
+      "id": "magnetpull",
+      "name": "자력",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onFoeTrapPokemon",
+        "onFoeMaybeTrapPokemon"
+      ]
+    },
+    {
+      "id": "marvelscale",
+      "name": "이상한비늘",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defenseStatBoosts"
+      ],
+      "hooks": [
+        "onModifyDef"
+      ]
+    },
+    {
+      "id": "megalauncher",
+      "name": "메가런처",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "megasol",
+      "name": "메가솔라",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "weatherDamageOverride",
+        "ignoreWeatherDamagePenalty"
+      ],
+      "hooks": [
+        "onWeatherModifyDamage"
+      ]
+    },
+    {
+      "id": "merciless",
+      "name": "무도한행동",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "criticalOnTargetStatus"
+      ],
+      "hooks": [
+        "onModifyCritRatio"
+      ]
+    },
+    {
+      "id": "mimicry",
+      "name": "의태",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onTerrainChange"
+      ]
+    },
+    {
+      "id": "mindseye",
+      "name": "심안",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "ignoreGhostImmunity"
+      ],
+      "hooks": [
+        "onTryBoost",
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "minus",
+      "name": "마이너스",
+      "policy": "아군 조건 수동 입력; 직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "mirrorarmor",
+      "name": "미러아머",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryBoost"
+      ]
+    },
+    {
+      "id": "mistysurge",
+      "name": "미스트메이커",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "moldbreaker",
+      "name": "틀깨기",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "ignoresTargetAbility"
+      ],
+      "hooks": [
+        "onStart",
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "moody",
+      "name": "변덕쟁이",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onResidual"
+      ]
+    },
+    {
+      "id": "motordrive",
+      "name": "전기엔진",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onTryHit"
+      ]
+    },
+    {
+      "id": "moxie",
+      "name": "자기과신",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceAfterFaint"
+      ]
+    },
+    {
+      "id": "multiscale",
+      "name": "멀티스케일",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onSourceModifyDamage"
+      ]
+    },
+    {
+      "id": "multitype",
+      "name": "멀티타입",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": []
+    },
+    {
+      "id": "mummy",
+      "name": "미라",
+      "policy": "접촉 후 후속 타격의 공격측 특성 변경",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "myceliummight",
+      "name": "균사의힘",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onFractionalPriority",
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "naturalcure",
+      "name": "자연회복",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSwitchOut"
+      ]
+    },
+    {
+      "id": "neuroforce",
+      "name": "브레인포스",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "finalDamageBoosts"
+      ],
+      "hooks": [
+        "onModifyDamage"
+      ]
+    },
+    {
+      "id": "neutralizinggas",
+      "name": "화학변화가스",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": [
+        "onSwitchIn",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "noguard",
+      "name": "노가드",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAnyInvulnerability",
+        "onAnyAccuracy"
+      ]
+    },
+    {
+      "id": "normalize",
+      "name": "노말스킨",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeChange",
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onModifyType",
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "oblivious",
+      "name": "둔감",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onImmunity",
+        "onTryHit",
+        "onTryBoost"
+      ]
+    },
+    {
+      "id": "opportunist",
+      "name": "편승",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onFoeAfterBoost",
+        "onAnySwitchIn",
+        "onAnyAfterMega",
+        "onAnyAfterTerastallization",
+        "onAnyAfterMove",
+        "onResidual",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "orichalcumpulse",
+      "name": "진홍빛고동",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onStart",
+        "onModifyAtk"
+      ]
+    },
+    {
+      "id": "overcoat",
+      "name": "방진",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onImmunity",
+        "onTryHit"
+      ]
+    },
+    {
+      "id": "overgrow",
+      "name": "심록",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "owntempo",
+      "name": "마이페이스",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onTryAddVolatile",
+        "onHit",
+        "onTryBoost"
+      ]
+    },
+    {
+      "id": "parentalbond",
+      "name": "부자유친",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "extraHitModifier"
+      ],
+      "hooks": [
+        "onPrepareHit",
+        "onSourceModifySecondaries"
+      ]
+    },
+    {
+      "id": "pastelveil",
+      "name": "파스텔베일",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onUpdate",
+        "onAnySwitchIn",
+        "onSetStatus",
+        "onAllySetStatus"
+      ]
+    },
+    {
+      "id": "perishbody",
+      "name": "멸망의바디",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "pickpocket",
+      "name": "나쁜손버릇",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAfterMoveSecondary"
+      ]
+    },
+    {
+      "id": "pickup",
+      "name": "픽업",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onResidual"
+      ]
+    },
+    {
+      "id": "piercingdrill",
+      "name": "관통드릴",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "protectBypass"
+      ],
+      "hooks": [
+        "onHitProtect"
+      ]
+    },
+    {
+      "id": "pixilate",
+      "name": "페어리스킨",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeChange"
+      ],
+      "hooks": [
+        "onModifyType",
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "plus",
+      "name": "플러스",
+      "policy": "아군 조건 수동 입력; 직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "poisonheal",
+      "name": "포이즌힐",
+      "policy": "특성의 턴 종료 회복은 제외",
+      "mechanicKeys": [
+        "residualRecovery"
+      ],
+      "hooks": [
+        "onDamage"
+      ]
+    },
+    {
+      "id": "poisonpoint",
+      "name": "독가시",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "poisonpuppeteer",
+      "name": "독조종",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAnyAfterSetStatus"
+      ]
+    },
+    {
+      "id": "poisontouch",
+      "name": "독수",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceDamagingHit"
+      ]
+    },
+    {
+      "id": "powerconstruct",
+      "name": "스웜체인지",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": [
+        "onResidual"
+      ]
+    },
+    {
+      "id": "powerofalchemy",
+      "name": "과학의힘",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAllyFaint"
+      ]
+    },
+    {
+      "id": "powerspot",
+      "name": "파워스폿",
+      "policy": "더블 필드 입력: 공격 아군 파워스폿",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAllyBasePower"
+      ]
+    },
+    {
+      "id": "prankster",
+      "name": "짓궂은마음",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyPriority"
+      ]
+    },
+    {
+      "id": "pressure",
+      "name": "프레셔",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onDeductPP"
+      ]
+    },
+    {
+      "id": "primordialsea",
+      "name": "시작의바다",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onAnySetWeather",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "prismarmor",
+      "name": "프리즘아머",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onSourceModifyDamage"
+      ]
+    },
+    {
+      "id": "propellertail",
+      "name": "스크루지느러미",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "protean",
+      "name": "변환자재",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "volatileStab"
+      ],
+      "hooks": [
+        "onPrepareHit"
+      ]
+    },
+    {
+      "id": "protosynthesis",
+      "name": "고대활성",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "paradoxBoost"
+      ],
+      "hooks": [
+        "onStart",
+        "onWeatherChange",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "psychicsurge",
+      "name": "사이코메이커",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "punkrock",
+      "name": "펑크록",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts",
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onBasePower",
+        "onSourceModifyDamage"
+      ]
+    },
+    {
+      "id": "purepower",
+      "name": "순수한힘",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk"
+      ]
+    },
+    {
+      "id": "purifyingsalt",
+      "name": "정화의소금",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defensiveAttackMods"
+      ],
+      "hooks": [
+        "onSetStatus",
+        "onTryAddVolatile",
+        "onSourceModifyAtk",
+        "onSourceModifySpA"
+      ]
+    },
+    {
+      "id": "quarkdrive",
+      "name": "쿼크차지",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "paradoxBoost"
+      ],
+      "hooks": [
+        "onStart",
+        "onTerrainChange",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "queenlymajesty",
+      "name": "여왕의위엄",
+      "policy": "선제 기술 차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [],
+      "hooks": [
+        "onFoeTryMove"
+      ]
+    },
+    {
+      "id": "quickdraw",
+      "name": "퀵드로",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onFractionalPriority"
+      ]
+    },
+    {
+      "id": "quickfeet",
+      "name": "속보",
+      "policy": "직접 보정은 입력 조건에 따라 적용; 공통 실효 스피드 계산",
+      "mechanicKeys": [
+        "speedStatBoosts",
+        "ignoresParalysisSpeedDrop"
+      ],
+      "hooks": [
+        "onModifySpe"
+      ]
+    },
+    {
+      "id": "raindish",
+      "name": "젖은접시",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onWeather"
+      ]
+    },
+    {
+      "id": "rattled",
+      "name": "주눅",
+      "policy": "위협 반응 스피드 상승",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit",
+        "onAfterBoost"
+      ]
+    },
+    {
+      "id": "receiver",
+      "name": "리시버",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAllyFaint"
+      ]
+    },
+    {
+      "id": "reckless",
+      "name": "이판사판",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "refrigerate",
+      "name": "프리즈스킨",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeChange"
+      ],
+      "hooks": [
+        "onModifyType",
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "regenerator",
+      "name": "재생력",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSwitchOut"
+      ]
+    },
+    {
+      "id": "ripen",
+      "name": "숙성",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "resistBerryMod"
+      ],
+      "hooks": [
+        "onTryHeal",
+        "onChangeBoost",
+        "onSourceModifyDamage",
+        "onTryEatItem",
+        "onEatItem"
+      ]
+    },
+    {
+      "id": "rivalry",
+      "name": "투쟁심",
+      "policy": "성별 조건 수동 입력; 직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "rkssystem",
+      "name": "AR시스템",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": []
+    },
+    {
+      "id": "rockhead",
+      "name": "돌머리",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamage"
+      ]
+    },
+    {
+      "id": "rockypayload",
+      "name": "바위나르기",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "roughskin",
+      "name": "까칠한피부",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "runaway",
+      "name": "도주",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "sandforce",
+      "name": "모래의힘",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower",
+        "onImmunity"
+      ]
+    },
+    {
+      "id": "sandrush",
+      "name": "모래헤치기",
+      "policy": "직접 보정은 입력 조건에 따라 적용; 공통 실효 스피드 계산",
+      "mechanicKeys": [
+        "speedStatBoosts"
+      ],
+      "hooks": [
+        "onModifySpe",
+        "onImmunity"
+      ]
+    },
+    {
+      "id": "sandspit",
+      "name": "모래뿜기",
+      "policy": "후속 타격에 모래바람 반영",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "sandstream",
+      "name": "모래날림",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "sandveil",
+      "name": "모래숨기",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onImmunity",
+        "onModifyAccuracy"
+      ]
+    },
+    {
+      "id": "sapsipper",
+      "name": "초식",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onTryHit",
+        "onAllyTryHitSide"
+      ]
+    },
+    {
+      "id": "schooling",
+      "name": "어군",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": [
+        "onStart",
+        "onResidual"
+      ]
+    },
+    {
+      "id": "scrappy",
+      "name": "배짱",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "ignoreGhostImmunity"
+      ],
+      "hooks": [
+        "onModifyMove",
+        "onTryBoost"
+      ]
+    },
+    {
+      "id": "screencleaner",
+      "name": "배리어프리",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "seedsower",
+      "name": "넘치는씨앗",
+      "policy": "후속 타격에 그래스필드 반영",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "serenegrace",
+      "name": "하늘의은총",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "shadowshield",
+      "name": "스펙터가드",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onSourceModifyDamage"
+      ]
+    },
+    {
+      "id": "shadowtag",
+      "name": "그림자밟기",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onFoeTrapPokemon",
+        "onFoeMaybeTrapPokemon"
+      ]
+    },
+    {
+      "id": "sharpness",
+      "name": "예리함",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "shedskin",
+      "name": "탈피",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onResidual"
+      ]
+    },
+    {
+      "id": "sheerforce",
+      "name": "우격다짐",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onModifyMove",
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "shellarmor",
+      "name": "조가비갑옷",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "blocksCritical"
+      ],
+      "hooks": []
+    },
+    {
+      "id": "shielddust",
+      "name": "인분",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifySecondaries"
+      ]
+    },
+    {
+      "id": "shieldsdown",
+      "name": "리밋실드",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": [
+        "onStart",
+        "onResidual",
+        "onSetStatus",
+        "onTryAddVolatile"
+      ]
+    },
+    {
+      "id": "simple",
+      "name": "단순",
+      "policy": "위협·그로우펀치의 자동 랭크 변화 2배",
+      "mechanicKeys": [],
+      "hooks": [
+        "onChangeBoost"
+      ]
+    },
+    {
+      "id": "skilllink",
+      "name": "스킬링크",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "multiHitModifier"
+      ],
+      "hooks": [
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "slowstart",
+      "name": "슬로스타트",
+      "policy": "활성 기간 수동 입력; 직접 보정은 입력 조건에 따라 적용; 공통 실효 스피드 계산",
+      "mechanicKeys": [
+        "attackStatBoosts",
+        "speedStatBoosts"
+      ],
+      "hooks": [
+        "onStart",
+        "onResidual",
+        "onModifyAtk",
+        "onModifySpe",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "slushrush",
+      "name": "눈치우기",
+      "policy": "직접 보정은 입력 조건에 따라 적용; 공통 실효 스피드 계산",
+      "mechanicKeys": [
+        "speedStatBoosts"
+      ],
+      "hooks": [
+        "onModifySpe"
+      ]
+    },
+    {
+      "id": "sniper",
+      "name": "스나이퍼",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "finalDamageBoosts"
+      ],
+      "hooks": [
+        "onModifyDamage"
+      ]
+    },
+    {
+      "id": "snowcloak",
+      "name": "눈숨기",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onImmunity",
+        "onModifyAccuracy"
+      ]
+    },
+    {
+      "id": "snowwarning",
+      "name": "눈퍼뜨리기",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "solarpower",
+      "name": "선파워",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifySpA",
+        "onWeather"
+      ]
+    },
+    {
+      "id": "solidrock",
+      "name": "하드록",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onSourceModifyDamage"
+      ]
+    },
+    {
+      "id": "soulheart",
+      "name": "소울하트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAnyFaint"
+      ]
+    },
+    {
+      "id": "soundproof",
+      "name": "방음",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onTryHit",
+        "onAllyTryHitSide"
+      ]
+    },
+    {
+      "id": "speedboost",
+      "name": "가속",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onResidual"
+      ]
+    },
+    {
+      "id": "spicyspray",
+      "name": "하바네로분출",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "stakeout",
+      "name": "잠복",
+      "policy": "교체 조건 수동 입력; 직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "stall",
+      "name": "시간벌기",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "stalwart",
+      "name": "굳건한신념",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "stamina",
+      "name": "지구력",
+      "policy": "같은 기술의 후속 타격에 방어 상승 반영",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "stancechange",
+      "name": "배틀스위치",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": [
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "static",
+      "name": "정전기",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "steadfast",
+      "name": "불굴의마음",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onFlinch"
+      ]
+    },
+    {
+      "id": "steamengine",
+      "name": "증기기관",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "steelworker",
+      "name": "강철술사",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "steelyspirit",
+      "name": "강철정신",
+      "policy": "자신 강철 보정; 추가 아군 중첩 미지원; 직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onAllyBasePower"
+      ]
+    },
+    {
+      "id": "stench",
+      "name": "악취",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "stickyhold",
+      "name": "점착",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "blocksItemRemoval"
+      ],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "stormdrain",
+      "name": "마중물",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onTryHit",
+        "onAnyRedirectTarget"
+      ]
+    },
+    {
+      "id": "strongjaw",
+      "name": "옹골찬턱",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "sturdy",
+      "name": "옹골참",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속; 생존은 카드 안내, KO 제한 제외",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "ohkoBlock",
+        "koSurvival"
+      ],
+      "hooks": [
+        "onTryHit",
+        "onDamage"
+      ]
+    },
+    {
+      "id": "suctioncups",
+      "name": "흡반",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDragOut"
+      ]
+    },
+    {
+      "id": "superluck",
+      "name": "대운",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyCritRatio"
+      ]
+    },
+    {
+      "id": "supersweetsyrup",
+      "name": "감미로운꿀",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "supremeoverlord",
+      "name": "총대장",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "supremeOverlord"
+      ],
+      "hooks": [
+        "onStart",
+        "onEnd",
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "surgesurfer",
+      "name": "서핑테일",
+      "policy": "직접 보정은 입력 조건에 따라 적용; 공통 실효 스피드 계산",
+      "mechanicKeys": [
+        "speedStatBoosts"
+      ],
+      "hooks": [
+        "onModifySpe"
+      ]
+    },
+    {
+      "id": "swarm",
+      "name": "벌레의알림",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "sweetveil",
+      "name": "스위트베일",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAllySetStatus",
+        "onAllyTryAddVolatile"
+      ]
+    },
+    {
+      "id": "swiftswim",
+      "name": "쓱쓱",
+      "policy": "직접 보정은 입력 조건에 따라 적용; 공통 실효 스피드 계산",
+      "mechanicKeys": [
+        "speedStatBoosts"
+      ],
+      "hooks": [
+        "onModifySpe"
+      ]
+    },
+    {
+      "id": "swordofruin",
+      "name": "재앙의검",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "ruinExemption"
+      ],
+      "hooks": [
+        "onStart",
+        "onAnyModifyDef"
+      ]
+    },
+    {
+      "id": "symbiosis",
+      "name": "공생",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAllyAfterUseItem"
+      ]
+    },
+    {
+      "id": "synchronize",
+      "name": "싱크로",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAfterSetStatus"
+      ]
+    },
+    {
+      "id": "tabletsofruin",
+      "name": "재앙의목간",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "ruinExemption"
+      ],
+      "hooks": [
+        "onStart",
+        "onAnyModifyAtk"
+      ]
+    },
+    {
+      "id": "tangledfeet",
+      "name": "갈지자걸음",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyAccuracy"
+      ]
+    },
+    {
+      "id": "tanglinghair",
+      "name": "컬리헤어",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "technician",
+      "name": "테크니션",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "telepathy",
+      "name": "텔레파시",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryHit"
+      ]
+    },
+    {
+      "id": "teraformzero",
+      "name": "제로포밍",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAfterTerastallization"
+      ]
+    },
+    {
+      "id": "terashell",
+      "name": "테라셸",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "teraShell"
+      ],
+      "hooks": []
+    },
+    {
+      "id": "terashift",
+      "name": "테라체인지",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": [
+        "onSwitchIn"
+      ]
+    },
+    {
+      "id": "teravolt",
+      "name": "테라볼티지",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "ignoresTargetAbility"
+      ],
+      "hooks": [
+        "onStart",
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "thermalexchange",
+      "name": "열교환",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit",
+        "onUpdate",
+        "onSetStatus"
+      ]
+    },
+    {
+      "id": "thickfat",
+      "name": "두꺼운지방",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onSourceModifyAtk",
+        "onSourceModifySpA"
+      ]
+    },
+    {
+      "id": "tintedlens",
+      "name": "색안경",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "finalDamageBoosts"
+      ],
+      "hooks": [
+        "onModifyDamage"
+      ]
+    },
+    {
+      "id": "torrent",
+      "name": "급류",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "toughclaws",
+      "name": "단단한발톱",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "toxicboost",
+      "name": "독폭주",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "toxicchain",
+      "name": "독사슬",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceDamagingHit"
+      ]
+    },
+    {
+      "id": "toxicdebris",
+      "name": "독치장",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "trace",
+      "name": "트레이스",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onUpdate"
+      ]
+    },
+    {
+      "id": "transistor",
+      "name": "트랜지스터",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "bpBoosts"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "triage",
+      "name": "힐링시프트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyPriority"
+      ]
+    },
+    {
+      "id": "truant",
+      "name": "게으름",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onBeforeMove"
+      ]
+    },
+    {
+      "id": "turboblaze",
+      "name": "터보블레이즈",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "ignoresTargetAbility"
+      ],
+      "hooks": [
+        "onStart",
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "unaware",
+      "name": "천진",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "ignoreOffensiveBoosts",
+        "ignoreDefensiveBoosts"
+      ],
+      "hooks": [
+        "onAnyModifyBoost"
+      ]
+    },
+    {
+      "id": "unburden",
+      "name": "곡예",
+      "policy": "직접 보정은 입력 조건에 따라 적용; 공통 실효 스피드 계산",
+      "mechanicKeys": [
+        "speedStatBoosts"
+      ],
+      "hooks": [
+        "onAfterUseItem",
+        "onTakeItem",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "unnerve",
+      "name": "긴장감",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "blocksBerries"
+      ],
+      "hooks": [
+        "onStart",
+        "onEnd",
+        "onFoeTryEatItem"
+      ]
+    },
+    {
+      "id": "unseenfist",
+      "name": "보이지않는주먹",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "protectBypass"
+      ],
+      "hooks": [
+        "onHitProtect"
+      ]
+    },
+    {
+      "id": "vesselofruin",
+      "name": "재앙의그릇",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "ruinExemption"
+      ],
+      "hooks": [
+        "onStart",
+        "onAnyModifySpA"
+      ]
+    },
+    {
+      "id": "victorystar",
+      "name": "승리의별",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAnyModifyAccuracy"
+      ]
+    },
+    {
+      "id": "vitalspirit",
+      "name": "의기양양",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onSetStatus",
+        "onTryAddVolatile"
+      ]
+    },
+    {
+      "id": "voltabsorb",
+      "name": "축전",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onTryHit"
+      ]
+    },
+    {
+      "id": "wanderingspirit",
+      "name": "떠도는영혼",
+      "policy": "접촉 후 후속 타격의 특성 교환",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "waterabsorb",
+      "name": "저수",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onTryHit"
+      ]
+    },
+    {
+      "id": "waterbubble",
+      "name": "수포",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "attackStatBoosts",
+        "defensiveAttackMods"
+      ],
+      "hooks": [
+        "onSourceModifyAtk",
+        "onSourceModifySpA",
+        "onModifyAtk",
+        "onModifySpA",
+        "onUpdate",
+        "onSetStatus"
+      ]
+    },
+    {
+      "id": "watercompaction",
+      "name": "꾸덕꾸덕굳기",
+      "policy": "같은 물 기술의 후속 타격에 방어 상승 반영",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "waterveil",
+      "name": "수의베일",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onSetStatus"
+      ]
+    },
+    {
+      "id": "weakarmor",
+      "name": "깨어진갑옷",
+      "policy": "같은 물리 기술의 후속 타격에 방어 하락·스피드 상승 반영",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
+      ]
+    },
+    {
+      "id": "wellbakedbody",
+      "name": "노릇노릇몸",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onTryHit"
+      ]
+    },
+    {
+      "id": "whitesmoke",
+      "name": "하얀연기",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryBoost"
+      ]
+    },
+    {
+      "id": "wimpout",
+      "name": "도망태세",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onEmergencyExit"
+      ]
+    },
+    {
+      "id": "windpower",
+      "name": "풍력발전",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit",
+        "onSideConditionStart"
+      ]
+    },
+    {
+      "id": "windrider",
+      "name": "바람타기",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "immunities"
+      ],
+      "hooks": [
+        "onStart",
+        "onTryHit",
+        "onSideConditionStart"
+      ]
+    },
+    {
+      "id": "wonderguard",
+      "name": "불가사의부적",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "superEffectiveOnly"
+      ],
+      "hooks": [
+        "onTryHit"
+      ]
+    },
+    {
+      "id": "wonderskin",
+      "name": "미라클스킨",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyAccuracy"
+      ]
+    },
+    {
+      "id": "zenmode",
+      "name": "달마모드",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": [
+        "onResidual",
+        "onEnd"
+      ]
+    },
+    {
+      "id": "zerotohero",
+      "name": "마이티체인지",
+      "policy": "특성 억제·접지·진입 등 보조 규칙",
+      "mechanicKeys": [
+        "gasExempt"
+      ],
+      "hooks": [
+        "onSwitchOut",
+        "onSwitchIn"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "id": "abomasite",
+      "name": "눈설왕나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "absolite",
+      "name": "앱솔나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "aerodactylite",
+      "name": "프테라나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "aggronite",
+      "name": "보스로라나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "alakazite",
+      "name": "후디나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "altarianite",
+      "name": "파비코리나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "ampharosite",
+      "name": "전룡나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "aspearberry",
+      "name": "배리열매",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onEat"
+      ]
+    },
+    {
+      "id": "audinite",
+      "name": "다부니나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "babiriberry",
+      "name": "바리비열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "banettite",
+      "name": "다크펫나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "barbaracite",
+      "name": "거북손데스나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "beedrillite",
+      "name": "독침붕나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "bigroot",
+      "name": "큰뿌리",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTryHeal"
+      ]
+    },
+    {
+      "id": "blackbelt",
+      "name": "검은띠",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "blackglasses",
+      "name": "검은안경",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "blastoisinite",
+      "name": "거북왕나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "blazikenite",
+      "name": "번치코나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "brightpowder",
+      "name": "반짝가루",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyAccuracy"
+      ]
+    },
+    {
+      "id": "cameruptite",
+      "name": "폭타나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "chandelurite",
+      "name": "샹델라나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "charcoal",
+      "name": "목탄",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "charizarditex",
+      "name": "리자몽나이트X",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "charizarditey",
+      "name": "리자몽나이트Y",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "chartiberry",
+      "name": "루미열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "cheriberry",
+      "name": "버치열매",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onEat"
+      ]
+    },
+    {
+      "id": "cherishball",
+      "name": "프레셔스볼",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "chesnaughtite",
+      "name": "브리가론나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "chestoberry",
+      "name": "유루열매",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onEat"
+      ]
+    },
+    {
+      "id": "chilanberry",
+      "name": "카리열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType",
+        "resistBerryRequiresWeakness"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "chimechite",
+      "name": "치렁나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "choicescarf",
+      "name": "구애스카프",
+      "policy": "직접 보정은 입력 조건에 따라 적용; 공통 실효 스피드 계산",
+      "mechanicKeys": [
+        "speedStatBoost"
+      ],
+      "hooks": [
+        "onStart",
+        "onModifyMove",
+        "onModifySpe"
+      ]
+    },
+    {
+      "id": "chopleberry",
+      "name": "로플열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "clefablite",
+      "name": "픽시나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "cobaberry",
+      "name": "바코열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "colburberry",
+      "name": "마코열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "crabominite",
+      "name": "모단단게나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "damprock",
+      "name": "축축한바위",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "delphoxite",
+      "name": "마폭시나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "dragalgite",
+      "name": "드래캄나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "dragonfang",
+      "name": "용의이빨",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "dragoninite",
+      "name": "망나뇽나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "drampanite",
+      "name": "할비롱나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "eelektrossite",
+      "name": "저리더프나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "emboarite",
+      "name": "염무왕나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "excadrite",
+      "name": "몰드류나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "expertbelt",
+      "name": "달인의띠",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "finalDamageBoost"
+      ],
+      "hooks": [
+        "onModifyDamage"
+      ]
+    },
+    {
+      "id": "fairyfeather",
+      "name": "요정의깃털",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "falinksite",
+      "name": "대여르나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "feraligite",
+      "name": "장크로다일나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "floettite",
+      "name": "플라엣테나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "focusband",
+      "name": "기합의머리띠",
+      "policy": "생존은 카드 안내, KO 제한 제외",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamage"
+      ]
+    },
+    {
+      "id": "focussash",
+      "name": "기합의띠",
+      "policy": "생존은 카드 안내, KO 제한 제외",
+      "mechanicKeys": [
+        "koSurvival"
+      ],
+      "hooks": [
+        "onDamage"
+      ]
+    },
+    {
+      "id": "froslassite",
+      "name": "눈여아나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "galladite",
+      "name": "엘레이드나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "garchompite",
+      "name": "한카리아스나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "gardevoirite",
+      "name": "가디안나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "gengarite",
+      "name": "팬텀나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "glalitite",
+      "name": "얼음귀신나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "glimmoranite",
+      "name": "킬라플로르나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "golurkite",
+      "name": "골루그나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "greninjite",
+      "name": "개굴닌자나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "gyaradosite",
+      "name": "갸라도스나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "habanberry",
+      "name": "하반열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "hardstone",
+      "name": "딱딱한돌",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "hawluchanite",
+      "name": "루차불나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "heatrock",
+      "name": "뜨거운바위",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "heracronite",
+      "name": "헤라크로스나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "houndoominite",
+      "name": "헬가나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "icyrock",
+      "name": "차가운바위",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "ironball",
+      "name": "검은철구",
+      "policy": "직접 보정은 입력 조건에 따라 적용; 공통 실효 스피드 계산",
+      "mechanicKeys": [
+        "speedStatBoost",
+        "grounded"
+      ],
+      "hooks": [
+        "onEffectiveness",
+        "onModifySpe"
+      ]
+    },
+    {
+      "id": "kangaskhanite",
+      "name": "캥카나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "kasibberry",
+      "name": "수불열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "kebiaberry",
+      "name": "으름열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "kingsrock",
+      "name": "왕의징표석",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyMove"
+      ]
+    },
+    {
+      "id": "leftovers",
+      "name": "먹다남은음식",
+      "policy": "생존 후 회복; KO 확률에 반영",
+      "mechanicKeys": [
+        "residualRecovery"
+      ],
+      "hooks": [
+        "onResidual"
+      ]
+    },
+    {
+      "id": "leppaberry",
+      "name": "과사열매",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onEat"
+      ]
+    },
+    {
+      "id": "lifeorb",
+      "name": "생명의구슬",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "finalDamageBoost"
+      ],
+      "hooks": [
+        "onModifyDamage",
+        "onAfterMoveSecondarySelf"
+      ]
+    },
+    {
+      "id": "lightball",
+      "name": "전기구슬",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "attackStatBoost"
+      ],
+      "hooks": [
+        "onModifyAtk",
+        "onModifySpA"
+      ]
+    },
+    {
+      "id": "lightclay",
+      "name": "빛의점토",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "lopunnite",
+      "name": "이어롭나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "lucarionite",
+      "name": "루카리오나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "lumberry",
+      "name": "리샘열매",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAfterSetStatus",
+        "onUpdate",
+        "onEat"
+      ]
+    },
+    {
+      "id": "magnet",
+      "name": "자석",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "malamarite",
+      "name": "칼라마네로나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "manectite",
+      "name": "썬더볼트나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "mawilite",
+      "name": "입치트나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "medichamite",
+      "name": "요가램나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "meganiumite",
+      "name": "메가니움나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "mentalherb",
+      "name": "멘탈허브",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate"
+      ]
+    },
+    {
+      "id": "meowsticite",
+      "name": "냐오닉스나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "metagrossite",
+      "name": "메타그로스나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "metalcoat",
+      "name": "금속코트",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "metronome",
+      "name": "메트로놈",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart"
+      ]
+    },
+    {
+      "id": "miracleseed",
+      "name": "기적의씨",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "muscleband",
+      "name": "힘의머리띠",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "powerBoostKind",
+        "powerBoostMod"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "mysticwater",
+      "name": "신비의물방울",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "nevermeltice",
+      "name": "녹지않는얼음",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "occaberry",
+      "name": "오카열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "oranberry",
+      "name": "오랭열매",
+      "policy": "생존 후 회복; KO 확률에 반영",
+      "mechanicKeys": [
+        "hpRecovery"
+      ],
+      "hooks": [
+        "onUpdate",
+        "onTryEatItem",
+        "onEat"
+      ]
+    },
+    {
+      "id": "passhoberry",
+      "name": "꼬시개열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "payapaberry",
+      "name": "야파열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "pechaberry",
+      "name": "복슝열매",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onEat"
+      ]
+    },
+    {
+      "id": "persimberry",
+      "name": "시몬열매",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onEat"
+      ]
+    },
+    {
+      "id": "pidgeotite",
+      "name": "피죤투나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "pinsirite",
+      "name": "쁘사이저나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "poisonbarb",
+      "name": "독바늘",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "pyroarite",
+      "name": "화염레오나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "quickclaw",
+      "name": "선제공격손톱",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onFractionalPriority"
+      ]
+    },
+    {
+      "id": "raichunitex",
+      "name": "라이츄나이트X",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "raichunitey",
+      "name": "라이츄나이트Y",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "rawstberry",
+      "name": "복분열매",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onUpdate",
+        "onEat"
+      ]
+    },
+    {
+      "id": "rindoberry",
+      "name": "린드열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "roseliberry",
+      "name": "로셀열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "sablenite",
+      "name": "깜까미나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "sceptilite",
+      "name": "나무킹나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "scizorite",
+      "name": "핫삼나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "scolipite",
+      "name": "펜드라나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "scopelens",
+      "name": "초점렌즈",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyCritRatio"
+      ]
+    },
+    {
+      "id": "scovillainite",
+      "name": "스코빌런나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "scraftinite",
+      "name": "곤율거니나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "sharpbeak",
+      "name": "예리한부리",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "sharpedonite",
+      "name": "샤크니아나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "shedshell",
+      "name": "아름다운허물",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTrapPokemon",
+        "onMaybeTrapPokemon"
+      ]
+    },
+    {
+      "id": "shellbell",
+      "name": "조개껍질방울",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAfterMoveSecondarySelf"
+      ]
+    },
+    {
+      "id": "shucaberry",
+      "name": "슈캐열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "silkscarf",
+      "name": "실크스카프",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "silverpowder",
+      "name": "은빛가루",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "sitrusberry",
+      "name": "자뭉열매",
+      "policy": "생존 후 회복; KO 확률에 반영",
+      "mechanicKeys": [
+        "hpRecovery"
+      ],
+      "hooks": [
+        "onUpdate",
+        "onTryEatItem",
+        "onEat"
+      ]
+    },
+    {
+      "id": "skarmorite",
+      "name": "무장조나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "slowbronite",
+      "name": "야도란나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "smoothrock",
+      "name": "보송보송바위",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "softsand",
+      "name": "부드러운모래",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "spelltag",
+      "name": "저주의부적",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "staraptite",
+      "name": "찌르호크나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "starminite",
+      "name": "아쿠스타나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "steelixite",
+      "name": "강철톤나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "swampertite",
+      "name": "대짱이나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "tangaberry",
+      "name": "리체열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "twistedspoon",
+      "name": "휘어진스푼",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "typeBoostType"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "tyranitarite",
+      "name": "마기라스나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "venusaurite",
+      "name": "이상해꽃나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "victreebelite",
+      "name": "우츠보트나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "wacanberry",
+      "name": "초나열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "whiteherb",
+      "name": "하양허브",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onAnySwitchIn",
+        "onAnyAfterMega",
+        "onAnyAfterMove",
+        "onResidual",
+        "onUse",
+        "onWhiteHerb"
+      ]
+    },
+    {
+      "id": "widelens",
+      "name": "광각렌즈",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceModifyAccuracy"
+      ]
+    },
+    {
+      "id": "wiseglasses",
+      "name": "박식안경",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "powerBoostKind",
+        "powerBoostMod"
+      ],
+      "hooks": [
+        "onBasePower"
+      ]
+    },
+    {
+      "id": "yacheberry",
+      "name": "플카열매",
+      "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
+      "mechanicKeys": [
+        "resistBerryType"
+      ],
+      "hooks": [
+        "onSourceModifyDamage",
+        "onEat"
+      ]
+    },
+    {
+      "id": "zoomlens",
+      "name": "포커스렌즈",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceModifyAccuracy"
+      ]
+    }
+  ]
+}

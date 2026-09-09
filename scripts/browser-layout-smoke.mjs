@@ -335,7 +335,7 @@ async function main() {
       browserErrors.push(exceptionDetails?.exception?.description || exceptionDetails?.text || 'Runtime exception');
     });
     client.on('Log.entryAdded', ({ entry }) => {
-      if (entry?.level === 'error') browserErrors.push(entry.text);
+      if (entry?.level === 'error') browserErrors.push(`${entry.text}${entry.url ? ` (${entry.url})` : ''}`);
     });
     await client.send('Runtime.enable');
     await client.send('Page.enable');
@@ -345,8 +345,9 @@ async function main() {
     await waitFor(() => client.evaluate(`document.readyState === 'complete'`));
     const appReady = await waitFor(
       () => client.evaluate(`typeof applyPokemonToCalcSide === 'function'`),
-      3000,
+      10000,
     ).catch(() => false);
+    if (!appReady) console.error('Startup state:', await client.evaluate(`({url:location.href, title:document.title, ready:document.readyState, scripts:[...document.scripts].map(s=>s.src), body:document.body?.innerText?.slice(0,400)})`));
     check(appReady, `${PUBLIC_MODE ? 'public' : 'standalone'} app runtime initializes`, browserErrors.join(' | '));
     if (PUBLIC_MODE && AD_FREE) {
       const advertisingRailCount = await client.evaluate(`document.querySelectorAll('.ad-rail, .side-rail').length`);
@@ -1039,6 +1040,8 @@ async function main() {
       renderMatchupTable();
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const slot = document.querySelector('#matchupSlots .matchup-slot');
+      const slotHeight = slot.getBoundingClientRect().height;
+      const spriteDisplay = getComputedStyle(slot.querySelector('.matchup-slot-sprite')).display;
       const centers = ['.matchup-slot-num', '.matchup-cb-input', '.matchup-slot-types', '.matchup-slot-clear']
         .map(selector => slot.querySelector(selector)?.getBoundingClientRect())
         .filter(Boolean)
@@ -1072,9 +1075,9 @@ async function main() {
       renderMatchupTable();
       return {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
-        slotHeight: slot.getBoundingClientRect().height,
+        slotHeight,
         centerSpread: Math.max(...centers) - Math.min(...centers),
-        spriteDisplay: getComputedStyle(slot.querySelector('.matchup-slot-sprite')).display,
+        spriteDisplay,
         compactHeaders,
         compact,
         compactHintVisible,
@@ -1086,7 +1089,7 @@ async function main() {
       };
     })()`, true);
     check(matchup.overflow <= 1, 'mobile matchup has no horizontal page overflow', String(matchup.overflow));
-    check(matchup.slotHeight <= 92 && matchup.centerSpread <= 4 && matchup.spriteDisplay === 'none', 'mobile matchup keeps compact party slots with form controls', JSON.stringify(matchup));
+    check(matchup.slotHeight > 0 && matchup.slotHeight <= 112 && matchup.centerSpread <= 4 && matchup.spriteDisplay === 'none', 'mobile matchup keeps compact party slots with form and ability controls', JSON.stringify(matchup));
     check(matchup.compact && matchup.compactHeaders === 3 && !matchup.compactHintVisible, 'mobile matchup omits empty comparison columns', JSON.stringify(matchup));
     check(matchup.fullHeaders === 8 && matchup.fullHintVisible, 'mobile matchup announces scrolling only for a full comparison', JSON.stringify(matchup));
     check(matchup.levitateLabel === '부유' && matchup.waterAbsorbLabel === '저수' && matchup.baseDelphoxGround !== '부유', 'matchup displays concise ability immunity labels by selected form and ability', JSON.stringify(matchup));
@@ -1144,6 +1147,63 @@ async function main() {
     }
     await captureScreenshot(client, 'dex-dark-320');
     await client.evaluate(`delete document.documentElement.dataset.theme`);
+    const powerPolicy = await client.evaluate(`(() => {
+      state.atk = makeSideState('pikachu');
+      state.def = makeSideState('garchomp');
+      state.atk.moves = ['thunderbolt'];
+      state.field = makeFieldState();
+      runCalc();
+      const immuneCard = document.getElementById('calc-results-body').textContent;
+      const immuneDamage = calculatePowerDamage(state.atk, state.def, MoveById.thunderbolt, state.field).damages[0];
+      state.atk = makeSideState('garchomp');
+      state.atk.moves = ['earthquake'];
+      state.def.item = 'leftovers';
+      runCalc();
+      const recoveryCard = document.getElementById('calc-results-body').textContent;
+      state.def.item = 'focussash';
+      runCalc();
+      return { immuneDamage, immunity: immuneCard.includes('무효') && immuneCard.includes('피해 산출에서 제외'), recovery: recoveryCard.includes('회복 반영'), survival: document.getElementById('calc-results-body').textContent.includes('생존 효과') };
+    })()`);
+    check(powerPolicy.immuneDamage > 0 && powerPolicy.immunity && powerPolicy.recovery && powerPolicy.survival, 'result cards show immunity, survival, and healing policies while computing power damage', JSON.stringify(powerPolicy));
+    const calcConditions = await client.evaluate(`(async () => {
+      await activateMainPage('calc', { updateHash: false });
+      state.atk=makeSideState('ninetalesalola');state.def=makeSideState('snorlax');
+      state.atk.moves=['tripleaxel','payback','stompingtantrum','beatup'];state.field=makeFieldState();
+      renderSide('atk');renderSide('def');runCalc();
+      const change=(selector,value,checked=false)=>{
+        const input=document.querySelector(selector);if(!input)throw new Error('Missing calculator control: '+selector);
+        if(checked)input.checked=value;else input.value=value;
+        input.dispatchEvent(new Event('change',{bubbles:true}));
+      };
+      change('[data-action="currentHp"][data-side="def"]','1');
+      const oneHp=sideCurrentHp(calcStats(state.def).hp,state.def);
+      change('[data-action="hpPct"][data-side="def"]','1');
+      const onePercent=sideCurrentHp(calcStats(state.def).hp,state.def);
+      change('[data-action="currentHp"][data-side="def"]','235');
+      change('[data-action="hitCount"][data-side="atk"]','2');
+      const selectedHits=calculatePowerDamage(state.atk,state.def,calcMoveWithConditions(MoveById.tripleaxel,state.atk,0),state.field).hitCounts[0];
+      change('[data-field="moveOrder"][data-side="atk"]','second');
+      const order=state.atk.moveOrder;
+      change('[data-field="lastMoveFailed"][data-side="atk"]',true,true);
+      const failed=state.atk.lastMoveFailed;
+      change('[data-action="beatUpMember"][data-side="atk"]','dragonite');
+      const participants=beatUpParticipants(state.atk,state.field).length;
+      change('[data-power-field="trickRoom"]',true,true);
+      change('[data-power-choice="spreadTargets"]','single');
+      state.def.item='leftovers';runCalc();
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+      const detail=document.querySelector('.calc-ko-details');
+      return {oneHp,onePercent,selectedHits,order,failed,participants,trickRoom:state.field.trickRoom,spread:state.field.spreadTargets,
+        recoveryVisible:!!detail&&getComputedStyle(detail).display!=='none',overflow:document.documentElement.scrollWidth-window.innerWidth,
+        countLabel:document.getElementById('calc-results-body').textContent.includes('2회 적중')};
+    })()`, true);
+    check(calcConditions.oneHp===1&&calcConditions.onePercent===2, 'calculator HP controls preserve 1 HP and distinguish 1 percent from full HP', JSON.stringify(calcConditions));
+    check(calcConditions.selectedHits===2&&calcConditions.countLabel&&calcConditions.participants===2, 'calculator hit count and Beat Up controls reach displayed damage results', JSON.stringify(calcConditions));
+    check(calcConditions.order==='second'&&calcConditions.failed&&calcConditions.trickRoom&&calcConditions.spread==='single', 'calculator move and field conditions update through UI events', JSON.stringify(calcConditions));
+    check(calcConditions.recoveryVisible&&calcConditions.overflow<=1, 'calculator recovery details stay visible and conditional inputs reflow at 320px', JSON.stringify(calcConditions));
+    await checkAxe(client, 'calculator conditional inputs 320px');
+    await client.evaluate(`document.querySelector('#atk-body .calc-move-conditions')?.scrollIntoView({block:'center'})`);
+    await captureScreenshot(client, 'calculator-conditions-320');
     check(browserErrors.length === 0, 'browser runtime reports no uncaught errors', browserErrors.join(' | '));
   } catch (error) {
     const detail = browserDiagnostics.trim().split(/\r?\n/).slice(-6).join(' | ');

@@ -1,0 +1,647 @@
+[
+  {
+    "width": 1440,
+    "scenario": "immuneRecovery",
+    "height": 232,
+    "scrollHeight": 239,
+    "clientHeight": 226,
+    "overflow": "hidden",
+    "children": [
+      {
+        "className": "calc-result-card-head ui-card-head",
+        "text": "1 10만볼트 특수 전기 자속 1/2배",
+        "top": 11,
+        "bottom": 57,
+        "height": 46,
+        "withinCard": true,
+        "scrollHeight": 47,
+        "clientHeight": 45,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-effect-notes ui-meta-row",
+        "text": "땅 타입: 전기 무효 · 피해 산출에서 제외",
+        "top": 192.25,
+        "bottom": 215.25,
+        "height": 23,
+        "withinCard": true,
+        "scrollHeight": 23,
+        "clientHeight": 23,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-ko-details ui-meta-row",
+        "text": "자뭉열매 회복 반영",
+        "top": 221.25,
+        "bottom": 242.25,
+        "height": 21,
+        "withinCard": false,
+        "scrollHeight": 21,
+        "clientHeight": 21,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-range ui-meter-card",
+        "text": "9.3 ~ 11.5% 회복 제외 HP162-166 / 183",
+        "top": 63,
+        "bottom": 108.25,
+        "height": 45.25,
+        "withinCard": true,
+        "scrollHeight": 43,
+        "clientHeight": 43,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-meta ui-meta-row",
+        "text": "계산 대미지17-21",
+        "top": 114.25,
+        "bottom": 186.25,
+        "height": 72,
+        "withinCard": true,
+        "scrollHeight": 72,
+        "clientHeight": 72,
+        "overflow": "hidden"
+      },
+      {
+        "className": "calc-ko-badge ui-status-badge ko-stable",
+        "text": "초과 10타",
+        "top": 9,
+        "bottom": 53,
+        "height": 44,
+        "withinCard": true,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "overflow": "visible"
+      }
+    ],
+    "fieldScopeHidden": true,
+    "fallenAlliesInputs": 0,
+    "summary": "추천 기술 10만볼트 9.3~11.5% 초과 10타"
+  },
+  {
+    "width": 1440,
+    "scenario": "multihitRecovery",
+    "height": 232,
+    "scrollHeight": 226,
+    "clientHeight": 226,
+    "overflow": "hidden",
+    "children": [
+      {
+        "className": "calc-result-card-head ui-card-head",
+        "text": "1 냉동펀치 물리 얼음 4배 2회 적중 · 부자유친",
+        "top": 11,
+        "bottom": 64,
+        "height": 53,
+        "withinCard": true,
+        "scrollHeight": 52,
+        "clientHeight": 52,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-ko-details ui-meta-row",
+        "text": "자뭉열매 회복 반영",
+        "top": 199.25,
+        "bottom": 220.25,
+        "height": 21,
+        "withinCard": true,
+        "scrollHeight": 21,
+        "clientHeight": 21,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-range ui-meter-card",
+        "text": "65.1 ~ 78.3% 회복 제외 HP36-58 / 166",
+        "top": 70,
+        "bottom": 115.25,
+        "height": 45.25,
+        "withinCard": true,
+        "scrollHeight": 43,
+        "clientHeight": 43,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-meta ui-meta-row",
+        "text": "계산 대미지108-130 멀티스케일×0.5·타격별 피해·열매 소비 반영·부자유친 추가타",
+        "top": 121.25,
+        "bottom": 193.25,
+        "height": 72,
+        "withinCard": true,
+        "scrollHeight": 72,
+        "clientHeight": 72,
+        "overflow": "hidden"
+      },
+      {
+        "className": "calc-ko-badge ui-status-badge ko-stable",
+        "text": "확정 2타",
+        "top": 9,
+        "bottom": 53,
+        "height": 44,
+        "withinCard": true,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "overflow": "visible"
+      }
+    ],
+    "fieldScopeHidden": true,
+    "fallenAlliesInputs": 0,
+    "summary": "추천 기술 냉동펀치 65.1~78.3% 확정 2타"
+  },
+  {
+    "width": 1440,
+    "scenario": "plain",
+    "height": 232,
+    "scrollHeight": 226,
+    "clientHeight": 226,
+    "overflow": "hidden",
+    "children": [
+      {
+        "className": "calc-result-card-head ui-card-head",
+        "text": "1 10만볼트 특수 전기 자속 1배",
+        "top": 11,
+        "bottom": 64,
+        "height": 53,
+        "withinCard": true,
+        "scrollHeight": 52,
+        "clientHeight": 52,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-ko-details ui-meta-row",
+        "text": "9타 이내 확정",
+        "top": 199.25,
+        "bottom": 220.25,
+        "height": 21,
+        "withinCard": true,
+        "scrollHeight": 21,
+        "clientHeight": 21,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-range ui-meter-card",
+        "text": "11.9 ~ 14.5% 회복 제외 HP201-207 / 235",
+        "top": 70,
+        "bottom": 115.25,
+        "height": 45.25,
+        "withinCard": true,
+        "scrollHeight": 43,
+        "clientHeight": 43,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-meta ui-meta-row",
+        "text": "계산 대미지28-34",
+        "top": 121.25,
+        "bottom": 193.25,
+        "height": 72,
+        "withinCard": true,
+        "scrollHeight": 72,
+        "clientHeight": 72,
+        "overflow": "hidden"
+      },
+      {
+        "className": "calc-ko-badge ui-status-badge chance",
+        "text": "난수 7타 0.1% 미만",
+        "top": 9,
+        "bottom": 53,
+        "height": 44,
+        "withinCard": true,
+        "scrollHeight": 42,
+        "clientHeight": 42,
+        "overflow": "visible"
+      }
+    ],
+    "fieldScopeHidden": true,
+    "fallenAlliesInputs": 0,
+    "summary": "추천 기술 10만볼트 11.9~14.5% 난수 7타"
+  },
+  {
+    "width": 375,
+    "scenario": "immuneRecovery",
+    "height": 232,
+    "scrollHeight": 226,
+    "clientHeight": 226,
+    "overflow": "hidden",
+    "children": [
+      {
+        "className": "calc-result-card-head ui-card-head",
+        "text": "1 10만볼트 특수 전기 자속 1/2배",
+        "top": 11,
+        "bottom": 17,
+        "height": 6,
+        "withinCard": true,
+        "scrollHeight": 47,
+        "clientHeight": 5,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-effect-notes ui-meta-row",
+        "text": "땅 타입: 전기 무효 · 피해 산출에서 제외",
+        "top": 152.25,
+        "bottom": 175.25,
+        "height": 23,
+        "withinCard": true,
+        "scrollHeight": 23,
+        "clientHeight": 23,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-ko-details ui-meta-row",
+        "text": "자뭉열매 회복 반영",
+        "top": 181.25,
+        "bottom": 202.25,
+        "height": 21,
+        "withinCard": true,
+        "scrollHeight": 21,
+        "clientHeight": 21,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-range ui-meter-card",
+        "text": "9.3 ~ 11.5% 회복 제외 HP162-166 / 183",
+        "top": 23,
+        "bottom": 68.25,
+        "height": 45.25,
+        "withinCard": true,
+        "scrollHeight": 43,
+        "clientHeight": 43,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-meta ui-meta-row",
+        "text": "계산 대미지17-21",
+        "top": 74.25,
+        "bottom": 146.25,
+        "height": 72,
+        "withinCard": true,
+        "scrollHeight": 72,
+        "clientHeight": 72,
+        "overflow": "hidden"
+      },
+      {
+        "className": "calc-ko-badge ui-status-badge ko-stable",
+        "text": "초과 10타",
+        "top": 173,
+        "bottom": 213,
+        "height": 40,
+        "withinCard": true,
+        "scrollHeight": 38,
+        "clientHeight": 38,
+        "overflow": "visible"
+      }
+    ],
+    "fieldScopeHidden": true,
+    "fallenAlliesInputs": 0,
+    "summary": "추천 기술 10만볼트 9.3~11.5% 초과 10타"
+  },
+  {
+    "width": 375,
+    "scenario": "multihitRecovery",
+    "height": 232,
+    "scrollHeight": 226,
+    "clientHeight": 226,
+    "overflow": "hidden",
+    "children": [
+      {
+        "className": "calc-result-card-head ui-card-head",
+        "text": "1 냉동펀치 물리 얼음 4배 2회 적중 · 부자유친",
+        "top": 11,
+        "bottom": 17,
+        "height": 6,
+        "withinCard": true,
+        "scrollHeight": 47,
+        "clientHeight": 5,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-ko-details ui-meta-row",
+        "text": "자뭉열매 회복 반영",
+        "top": 152.25,
+        "bottom": 173.25,
+        "height": 21,
+        "withinCard": true,
+        "scrollHeight": 21,
+        "clientHeight": 21,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-range ui-meter-card",
+        "text": "65.1 ~ 78.3% 회복 제외 HP36-58 / 166",
+        "top": 23,
+        "bottom": 68.25,
+        "height": 45.25,
+        "withinCard": true,
+        "scrollHeight": 43,
+        "clientHeight": 43,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-meta ui-meta-row",
+        "text": "계산 대미지108-130 멀티스케일×0.5·타격별 피해·열매 소비 반영·부자유친 추가타",
+        "top": 74.25,
+        "bottom": 146.25,
+        "height": 72,
+        "withinCard": true,
+        "scrollHeight": 72,
+        "clientHeight": 72,
+        "overflow": "hidden"
+      },
+      {
+        "className": "calc-ko-badge ui-status-badge ko-stable",
+        "text": "확정 2타",
+        "top": 173,
+        "bottom": 213,
+        "height": 40,
+        "withinCard": true,
+        "scrollHeight": 38,
+        "clientHeight": 38,
+        "overflow": "visible"
+      }
+    ],
+    "fieldScopeHidden": true,
+    "fallenAlliesInputs": 0,
+    "summary": "추천 기술 냉동펀치 65.1~78.3% 확정 2타"
+  },
+  {
+    "width": 375,
+    "scenario": "plain",
+    "height": 232,
+    "scrollHeight": 226,
+    "clientHeight": 226,
+    "overflow": "hidden",
+    "children": [
+      {
+        "className": "calc-result-card-head ui-card-head",
+        "text": "1 10만볼트 특수 전기 자속 1배",
+        "top": 11,
+        "bottom": 17,
+        "height": 6,
+        "withinCard": true,
+        "scrollHeight": 47,
+        "clientHeight": 5,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-ko-details ui-meta-row",
+        "text": "9타 이내 확정",
+        "top": 152.25,
+        "bottom": 173.25,
+        "height": 21,
+        "withinCard": true,
+        "scrollHeight": 21,
+        "clientHeight": 21,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-range ui-meter-card",
+        "text": "11.9 ~ 14.5% 회복 제외 HP201-207 / 235",
+        "top": 23,
+        "bottom": 68.25,
+        "height": 45.25,
+        "withinCard": true,
+        "scrollHeight": 43,
+        "clientHeight": 43,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-meta ui-meta-row",
+        "text": "계산 대미지28-34",
+        "top": 74.25,
+        "bottom": 146.25,
+        "height": 72,
+        "withinCard": true,
+        "scrollHeight": 72,
+        "clientHeight": 72,
+        "overflow": "hidden"
+      },
+      {
+        "className": "calc-ko-badge ui-status-badge chance",
+        "text": "난수 7타 0.1% 미만",
+        "top": 173,
+        "bottom": 213,
+        "height": 40,
+        "withinCard": true,
+        "scrollHeight": 38,
+        "clientHeight": 38,
+        "overflow": "visible"
+      }
+    ],
+    "fieldScopeHidden": true,
+    "fallenAlliesInputs": 0,
+    "summary": "추천 기술 10만볼트 11.9~14.5% 난수 7타"
+  },
+  {
+    "width": 320,
+    "scenario": "immuneRecovery",
+    "height": 232,
+    "scrollHeight": 226,
+    "clientHeight": 226,
+    "overflow": "hidden",
+    "children": [
+      {
+        "className": "calc-result-card-head ui-card-head",
+        "text": "1 10만볼트 특수 전기 자속 1/2배",
+        "top": 11,
+        "bottom": 17,
+        "height": 6,
+        "withinCard": true,
+        "scrollHeight": 47,
+        "clientHeight": 5,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-effect-notes ui-meta-row",
+        "text": "땅 타입: 전기 무효 · 피해 산출에서 제외",
+        "top": 165.75,
+        "bottom": 188.75,
+        "height": 23,
+        "withinCard": true,
+        "scrollHeight": 23,
+        "clientHeight": 23,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-ko-details ui-meta-row",
+        "text": "자뭉열매 회복 반영",
+        "top": 194.75,
+        "bottom": 215.75,
+        "height": 21,
+        "withinCard": true,
+        "scrollHeight": 21,
+        "clientHeight": 21,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-range ui-meter-card",
+        "text": "9.3 ~ 11.5% 회복 제외 HP162-166 / 183",
+        "top": 23,
+        "bottom": 81.75,
+        "height": 58.75,
+        "withinCard": true,
+        "scrollHeight": 57,
+        "clientHeight": 57,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-meta ui-meta-row",
+        "text": "계산 대미지17-21",
+        "top": 87.75,
+        "bottom": 159.75,
+        "height": 72,
+        "withinCard": true,
+        "scrollHeight": 72,
+        "clientHeight": 72,
+        "overflow": "hidden"
+      },
+      {
+        "className": "calc-ko-badge ui-status-badge ko-stable",
+        "text": "초과 10타",
+        "top": 173,
+        "bottom": 213,
+        "height": 40,
+        "withinCard": true,
+        "scrollHeight": 38,
+        "clientHeight": 38,
+        "overflow": "visible"
+      }
+    ],
+    "fieldScopeHidden": true,
+    "fallenAlliesInputs": 0,
+    "summary": "추천 기술 10만볼트 9.3~11.5% 초과 10타"
+  },
+  {
+    "width": 320,
+    "scenario": "multihitRecovery",
+    "height": 232,
+    "scrollHeight": 226,
+    "clientHeight": 226,
+    "overflow": "hidden",
+    "children": [
+      {
+        "className": "calc-result-card-head ui-card-head",
+        "text": "1 냉동펀치 물리 얼음 4배 2회 적중 · 부자유친",
+        "top": 11,
+        "bottom": 17,
+        "height": 6,
+        "withinCard": true,
+        "scrollHeight": 70,
+        "clientHeight": 5,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-ko-details ui-meta-row",
+        "text": "자뭉열매 회복 반영",
+        "top": 165.75,
+        "bottom": 186.75,
+        "height": 21,
+        "withinCard": true,
+        "scrollHeight": 21,
+        "clientHeight": 21,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-range ui-meter-card",
+        "text": "65.1 ~ 78.3% 회복 제외 HP36-58 / 166",
+        "top": 23,
+        "bottom": 81.75,
+        "height": 58.75,
+        "withinCard": true,
+        "scrollHeight": 57,
+        "clientHeight": 57,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-meta ui-meta-row",
+        "text": "계산 대미지108-130 멀티스케일×0.5·타격별 피해·열매 소비 반영·부자유친 추가타",
+        "top": 87.75,
+        "bottom": 159.75,
+        "height": 72,
+        "withinCard": true,
+        "scrollHeight": 72,
+        "clientHeight": 72,
+        "overflow": "hidden"
+      },
+      {
+        "className": "calc-ko-badge ui-status-badge ko-stable",
+        "text": "확정 2타",
+        "top": 173,
+        "bottom": 213,
+        "height": 40,
+        "withinCard": true,
+        "scrollHeight": 38,
+        "clientHeight": 38,
+        "overflow": "visible"
+      }
+    ],
+    "fieldScopeHidden": true,
+    "fallenAlliesInputs": 0,
+    "summary": "추천 기술 냉동펀치 65.1~78.3% 확정 2타"
+  },
+  {
+    "width": 320,
+    "scenario": "plain",
+    "height": 232,
+    "scrollHeight": 226,
+    "clientHeight": 226,
+    "overflow": "hidden",
+    "children": [
+      {
+        "className": "calc-result-card-head ui-card-head",
+        "text": "1 10만볼트 특수 전기 자속 1배",
+        "top": 11,
+        "bottom": 17,
+        "height": 6,
+        "withinCard": true,
+        "scrollHeight": 47,
+        "clientHeight": 5,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-ko-details ui-meta-row",
+        "text": "9타 이내 확정",
+        "top": 165.75,
+        "bottom": 186.75,
+        "height": 21,
+        "withinCard": true,
+        "scrollHeight": 21,
+        "clientHeight": 21,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-range ui-meter-card",
+        "text": "11.9 ~ 14.5% 회복 제외 HP201-207 / 235",
+        "top": 23,
+        "bottom": 81.75,
+        "height": 58.75,
+        "withinCard": true,
+        "scrollHeight": 57,
+        "clientHeight": 57,
+        "overflow": "visible"
+      },
+      {
+        "className": "calc-damage-meta ui-meta-row",
+        "text": "계산 대미지28-34",
+        "top": 87.75,
+        "bottom": 159.75,
+        "height": 72,
+        "withinCard": true,
+        "scrollHeight": 72,
+        "clientHeight": 72,
+        "overflow": "hidden"
+      },
+      {
+        "className": "calc-ko-badge ui-status-badge chance",
+        "text": "난수 7타 0.1% 미만",
+        "top": 173,
+        "bottom": 213,
+        "height": 40,
+        "withinCard": true,
+        "scrollHeight": 38,
+        "clientHeight": 38,
+        "overflow": "visible"
+      }
+    ],
+    "fieldScopeHidden": true,
+    "fallenAlliesInputs": 0,
+    "summary": "추천 기술 10만볼트 11.9~14.5% 난수 7타"
+  }
+]

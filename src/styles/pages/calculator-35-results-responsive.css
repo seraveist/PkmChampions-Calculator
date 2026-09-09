@@ -15,13 +15,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  #page-calc .calc-result-card {
-    min-height: 274px;
-  }
-
-  #page-calc .calc-damage-meta {
-    min-height: 58px;
-  }
 }
 
 @media (max-width: 860px) {
@@ -31,10 +24,6 @@
 
   #page-calc .calc-result-card-main {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      "top"
-      "range"
-      "info";
   }
 
   #page-calc .calc-ko-badge {

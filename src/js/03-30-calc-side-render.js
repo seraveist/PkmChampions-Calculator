@@ -1,4 +1,20 @@
 ﻿/* Damage calculator side panel rendering and side-level events. */
+function renderSideAbilityConditions(sideKey, side) {
+  const flags = {
+    flashfire: ['flashFireActive', '타오르는불꽃 발동'],
+    unburden: ['unburdenActive', '곡예 발동'],
+    slowstart: ['slowStartActive', '슬로스타트 5턴 이내'],
+    stakeout: ['stakeoutActive', '상대가 이번 턴 교체'],
+    plus: ['allyPlusMinusActive', '아군 플러스·마이너스'],
+    minus: ['allyPlusMinusActive', '아군 플러스·마이너스'],
+  };
+  const flag = flags[side.ability];
+  let controls = flag ? `<label class="checkbox-label ui-check"><input type="checkbox" data-action="conditionFlag" data-side="${sideKey}" data-field="${flag[0]}" ${side[flag[0]] ? 'checked' : ''}>${flag[1]}</label>` : '';
+  if (side.ability === 'rivalry') controls += `<label class="ui-field">투쟁심 성별 조건<select data-action="conditionMode" data-side="${sideKey}" data-field="rivalryGender">${[['none','성별 없음·미적용'],['same','동성'],['opposite','이성']].map(([value, label]) => `<option value="${value}" ${(side.rivalryGender || 'none') === value ? 'selected' : ''}>${label}</option>`).join('')}</select></label>`;
+  if (AbilityById[side.ability]?.paradoxBoost) controls += `<label class="checkbox-label ui-check"><input type="checkbox" data-action="conditionFlag" data-side="${sideKey}" data-field="paradoxActive" ${side.paradoxActive ? 'checked' : ''}>부스트에너지 발동 유지</label>`;
+  return controls ? `<div class="ui-control-row ui-control-frame ui-subframe">${controls}</div>` : '';
+}
+
 const calcEvPresetProgress = {
   atk: { evPreset: null, nature: null },
   def: { evPreset: null, nature: null },
@@ -62,13 +78,14 @@ function renderMoveList(sideKey, side) {
   const rows = [0,1,2,3].map(i => {
     const moveId = side.moves[i];
     const move = moveId ? MoveById[moveId] : null;
-    const slotBp = move ? manualBpForSlot(side, i, move) : '';
+    let slotBp = move ? manualBpForSlot(side, i, move) : '';
     const manualBp = normalizeManualBp(side.moveBpOverrides?.[i]);
     const slotType = move ? manualTypeForSlot(side, i, move) : '';
     const manualType = normalizeMoveType(side.moveTypeOverrides?.[i]);
     const targetSide = state[sideKey === 'atk' ? 'def' : 'atk'];
-    const moveForCalc = move ? moveWithManualBp(move, manualBp, manualType) : null;
+    const moveForCalc = move ? calcMoveWithConditions(move, side, i) : null;
     const power = moveForCalc ? estimateMovePower(side, moveForCalc, targetSide) : null;
+    if (move && !canEditMovePower(move) && !isFixedPowerMove(move)) slotBp = move.variableBpKind === 'fickleBeam' && !['normal', 'boosted'].includes(side.fickleBeamMode) ? '80/160' : power?.bp || '—';
     const fixedCritical = !!move?.willCrit;
     const manualCritical = !!side.moveCriticalOverrides?.[i];
     const criticalDisabled = !move || move.cat === 'Status' || fixedCritical;
@@ -88,9 +105,12 @@ function renderMoveList(sideKey, side) {
         </div>
       `,
       powerHtml: `
-        <label class="tool-move-power-control ui-inline-number is-plain" title="power">
-          <input type="text" class="tool-move-power-input ui-inline-number-input" data-action="moveBp" data-side="${sideKey}" data-slot="${i}" value="${move ? slotBp : ''}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} move ${i+1} power" ${move ? '' : 'disabled'}>
+        <div class="tool-move-col-power calc-power-input-group">
+        <label class="tool-move-power-control ui-inline-number is-plain" title="기본 위력 · 직접 입력하면 수동 고정">
+          <input type="text" class="tool-move-power-input ui-inline-number-input" data-action="moveBp" data-side="${sideKey}" data-slot="${i}" value="${move && !isFixedPowerMove(move) ? slotBp : ''}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="${sideKey} move ${i+1} power" ${canEditMovePower(move) ? '' : 'disabled'}>
         </label>
+        <button type="button" class="calc-power-mode" data-action="moveBpAuto" data-side="${sideKey}" data-slot="${i}" aria-label="${i + 1}번 기술 위력 자동 복원" ${!canEditMovePower(move) || manualBp === null ? 'disabled' : ''}>${move ? calcPowerModeText(side, i, move) : '—'}</button>
+        </div>
       `,
       critical: `
         <span class="tool-move-col-critical">
@@ -277,6 +297,10 @@ function renderSide(sideKey) {
       </div>
     </div>
 
+    ${renderSideAbilityConditions(sideKey, side)}
+    <label class="calc-current-hp ui-control-row ui-control-frame ui-subframe">현재 HP
+      <input type="number" class="ui-inline-number-input" data-action="currentHp" data-side="${sideKey}" value="${currentHp}" min="1" max="${stats.hp}" aria-label="${sideKey} current HP value"> / ${stats.hp}
+    </label>
     ${renderCalcCompactStats(stats)}
 
     <!-- ?ㅽ꺈 (?λ젰?ъ씤??+ ??겕 + ?ㅼ닔移? -->
@@ -335,6 +359,7 @@ function renderSide(sideKey) {
           ${renderMoveList(sideKey, side)}
         </div>
       </div>
+      ${renderCalcMoveConditions(sideKey, side)}
     </div>
 
   `);
@@ -383,12 +408,15 @@ function wireSide(sideKey) {
           state[side].moveTypeOverrides[idx] = null;
           if (!Array.isArray(state[side].moveCriticalOverrides)) state[side].moveCriticalOverrides = [false, false, false, false];
           state[side].moveCriticalOverrides[idx] = false;
+          if (!Array.isArray(state[side].moveHitCounts)) state[side].moveHitCounts = [null, null, null, null];
+          state[side].moveHitCounts[idx] = null;
         } else if (field.startsWith('moveTypes.')) {
           const idx = parseInt(field.split('.')[1], 10);
           applyMoveTypeOverride(side, idx, id);
         }
 
         renderSide(side);
+        if (field.startsWith('moves.')) renderSide(side === 'atk' ? 'def' : 'atk');
         if (resetAutoFields) syncFieldControls();
         triggerCalc();
       },
@@ -401,6 +429,14 @@ function wireSide(sideKey) {
     if (action === 'moveBp') {
       el.addEventListener('input', () => applyMoveBpInput(el));
       el.addEventListener('change', () => applyMoveBpInput(el, true));
+      return;
+    }
+    if (action === 'moveBpAuto') {
+      el.addEventListener('click', () => {
+        state[el.dataset.side].moveBpOverrides[Number(el.dataset.slot)] = null;
+        renderSide(el.dataset.side);
+        triggerCalc();
+      });
       return;
     }
     if (action === 'moveCritical') {
@@ -449,7 +485,21 @@ function wireSide(sideKey) {
         return;
       }
       if (action === 'hpPct') {
-        setSideHpPct(side, el.value);
+        setSideHpPct(side, Number(el.value) / 100);
+        renderSide(el.dataset.side);
+        triggerCalc();
+        return;
+      }
+      else if (action === 'currentHp') {
+        setSideCurrentHp(side, el.value);
+        renderSide(el.dataset.side);
+        triggerCalc();
+        return;
+      }
+      else if (action === 'hitCount' || action === 'beatUpMember') {
+        const field = action === 'hitCount' ? 'moveHitCounts' : 'beatUpParty';
+        if (!Array.isArray(side[field])) side[field] = [];
+        side[field][Number(el.dataset.slot)] = action === 'hitCount' ? Number(el.value) || null : el.value;
         renderSide(el.dataset.side);
         triggerCalc();
         return;
@@ -462,6 +512,13 @@ function wireSide(sideKey) {
       }
       else if (action === 'damageBlockToggle') {
         setSideDamageBlockActive(side, !side.damageBlockActive);
+        renderSide(el.dataset.side);
+        triggerCalc();
+        return;
+      }
+      else if (action === 'receivedDamage') {
+        const raw = el.value.trim();
+        side.receivedDamage = raw === '' || !Number.isFinite(Number(raw)) ? null : Math.max(0, Math.min(calcStats(side).hp - 1, Math.floor(Number(raw))));
         renderSide(el.dataset.side);
         triggerCalc();
         return;
@@ -480,7 +537,7 @@ function wireSide(sideKey) {
       }
       else if (action === 'fallenAllies') {
         side.fallenAllies = clampFallenAllies(el.value);
-        renderSide('atk');
+        renderSide(el.dataset.side);
         triggerCalc();
         return;
       }

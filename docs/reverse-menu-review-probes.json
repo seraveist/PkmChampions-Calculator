@@ -1,0 +1,396 @@
+{
+  "zeroDamageMatchers": {
+    "pct": 0,
+    "hp": 0
+  },
+  "immunity": {
+    "actualRange": [
+      0,
+      0
+    ],
+    "analysis": {
+      "total": 0,
+      "groups": 0,
+      "shown": 0
+    }
+  },
+  "sashObservation": {
+    "myHp": 145,
+    "rawRange": [
+      364,
+      432
+    ],
+    "matchingAtOneHp": 0
+  },
+  "partialHp": {
+    "hp": 177,
+    "before": 132,
+    "damage": 55,
+    "fullPct": 68,
+    "partialPct": 43,
+    "full": {
+      "candidates": 141,
+      "containsActual": true
+    },
+    "partial": {
+      "candidates": 0,
+      "containsActual": false
+    }
+  },
+  "sitrus": {
+    "hp": 235,
+    "damage": 118,
+    "rawRemaining": 117,
+    "recovery": 58,
+    "observedPct": 74,
+    "matches": {
+      "candidates": 0,
+      "containsActual": false
+    }
+  },
+  "leftovers": {
+    "hp": 235,
+    "damage": 100,
+    "recovery": 14,
+    "observedPct": 63,
+    "matches": {
+      "candidates": 669,
+      "containsActual": false
+    }
+  },
+  "defaultItems": {
+    "selected": [
+      "",
+      "choicescarf",
+      "metalcoat",
+      "silverpowder"
+    ],
+    "offered": [
+      {
+        "id": "occaberry",
+        "offered": true
+      },
+      {
+        "id": "sitrusberry",
+        "offered": true
+      },
+      {
+        "id": "leftovers",
+        "offered": true
+      },
+      {
+        "id": "focussash",
+        "offered": false
+      }
+    ]
+  },
+  "fickleBeam": {
+    "normal": [
+      49,
+      58
+    ],
+    "boosted": [
+      97,
+      115
+    ],
+    "autoLegacy": [
+      49,
+      58
+    ],
+    "autoPower": [
+      49,
+      115
+    ]
+  },
+  "parentalBond": {
+    "reverseRange": [
+      90,
+      107
+    ],
+    "powerRange": [
+      108,
+      130
+    ]
+  },
+  "specialInputs": [
+    {
+      "id": "counter",
+      "learner": "charizard",
+      "range": null,
+      "analysis": {
+        "total": 0,
+        "groups": 0,
+        "shown": 0
+      }
+    },
+    {
+      "id": "mirrorcoat",
+      "learner": "blastoise",
+      "range": null,
+      "analysis": {
+        "total": 0,
+        "groups": 0,
+        "shown": 0
+      }
+    },
+    {
+      "id": "metalburst",
+      "learner": "sableye",
+      "range": null,
+      "analysis": {
+        "total": 0,
+        "groups": 0,
+        "shown": 0
+      }
+    },
+    {
+      "id": "comeuppance",
+      "learner": "houndoom",
+      "range": null,
+      "analysis": {
+        "total": 0,
+        "groups": 0,
+        "shown": 0
+      }
+    },
+    {
+      "id": "spitup",
+      "learner": "arbok",
+      "range": null,
+      "analysis": {
+        "total": 0,
+        "groups": 0,
+        "shown": 0
+      }
+    }
+  ],
+  "followupMultiscale": {
+    "hp": 198,
+    "first": 46,
+    "remaining": 152,
+    "menu": {
+      "rawMin": 46,
+      "rawMax": 55,
+      "pctMin": 23.232323232323232,
+      "pctMax": 27.77777777777778,
+      "koState": "KO 불가",
+      "koClass": "ko-none"
+    },
+    "updatedStateRange": [
+      92,
+      110
+    ]
+  },
+  "speedOnly": {
+    "error": "내 기술 또는 상대 기술 중 하나는 입력해야 합니다 (변화기 제외)."
+  },
+  "speedOnlyEqualPriority": {
+    "error": "내 기술 또는 상대 기술 중 하나는 입력해야 합니다 (변화기 제외)."
+  },
+  "groupEnvelope": {
+    "hpRange": [
+      0,
+      8
+    ],
+    "defRange": [
+      1,
+      8
+    ],
+    "groupCount": 22,
+    "maxHpMaxDefIsMember": false,
+    "phantomPairMatches": 0
+  },
+  "staleResults": {
+    "before": "50",
+    "after": "0",
+    "retainedSameResult": true,
+    "analysis": {
+      "total": 25224,
+      "groups": 212,
+      "shown": 5
+    }
+  },
+  "singleExchange": {
+    "ordinary": {
+      "my": "garchomp",
+      "opp": "snorlax",
+      "myMove": "dragonclaw",
+      "oppMove": "crunch",
+      "learnable": [
+        true,
+        true
+      ],
+      "hp": 235,
+      "myHp": 183,
+      "dealt": 81,
+      "received": 34,
+      "opponentRemaining": 154,
+      "myRemaining": 149,
+      "legacyRange": [
+        34,
+        41
+      ],
+      "afterHitRange": [
+        34,
+        41
+      ],
+      "containsActualOffense": true,
+      "analysis": {
+        "total": 74454,
+        "groups": 298,
+        "shown": 5
+      }
+    },
+    "eruptionAfterHit": {
+      "my": "garchomp",
+      "opp": "typhlosion",
+      "myMove": "dragonclaw",
+      "oppMove": "eruption",
+      "learnable": [
+        true,
+        true
+      ],
+      "hp": 153,
+      "myHp": 183,
+      "dealt": 69,
+      "received": 29,
+      "opponentRemaining": 84,
+      "myRemaining": 154,
+      "legacyRange": [
+        52,
+        62
+      ],
+      "afterHitRange": [
+        29,
+        34
+      ],
+      "containsActualOffense": false,
+      "analysis": {
+        "total": 0,
+        "groups": 0,
+        "shown": 0
+      }
+    },
+    "avalancheAfterHit": {
+      "my": "snorlax",
+      "opp": "swampert",
+      "myMove": "bodyslam",
+      "oppMove": "avalanche",
+      "learnable": [
+        true,
+        true
+      ],
+      "hp": 175,
+      "myHp": 235,
+      "dealt": 58,
+      "received": 69,
+      "opponentRemaining": 117,
+      "myRemaining": 166,
+      "legacyRange": [
+        35,
+        42
+      ],
+      "afterHitRange": [
+        69,
+        82
+      ],
+      "containsActualOffense": false,
+      "analysis": {
+        "total": 0,
+        "groups": 0,
+        "shown": 0
+      }
+    },
+    "paybackMovesSecond": {
+      "my": "garchomp",
+      "opp": "umbreon",
+      "myMove": "crunch",
+      "oppMove": "payback",
+      "learnable": [
+        true,
+        true
+      ],
+      "hp": 170,
+      "myHp": 183,
+      "dealt": 17,
+      "received": 42,
+      "opponentRemaining": 153,
+      "myRemaining": 141,
+      "legacyRange": [
+        22,
+        27
+      ],
+      "afterHitRange": [
+        42,
+        51
+      ],
+      "containsActualOffense": false,
+      "analysis": {
+        "total": 0,
+        "groups": 0,
+        "shown": 0
+      }
+    },
+    "consumedOcca": {
+      "hp": 177,
+      "damage": 102,
+      "remaining": 75,
+      "menuNext": {
+        "rawMin": 102,
+        "rawMax": 120,
+        "pctMin": 57.6271186440678,
+        "pctMax": 67.79661016949152,
+        "koState": "KO 확정",
+        "koClass": "ko-certain"
+      },
+      "consumedRange": [
+        204,
+        240
+      ]
+    },
+    "judgmentCategories": {
+      "mixedForms": {
+        "rawMin": 40,
+        "rawMax": 110,
+        "pctMin": 40,
+        "pctMax": 110,
+        "koState": "KO 난수",
+        "koClass": "ko-roll"
+      },
+      "singleFormRandomRoll": {
+        "rawMin": 90,
+        "rawMax": 110,
+        "pctMin": 90,
+        "pctMax": 110,
+        "koState": "KO 난수",
+        "koClass": "ko-roll"
+      }
+    }
+  },
+  "stateKeys": [
+    "my",
+    "opp",
+    "myMove",
+    "myMoveSet",
+    "myMoveBp",
+    "observedTheirPct",
+    "oppMove",
+    "oppMoveBp",
+    "oppItemKnown",
+    "predictedOppMove",
+    "selectedResultIndex",
+    "openResultIndexes",
+    "nextRankOpen",
+    "nextMyRanks",
+    "nextOppRanks",
+    "observedMyHp",
+    "turnOrder",
+    "field",
+    "observedFields",
+    "itemCandidates",
+    "itemCandidatesOpen",
+    "results",
+    "analyzing",
+    "analysisRunId"
+  ]
+}

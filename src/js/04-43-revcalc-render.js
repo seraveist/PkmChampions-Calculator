@@ -248,6 +248,22 @@ function renderRevCalcOpp() {
   rcWireOppComboboxes();
 }
 
+function rcRenderObservationMoveOptions(role) {
+  const move = MoveById[role === 'my' ? revCalcState.myMove : revCalcState.oppMove];
+  if (!move) return '';
+  const options = revCalcState.observedMoveOptions?.[role] || {};
+  const select = (key, label, choices, current) => `<label class="ui-field"><span class="ui-field-label">${label}</span><select data-rc-move-option="${key}" data-rc-role="${role}">${choices.map(([value, text]) => `<option value="${value}" ${String(current ?? '') === String(value) ? 'selected' : ''}>${text}</option>`).join('')}</select></label>`;
+  const controls = [];
+  if (move.mh) {
+    const min = Array.isArray(move.mh) ? move.mh[0] : move.mh, max = Array.isArray(move.mh) ? move.mh[1] : move.mh;
+    controls.push(select('hitCount', '관측 적중 횟수', [['', '미확인'], ...Array.from({ length: max - min + 1 }, (_, i) => [min + i, `${min + i}회`])], options.hitCount));
+  }
+  if (move.variableBpKind === 'fickleBeam') controls.push(select('fickleBeamMode', '변덕레이저 강화', [['auto','미확인'],['normal','일반'],['boosted','강화 관측']], options.fickleBeamMode || 'auto'));
+  if (move.variableBpKind === 'stockpile') controls.push(select('stockpileCount', '비축 횟수', [['','선택'],[1,'1회'],[2,'2회'],[3,'3회']], options.stockpileCount));
+  if (move.fixedDamageKind === 'receivedDamage') controls.push('<p class="rc-mini-note">먼저 받은 공격의 마지막 적중 피해로 반격을 계산합니다.</p>');
+  return controls.length ? `<div class="rc-toggle-grid ui-control-grid">${controls.join('')}</div>` : '';
+}
+
 function renderRevCalcInputs() {
   const container = document.getElementById('rc-input-body');
   if (!container) return;
@@ -290,9 +306,11 @@ function renderRevCalcInputs() {
   `).join('');
 
   renderTrustedHTML(container, `
+    <p class="rc-mini-note">한 턴 공방 후의 최종 HP를 입력하세요. 관측한 먹다남은음식·열매는 도구에서 선택하면 반영합니다. 내구는 H32 이후 B/D를 추가하는 순서로 추정합니다.</p>
     <div class="rc-input-grid ui-control-grid">
       <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
         <div class="rc-section-title ui-section-title">내 행동</div>
+        ${rcRenderObservationMoveOptions('my')}
         <div class="rc-control-row rc-observed-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
           <label class="rc-field-wide ui-field">
             <span class="ui-field-label">사용 기술</span>
@@ -312,6 +330,7 @@ function renderRevCalcInputs() {
 
       <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
         <div class="rc-section-title ui-section-title">상대 행동</div>
+        ${rcRenderObservationMoveOptions('opp')}
         <div class="rc-control-row rc-observed-row rc-opponent-action-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
           <label class="rc-field-wide ui-field">
             <span class="ui-field-label">사용 기술</span>
@@ -335,6 +354,7 @@ function renderRevCalcInputs() {
 
       <div class="rc-input-block rc-speed-block ui-control-frame ui-subframe ui-subframe-stack">
         <div class="rc-section-title ui-section-title">선후공 | 필드 상태</div>
+        <label class="checkbox-label ui-check"><input type="checkbox" data-rc-field="trickRoom" ${revCalcState.field.trickRoom ? 'checked' : ''}> 트릭룸</label>
         <div class="rc-control-row rc-speed-field-row rc-observed-subframe ui-control-row ui-control-frame ui-subframe">
           <label class="rc-field-compact ui-field">
             <span class="ui-field-label">이번 턴 행동 순서</span>
@@ -348,6 +368,17 @@ function renderRevCalcInputs() {
           </label>
         </div>
       </div>
+
+      <details class="rc-input-block ui-control-frame ui-subframe"><summary>시작 HP·관측 시점·확인된 특성</summary>
+        <p class="rc-mini-note">두 포켓몬의 시작 HP는 기본 100%입니다. 변화기와 확률적인 부가 효과는 자동 재현하지 않으며, 맹독 피해는 첫 번째 턴 기준입니다.</p>
+        <div class="rc-toggle-grid ui-control-grid">
+          <label class="ui-field"><span class="ui-field-label">내 시작 HP</span><input type="number" data-rc-action="myStartHp" min="1" max="${calcStats(my).hp}" value="${rcHp(my)}"></label>
+          <label class="ui-field"><span class="ui-field-label">상대 시작 HP %</span><input type="number" data-rc-action="oppStartHpPct" min="1" max="100" value="${revCalcState.oppStartHpPct ?? 100}"></label>
+          <label class="ui-field"><span class="ui-field-label">HP 관측 시점</span><select data-rc-action="observationTiming"><option value="end" ${revCalcState.observationTiming !== 'hit' ? 'selected' : ''}>턴 종료 회복 후</option><option value="hit" ${revCalcState.observationTiming === 'hit' ? 'selected' : ''}>공방 직후·턴 종료 전</option></select></label>
+          <label class="ui-field"><span class="ui-field-label">확인된 상대 특성</span><select data-rc-action="oppAbilityKnown"><option value="unknown">미관측</option>${rcPokemonAbilityIds(oppP).map(id => `<option value="${id}" ${revCalcState.oppAbilityKnown === id ? 'selected' : ''}>${escapeHTML(abName(AbilityById[id] || {name:id}))}</option>`).join('')}</select></label>
+          <label class="ui-field"><span class="ui-field-label">내 상태</span><select data-rc-action="myStatus">${rcStatusOptions().map(s => `<option value="${s.id}" ${my.status === s.id ? 'selected' : ''}>${escapeHTML(s.label)}</option>`).join('')}</select></label>
+        </div>
+      </details>
 
       <div class="rc-input-block rc-item-candidates-block ui-collapsible ui-control-frame ui-subframe ui-subframe-stack ${itemPanelOpen ? 'open' : 'collapsed is-collapsed'}">
         <button type="button" class="rc-section-title ui-section-title rc-title-with-badge rc-collapse-head ui-collapse-head" data-rc-toggle-item-candidates aria-expanded="${itemPanelOpen ? 'true' : 'false'}">
@@ -367,6 +398,8 @@ function renderRevCalcInputs() {
 }
 
 function renderRevCalcResults() {
+  rcInvalidateChangedObservation();
+  rcScheduleForecastRefresh();
   const container = document.getElementById('rc-results-body');
   if (!container) return;
   const analyzeButton = document.getElementById('rcAnalyze');
@@ -399,6 +432,11 @@ function renderRevCalcResults() {
     return;
   }
   const r = revCalcState.results;
+  if (revCalcState.resultsStale && !r) {
+    rcSetStagePanelState('rc-results-panel', 'ready', '재분석 필요');
+    renderTrustedHTML(container, '<div class="empty-state ui-empty" role="status">입력 조건이 바뀌었습니다. 형태 분석을 다시 실행해 주세요.</div>');
+    return;
+  }
   if (!r) {
     renderTrustedHTML(container, participantsReady
       ? '<div class="empty-state ui-empty ui-empty--compact ui-empty--guide">피해량과 선후공 정보를 입력하고 형태 분석을 실행하세요.</div>'
@@ -412,7 +450,7 @@ function renderRevCalcResults() {
 
   if (!r.results.length) {
     renderTrustedHTML(container, `
-      <div class="empty-state ui-empty">66포인트 룰과 관측값을 동시에 만족하는 형태가 없습니다.</div>
+      <div class="empty-state ui-empty">HP 우선 배분과 현재 관측을 함께 만족하는 형태가 없습니다. 최종 HP, 행동 순서, 관측 도구와 기술 조건을 확인해 주세요.</div>
     `);
     return;
   }
@@ -425,7 +463,7 @@ function renderRevCalcResults() {
           : '구애스카프 없이도 속도 조건을 만족합니다.')
     : '속도 조건은 사용하지 않았습니다.';
   const first = r.results[0];
-  const topItem = first.item ? itName(ItemById[first.item] || { name: first.item }) : '도구 없음';
+  const topItem = first.item ? itName(ItemById[first.item] || { name: first.item }) : rcKnownOpponentItem() === null ? '도구 미확인(피해 보정 없음 가정)' : '도구 없음';
   const investmentBrief = rcBriefInvestmentParts(first, r.speedActive);
   const briefing = `상위 후보는 ${topItem}, ${NATURE_BY_ID[first.nature]?.ko || first.nature} 성격입니다. 관측 투자 범위는 ${investmentBrief}입니다. ${scarfBrief}`;
 
@@ -440,7 +478,7 @@ function renderRevCalcResults() {
     const natureKo = NATURE_BY_ID[c.nature]?.ko || c.nature;
     const itemTag = c.item
       ? `<span class="rc-result-item ${c.item === 'choicescarf' ? 'rc-scarf-item' : ''}">${escapeHTML(itName(ItemById[c.item] || { name: c.item }))}</span>`
-      : '<span class="rc-result-item rc-no-item">도구 없음</span>';
+      : `<span class="rc-result-item rc-no-item">${rcKnownOpponentItem() === null ? '도구 미확인 · 피해 보정 없음' : '도구 없음'}</span>`;
     const natureTag = `<span class="rc-result-nature-badge">${escapeHTML(natureKo)}</span>`;
     const abilityTag = rcCandidateAbilityIds(c)
       .map(id => `<span class="rc-result-ability">${escapeHTML(abName(AbilityById[id] || { name: id }))}</span>`)
@@ -455,11 +493,11 @@ function renderRevCalcResults() {
       : `${totalMin}`;
     const speedPlan = rcSpeedPlanLabel(c, r.speedActive);
     const roleInfo = rcRoleCompletionInfo(c, r.speedActive);
-    const followupChips = followupMoveIds
+    const expanded = openIndexes.has(i);
+    const followupChips = (expanded ? followupMoveIds : [])
       .map(moveId => rcRenderFollowupMoveChip(rcAnalyzeMyFollowupMove(c, moveId, r.speedActive)))
       .filter(Boolean)
       .join('');
-    const expanded = openIndexes.has(i);
     const predictedAnalysis = expanded && predictedMoveId
       ? rcAnalyzeOpponentFollowupMove(c, predictedMoveId, r.speedActive)
       : null;
@@ -494,14 +532,14 @@ function renderRevCalcResults() {
           ${abilityTag}
         </div>
         <div class="rc-result-lines">
-          <span>${escapeHTML(roleInfo.label)} · ${escapeHTML(roleInfo.parts.join(' / ') || '-')}</span>
+          <span>예시 배분 · ${escapeHTML(roleInfo.label)} · ${escapeHTML(roleInfo.parts.join(' / ') || '-')}</span>
           <span>${escapeHTML(speedPlan)} · ${escapeHTML(speedRange)} · 관측 ${escapeHTML(totalRange)} / 완성 66</span>
         </div>
       </div>
     `;
     return `
       <div class="rc-result-row rc-form-result ${expanded ? 'open' : 'collapsed'} ui-control-frame ui-subframe" data-rc-toggle-result="${i}">
-        <div class="rc-result-rank">#${i + 1}</div>
+        <button type="button" class="rc-result-rank" data-rc-toggle-result="${i}" aria-label="후보 ${i + 1} ${expanded ? '접기' : '펼치기'}" aria-expanded="${expanded}">#${i + 1}</button>
         ${expanded
           ? `<div class="rc-result-expanded-body">${infoPanel}${followupPanel}${predictedPanel}</div>`
           : infoPanel}
@@ -510,9 +548,10 @@ function renderRevCalcResults() {
   }).join('');
 
   renderTrustedHTML(container, `
+    ${rcRenderExchangeSummary(r)}
     <div class="rc-briefing ui-control-frame ui-subframe">
       <div class="rc-briefing-title">요약</div>
-      <div>${escapeHTML(briefing)}</div>
+      <div>${escapeHTML(briefing)}</div><p class="rc-mini-note">H32 → B/D 추가 우선 · ${r.total}개 후보 / ${r.groupTotal}개 그룹 중 대표 ${r.results.length}개 · 미관측 도구는 없음으로 확정하지 않습니다.</p>
     </div>
     ${rcRenderNextRankPanel()}
     <div class="rc-results-list">${rows}</div>

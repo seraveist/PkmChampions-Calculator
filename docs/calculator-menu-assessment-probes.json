@@ -1,0 +1,879 @@
+[
+  {
+    "name": "Available fixed-damage learners and conditions inventory",
+    "result": {
+      "fixed": [
+        {
+          "id": "endeavor",
+          "kind": "targetMinusSourceHp",
+          "learners": [
+            "beedrill",
+            "beedrillmega",
+            "pikachu",
+            "raichu"
+          ]
+        },
+        {
+          "id": "finalgambit",
+          "kind": "sourceCurrentHp",
+          "learners": [
+            "staraptor",
+            "staraptormega",
+            "lucario",
+            "lucariomega"
+          ]
+        },
+        {
+          "id": "fissure",
+          "learners": [
+            "snorlax",
+            "steelix",
+            "steelixmega",
+            "camerupt"
+          ]
+        },
+        {
+          "id": "guillotine",
+          "learners": [
+            "pinsir",
+            "pinsirmega",
+            "kingambit"
+          ]
+        },
+        {
+          "id": "horndrill",
+          "learners": [
+            "rhyperior",
+            "excadrill",
+            "excadrillmega",
+            "tyrantrum"
+          ]
+        },
+        {
+          "id": "nightshade",
+          "damage": "level",
+          "learners": [
+            "clefable",
+            "clefablemega",
+            "ninetales",
+            "gengar"
+          ]
+        },
+        {
+          "id": "seismictoss",
+          "damage": "level",
+          "learners": [
+            "machamp",
+            "pinsir",
+            "pinsirmega",
+            "heracross"
+          ]
+        },
+        {
+          "id": "sheercold",
+          "learners": [
+            "glalie",
+            "glaliemega",
+            "abomasnow",
+            "abomasnowmega"
+          ]
+        },
+        {
+          "id": "superfang",
+          "kind": "targetHalfHp",
+          "learners": [
+            "houndoom",
+            "houndoommega",
+            "toxicroak",
+            "watchog"
+          ]
+        }
+      ],
+      "variable": [
+        {
+          "id": "acrobatics",
+          "kind": "noItemDouble"
+        },
+        {
+          "id": "assurance",
+          "kind": "targetWasHitDouble"
+        },
+        {
+          "id": "avalanche",
+          "kind": "userWasHitDouble"
+        },
+        {
+          "id": "barbbarrage",
+          "kind": "targetStatusDouble"
+        },
+        {
+          "id": "beatup",
+          "kind": "beatUpApprox"
+        },
+        {
+          "id": "boltbeak",
+          "kind": "userMovesFirstDouble"
+        },
+        {
+          "id": "electroball",
+          "kind": "electroBall"
+        },
+        {
+          "id": "eruption",
+          "kind": "userHp150"
+        },
+        {
+          "id": "expandingforce",
+          "kind": "psychicTerrainUserGroundedBoost"
+        },
+        {
+          "id": "facade",
+          "kind": "userStatusDouble"
+        },
+        {
+          "id": "fishiousrend",
+          "kind": "userMovesFirstDouble"
+        },
+        {
+          "id": "flail",
+          "kind": "lowHpFlail"
+        },
+        {
+          "id": "grassknot",
+          "kind": "targetWeight"
+        },
+        {
+          "id": "gravapple",
+          "kind": "gravityBoost"
+        },
+        {
+          "id": "gyroball",
+          "kind": "gyroBall"
+        },
+        {
+          "id": "hardpress",
+          "kind": "targetHp100"
+        },
+        {
+          "id": "heatcrash",
+          "kind": "weightRatio"
+        },
+        {
+          "id": "heavyslam",
+          "kind": "weightRatio"
+        },
+        {
+          "id": "hex",
+          "kind": "targetStatusDouble"
+        },
+        {
+          "id": "infernalparade",
+          "kind": "targetStatusDouble"
+        },
+        {
+          "id": "knockoff",
+          "kind": "knockOff"
+        },
+        {
+          "id": "lastrespects",
+          "kind": "fallenAllies"
+        },
+        {
+          "id": "lowkick",
+          "kind": "targetWeight"
+        },
+        {
+          "id": "mistyexplosion",
+          "kind": "mistyTerrainUserGroundedBoost"
+        },
+        {
+          "id": "payback",
+          "kind": "userMovesSecondDouble"
+        },
+        {
+          "id": "poltergeist",
+          "kind": "requiresTargetItem"
+        },
+        {
+          "id": "powertrip",
+          "kind": "positiveBoostCount"
+        },
+        {
+          "id": "reversal",
+          "kind": "lowHpFlail"
+        },
+        {
+          "id": "risingvoltage",
+          "kind": "electricTerrainTargetGroundedDouble"
+        },
+        {
+          "id": "solarbeam",
+          "kind": "weatherWeakenedSolar"
+        },
+        {
+          "id": "solarblade",
+          "kind": "weatherWeakenedSolar"
+        },
+        {
+          "id": "steelroller",
+          "kind": "requiresTerrain"
+        },
+        {
+          "id": "stompingtantrum",
+          "kind": "lastMoveFailedDouble"
+        },
+        {
+          "id": "storedpower",
+          "kind": "positiveBoostCount"
+        },
+        {
+          "id": "temperflare",
+          "kind": "lastMoveFailedDouble"
+        },
+        {
+          "id": "terrainpulse",
+          "kind": "terrainPulse"
+        },
+        {
+          "id": "tripleaxel",
+          "kind": "tripleAxelAverage"
+        },
+        {
+          "id": "venoshock",
+          "kind": "targetPoisonDouble"
+        },
+        {
+          "id": "waterspout",
+          "kind": "userHp150"
+        },
+        {
+          "id": "weatherball",
+          "kind": "weatherBall"
+        }
+      ],
+      "countConditions": [
+        "basculegion",
+        "basculegionf",
+        "houndstone",
+        "kingambit"
+      ]
+    }
+  },
+  {
+    "name": "Fixed level damage in move-list power estimate",
+    "result": {
+      "attacker": "machamp",
+      "availableMove": {
+        "id": "seismictoss",
+        "name": "Seismic Toss",
+        "koName": "지구던지기",
+        "type": "Fighting",
+        "cat": "Physical",
+        "bp": 0,
+        "acc": 100,
+        "pri": 0,
+        "flags": {
+          "contact": 1,
+          "protect": 1,
+          "mirror": 1,
+          "nonsky": 1,
+          "metronome": 1
+        },
+        "damage": "level",
+        "target": "normal",
+        "tgt": "normal",
+        "desc": "인력을 사용해 내던진다. 자신의 레벨과 똑같은 데미지를 상대에게 준다.",
+        "descLong": "Deals damage to the target equal to the user's level."
+      },
+      "estimate": {
+        "bp": 0,
+        "eff": 0,
+        "atkStat": 0
+      },
+      "damage": [
+        50,
+        50
+      ]
+    }
+  },
+  {
+    "name": "Beat Up Mega user species and base Attack",
+    "result": {
+      "pokemon": {
+        "id": "charizardmegax",
+        "num": 6,
+        "spriteId": 10034,
+        "spriteFallbackId": 6,
+        "name": "Charizard-Mega-X",
+        "koName": "메가리자몽X",
+        "base": "Charizard",
+        "forme": "Mega-X",
+        "types": [
+          "Fire",
+          "Dragon"
+        ],
+        "bs": {
+          "hp": 78,
+          "atk": 130,
+          "def": 111,
+          "spa": 130,
+          "spd": 85,
+          "spe": 100
+        },
+        "bst": 634,
+        "ab": {
+          "0": "Tough Claws"
+        },
+        "weightkg": 110.5,
+        "mega": true,
+        "tier": "UUBL",
+        "requiredItem": "Charizardite X",
+        "ls": [
+          "acrobatics",
+          "aerialace",
+          "aircutter",
+          "airslash",
+          "ancientpower",
+          "beatup",
+          "bellydrum",
+          "bite",
+          "blastburn",
+          "bodyslam",
+          "breakingswipe",
+          "brickbreak",
+          "brutalswing",
+          "bulldoze",
+          "counter",
+          "crunch",
+          "dig",
+          "doubleedge",
+          "dragoncheer",
+          "dragonclaw",
+          "dragondance",
+          "dragonpulse",
+          "dragonrush",
+          "dragontail",
+          "earthquake",
+          "endure",
+          "facade",
+          "fireblast",
+          "firefang",
+          "firepunch",
+          "firespin",
+          "flamecharge",
+          "flamethrower",
+          "flareblitz",
+          "fling",
+          "fly",
+          "focusblast",
+          "focuspunch",
+          "gigaimpact",
+          "heatcrash",
+          "heatwave",
+          "helpinghand",
+          "hurricane",
+          "hyperbeam",
+          "inferno",
+          "irontail",
+          "megakick",
+          "outrage",
+          "overheat",
+          "protect",
+          "rest",
+          "roar",
+          "rockslide",
+          "rocktomb",
+          "roost",
+          "round",
+          "sandstorm",
+          "scaleshot",
+          "scaryface",
+          "scorchingsands",
+          "shadowclaw",
+          "sleeptalk",
+          "snore",
+          "solarbeam",
+          "steelwing",
+          "substitute",
+          "sunnyday",
+          "swordsdance",
+          "temperflare",
+          "thunderpunch",
+          "weatherball",
+          "willowisp"
+        ]
+      },
+      "participant": {
+        "id": "charizard",
+        "num": 6,
+        "spriteId": 6,
+        "name": "Charizard",
+        "koName": "리자몽",
+        "types": [
+          "Fire",
+          "Flying"
+        ],
+        "bs": {
+          "hp": 78,
+          "atk": 84,
+          "def": 78,
+          "spa": 109,
+          "spd": 85,
+          "spe": 100
+        },
+        "bst": 534,
+        "ab": {
+          "0": "Blaze",
+          "H": "Solar Power"
+        },
+        "weightkg": 90.5,
+        "tier": "RU",
+        "ls": [
+          "acrobatics",
+          "aerialace",
+          "aircutter",
+          "airslash",
+          "ancientpower",
+          "beatup",
+          "bellydrum",
+          "bite",
+          "blastburn",
+          "bodyslam",
+          "breakingswipe",
+          "brickbreak",
+          "brutalswing",
+          "bulldoze",
+          "counter",
+          "crunch",
+          "dig",
+          "doubleedge",
+          "dragoncheer",
+          "dragonclaw",
+          "dragondance",
+          "dragonpulse",
+          "dragonrush",
+          "dragontail",
+          "earthquake",
+          "endure",
+          "facade",
+          "fireblast",
+          "firefang",
+          "firepunch",
+          "firespin",
+          "flamecharge",
+          "flamethrower",
+          "flareblitz",
+          "fling",
+          "fly",
+          "focusblast",
+          "focuspunch",
+          "gigaimpact",
+          "heatcrash",
+          "heatwave",
+          "helpinghand",
+          "hurricane",
+          "hyperbeam",
+          "inferno",
+          "irontail",
+          "megakick",
+          "outrage",
+          "overheat",
+          "protect",
+          "rest",
+          "roar",
+          "rockslide",
+          "rocktomb",
+          "roost",
+          "round",
+          "sandstorm",
+          "scaleshot",
+          "scaryface",
+          "scorchingsands",
+          "shadowclaw",
+          "sleeptalk",
+          "snore",
+          "solarbeam",
+          "steelwing",
+          "substitute",
+          "sunnyday",
+          "swordsdance",
+          "temperflare",
+          "thunderpunch",
+          "weatherball",
+          "willowisp"
+        ]
+      },
+      "power": 18,
+      "hits": [
+        1
+      ],
+      "damage": [
+        10,
+        12
+      ],
+      "estimate": {
+        "bp": 18,
+        "eff": 1950,
+        "atkStat": 150
+      }
+    }
+  },
+  {
+    "name": "Knock Off plus Sitrus recovery order",
+    "result": {
+      "maxHp": 235,
+      "range": [
+        65,
+        77
+      ],
+      "raw": [
+        65,
+        66,
+        66,
+        67,
+        68,
+        69,
+        70,
+        70,
+        71,
+        72,
+        73,
+        73,
+        74,
+        75,
+        76,
+        77
+      ],
+      "outcomes": [
+        {
+          "hp": 170,
+          "used": true,
+          "damage": 0,
+          "chance": 0.0625
+        },
+        {
+          "hp": 169,
+          "used": true,
+          "damage": 0,
+          "chance": 0.125
+        },
+        {
+          "hp": 168,
+          "used": true,
+          "damage": 0,
+          "chance": 0.0625
+        },
+        {
+          "hp": 167,
+          "used": true,
+          "damage": 0,
+          "chance": 0.0625
+        },
+        {
+          "hp": 166,
+          "used": true,
+          "damage": 0,
+          "chance": 0.0625
+        },
+        {
+          "hp": 165,
+          "used": true,
+          "damage": 0,
+          "chance": 0.125
+        },
+        {
+          "hp": 164,
+          "used": true,
+          "damage": 0,
+          "chance": 0.0625
+        },
+        {
+          "hp": 163,
+          "used": true,
+          "damage": 0,
+          "chance": 0.0625
+        },
+        {
+          "hp": 162,
+          "used": true,
+          "damage": 0,
+          "chance": 0.125
+        },
+        {
+          "hp": 161,
+          "used": true,
+          "damage": 0,
+          "chance": 0.0625
+        },
+        {
+          "hp": 160,
+          "used": true,
+          "damage": 0,
+          "chance": 0.0625
+        },
+        {
+          "hp": 159,
+          "used": true,
+          "damage": 0,
+          "chance": 0.0625
+        },
+        {
+          "hp": 158,
+          "used": true,
+          "damage": 0,
+          "chance": 0.0625
+        }
+      ],
+      "ko": {
+        "label": "확정",
+        "turns": "5타",
+        "pct": "",
+        "cls": "",
+        "sub": "자뭉열매 회복 반영",
+        "metric": {
+          "possibleTurn": 5,
+          "guaranteedTurn": 5,
+          "oneMoveKoChance": 0,
+          "cumulative": [
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "impossible": false
+        }
+      }
+    }
+  },
+  {
+    "name": "Displayed move base power versus applied power",
+    "result": {
+      "hp": 76,
+      "displayedBp": 150,
+      "appliedBp": 74,
+      "estimate": {
+        "bp": 74,
+        "eff": 14319,
+        "atkStat": 129
+      },
+      "mods": []
+    }
+  },
+  {
+    "name": "Fallen allies UI reachability",
+    "result": [
+      {
+        "id": "kingambit",
+        "ability": "supremeoverlord",
+        "moves": [
+          "kowtowcleave"
+        ],
+        "containsFallenAllies": false,
+        "values": [
+          {
+            "fallen": 0,
+            "bp": 85,
+            "damage": [
+              88,
+              105
+            ]
+          },
+          {
+            "fallen": 2,
+            "bp": 102,
+            "damage": [
+              105,
+              124
+            ]
+          }
+        ]
+      },
+      {
+        "id": "basculegion",
+        "ability": "swiftswim",
+        "moves": [
+          "lastrespects"
+        ],
+        "containsFallenAllies": false,
+        "values": [
+          {
+            "fallen": 0,
+            "bp": 50,
+            "damage": [
+              45,
+              54
+            ]
+          },
+          {
+            "fallen": 2,
+            "bp": 150,
+            "damage": [
+              132,
+              156
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Knock Off crossing Sitrus trigger at current HP 150",
+    "result": {
+      "start": 150,
+      "hp": 235,
+      "raw": [
+        65,
+        66,
+        66,
+        67,
+        68,
+        69,
+        70,
+        70,
+        71,
+        72,
+        73,
+        73,
+        74,
+        75,
+        76,
+        77
+      ],
+      "actualHpRange": [
+        131,
+        143
+      ],
+      "hpRangeIfRemovalPrecedesHealing": [
+        73,
+        85
+      ],
+      "ko": {
+        "label": "난수",
+        "turns": "4타",
+        "pct": "85.2%",
+        "cls": "",
+        "sub": "자뭉열매 회복 반영 · 현재 HP 150 기준 · 5타 이내 확정",
+        "metric": {
+          "possibleTurn": 4,
+          "guaranteedTurn": 5,
+          "oneMoveKoChance": 0,
+          "cumulative": [
+            0,
+            0,
+            0,
+            0.85223388671875,
+            1
+          ],
+          "impossible": false
+        }
+      },
+      "koIfRemovalPrecedesHealing": {
+        "cumulative": [
+          0,
+          0,
+          1
+        ],
+        "oneMoveKoChance": 0,
+        "possibleTurn": 3,
+        "guaranteedTurn": 3,
+        "impossible": false,
+        "cannotGuarantee": false
+      }
+    }
+  },
+  {
+    "name": "Excluded direct multi-hit modifiers on later hits remain a distinct estimate",
+    "result": {
+      "damage": [
+        32,
+        39
+      ],
+      "estimate": {
+        "bp": 75,
+        "eff": 13594,
+        "atkStat": 145
+      },
+      "modifiers": [
+        "부자유친 추가타",
+        "타격별 피해·열매 소비 반영"
+      ]
+    }
+  },
+  {
+    "name": "Power index with Parental Bond Power-Up Punch changes",
+    "result": {
+      "unavailable": true
+    }
+  },
+  {
+    "name": "Manual power override visual discoverability",
+    "result": {
+      "appliedBp": 150,
+      "listShowsManual": false,
+      "cardShowsManual": false,
+      "mods": []
+    }
+  },
+  {
+    "name": "Mobile summary misses KO probability and immunity condition",
+    "result": {
+      "summary": "\n      <span class=\"calc-mobile-summary-label\">추천 기술</span>\n      <strong>10만볼트</strong>\n      <span class=\"calc-mobile-summary-range\">9.3~11.5%</span>\n      <b class=\"calc-mobile-summary-ko\">난수 9타</b>\n    ",
+      "cardHasImmunity": true,
+      "summaryHasImmunity": false
+    }
+  },
+  {
+    "name": "Single-hit range and KO stability performance representative cases",
+    "result": [
+      {
+        "aId": "garchomp",
+        "dId": "snorlax",
+        "m": "earthquake",
+        "averageMs": 1,
+        "range": [
+          100,
+          118
+        ],
+        "label": "난수",
+        "turns": "2타"
+      },
+      {
+        "aId": "heracrossmega",
+        "dId": "snorlax",
+        "m": "rockblast",
+        "averageMs": 11.4,
+        "range": [
+          115,
+          140
+        ],
+        "label": "난수",
+        "turns": "2타"
+      },
+      {
+        "aId": "ninetalesalola",
+        "dId": "snorlax",
+        "m": "tripleaxel",
+        "averageMs": 5.2,
+        "range": [
+          74,
+          89
+        ],
+        "label": "난수",
+        "turns": "3타"
+      },
+      {
+        "aId": "kangaskhanmega",
+        "dId": "dragonite",
+        "m": "icepunch",
+        "averageMs": 0.6,
+        "range": [
+          108,
+          130
+        ],
+        "label": "확정",
+        "turns": "2타"
+      }
+    ]
+  }
+]

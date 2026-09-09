@@ -1,0 +1,86 @@
+{
+  "ficklebeam": {
+    "normal": [
+      49,
+      58
+    ],
+    "normalKo": {
+      "label": "난수",
+      "turns": "2타",
+      "pct": "96.5%",
+      "cls": "ohko",
+      "sub": "현재 HP 100 기준 · 3타 이내 확정"
+    },
+    "double": [
+      97,
+      115
+    ],
+    "doubleKo": {
+      "label": "난수",
+      "turns": "1타",
+      "pct": "81.3%",
+      "cls": "ohko",
+      "sub": "현재 HP 100 기준 · 2타 이내 확정"
+    },
+    "oneUseChanceIncludingBranch": 0.24375,
+    "card": "\n      적용 조건   싱글  날씨 보정 없음  필드 없음   \n    \n\n     \n     \n       \n         \n           공격측 \n           과미드라 \n         \n         \n           64 \n          \n         \n       \n       \n         속도 \n       \n       \n         \n           50 \n          \n         \n         \n           수비측 \n           잠만보 \n         \n       \n     \n    \n     \n     \n      \n     \n       \n         \n           \n             1 \n             변덕레이저 \n           \n           \n             특수 \n             드래곤 \n             자속 \n             1배 \n            \n           \n         \n        \n         현재 HP 100 기준 · 3타 이내 확정 \n         \n           \n             20.9 ~ 24.7% \n              회복 제외 HP  42-51 / 235  \n           \n           \n              \n              \n           \n         \n         \n           자동 · 기본 80 → 보정 위력 80 \n            계산 대미지  49-58  \n          \n          \n          \n         \n       \n       \n         \n           난수 \n           2타 \n           96.5% \n         \n       \n     \n  \n     \n  "
+  },
+  "counter": [
+    {
+      "id": "counter",
+      "attacker": "charizard",
+      "range": [
+        92,
+        110
+      ],
+      "card": "\n      적용 조건   싱글  날씨 보정 없음  필드 없음   \n    \n\n     \n     \n       \n         \n           공격측 \n           리자몽 \n         \n         \n           120 \n          \n         \n       \n       \n         속도 \n       \n       \n         \n           50 \n          \n         \n         \n           수비측 \n           잠만보 \n         \n       \n     \n    \n     \n     \n      \n     \n       \n         \n           \n             1 \n             카운터 \n           \n           \n             물리 \n             격투 \n            \n             2배 \n            \n           \n         \n        \n        \n         \n           \n             39.1 ~ 46.8% \n              회복 제외 HP  125-143 / 235  \n           \n           \n              \n              \n           \n         \n         \n           수동 · 입력 100 → 보정 위력 100 \n            계산 대미지  92-110  \n          \n          \n          \n         \n       \n       \n         \n           확정 \n           3타 \n            \n         \n       \n     \n  \n     \n  "
+    },
+    {
+      "id": "mirrorcoat",
+      "attacker": "blastoise",
+      "range": [
+        31,
+        37
+      ],
+      "card": "\n      적용 조건   싱글  날씨 보정 없음  필드 없음   \n    \n\n     \n     \n       \n         \n           공격측 \n           거북왕 \n         \n         \n           98 \n          \n         \n       \n       \n         속도 \n       \n       \n         \n           50 \n          \n         \n         \n           수비측 \n           잠만보 \n         \n       \n     \n    \n     \n     \n      \n     \n       \n         \n           \n             1 \n             미러코트 \n           \n           \n             특수 \n             에스퍼 \n            \n             1배 \n            \n           \n         \n        \n         8타 이내 확정 \n         \n           \n             13.2 ~ 15.7% \n              회복 제외 HP  198-204 / 235  \n           \n           \n              \n              \n           \n         \n         \n           수동 · 입력 100 → 보정 위력 100 \n            계산 대미지  31-37  \n          \n          \n          \n         \n       \n       \n         \n           난수 \n           7타 \n           64.1% \n         \n       \n     \n  \n     \n  "
+    },
+    {
+      "id": "metalburst",
+      "attacker": "sableye",
+      "range": [
+        43,
+        51
+      ],
+      "card": "\n      적용 조건   싱글  날씨 보정 없음  필드 없음   \n    \n\n     \n     \n       \n         \n           공격측 \n           깜까미 \n         \n         \n           70 \n          \n         \n       \n       \n         속도 \n       \n       \n         \n           50 \n          \n         \n         \n           수비측 \n           잠만보 \n         \n       \n     \n    \n     \n     \n      \n     \n       \n         \n           \n             1 \n             메탈버스트 \n           \n           \n             물리 \n             강철 \n            \n             1배 \n            \n           \n         \n        \n         6타 이내 확정 \n         \n           \n             18.3 ~ 21.7% \n              회복 제외 HP  184-192 / 235  \n           \n           \n              \n              \n           \n         \n         \n           수동 · 입력 100 → 보정 위력 100 \n            계산 대미지  43-51  \n          \n          \n          \n         \n       \n       \n         \n           난수 \n           5타 \n           37.6% \n         \n       \n     \n  \n     \n  "
+    },
+    {
+      "id": "comeuppance",
+      "attacker": "houndoom",
+      "range": [
+        73,
+        87
+      ],
+      "card": "\n      적용 조건   싱글  날씨 보정 없음  필드 없음   \n    \n\n     \n     \n       \n         \n           공격측 \n           헬가 \n         \n         \n           115 \n          \n         \n       \n       \n         속도 \n       \n       \n         \n           50 \n          \n         \n         \n           수비측 \n           잠만보 \n         \n       \n     \n    \n     \n     \n      \n     \n       \n         \n           \n             1 \n             앙갚음 \n           \n           \n             물리 \n             악 \n             자속 \n             1배 \n            \n           \n         \n        \n         4타 이내 확정 \n         \n           \n             31.1 ~ 37.0% \n              회복 제외 HP  148-162 / 235  \n           \n           \n              \n              \n           \n         \n         \n           수동 · 입력 100 → 보정 위력 100 \n            계산 대미지  73-87  \n          \n          \n          \n         \n       \n       \n         \n           난수 \n           3타 \n           70.3% \n         \n       \n     \n  \n     \n  "
+    }
+  ],
+  "flingAndSpitup": [
+    {
+      "id": "fling",
+      "attacker": "charizard",
+      "item": {
+        "id": "ironball"
+      },
+      "range": null,
+      "message": "현재 조건에서는 피해를 계산할 수 없습니다."
+    },
+    {
+      "id": "spitup",
+      "attacker": "arbok",
+      "item": {
+        "id": "ironball"
+      },
+      "range": null,
+      "message": "현재 조건에서는 피해를 계산할 수 없습니다."
+    }
+  ]
+}

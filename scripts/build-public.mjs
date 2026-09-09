@@ -31,6 +31,8 @@ const FEATURE_FILES = {
     '04-40-revcalc-state.js',
     '04-41-revcalc-scoring.js',
     '04-42-revcalc-candidates.js',
+    '04-42-revcalc-exchange.js',
+    '04-42-revcalc-forecast.js',
     '04-43-revcalc-render.js',
     '04-44-revcalc-events.js',
     '04-45-revcalc-actions.js',

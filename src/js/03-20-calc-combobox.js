@@ -3,124 +3,59 @@
 const ENTRY_EFFECTS = RULES.entryEffects || {};
 const INTIMIDATE_BLOCKERS = RULES.entryEffectBlockers?.intimidate || [];
 
-// 틀깨기에 무시되는 방어측 특성
-// 기술 위력 / 결정력 추정
-// 결정력 = 공격(특공) 실수치 × 기술 위력 × STAB × 도구 × 특성 보정
-//   ※ 타입 상성, 방어측 보정은 제외
-//   예: 파이어로 고집 A32 + 구애머리띠 → 브레이브버드 = 146 × 120 × 1.5 × 1.5 = 39420
-function estimateMovePower(side, move, targetSide = state.def) {
+// 결정력: 현재 조건의 공격 능력치 × 보정 위력 × 자속·공격 보정.
+// 피해 공식과 능력치/위력 단계를 공유하며 방어 실수치·타입 상성 배율은 곱하지 않는다.
+function estimateMovePower(side, move, targetSide = state.def, suppliedField = null) {
   if (!move || move.cat === 'Status') return { bp: '—', eff: '—' };
-  const types = effectiveTypes(side);
-  const ab = side.ability;
-  const abilityData = AbilityById[ab];
-  const item = side.item;
-  const stats = calcStats(side);
-  // 가변 위력 기술 위력은 자기 자신을 상대로 가정한 추정치로 보여준다 (estimate 용도)
-  const defStats = calcStats(targetSide);
-  const estimateField = { ...state.field };
-  const estimateAtkSpe = effectiveSpeed(side, estimateField);
-  const estimateDefSpe = effectiveSpeed(targetSide, estimateField);
-  estimateField.atkMovesFirst = estimateAtkSpe > estimateDefSpe;
-  estimateField.atkMovesSecond = estimateAtkSpe < estimateDefSpe;
-  const variableBp = computeVariableBp(move, side, targetSide, estimateField, stats, defStats);
-
-  let moveType = move.type;
-  let bp = variableBp || move.bp;
-  if (!bp) return { bp: '—', eff: '—' };
-
-  // 타입 변환 특성 + BP 보정
-  let typeMult = 1.0;
-  const typeChange = abilityData?.typeChange;
-  if (!move.manualType && typeChange && (!typeChange.from || moveType === typeChange.from) && (!typeChange.flag || move.flags?.[typeChange.flag])) {
-    moveType = typeChange.type;
-    if (typeChange.mod) typeMult = mechanicMod(typeChange.mod) / 4096;
+  let field = suppliedField || state.field;
+  if (!suppliedField && (side === state.atk || side === state.def)) {
+    const derived = makeCalcState();
+    const key = side === state.atk ? 'atk' : 'def';
+    side = derived[key];
+    targetSide = derived[key === 'atk' ? 'def' : 'atk'];
+    field = derived.field;
   }
-
-  // Tera Blast Stellar: 100 BP 고정
-  if (!move.manualType && move.typeChangeKind === 'teraBlast' && side.tera && side.teraType === 'Stellar') bp = 100;
-
-  // 카테고리 결정 (Tera Blast / Photon Geyser는 동적)
-  let category = move.cat;
-  if (move.categoryChangeKind === 'higherOffense' && (move.typeChangeKind !== 'teraBlast' || side.tera)) {
-    if (stats.atk > stats.spa) category = 'Physical';
-    else category = 'Special';
+  if (!PokemonById[side.pokemonIdx]) return { bp: '—', eff: '—' };
+  if (!PokemonById[targetSide?.pokemonIdx]) targetSide = side;
+  const moveField = { ...powerMoveField(side, targetSide, move, field), damagePurpose: 'power', singleHitCalculation: true };
+  const first = calculateDamage(side, targetSide, move, moveField);
+  if (!first) return { bp: '—', eff: '—' };
+  if (isFixedPowerMove(move)) {
+    const fixed = calculatePowerDamage(side, targetSide, move, moveField);
+    const min = fixed.damages[0], max = fixed.damages.at(-1);
+    return { bp: '—', eff: move.ohko ? '일격' : `고정 ${min === max ? min : `${min}~${max}`}`, atkStat: 0 };
   }
-  const isPhysical = category === 'Physical';
-
-  // 공격 실수치 (성격 보정 포함, calcStats가 이미 처리)
-  const atkStat = isPhysical ? stats.atk : stats.spa;
-
-  // STAB 계수
-  let stabMod = 1.0;
-  const isOriginal = types.includes(moveType);
-  const isTera = side.tera && side.teraType === moveType;
-  const isStellar = side.tera && side.teraType === 'Stellar';
-  const hasAdaptability = abilityData?.stabBoost === 'adaptability';
-  if (isStellar) {
-    stabMod = isOriginal ? (hasAdaptability ? 2.25 : 2.0) : 1.5;
-  } else if (isTera && isOriginal) {
-    stabMod = hasAdaptability ? 2.25 : 2.0;
-  } else if (isTera || isOriginal) {
-    stabMod = (isOriginal && hasAdaptability) ? 2.0 : 1.5;
-  } else if (abilityData?.volatileStab) {
-    stabMod = 1.5;
-  }
-
-  // 다단 히트 / 부자유친
-  let hits = 1;
-  if (move.mh) {
-    if (Array.isArray(move.mh)) {
-      if (ItemById[item]?.multiHitModifier === 'loadedDice' && move.mh[1] === 5) hits = 4.5;
-      else if (abilityData?.multiHitModifier === 'max') hits = move.mh[1];
-      else if (move.mh[0] === 2 && move.mh[1] === 5) hits = 3.167;
-      else hits = (move.mh[0] + move.mh[1]) / 2;
-    } else {
-      hits = move.mh;
+  const model = makePowerAttackModel(side, targetSide, move, moveField, first);
+  let eff = 0, atkStat = 0;
+  const totalWeight = model.variants.reduce((sum, v) => sum + v.weight, 0);
+  model.variants.forEach(variant => {
+    const variantSide = variant.fickleBeamMode ? { ...side, fickleBeamMode: variant.fickleBeamMode } : side;
+    let sum = 0;
+    for (let index = 0; index < variant.hits; index++) {
+      const hitField = { ...moveField, powerHitIndex: index, beatUpBaseAttack: beatUpParticipants(side, field)[index]?.bs.atk };
+      const ctx = makeDamageContext(variantSide, targetSide, move, hitField);
+      if (resolveDamagePreludeStage(ctx)?.done || calculateBasePowerStage(ctx)?.done) continue;
+      calculateAttackStage(ctx);
+      atkStat = ctx.atkStat;
+      let power = ctx.atkStat * ctx.bp * getStabMod(side, ctx.moveType, ctx.atkAb) / 4096;
+      const mods = [];
+      applyAbilityRuleMods(ctx.atkAbilityData?.finalDamageBoosts, ctx, mods, '');
+      const boost = ctx.atkItemData?.finalDamageBoost;
+      if (boost && (boost.kind === 'always' || (boost.kind === 'superEffective' && ctx.effectiveness > 1))) mods.push(mechanicMod(boost.mod));
+      power *= chainMods(mods, 41, 131072) / 4096;
+      const weatherRule = firstMatchingFieldRule(fieldMechanics().weatherDamageMods, {
+        ...ctx, damageWeather: ctx.atkAbilityData?.weatherDamageOverride || ctx.weather,
+        ignoresWeatherDamagePenalty: !!ctx.atkAbilityData?.ignoreWeatherDamagePenalty,
+      });
+      if (weatherRule && !weatherRule.nullDamage && !ctx.atkItemData?.ignoresWeatherDamageModifiers && !ctx.defItemData?.ignoresWeatherDamageModifiers) power *= mechanicMod(weatherRule.mod) / 4096;
+      if (ctx.applyBurn) power *= 0.5;
+      if (isSpreadDamage(move, field, side)) power *= 0.75;
+      if (model.kind === 'parentalBond' && index) power *= 0.25;
+      sum += power;
     }
-  }
-  if (abilityData?.extraHitModifier?.singleHitOnly && !move.mh && move.cat !== 'Status') {
-    hits = mechanicMod(abilityData.extraHitModifier.mod) / 4096;
-  }
-
-  // 특성 위력 보정 (BP 단계)
-  let abilityMult = 1.0;
-  const estimateCtx = {
-    atkSide: side,
-    defSide: targetSide,
-    move,
-    field: state.field,
-    bp,
-    moveType,
-    weather: state.field.weather,
-    effectiveness: 1,
-    isCritical: false,
-    isPhysical,
-  };
-  for (const rule of abilityData?.bpBoosts || []) {
-    if (abilityRuleApplies(rule, estimateCtx)) abilityMult *= mechanicMod(rule.mod) / 4096;
-  }
-
-  // 특성 공격 보정 (Atk 단계)
-  let atkMult = 1.0;
-  for (const rule of abilityData?.attackStatBoosts || []) {
-    if (abilityRuleApplies(rule, estimateCtx)) atkMult *= mechanicMod(rule.mod) / 4096;
-  }
-
-  // 도구 보정
-  let itemMult = 1.0;
-  const itemData = ItemById[item];
-  if (itemData?.attackStatBoost && statBoostApplies(PokemonById[side.pokemonIdx], itemData.attackStatBoost, isPhysical ? 'atk' : 'spa')) {
-    itemMult *= mechanicMod(itemData.attackStatBoost.mod) / 4096;
-  }
-  if (itemData?.finalDamageBoost?.kind === 'always') itemMult *= mechanicMod(itemData.finalDamageBoost.mod) / 4096;
-  if (itemData?.typeBoostType === moveType) itemMult *= 1.2;
-  if (itemData?.powerBoostKind === 'physical' && isPhysical) itemMult *= 1.1;
-  if (itemData?.powerBoostKind === 'special' && !isPhysical) itemMult *= 1.1;
-  if (itemData?.powerBoostKind === 'punch' && move.flags?.punch) itemMult *= 1.1;
-  // 결정력 = 공격 실수치 × 위력 × STAB × 다단 × 특성BP × 특성Atk × 도구 × 타입변환
-  const eff = Math.round(atkStat * bp * stabMod * hits * abilityMult * atkMult * itemMult * typeMult);
-
-  return { bp, eff, atkStat };
+    eff += sum * variant.weight / totalWeight;
+  });
+  return { bp: first.bp, eff: Math.round(eff), atkStat };
 }
 
 const CALC_NATURE_SORT_STATS = ['atk', 'def', 'spa', 'spd', 'spe'];

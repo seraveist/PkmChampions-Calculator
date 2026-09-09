@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTsModule, applyModOverrides } from './scripts/ts-loader.mjs';
+import { applyChampionsDataOverrides } from './scripts/champions-overrides.mjs';
 import { CSS_LAYER_ORDER, styleLayerFor } from './scripts/css-layer-contract.mjs';
 
 // Windows 호환: file:// URL → 네이티브 경로 변환을 fileURLToPath 로 처리.
@@ -172,14 +173,14 @@ async function build() {
   const champFormatsData = readChamp('formats-data.ts', 'FormatsData');
 
   console.log('🔀 inherit 병합');
-  const mergedPokedex = applyModOverrides(Pokedex, champPokedex);
-  const mergedMoves = applyModOverrides(Moves, champMoves);
-  const mergedAbilities = applyModOverrides(Abilities, champAbilities);
-  const mergedItems = applyModOverrides(Items, champItems);
-  const mergedLearnsets = applyModOverrides(Learnsets, champLearnsets);
+  const mergedPokedex = applyChampionsDataOverrides('pokemon', applyModOverrides(Pokedex, champPokedex));
+  const mergedMoves = applyChampionsDataOverrides('moves', applyModOverrides(Moves, champMoves));
+  const mergedAbilities = applyChampionsDataOverrides('abilities', applyModOverrides(Abilities, champAbilities));
+  const mergedItems = applyChampionsDataOverrides('items', applyModOverrides(Items, champItems));
+  const mergedLearnsets = applyChampionsDataOverrides('learnsets', applyModOverrides(Learnsets, champLearnsets));
   // formats-data 는 base 가 9세대 본가 기준이라 champions 쪽이 진실의 원천.
   // champions formats-data 에 명시된 항목만 사용한다.
-  const mergedFormats = champFormatsData;
+  const mergedFormats = applyChampionsDataOverrides('formats', champFormatsData);
   const dataFilters = readDataFilters();
   const formGroups = normalizeFormGroups(readJsonFile(path.join(OVERRIDES, 'form-groups.json'), {}));
   const { byForm: formGroupByForm } = formGroupMaps(formGroups);
@@ -211,6 +212,7 @@ async function build() {
   const legalPokemonIds = new Set();
   for (const [id, fd] of Object.entries(mergedFormats)) {
     if (!fd) continue;
+    if (mergedPokedex[id]?.placeholderFor) continue;
     if (fd.tier === 'Illegal') continue;
     if (!isAvailable(fd, 'pokemon', id, dataFilters)) continue;
     legalPokemonIds.add(id);
@@ -221,7 +223,7 @@ async function build() {
     if (dataFilters?.exclude?.pokemon?.has(id)) continue;
     if (!fd || fd.tier === 'Illegal' || isUnofficial(fd)) continue;
     const p = mergedPokedex[id];
-    if (!p?.name) continue;
+    if (!p?.name || p.placeholderFor) continue;
     const legalBaseId = battleOnlyBaseIds(p).find(baseId => legalPokemonIds.has(baseId));
     if (!legalBaseId) continue;
     legalPokemonIds.add(id);
@@ -317,6 +319,9 @@ async function build() {
         mh: m.multihit || undefined,
         sec: (m.secondary || m.secondaries) ? true : undefined,
         recoil: m.recoil || undefined,
+        drain: m.drain || undefined,
+        selfdestruct: m.selfdestruct || undefined,
+        selfBoosts: m.self?.boosts || (m.selfBoost?.chance === 100 ? m.selfBoost.boosts : undefined),
         damage: m.damage || undefined,
         ohko: m.ohko || undefined,
         willCrit: m.willCrit || undefined,
@@ -380,7 +385,7 @@ async function build() {
       isChoice: it.isChoice || undefined,
       isGem: it.isGem || undefined,
       isPrimalOrb: it.isPrimalOrb || undefined,
-      flingBp: it.fling?.basePower || undefined,
+      flingBp: it.fling?.basePower || (it.isBerry ? 10 : undefined),
       naturalGift: it.naturalGift || undefined,
       typeBoostType: mechanics.typeBoostType || it.onPlate || undefined,
       powerBoostKind: mechanics.powerBoostKind || undefined,
@@ -507,6 +512,8 @@ async function build() {
       '04-40-revcalc-state.js',
       '04-41-revcalc-scoring.js',
       '04-42-revcalc-candidates.js',
+      '04-42-revcalc-exchange.js',
+      '04-42-revcalc-forecast.js',
     ];
     const workerBody = workerFiles
       .map(file => fs.readFileSync(path.join(jsDir, file), 'utf8'))

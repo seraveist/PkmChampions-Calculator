@@ -57,6 +57,7 @@ function loadUiApi() {
     console,
     document: {
       getElementById: elementFor,
+      querySelectorAll() { return []; },
       addEventListener() {},
     },
     window: {
@@ -201,10 +202,9 @@ state.def.hpPct = 1;
 api.setSideDamageBlockActive(state.def, false);
 calc = api.refresh();
 let mimikyuHp = api.calcStats(calc.def).hp;
-let expectedDisguiseConsumedHp = mimikyuHp - Math.floor(mimikyuHp / 8);
-assertEqual(Math.floor(mimikyuHp * state.def.hpPct), expectedDisguiseConsumedHp, 'disguise off updates source hp');
-assertEqual(Math.floor(mimikyuHp * calc.def.hpPct), expectedDisguiseConsumedHp, 'disguise off derives consumed hp');
-assertEqual(calc.def.fullHP, false, 'disguise off derives not full hp');
+assertEqual(Math.floor(mimikyuHp * state.def.hpPct), mimikyuHp, 'disguise does not consume source HP in a power calculator');
+assertEqual(Math.floor(mimikyuHp * calc.def.hpPct), mimikyuHp, 'disguise does not consume derived HP');
+assertEqual(calc.def.fullHP, true, 'disguise keeps input full HP');
 api.setSideDamageBlockActive(state.def, true);
 calc = api.refresh();
 assertEqual(state.def.hpPct, 1, 'disguise on updates source hp pct');

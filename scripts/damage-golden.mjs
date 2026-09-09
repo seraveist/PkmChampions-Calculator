@@ -925,7 +925,7 @@ const cases = [
       effectiveness: 2,
       moveType: 'Fire',
       category: 'Special',
-      bp: 75,
+      bp: 74, // 153 maximum HP, 76 current HP: floor(150 * 76 / 153).
       atk: 150,
       def: 167,
       defHP: 187,
@@ -1597,7 +1597,7 @@ if (api.RULES.teraDisabled !== true) {
 
 assertDeepEqual(
   api.RULES.fieldMechanics?.bpMods?.map(rule => rule.label),
-  ['일렉트릭필드×1.3', '그래스필드×1.3', '사이코필드×1.3', '미스트필드 드래곤×0.5', '그래스필드 지진×0.5', '도우미×1.5'],
+  ['아군 배터리×1.3', '아군 파워스폿×1.3', '일렉트릭필드×1.3', '그래스필드×1.3', '사이코필드×1.3', '미스트필드 드래곤×0.5', '그래스필드 지진×0.5', '도우미×1.5'],
   'field mechanics bp mod data is bundled',
 );
 assertDeepEqual(
@@ -1629,7 +1629,7 @@ assertDeepEqual(
   );
   assertDeepEqual(
     api.hkoLabel(lowHpResult.damages, lowHpResult.defHP, lowHpDef, field()),
-    { label: '확정', turns: '1타', pct: '', cls: 'ohko' },
+    { label: '확정', turns: '1타', pct: '', cls: 'ohko', sub: '현재 HP 37 기준' },
     'hko label uses defender current hp',
   );
 }
@@ -1677,7 +1677,7 @@ assertDeepEqual(
   );
   assertDeepEqual(
     result.koContext,
-    { defAbility: 'klutz', defItem: '' },
+    { defAbility: 'klutz', defItem: '', atkAbility: 'blaze' },
     'damage result carries the resolved defender KO context',
   );
   assertDeepEqual(
@@ -1694,7 +1694,7 @@ assertDeepEqual(
     side('venusaur'),
     field(),
   ),
-  { label: '난수', turns: '1타', pct: '37.5%', cls: 'ohko', sub: '' },
+  { label: '난수', turns: '1타', pct: '37.5%', cls: 'ohko', sub: '2타 이내 확정' },
   'hko label exposes random 1HKO probability',
 );
 
@@ -1709,8 +1709,8 @@ assertDeepEqual(
   };
   assertDeepEqual(
     api.hkoLabel(new Array(16).fill(120), 100, focusSashDef, field(), null, twoHitProfile),
-    { label: '확정', turns: '1타', pct: '', cls: 'ohko', sub: '기합의띠 타격별 반영' },
-    'multi-hit KO consumes focus sash on the first hit and finishes on the second',
+    { label: '확정', turns: '1타', pct: '', cls: 'ohko', sub: '' },
+    'power KO excludes focus sash survival',
   );
 }
 
@@ -1743,7 +1743,7 @@ assertDeepEqual(
   };
   assertDeepEqual(
     api.hkoLabel(new Array(16).fill(110), 100, sitrusDef, field(), null, twoHitProfile),
-    { label: '확정', turns: '2타', pct: '', cls: 'ohko', sub: '자뭉 타격별 반영' },
+    { label: '확정', turns: '2타', pct: '', cls: 'ohko', sub: '자뭉열매 회복 반영' },
     'multi-hit KO applies sitrus recovery between hits',
   );
 }
@@ -1851,7 +1851,7 @@ assertAbilityFields('heavymetal', { moldBreakerIgnored: true, weightModifier: 'd
 assertAbilityFields('quickfeet', { ignoresParalysisSpeedDrop: true });
 assertAbilityFields('ripen', { resistBerryMod: 'x0_25' });
 assertAbilityFields('infiltrator', { ignoresScreens: true });
-assertAbilityFields('protosynthesis', { paradoxBoost: { weather: ['Sun'], itemActivation: true, mod: 'x1_3' } });
+assertAbilityFields('protosynthesis', { paradoxBoost: { weather: ['Sun', 'Harsh Sunshine'], itemActivation: true, mod: 'x1_3' } });
 assertAbilityFields('quarkdrive', { paradoxBoost: { terrain: 'Electric', itemActivation: true, mod: 'x1_3' } });
 assertAbilityFields('megasol', { weatherDamageOverride: 'Sun', ignoreWeatherDamagePenalty: true });
 assertAbilityFields('klutz', { suppressesItem: true });

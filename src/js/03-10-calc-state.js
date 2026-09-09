@@ -17,8 +17,21 @@ function makeSideState(defaultIdx = '') {
     fullHP: true,
     lastMoveFailed: false,
     wasHit: false,
+    moveOrder: 'auto',
+    beatUpParty: [],
+    moveHitCounts: [null, null, null, null],
     fallenAllies: 0,
+    tailwind: false,
+    fickleBeamMode: 'auto',
+    receivedDamage: null,
+    receivedDamageCategory: 'Physical',
+    stockpileCount: 0,
     flashFireActive: false,
+    unburdenActive: false,
+    slowStartActive: true,
+    stakeoutActive: false,
+    allyPlusMinusActive: false,
+    rivalryGender: 'none',
     boosterEnergyState: 'auto',
     damageBlockActive: false,
     moves: [],
@@ -536,6 +549,15 @@ function applyPokemonToCalcSide(sideKey, pokemonId, options = {}) {
       side.moveBpOverrides = [null, null, null, null];
       side.moveTypeOverrides = [null, null, null, null];
       side.moveCriticalOverrides = [false, false, false, false];
+      side.moveHitCounts = [null, null, null, null];
+      side.beatUpParty = [];
+      side.moveOrder = 'auto';
+      side.wasHit = false;
+      side.lastMoveFailed = false;
+      side.fickleBeamMode = 'auto';
+      side.receivedDamage = null;
+      side.receivedDamageCategory = 'Physical';
+      side.stockpileCount = 0;
     }
   }
 
@@ -584,7 +606,22 @@ function normalizeHpPct(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return 1;
   const raw = n > 1 ? n / 100 : n;
-  return Math.max(0.01, Math.min(1, raw));
+  return Math.max(0, Math.min(1, raw));
+}
+
+function calcMoveWithConditions(move, side, slot) {
+  const adjusted = moveWithManualBp(move, canEditMovePower(move) ? side.moveBpOverrides?.[slot] : null, side.moveTypeOverrides?.[slot]);
+  const hits = Number(side.moveHitCounts?.[slot]);
+  return hits > 0 && move.mh ? { ...adjusted, hitCount: hits } : adjusted;
+}
+
+function calcMoveConditionIssue(move, attacker, defender, field) {
+  const special = specialMoveInputIssue(move, attacker, defender);
+  if (special) return special;
+  if (move.variableBpKind === 'requiresTargetItem' && !defender.item) return '상대가 도구를 지녀야 사용할 수 있습니다.';
+  if (move.variableBpKind === 'requiresTerrain' && (!field.terrain || field.terrain === 'none')) return '필드가 있어야 사용할 수 있습니다.';
+  if (move.manualBp && !move.bp) return '직접 입력한 위력이 0입니다.';
+  return '현재 조건에서는 피해를 계산할 수 없습니다.';
 }
 
 function hpPercentInputValue(side) {
@@ -592,14 +629,16 @@ function hpPercentInputValue(side) {
 }
 
 function currentHpValue(maxHp, hpPct) {
-  return Math.max(1, Math.floor(maxHp * normalizeHpPct(hpPct)));
+  return Math.max(1, Math.floor(maxHp * normalizeHpPct(hpPct) + 1e-9));
 }
 
 function deriveHpFlags(side) {
   const hpPct = normalizeHpPct(side.hpPct);
   side.hpPct = hpPct;
-  side.fullHP = hpPct >= 1;
-  side.pinch = hpPct <= (1 / 3);
+  const maxHp = PokemonById[side.pokemonIdx] ? calcStats(side).hp : 1;
+  const hp = currentHpValue(maxHp, hpPct);
+  side.fullHP = hp === maxHp;
+  side.pinch = hp <= Math.floor(maxHp / 3);
   return side;
 }
 
@@ -636,15 +675,18 @@ function consumedDamageBlockHpPct(side) {
 function setSideDamageBlockActive(side, active) {
   if (!side) return;
   side.damageBlockActive = !!active;
-  const consumedHpPct = consumedDamageBlockHpPct(side);
-  if (consumedHpPct !== null) {
-    side.hpPct = side.damageBlockActive ? 1 : consumedHpPct;
-  }
   deriveHpFlags(side);
 }
 
 function setSideHpPct(side, value) {
   side.hpPct = normalizeHpPct(value);
+  deriveHpFlags(side);
+}
+
+function setSideCurrentHp(side, value) {
+  const maxHp = calcStats(side).hp;
+  const hp = Math.max(1, Math.min(maxHp, Math.floor(Number(value)) || 1));
+  side.hpPct = hp / maxHp;
   deriveHpFlags(side);
 }
 
@@ -685,7 +727,10 @@ function clampFallenAllies(value, gameType = state.field.gameType) {
 }
 
 function normalizeBattleConditionState() {
-  state.atk.fallenAllies = clampFallenAllies(state.atk.fallenAllies);
+  for (const side of [state.atk, state.def]) {
+    side.fallenAllies = clampFallenAllies(side.fallenAllies);
+    side.tailwind = !!side.tailwind;
+  }
   state.atk.lastMoveFailed = !!state.atk.lastMoveFailed;
   state.atk.wasHit = !!state.atk.wasHit;
   state.def.wasHit = !!state.def.wasHit;
@@ -697,19 +742,8 @@ function normalizeBattleConditionState() {
 }
 
 function renderManualDamageBlockToggle(sideKey, side) {
-  const block = sideManualDamageBlock(side);
-  if (!block) return '';
-  const ability = AbilityById[side.ability];
-  const label = abName(ability);
-  const active = !!side.damageBlockActive;
-  const title = active
-    ? `${label} ON: 이번 공격을 차단`
-    : `${label} OFF: 소모된 상태로 계산`;
-  return `
-    <button type="button" class="manual-ability-toggle ui-label-action ${active ? 'active' : ''}" data-action="damageBlockToggle" data-side="${sideKey}" title="${escapeHTML(title)}">
-      ${escapeHTML(label)} ${active ? 'ON' : 'OFF'}
-    </button>
-  `;
+  // 무효 효과는 결과 카드에서 안내한다. 토글로 HP나 순수 피해를 바꾸지 않는다.
+  return '';
 }
 
 function renderTypeControls(sideKey, side) {
@@ -765,15 +799,27 @@ function resetSideManualValues(sideKey) {
   side.ranks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
   side.lastMoveFailed = false;
   side.wasHit = false;
+  side.moveOrder = 'auto';
+  side.beatUpParty = [];
+  side.moveHitCounts = [null, null, null, null];
   side.fallenAllies = 0;
+  side.tailwind = false;
+  side.fickleBeamMode = 'auto';
+  side.receivedDamage = null;
+  side.receivedDamageCategory = 'Physical';
+  side.stockpileCount = 0;
   side.flashFireActive = false;
+  side.unburdenActive = false;
+  side.slowStartActive = true;
+  side.stakeoutActive = false;
+  side.allyPlusMinusActive = false;
+  side.rivalryGender = 'none';
+  side.paradoxActive = false;
   side.boosterEnergyState = 'auto';
   setSideDamageBlockActive(side, false);
-  if (sideKey === 'atk') {
-    side.moveBpOverrides = [null, null, null, null];
-    side.moveTypeOverrides = [null, null, null, null];
-    side.moveCriticalOverrides = [false, false, false, false];
-  }
+  side.moveBpOverrides = [null, null, null, null];
+  side.moveTypeOverrides = [null, null, null, null];
+  side.moveCriticalOverrides = [false, false, false, false];
   deriveHpFlags(side);
 }
 
@@ -783,9 +829,14 @@ function resetFieldManualValues() {
   state.field.terrain = 'none';
   state.field.isCritical = false;
   state.field.isGravity = false;
+  state.field.trickRoom = false;
+  state.field.spreadTargets = 'auto';
   state.field.defReflect = false;
   state.field.defLightScreen = false;
   state.field.atkHelpingHand = false;
+  state.field.allyBattery = false;
+  state.field.allyPowerSpot = false;
+  state.field.allyFriendGuard = false;
   state.field.ruinSword = false;
   state.field.ruinTablet = false;
   state.field.ruinBeads = false;
@@ -812,11 +863,26 @@ function applyMoveBpInput(el, renderAfter = false) {
   const moveId = side.moves?.[slot];
   const move = moveId ? MoveById[moveId] : null;
   const normalized = normalizeManualBp(el.value);
-  const defaultBp = move?.bp || 0;
   if (!Array.isArray(side.moveBpOverrides)) side.moveBpOverrides = [null, null, null, null];
-  side.moveBpOverrides[slot] = normalized === null || normalized === defaultBp ? null : normalized;
+  side.moveBpOverrides[slot] = canEditMovePower(move) ? normalized : null;
   if (renderAfter) renderSide(el.dataset.side);
   triggerCalc();
+}
+
+function isFixedPowerMove(move) {
+  return !!(move?.fixedDamageKind || move?.damage || move?.ohko);
+}
+
+function canEditMovePower(move) {
+  return !!move && move.cat !== 'Status' && !isFixedPowerMove(move) && !['fickleBeam', 'fling', 'stockpile'].includes(move.variableBpKind);
+}
+
+function calcPowerModeText(side, slot, move) {
+  if (move?.cat === 'Status') return '변화';
+  if (move?.fixedDamageKind === 'receivedDamage') return '피해 입력';
+  if (isFixedPowerMove(move)) return move.ohko ? '일격' : '고정 피해';
+  if (!canEditMovePower(move)) return '조건 연동';
+  return normalizeManualBp(side.moveBpOverrides?.[slot]) === null ? '자동' : '수동 · 복원';
 }
 
 function applyMoveTypeOverride(sideKey, slot, typeId) {

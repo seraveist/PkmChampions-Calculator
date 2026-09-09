@@ -54,6 +54,7 @@ function normalizeParadoxItemState(value) {
 }
 
 function sideParadoxItemActive(side, itemData) {
+  if (side?.paradoxActive) return true;
   const mode = normalizeParadoxItemState(side?.boosterEnergyState);
   if (mode === 'active') return true;
   if (mode === 'inactive') return false;
@@ -76,6 +77,7 @@ function moveHasRuleFlag(move, flag) {
 
 function fieldRuleApplies(rule, ctx) {
   if (!rule) return false;
+  if (rule.gameType && ctx.field?.gameType !== rule.gameType) return false;
   if (rule.field && !ctx.field?.[rule.field]) return false;
   if (rule.weather && !asArray(rule.weather).includes(ctx.damageWeather ?? ctx.weather)) return false;
   if (rule.terrain && ctx.field?.terrain !== rule.terrain) return false;
@@ -147,11 +149,11 @@ function sideHpPct(side) {
   const n = Number(side?.hpPct);
   if (!Number.isFinite(n)) return 1;
   const raw = n > 1 ? n / 100 : n;
-  return Math.max(0.01, Math.min(1, raw));
+  return Math.max(0, Math.min(1, raw));
 }
 
 function sideCurrentHp(maxHp, side) {
-  return Math.max(1, Math.floor(maxHp * sideHpPct(side)));
+  return Math.max(1, Math.floor(maxHp * sideHpPct(side) + 1e-9));
 }
 
 function sideIsFullHp(side) {
@@ -177,10 +179,15 @@ function battleFallenAllies(side, field) {
 function abilityRuleApplies(rule, ctx) {
   if (!rule) return false;
   const { move, field, bp, moveType, weather, effectiveness, isCritical } = ctx;
+  if (rule.sideFlag && !ctx.atkSide?.[rule.sideFlag]) return false;
+  if (rule.sideValue && ctx.atkSide?.[rule.sideValue.field] !== rule.sideValue.value) return false;
+  if ((rule.pokemon || rule.baseSpecies) && !pokemonMatchesCondition(PokemonById[ctx.atkSide?.pokemonIdx], rule)) return false;
+  if (rule.maxHpPct && sideHpPct(ctx.atkSide) > rule.maxHpPct) return false;
   if (!categoryMatches(rule, ctx.isPhysical)) return false;
   if (!statusMatches(rule, ctx.atkSide?.status)) return false;
   if (rule.maxBp && bp > rule.maxBp) return false;
   if (rule.flag && !move.flags?.[rule.flag]) return false;
+  if (rule.flag === 'contact' && (ctx.atkAb === 'longreach' || (ctx.atkItem === 'punchingglove' && move.flags?.punch))) return false;
   if (rule.stat && rule.stat !== moveType) return false;
   if (rule.types && !rule.types.includes(moveType)) return false;
   if (rule.weather) {
@@ -241,6 +248,14 @@ function attackerBlocksBerries(atkAb) {
   return !!AbilityById[atkAb]?.blocksBerries;
 }
 
+function canRemovePowerItem(side) {
+  const pokemon = PokemonById[side.pokemonIdx];
+  const item = ItemById[effectiveItem(side)];
+  if (!item) return false;
+  return !Object.entries(item.ms || {}).some(([base, target]) =>
+    [base, target].some(id => toId(id) === pokemon.id || toId(id) === toId(pokemon.base)));
+}
+
 function fixedDamageAmount(move, atkSide, defSide, atkStats, defStats, defAbilityData) {
   const atkHp = sideCurrentHp(atkStats.hp, atkSide);
   const defHp = sideCurrentHp(defStats.hp, defSide);
@@ -253,6 +268,8 @@ function fixedDamageAmount(move, atkSide, defSide, atkStats, defStats, defAbilit
   }
 
   switch (move.fixedDamageKind) {
+    case 'receivedDamage':
+      return specialMoveInputIssue(move, atkSide, defSide) ? null : Math.max(1, Math.floor(Number(atkSide.receivedDamage) * move.receivedDamageMultiplier));
     case 'targetHalfHp':
       return Math.max(1, Math.floor(defHp / 2));
     case 'sourceCurrentHp':
@@ -262,6 +279,24 @@ function fixedDamageAmount(move, atkSide, defSide, atkStats, defStats, defAbilit
     default:
       return null;
   }
+}
+
+function flingItemForMove(attacker, defender = attacker) {
+  const { atkAb } = battleAbilityContext(attacker, defender);
+  const item = ItemById[effectiveBattleItem(attacker, atkAb)];
+  return item?.flingBp && canRemovePowerItem(attacker) ? item : null;
+}
+
+function specialMoveInputIssue(move, attacker, defender) {
+  if (move.fixedDamageKind === 'receivedDamage') {
+    const value = attacker.receivedDamage;
+    if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) || Number(value) < 0) return '이번 턴 마지막으로 받은 HP 피해량을 입력하세요. 연속기는 마지막 1회의 피해만 입력합니다.';
+    if (!['Physical', 'Special'].includes(attacker.receivedDamageCategory)) return '받은 공격의 물리·특수 분류를 선택하세요.';
+    if (move.receivedDamageCategory && move.receivedDamageCategory !== attacker.receivedDamageCategory) return `${move.receivedDamageCategory === 'Physical' ? '물리' : '특수'} 공격을 받은 조건에서만 사용할 수 있습니다.`;
+  }
+  if (move.variableBpKind === 'fling' && !flingItemForMove(attacker, defender)) return '던질 수 있는 도구를 선택하세요. 도구 없음·사용 불가·해당 포켓몬의 메가스톤은 내던질 수 없습니다.';
+  if (move.variableBpKind === 'stockpile' && !(Number(attacker.stockpileCount) >= 1 && Number(attacker.stockpileCount) <= 3)) return '비축 횟수를 1~3회로 선택하세요.';
+  return '';
 }
 
 function fixedDamageResult(damage, move, moveType, category, defStats, mods) {
@@ -301,19 +336,25 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
   const defAbilityData = AbilityById[defAb] || {};
   const weather = effectiveWeather(field, atkAb, defAb);
 
-  if (move.manualBp) return baseBp;
+  if (move.manualBp && !['fickleBeam', 'fling', 'stockpile'].includes(move.variableBpKind)) return baseBp;
 
   switch (move.variableBpKind) {
+    case 'fickleBeam':
+      return atkSide.fickleBeamMode === 'boosted' ? 160 : 80;
+    case 'fling':
+      return flingItemForMove(atkSide, defSide)?.flingBp || 0;
+    case 'stockpile':
+      return Math.max(0, Math.min(3, Math.floor(Number(atkSide.stockpileCount) || 0))) * 100;
     case 'gyroBall': {
       // 25 × defSpe / atkSpe, 최소 1, 최대 150
-      const aS = effectiveSpeed(atkSide, field);
-      const dS = effectiveSpeed(defSide, field);
+      const aS = effectiveSpeed(atkSide, field, defSide);
+      const dS = effectiveSpeed(defSide, field, atkSide);
       if (aS <= 0) return 1;
       return Math.min(150, Math.max(1, Math.floor(25 * dS / aS) + 1));
     }
     case 'electroBall': {
-      const aS = effectiveSpeed(atkSide, field);
-      const dS = effectiveSpeed(defSide, field);
+      const aS = effectiveSpeed(atkSide, field, defSide);
+      const dS = effectiveSpeed(defSide, field, atkSide);
       if (dS <= 0) return 150;
       const r = aS / dS;
       if (r >= 4) return 150;
@@ -343,12 +384,12 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     }
     case 'userHp150': {
       // 150 × HP / maxHP. 기본 가정: 풀피
-      const hp = sideHpPct(atkSide);
+      const hp = sideCurrentHp(atkStats.hp, atkSide) / atkStats.hp;
       return Math.max(1, Math.floor(150 * hp));
     }
     case 'lowHpFlail': {
       // 48분의 X 단위 비례
-      const hp = sideHpPct(atkSide);
+      const hp = sideCurrentHp(atkStats.hp, atkSide) / atkStats.hp;
       const p = Math.floor(hp * 48);
       if (p < 2) return 200;
       if (p < 5) return 150;
@@ -358,9 +399,8 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
       return 20;
     }
     case 'targetHp100': {
-      // 1 + floor(99 × targetHP / maxHP). 풀피 기본: 100
-      const hp = sideHpPct(defSide);
-      return Math.max(1, 1 + Math.floor(99 * hp));
+      const hp = sideCurrentHp(defStats.hp, defSide);
+      return Math.floor(Math.floor((10000 * Math.floor(hp * 4096 / defStats.hp) + 2047) / 4096) / 100) || 1;
     }
     case 'targetStatusDouble': {
       // 대상이 상태이상이면 ×2
@@ -380,11 +420,7 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
     }
     case 'knockOff': {
       // 대상이 도구를 보유하면 ×1.5 (Z아이템/메가스톤 등은 제외해야 정확하지만 단순화)
-      const hasItem = !!rawDefItem;
-      // 메가스톤은 떼낼 수 없으므로 보너스 없음
-      const defItemData = rawDefItem ? ItemById[rawDefItem] : null;
-      const removable = hasItem && !defItemData?.ms && !defAbilityData.blocksItemRemoval;
-      return removable ? Math.floor(baseBp * 1.5) : baseBp;
+      return canRemovePowerItem(defSide) ? Math.floor(baseBp * 1.5) : baseBp;
     }
     case 'userMovesFirstDouble': {
       // 사용자가 먼저 행동하면 ×2
@@ -460,10 +496,10 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
       return field.terrain && field.terrain !== 'none' ? baseBp : 0;
     case 'tripleAxelAverage':
       // 1/2/3타에 BP 20/40/60 누적. 다단히트 평균 처리에선 (20+40+60)/3 = 40
-      return 40;
+      return field.singleHitCalculation ? 20 * ((field.powerHitIndex || 0) + 1) : 40;
     case 'beatUpApprox':
       // 동료 base atk 기반. 단순화: 기본값 유지 (실전에서 더블배틀에서만 의미)
-      return 10;
+      return 5 + Math.floor((field.beatUpBaseAttack ?? atkP.bs.atk) / 10);
     default:
       return baseBp;
   }
@@ -514,6 +550,7 @@ function makeDamageContext(atkSide, defSide, move, field) {
     move,
     field,
     mods: [],
+    immunityNotes: field.damagePurpose === 'power' ? [] : null,
     atkP,
     defP,
     abilityCtx,
@@ -554,7 +591,7 @@ function resolveDamagePreludeStage(ctx) {
   // ─ 디스가이즈 (Mimikyu / Mimikyu-Totem): 풀피일 때 첫 공격 무효 ─
   // 챔피언스 사양: onEffectiveness 가 0 반환 → 데미지 0
   // 다단히트도 first hit 에 neutral 플래그가 set 되어 모든 hit 가 차단됨 (champions/abilities.ts:14-32)
-  if (damageBlockApplies(defAbilityData?.damageBlock, defP, defSide, move, move.cat === 'Physical')) {
+  if (!ctx.immunityNotes && damageBlockApplies(defAbilityData?.damageBlock, defP, defSide, move, move.cat === 'Physical')) {
     return finishDamageStage({
       damages: new Array(16).fill(0),
       minPct: 0, maxPct: 0,
@@ -641,7 +678,11 @@ function resolveDamagePreludeStage(ctx) {
   }
 
   // ─ 타입 상성 먼저 계산 (0배면 조기 종료) ─
-  const effectiveness = getMoveEffectiveness(move, moveType, atkSide, defSide, field, { ...abilityCtx, atkAb, defAb }, itemCtx);
+  if (ctx.immunityNotes && defAbilityData?.damageBlock && pokemonMatchesCondition(defP, defAbilityData.damageBlock)
+      && categoryMatches(defAbilityData.damageBlock, isPhysical)) {
+    ctx.immunityNotes.push(`${displayName(defAbilityData)}: 첫 공격 차단`);
+  }
+  const effectiveness = getMoveEffectiveness(move, moveType, atkSide, defSide, field, { ...abilityCtx, atkAb, defAb }, itemCtx, ctx.immunityNotes);
   if (effectiveness === 0) {
     return finishDamageStage({
       damages: new Array(16).fill(0),
@@ -672,11 +713,12 @@ function calculateBasePowerStage(ctx) {
     weather, atkStats, defStats, isPhysical, effectiveness, category,
   } = ctx;
   let { moveType, bp, typeChangeMod } = ctx;
+  if (specialMoveInputIssue(move, atkSide, defSide)) return finishDamageStage(null);
 
   // ═══════════════════════════════════════
   // STAGE 1: BP modifiers
   // ═══════════════════════════════════════
-  if (damageBlockApplies(defAbilityData?.damageBlock, defP, defSide, move, isPhysical)) {
+  if (!ctx.immunityNotes && damageBlockApplies(defAbilityData?.damageBlock, defP, defSide, move, isPhysical)) {
     return finishDamageStage({
       damages: new Array(16).fill(0),
       minPct: 0, maxPct: 0,
@@ -688,7 +730,11 @@ function calculateBasePowerStage(ctx) {
     });
   }
 
-  const fixedDamage = fixedDamageAmount(move, atkSide, defSide, atkStats, defStats, defAbilityData);
+  if (ctx.immunityNotes && typeof move.ohko === 'string' && effectiveTypes(defSide).includes(move.ohko)) {
+    ctx.immunityNotes.push(`${displayType(move.ohko)} 타입: 일격기 무효`);
+  }
+  const fixedMove = ctx.immunityNotes && move.ohko ? { ...move, ohko: true } : move;
+  const fixedDamage = fixedDamageAmount(fixedMove, atkSide, defSide, atkStats, defStats, ctx.immunityNotes ? null : defAbilityData);
   if (fixedDamage !== null) {
     return finishDamageStage(fixedDamageResult(fixedDamage, move, moveType, category, defStats, ['고정 대미지']));
   }
@@ -723,6 +769,10 @@ function calculateBasePowerStage(ctx) {
   // 이건 Atk 단계로 이동
 
   // 아이템 BP modifiers
+  if ((atkItem === 'normalgem' || field.normalGemBoost) && moveType === 'Normal' && move.id !== 'struggle') {
+    bpMods.push(MOD.x1_3);
+    mods.push('노말주얼×1.3 (첫 사용)');
+  }
   if (atkItemData) {
     if (atkItemData.typeBoostType === moveType) {
       bpMods.push(MOD.x1_2);
@@ -775,7 +825,7 @@ function calculateAttackStage(ctx) {
   let atkBoost = attackSource.ranks?.[attackStatId] || 0;
 
   // Unaware: 상대 부스트 무시
-  if ((move.ignoreOffensive || defAbilityData?.ignoreOffensiveBoosts) && atkBoost > 0) atkBoost = 0;
+  if (move.ignoreOffensive || defAbilityData?.ignoreOffensiveBoosts) atkBoost = 0;
   // 급소 시 공격 하락 무시
   if ((isCritical || move.ignoreNegativeOffensive) && atkBoost < 0) atkBoost = 0;
 
@@ -822,7 +872,7 @@ function calculateAttackStage(ctx) {
   // 아이템 공격 modifiers
   if (ctx.atkItemData?.attackStatBoost) {
     const statBoost = ctx.atkItemData.attackStatBoost;
-    if (statBoostApplies(atkP, statBoost, attackStatId)) {
+    if (statBoostApplies(atkP, statBoost, isPhysical ? 'atk' : 'spa')) {
       const mod = mechanicMod(statBoost.mod);
       atkMods.push(mod);
       mods.push(formatModLabel(ctx.atkItemData.koName, mod));
@@ -831,7 +881,8 @@ function calculateAttackStage(ctx) {
 
   // 화상: Facade / Guts 예외
   const isBurned = isBurnStatus(atkSide.status) && isPhysical && !atkAbilityData?.burnBypass && !move.burnBypass;
-  if (isBurned) { atkMods.push(MOD.x0_5); mods.push('화상 물리½'); }
+  ctx.applyBurn = isBurned;
+  if (isBurned) mods.push('화상 물리½');
 
   ctx.atkStat = OF16(Math.max(1, pokeRound(atkStat * chainMods(atkMods, 410, 131072) / 4096)));
   return null;
@@ -869,7 +920,7 @@ function calculateDefenseStage(ctx) {
   let defBoost = defenseSource.ranks?.[defenseStatId] || 0;
 
   // Unaware (공격측이)
-  if ((move.ignoreDefensive || ctx.atkAbilityData?.ignoreDefensiveBoosts) && defBoost > 0) defBoost = 0;
+  if (move.ignoreDefensive || ctx.atkAbilityData?.ignoreDefensiveBoosts) defBoost = 0;
   // 급소 시 방어 상승 무시
   if ((isCritical || move.ignorePositiveDefensive) && defBoost > 0) defBoost = 0;
 
@@ -949,12 +1000,12 @@ function calculateBaseDamageStage(ctx) {
   );
 
   // Spread (더블배틀 광역기)
-  const isSpread = field.gameType === 'Doubles' &&
-    ['allAdjacent','allAdjacentFoes'].includes(move.tgt);
+  const isSpread = isSpreadDamage(move, field, ctx.atkSide);
   if (isSpread) {
     baseDmg = pokeRound(baseDmg * 3072 / 4096);
     mods.push('광역×0.75');
   }
+  if (field.parentalBondChild) baseDmg = pokeRound(baseDmg * 1024 / 4096);
 
   // 날씨 (Base damage에 적용, 특성 해제: Utility Umbrella)
   // 메가솔(Mega Sol): 자기 공격은 쾌청 효과 (실제 날씨 무시)
@@ -970,7 +1021,9 @@ function calculateBaseDamageStage(ctx) {
       ignoresWeatherDamagePenalty,
     });
 
-    if (weatherRule?.nullDamage) {
+    if (weatherRule?.nullDamage && ctx.immunityNotes) {
+      ctx.immunityNotes.push(weatherRule.label);
+    } else if (weatherRule?.nullDamage) {
       return finishDamageStage({
         damages: new Array(16).fill(0),
         minPct: 0,
@@ -985,7 +1038,7 @@ function calculateBaseDamageStage(ctx) {
         mods: [weatherRule.label],
       });
     }
-    if (weatherRule) {
+    if (weatherRule && !weatherRule.nullDamage) {
       baseDmg = pokeRound(baseDmg * mechanicMod(weatherRule.mod) / 4096);
       if (atkAbilityData?.weatherDamageOverride && weatherRule.types?.includes(moveType)) {
         const name = atkAbilityData?.koName || atkAbilityData?.name || atkAb;
@@ -1017,12 +1070,13 @@ function calculateFinalDamageStage(ctx) {
   // ═══════════════════════════════════════
   // STAGE 5: Final modifiers & 16 rolls
   // ═══════════════════════════════════════
-  const stabMod = getStabMod(atkSide, moveType);
+  const stabMod = getStabMod(atkSide, moveType, atkAb);
   // STAB ×1.5는 카드 헤더의 '자속' 마크로 표시하므로 mods 추적 생략
   if (stabMod === 8192) mods.push('테라 매칭 STAB×2');
   else if (stabMod === 9216) mods.push('다능 STAB×2.25');
 
   const finalMods = [];
+  applyFieldRuleMods(fieldMechanics().finalMods, ctx, finalMods);
 
   if (!isCritical && !ctx.atkAbilityData?.ignoresScreens) {
     for (const rule of fieldMechanics().screenFinalMods || []) {
@@ -1073,8 +1127,7 @@ function calculateFinalDamageStage(ctx) {
     // STAB
     if (stabMod !== 4096) d = OF32(d * stabMod) / 4096;
     d = Math.floor(OF32(pokeRound(d) * effectiveness));
-
-    // 화상은 공격 스탯에서 이미 처리됨
+    if (ctx.applyBurn) d = Math.floor(d / 2);
 
     // 스크린 (중복 방지: 이미 finalMod에 포함)
     // Final mod
@@ -1091,7 +1144,7 @@ function calculateFinalDamageStage(ctx) {
   // 부자유친 (Parental Bond): 다단기/광역기/특정 기술 제외하고 1타 100% + 2타 25% = 평균 1.25×
   // 단, 단일 타깃 공격기에만 적용
   const extraHit = ctx.atkAbilityData?.extraHitModifier;
-  if (extraHit?.singleHitOnly && !move.mh && category !== 'Status' &&
+  if (!field.singleHitCalculation && extraHit?.singleHitOnly && !move.mh && category !== 'Status' &&
       !(field.gameType === 'Doubles' && ['allAdjacent','allAdjacentFoes'].includes(move.tgt))) {
     parentalBondActive = true;
     mods.push(`${ctx.atkAbilityData.koName || ctx.atkAbilityData.name} 추가타`);
@@ -1104,7 +1157,7 @@ function calculateFinalDamageStage(ctx) {
     };
   }
 
-  if (move.mh && !parentalBondActive) {
+  if (!field.singleHitCalculation && move.mh && !parentalBondActive) {
     const hitVariants = resolveMultiHitVariants(move.mh, atkItemData, ctx.atkAbilityData);
     const sampledHits = sampleMultiHitCounts(hitVariants, damages.length);
     multihitDamages = damages.map((d, index) => d * sampledHits[index]);
@@ -1197,13 +1250,299 @@ function calculateDamage(atkSide, defSide, move, field) {
   return attachKoContext(calculateFinalDamageStage(ctx), ctx);
 }
 
+function isSpreadDamage(move, field, attacker) {
+  if (field.gameType !== 'Doubles' || field.spreadTargets === 'single') return false;
+  if (['allAdjacent', 'allAdjacentFoes'].includes(move.tgt)) return true;
+  return move.id === 'expandingforce' && field.terrain === 'Psychic' && isGrounded(attacker, field);
+}
+
+function powerMoveField(atkSide, defSide, move, field) {
+  const out = { ...field };
+  const order = atkSide.moveOrder || 'auto';
+  if (order !== 'auto') {
+    out.atkMovesFirst = order === 'first';
+    out.atkMovesSecond = order === 'second';
+  } else {
+    const a = effectiveSpeed(atkSide, field, defSide);
+    const d = effectiveSpeed(defSide, field, atkSide);
+    out.atkMovesFirst = field.trickRoom ? a < d : a > d;
+    out.atkMovesSecond = field.trickRoom ? a > d : a < d;
+    out.orderUncertain = a === d;
+  }
+  return out;
+}
+
+// 계산기 결정력: 무효·생존 효과는 별도 정보로 전달하고 피해 수식은 계속 계산한다.
+// 실제 관측을 해석하는 역계산은 calculateDamage()를 그대로 사용한다.
+function calculatePowerDamage(atkSide, defSide, move, field) {
+  const powerField = { ...field, damagePurpose: 'power', singleHitCalculation: true, powerHitIndex: 0 };
+  const result = calculateDamage(atkSide, defSide, move, powerField);
+  if (!result) return result;
+  const model = makePowerAttackModel(atkSide, defSide, move, powerField, result);
+  const outcomes = resolvePowerMoveUse(model, sideCurrentHp(result.defHP, defSide), false, true);
+  const damageWeights = new Map();
+  for (const outcome of outcomes) damageWeights.set(outcome.damage, (damageWeights.get(outcome.damage) || 0) + outcome.chance);
+  const distribution = [...damageWeights].sort(([a], [b]) => a - b).map(([damage, chance]) => ({ damage, chance }));
+  // Only legacy display endpoints use 16 samples; probabilities use the exact weighted distribution.
+  result.damages = Array.from({ length: 16 }, (_, i) => {
+    let cumulative = 0;
+    const quantile = i === 0 ? 0 : i === 15 ? 1 : (i + 0.5) / 16;
+    return (distribution.find(row => { cumulative += row.chance; return cumulative + 1e-12 >= quantile; }) || distribution.at(-1))?.damage || 0;
+  });
+  result.damageDistribution = distribution;
+  result.appliedBasePowers = (model.appliedBasePowers || []).map(values => [...values].sort((a, b) => a - b));
+  result.bp = model.hit(sideCurrentHp(result.defHP, defSide), false, 0, 0).bp;
+  result.minPct = result.damages[0] / result.defHP * 100;
+  result.maxPct = result.damages[15] / result.defHP * 100;
+  // HP/berry-dependent later hits cannot be represented by repeating a static roll array.
+  result.hitProfile = { kind: model.kind, dynamic: true, variants: model.variants.map(v => ({ ...v })) };
+  Object.defineProperty(result.hitProfile, 'powerModel', { value: model });
+  result.hitCounts = model.variants.map(v => v.hits);
+  if (model.kind === 'parentalBond') result.mods.push('부자유친 추가타');
+  if (model.kind === 'beatUp') result.mods.push(`집단구타 ${model.variants[0].hits}마리`);
+  if (model.variants.some(v => v.hits > 1)) result.mods.push('타격별 피해·열매 소비 반영');
+  result.mods.push(...model.hitChanges);
+  Object.defineProperties(result.koContext, {
+    powerModel: { value: model },
+    damageAtHp: { value: (hp, used, hitIndex = 0, variantIndex = 0) => model.hit(hp, used, hitIndex, variantIndex).damages },
+    consumeResistBerry: { value: model.recovery.consumeResistBerry },
+  });
+  return result;
+}
+
+function koRecoveryOptions(koContext, effectiveness = 1, moveType = '') {
+  const item = ItemById[koContext?.defItem];
+  const ability = AbilityById[koContext?.defAbility];
+  const blocked = item?.isBerry && attackerBlocksBerries(koContext?.atkAbility);
+  const hpRecovery = blocked ? null : item?.hpRecovery;
+  return {
+    hpRecovery: hpRecovery && { ...hpRecovery, multiplier: ability?.resistBerryMod === 'x0_25' ? 2 : 1 },
+    residualRecovery: item?.residualRecovery,
+    consumeResistBerry: !blocked && item?.resistBerryType === moveType && (item.resistBerryRequiresWeakness === false || effectiveness > 1),
+    cheekPouch: !blocked && koContext?.defAbility === 'cheekpouch',
+  };
+}
+
+function recoverPowerHit(currentHp, maxHp, used, options, damage) {
+  if (currentHp <= 0 || used) return { hp: currentHp, used: used || !!(options.consumeResistBerry && damage > 0) };
+  const recovery = options.hpRecovery;
+  const eatsRecoveryBerry = recovery?.trigger === 'halfHp' && currentHp <= Math.floor(maxHp / 2);
+  const eatsResistBerry = options.consumeResistBerry && damage > 0;
+  if (!eatsRecoveryBerry && !eatsResistBerry) return { hp: currentHp, used };
+  let amount = 0;
+  if (eatsRecoveryBerry) amount = Math.floor((recovery.amount ?? Math.floor(maxHp * fractionValue(recovery.fraction, 1 / 4))) * (recovery.multiplier || 1));
+  if (options.cheekPouch) amount += Math.floor(maxHp / 3);
+  return { hp: Math.min(maxHp, currentHp + amount), used: true,
+    recoveryMask: amount > 0 ? (eatsRecoveryBerry ? 1 : 0) | (options.cheekPouch ? 2 : 0) : 0 };
+}
+
+function recoverFlungBerry(model, currentHp, used, options, damage) {
+  // The held resist berry is consumed during damage. The thrown berry's onHit
+  // effect runs before the held HP berry's subsequent Update threshold check.
+  const resisted = options.consumeResistBerry
+    ? recoverPowerHit(currentHp, model.maxHp, used, { ...options, hpRecovery: null }, damage)
+    : { hp: currentHp, used };
+  const berry = model.flungItem;
+  if (!berry?.isBerry || resisted.hp <= 0 || damage <= 0) return resisted;
+  const recovery = berry.hpRecovery;
+  const multiplier = AbilityById[model.defAbility]?.resistBerryMod === 'x0_25' ? 2 : 1;
+  let amount = recovery ? Math.floor((recovery.amount ?? Math.floor(model.maxHp * fractionValue(recovery.fraction, 1 / 4))) * multiplier) : 0;
+  const pouch = model.defAbility === 'cheekpouch';
+  if (pouch) amount += Math.floor(model.maxHp / 3);
+  return { ...resisted, hp: Math.min(model.maxHp, resisted.hp + amount),
+    recoveryMask: (resisted.recoveryMask || 0) | (recovery && amount ? 8 : 0) | (pouch ? 2 : 0) };
+}
+
+function beatUpParticipants(attacker, field) {
+  const ids = [attacker.pokemonIdx, ...new Set((attacker.beatUpParty || []).filter(id => id !== attacker.pokemonIdx).slice(0, battleMaxFallenAllies(field)))];
+  return ids.map(id => PokemonById[id]).filter(Boolean).map(pokemon =>
+    (pokemon.mega && PokemonById[toId(pokemon.base)]) || pokemon);
+}
+
+function makePowerAttackModel(attacker, defender, move, field, firstResult) {
+  const context = firstResult.koContext;
+  const ability = AbilityById[context.atkAbility];
+  const item = ItemById[context.atkItem || effectiveBattleItem(attacker, context.atkAbility)];
+  const isBeatUp = move.variableBpKind === 'beatUpApprox';
+  const participants = isBeatUp ? beatUpParticipants(attacker, field) : [];
+  const parent = !move.mh && !isBeatUp && !move.ohko && !move.flags?.charge && !move.flags?.noparentalbond && !move.selfdestruct
+    && !['finalgambit', 'explosion', 'selfdestruct', 'mistyexplosion', 'struggle'].includes(move.id)
+    && ability?.extraHitModifier?.singleHitOnly && !isSpreadDamage(move, field, attacker);
+  let variants = isBeatUp ? [{ hits: Math.max(1, participants.length), weight: 1 }]
+    : parent ? [{ hits: 2, weight: 1 }]
+    : move.mh ? resolveMultiHitVariants(move.mh, item, ability) : [{ hits: 1, weight: 1 }];
+  if (move.hitCount && move.mh) {
+    const max = Array.isArray(move.mh) ? move.mh[1] : move.mh;
+    variants = [{ hits: Math.max(1, Math.min(max, Math.floor(move.hitCount))), weight: 1 }];
+  }
+  if (move.variableBpKind === 'fickleBeam' && !['normal', 'boosted'].includes(attacker.fickleBeamMode)) {
+    variants = variants.flatMap(v => [{ ...v, weight: v.weight * 7, fickleBeamMode: 'normal' }, { ...v, weight: v.weight * 3, fickleBeamMode: 'boosted' }]);
+  }
+  const maxHp = firstResult.defHP;
+  const hitCache = new Map();
+  const hitChanges = [];
+  const hasMultipleHits = variants.some(v => v.hits > 1);
+  const consumesAttackItem = item?.id === 'normalgem' && firstResult.moveType === 'Normal'
+    && firstResult.bp > 0 && move.id !== 'struggle' && !move.fixedDamageKind && !move.damage && !move.ohko;
+  if (consumesAttackItem) hitChanges.push('노말주얼 첫 기술에만 적용 · 이후 소비 상태');
+  if (hasMultipleHits && ['stamina', 'weakarmor', 'watercompaction'].includes(context.defAbility)) hitChanges.push(`${displayName(AbilityById[context.defAbility])} 타격별 반영`);
+  if (hasMultipleHits && move.id === 'poweruppunch') hitChanges.push('그로우펀치 타격별 공격 상승');
+  const needsExactHp = move.variableBpKind === 'targetHp100' || ['targetHalfHp', 'targetMinusSourceHp'].includes(move.fixedDamageKind);
+  const model = {
+    kind: isBeatUp ? 'beatUp' : parent ? 'parentalBond' : move.mh ? 'multiHit' : 'singleHit',
+    variants, maxHp, hitChanges, consumesAttackItem,
+    flungItem: move.variableBpKind === 'fling' ? flingItemForMove(attacker, defender) : null,
+    defAbility: context.defAbility,
+    recovery: koRecoveryOptions(context, firstResult.effectiveness, firstResult.moveType),
+    outcomeCache: new Map(),
+    removeItemOnHit: move.id === 'knockoff' && canRemovePowerItem(defender) && !AbilityById[context.defAbility]?.blocksItemRemoval,
+    hit(hp, used, index, variantIndex, useIndex = 0) {
+      const hpKey = needsExactHp ? Math.max(0, hp) : hp >= maxHp ? 'full' : hp <= Math.floor(maxHp / 3) ? 'pinch' : 'partial';
+      const key = `${hpKey}|${used}|${index}|${variantIndex}|${consumesAttackItem && useIndex > 0}`;
+      if (hitCache.has(key)) return hitCache.get(key);
+      const atk = { ...attacker, ranks: { ...attacker.ranks } };
+      if (variants[variantIndex]?.fickleBeamMode) atk.fickleBeamMode = variants[variantIndex].fickleBeamMode;
+      const def = { ...defender, ranks: { ...defender.ranks }, hpPct: Math.max(0, hp) / maxHp, fullHP: hp === maxHp, pinch: hp <= Math.floor(maxHp / 3), item: used ? '' : defender.item };
+      const hitField = { ...field, singleHitCalculation: true, powerHitIndex: index, parentalBondChild: !!parent && index > 0 };
+      if (consumesAttackItem) {
+        atk.item = '';
+        hitField.normalGemBoost = useIndex === 0;
+        if (context.atkAbility === 'unburden') atk.unburdenActive = true;
+      }
+      if (isBeatUp) hitField.beatUpBaseAttack = participants[index]?.bs.atk ?? PokemonById[attacker.pokemonIdx].bs.atk;
+      if (index > 0) {
+        // Only changes between hits of this move are derived; input ranks start fresh on its next use.
+        const defensive = context.defAbility;
+        const physical = firstResult.category === 'Physical';
+        if (defensive === 'stamina') def.ranks.def = Math.min(6, (def.ranks.def || 0) + index);
+        if (defensive === 'weakarmor' && physical) {
+          def.ranks.def = Math.max(-6, (def.ranks.def || 0) - index);
+          def.ranks.spe = Math.min(6, (def.ranks.spe || 0) + 2 * index);
+        }
+        if (defensive === 'watercompaction' && firstResult.moveType === 'Water') def.ranks.def = Math.min(6, (def.ranks.def || 0) + 2 * index);
+        if (move.id === 'poweruppunch') atk.ranks.atk = Math.max(-6, Math.min(6, (atk.ranks.atk || 0) + index * (context.atkAbility === 'contrary' ? -1 : context.atkAbility === 'simple' ? 2 : 1)));
+        if (move.flags?.contact && !['longreach'].includes(context.atkAbility) && !(item?.id === 'punchingglove' && move.flags?.punch)) {
+          if (['mummy', 'lingeringaroma'].includes(defensive) && !ability?.gasExempt) atk.ability = defensive;
+          if (defensive === 'wanderingspirit' && !ability?.gasExempt && index % 2) { atk.ability = defensive; def.ability = context.atkAbility; }
+        }
+        if (defensive === 'seedsower') hitField.terrain = 'Grassy';
+        if (defensive === 'sandspit') hitField.weather = 'Sand';
+      }
+      const hitMove = index ? { ...move, type: firstResult.moveType, manualType: true } : move;
+      // Preserve an -ate modifier when locking the move's type across subsequent hits.
+      if (index && ability?.typeChange && atk.ability === attacker.ability && !move.manualType) {
+        hitMove.type = move.type;
+        hitMove.manualType = false;
+      }
+      const result = calculateDamage(atk, def, hitMove, hitField) || { damages: [0] };
+      hitCache.set(key, result);
+      return result;
+    },
+  };
+  return model;
+}
+
+// Shared transition for the exact first-use damage distribution and repeated-use KO probabilities.
+function resolvePowerMoveUse(model, startHp, berryUsed, collectDamage = false, useIndex = 0) {
+  const cacheKey = `${startHp}|${berryUsed}|${collectDamage}|${!!model.consumesAttackItem && useIndex > 0}`;
+  if (model.outcomeCache.has(cacheKey)) return model.outcomeCache.get(cacheKey);
+  const outcomes = new Map();
+  const totalWeight = model.variants.reduce((sum, v) => sum + v.weight, 0);
+  const add = (map, row) => {
+    const key = `${row.hp}|${row.used}|${collectDamage ? row.damage : 0}`;
+    const previous = map.get(key);
+    if (previous) { previous.chance += row.chance; previous.recoveryMask |= row.recoveryMask || 0; }
+    else map.set(key, row);
+  };
+  model.variants.forEach((variant, variantIndex) => {
+    let states = new Map();
+    add(states, { hp: startHp, used: berryUsed, damage: 0, chance: variant.weight / totalWeight });
+    for (let index = 0; index < variant.hits; index++) {
+      const next = new Map();
+      for (const current of states.values()) {
+        if (current.hp <= 0 && !collectDamage) { add(next, current); continue; }
+        const result = model.hit(current.hp, current.used, index, variantIndex, useIndex);
+        if (collectDamage && Number.isFinite(result.bp) && result.bp > 0) {
+          model.appliedBasePowers ||= [];
+          (model.appliedBasePowers[index] ||= new Set()).add(result.bp);
+        }
+        const weights = koRollWeights(result.damages);
+        const total = [...weights.values()].reduce((a, b) => a + b, 0);
+        for (const [damage, weight] of weights) {
+          const hitRecovery = result.koContext ? koRecoveryOptions(result.koContext, result.effectiveness, result.moveType) : model.recovery;
+          // A resist berry is consumed during damage; Knock Off then removes a held
+          // item before HP-triggered berries can activate in the subsequent update.
+          const removed = !!(model.removeItemOnHit && damage > 0 && !hitRecovery.consumeResistBerry);
+          const beforeRecovery = model.flungItem
+            ? recoverFlungBerry(model, current.hp - damage, current.used, hitRecovery, damage)
+            : { hp: current.hp - damage, used: current.used };
+          const recovered = recoverPowerHit(beforeRecovery.hp, model.maxHp, beforeRecovery.used || removed, hitRecovery, damage);
+          add(next, { ...recovered, recoveryMask: (current.recoveryMask || 0) | (beforeRecovery.recoveryMask || 0) | (recovered.recoveryMask || 0),
+            damage: collectDamage ? current.damage + damage : 0, chance: current.chance * weight / total });
+        }
+      }
+      states = next;
+    }
+    for (const row of states.values()) add(outcomes, row);
+  });
+  const result = [...outcomes.values()];
+  model.outcomeCache.set(cacheKey, result);
+  return result;
+}
+
+function simulatePowerKo(model, startHp, maxTurns = 10) {
+  const cacheKey = `${startHp}|${maxTurns}`;
+  if (model.koCache?.has(cacheKey)) return model.koCache.get(cacheKey);
+  let states = new Map([[`${startHp}|false`, { hp: startHp, used: false, chance: 1 }]]);
+  const cumulative = [];
+  const seen = new Map();
+  let total = 0, guaranteedTurn = null, stalled = false, recoveryMask = 0;
+  const residual = model.recovery.residualRecovery;
+  const heal = residual?.kind === 'endTurn' ? Math.floor(model.maxHp * fractionValue(residual.fraction, 1 / 16)) : 0;
+  for (let turn = 1; turn <= maxTurns && states.size; turn++) {
+    const next = new Map();
+    for (const current of states.values()) {
+      for (const outcome of resolvePowerMoveUse(model, current.hp, current.used, false, turn - 1)) {
+        const chance = current.chance * outcome.chance;
+        recoveryMask |= outcome.recoveryMask || 0;
+        if (outcome.hp <= 0) { total += chance; continue; }
+        const hp = Math.min(model.maxHp, outcome.hp + (outcome.used && model.removeItemOnHit ? 0 : heal));
+        if (hp > outcome.hp) recoveryMask |= 4;
+        const key = `${hp}|${outcome.used}`;
+        if (next.has(key)) next.get(key).chance += chance;
+        else next.set(key, { hp, used: outcome.used, chance });
+      }
+    }
+    total = Math.max(0, Math.min(1, total));
+    cumulative.push(total);
+    if (!next.size) { guaranteedTurn = turn; break; }
+    const signature = `${!!model.consumesAttackItem && turn > 1}|${[...next.keys()].sort().join(';')}`;
+    if (seen.get(signature) === total) { stalled = true; break; }
+    seen.set(signature, total);
+    states = next;
+  }
+  const first = cumulative.findIndex(p => p > 0);
+  const result = { cumulative, recoveryMask, oneMoveKoChance: cumulative[0] || 0, possibleTurn: first < 0 ? null : first + 1, guaranteedTurn, impossible: stalled && first < 0, cannotGuarantee: stalled };
+  if (!model.koCache) model.koCache = new Map();
+  model.koCache.set(cacheKey, result);
+  return result;
+}
+
 function attachKoContext(result, ctx) {
   if (!result) return result;
   return {
     ...result,
+    ...(ctx.immunityNotes ? {
+      immunityNotes: [...new Set(ctx.immunityNotes)],
+      survivalNotes: [
+        ctx.defItemData?.koSurvival || ctx.defItem === 'focusband' ? `${displayName(ctx.defItemData)}: 생존 효과` : '',
+        ctx.defAbilityData?.koSurvival ? `${displayName(ctx.defAbilityData)}: 생존 효과` : '',
+      ].filter(Boolean),
+    } : {}),
     koContext: {
       defAbility: ctx.defAb || '',
       defItem: ctx.defItem || '',
+      atkAbility: ctx.atkAb || '',
     },
   };
 }
@@ -1272,13 +1611,14 @@ function koRollWeights(damages) {
 }
 
 function simulateMoveKoDistribution(hitProfile, hp, startHp, options = {}, maxTurns = 10) {
+  if (hitProfile?.powerModel) return simulatePowerKo(hitProfile.powerModel, startHp, maxTurns);
   const variants = hitProfile?.variants || [];
   const totalVariantWeight = variants.reduce((sum, variant) => sum + (variant.weight || 0), 0);
   if (!variants.length || totalVariantWeight <= 0) return null;
 
   const halfHP = Math.floor(hp / 2);
-  const berryHeal = Math.floor(hp * fractionValue(options.hpRecovery?.fraction, 1 / 4));
-  const startsWithBerry = options.hpRecovery?.kind === 'sitrus';
+  const berryHeal = Math.floor((options.hpRecovery?.amount ?? Math.floor(hp * fractionValue(options.hpRecovery?.fraction, 1 / 4))) * (options.hpRecovery?.multiplier || 1));
+  const startsWithBerry = !!options.hpRecovery || !!options.consumeResistBerry;
   const itemResidualHeal = options.residualRecovery?.kind === 'endTurn'
     ? Math.floor(hp * fractionValue(options.residualRecovery.fraction, 1 / 16))
     : 0;
@@ -1288,23 +1628,25 @@ function simulateMoveKoDistribution(hitProfile, hp, startHp, options = {}, maxTu
   let states = new Map([[`${startHp}|${options.fullHpSurvival ? 1 : 0}|${startsWithBerry ? 0 : 1}`, 1]]);
   const cumulative = [];
   let totalKoChance = 0;
+  let guaranteedTurn = null;
 
   for (let turn = 1; turn <= maxTurns && states.size; turn++) {
     const actionStates = new Map();
     let actionKoChance = 0;
 
-    for (const variant of variants) {
+    for (const [variantIndex, variant] of variants.entries()) {
       const variantWeight = (variant.weight || 0) / totalVariantWeight;
       if (variantWeight <= 0) continue;
       let variantStates = new Map([...states].map(([key, chance]) => [key, chance * variantWeight]));
 
-      for (const hitDamages of variant.hitDamages || []) {
-        const rollWeights = koRollWeights(hitDamages);
-        const rollTotal = [...rollWeights.values()].reduce((sum, weight) => sum + weight, 0) || 1;
+      for (const [hitIndex, hitDamages] of (variant.hitDamages || []).entries()) {
         const nextStates = new Map();
 
         for (const [stateKey, stateChance] of variantStates) {
           const [currentHpRaw, survivalRaw, berryUsedRaw] = stateKey.split('|').map(Number);
+          const rolls = options.damageAtHp?.(currentHpRaw, berryUsedRaw === 1, hitIndex, variantIndex) || hitDamages;
+          const rollWeights = koRollWeights(rolls);
+          const rollTotal = [...rollWeights.values()].reduce((sum, weight) => sum + weight, 0) || 1;
           for (const [damage, rollWeight] of rollWeights) {
             let currentHp = currentHpRaw - damage;
             let survivalAvailable = survivalRaw === 1;
@@ -1319,10 +1661,9 @@ function simulateMoveKoDistribution(hitProfile, hp, startHp, options = {}, maxTu
               continue;
             }
 
-            if (!berryUsed && options.hpRecovery?.trigger === 'halfHp' && currentHp <= halfHP) {
-              currentHp = Math.min(hp, currentHp + berryHeal);
-              berryUsed = true;
-            }
+            const recovered = recoverPowerHit(currentHp, hp, berryUsed, options, damage);
+            currentHp = recovered.hp;
+            berryUsed = recovered.used;
 
             const nextKey = `${currentHp}|${survivalAvailable ? 1 : 0}|${berryUsed ? 1 : 0}`;
             nextStates.set(nextKey, (nextStates.get(nextKey) || 0) + chance);
@@ -1344,16 +1685,18 @@ function simulateMoveKoDistribution(hitProfile, hp, startHp, options = {}, maxTu
     totalKoChance = Math.max(0, Math.min(1, totalKoChance + actionKoChance));
     cumulative.push(totalKoChance);
     states = actionStates;
-    if (totalKoChance >= 1 - 1e-9) break;
+    if (!states.size) {
+      guaranteedTurn = turn;
+      break;
+    }
   }
 
-  const possibleIndex = cumulative.findIndex(chance => chance > 1e-9);
-  const guaranteedIndex = cumulative.findIndex(chance => chance >= 1 - 1e-9);
+  const possibleIndex = cumulative.findIndex(chance => chance > 0);
   return {
     cumulative,
     oneMoveKoChance: cumulative[0] || 0,
     possibleTurn: possibleIndex >= 0 ? possibleIndex + 1 : null,
-    guaranteedTurn: guaranteedIndex >= 0 ? guaranteedIndex + 1 : null,
+    guaranteedTurn,
   };
 }
 
@@ -1370,168 +1713,61 @@ function withKoMetric(result, metric = {}) {
       guaranteedTurn: metric.guaranteedTurn ?? null,
       oneMoveKoChance: metric.oneMoveKoChance || 0,
       cumulative: metric.cumulative || [],
+      impossible: !!metric.impossible,
     },
   });
   return result;
 }
 
 function hkoLabel(damages, hp, defSide, field, koContext = null, hitProfile = null) {
-  const max = damages[15];
-  const min = damages[0];
-  if (max <= 0) return withKoMetric({ label: "대미지", turns: "없음", pct: "", cls: "no" });
-  const defItem = koContext && Object.prototype.hasOwnProperty.call(koContext, 'defItem')
-    ? koContext.defItem
-    : effectiveItem(defSide);
-  const defItemData = defItem ? ItemById[defItem] : null;
-  const defAb = koContext && Object.prototype.hasOwnProperty.call(koContext, 'defAbility')
-    ? koContext.defAbility
-    : effectiveAbility(defSide);
-  const defAbilityData = defAb ? AbilityById[defAb] : null;
-
-  // 진입 위험 (스텔스록/압정뿌리기) 데미지를 시작 HP 에서 차감
-  const hazardDmg = field ? calcHazardDamage(defSide, field, koContext) : 0;
-  const currentHp = sideCurrentHp(hp, defSide);
-  const startHp = Math.max(1, currentHp - hazardDmg);
-  const hazardActive = hazardDmg > 0;
-
-  // 기합의띠/옹골참은 HP 풀피일 때만 발동. 진입 위험으로 1HP 라도 깎였다면 무효.
-  const hasFocusSash = defItemData?.koSurvival === 'fullHpNoHazards' && sideIsFullHp(defSide) && !hazardActive;
-  const hasSturdy = defAbilityData?.koSurvival === 'fullHpNoHazards' && sideIsFullHp(defSide) && !hazardActive;
-  const survives1HKO = hasFocusSash || hasSturdy;
-  const multiHitDistribution = simulateMoveKoDistribution(hitProfile, hp, startHp, {
-    fullHpSurvival: survives1HKO,
-    hpRecovery: defItemData?.hpRecovery,
-    residualRecovery: defItemData?.residualRecovery,
-    abilityResidualRecovery: defAbilityData?.residualRecovery,
+  if (!damages?.some(d => d > 0)) return withKoMetric({ label: '대미지', turns: '없음', pct: '', cls: 'no' });
+  const defItem = koContext?.defItem ?? effectiveBattleItem(defSide);
+  const defAbility = koContext?.defAbility ?? effectiveAbility(defSide);
+  const item = ItemById[defItem];
+  const blockedBerry = !!item?.isBerry && attackerBlocksBerries(koContext?.atkAbility);
+  let hpRecovery = blockedBerry ? null : item?.hpRecovery;
+  if (hpRecovery && AbilityById[defAbility]?.resistBerryMod === 'x0_25') {
+    hpRecovery = { ...hpRecovery, multiplier: 2 };
+  }
+  const startHp = sideCurrentHp(hp, defSide);
+  const profile = hitProfile || { variants: [{ weight: 1, hitDamages: [damages] }] };
+  // 각 기술 사용의 난수를 독립적으로 합산한다. 생존 효과와 진입/잔여 피해는 제외한다.
+  const distribution = koContext?.powerModel ? simulatePowerKo(koContext.powerModel, startHp) : simulateMoveKoDistribution(profile, hp, startHp, {
+    hpRecovery,
+    residualRecovery: item?.residualRecovery,
+    damageAtHp: koContext?.damageAtHp,
+    consumeResistBerry: koContext?.consumeResistBerry,
+    cheekPouch: !blockedBerry && defAbility === 'cheekpouch',
   });
-  const multiHitKoChance = multiHitDistribution?.oneMoveKoChance ?? null;
-
-  if (multiHitKoChance != null && multiHitKoChance >= 1 - 1e-9) {
-    const subParts = [];
-    if (hazardActive) subParts.push(`진입 위험 -${Math.round(hazardDmg / hp * 100)}%`);
-    if (survives1HKO) subParts.push(`${hasFocusSash ? '기합의띠' : '옹골참'} 타격별 반영`);
-    if (defItemData?.hpRecovery?.kind === 'sitrus') subParts.push('자뭉 타격별 반영');
-    return withKoMetric(
-      { label: '확정', turns: '1타', pct: '', cls: 'ohko', sub: subParts.join(' · ') },
-      multiHitDistribution,
-    );
-  }
-
-  if (multiHitKoChance != null && multiHitKoChance > 1e-9) {
-    const subParts = [];
-    if (hazardActive) subParts.push(`진입 위험 -${Math.round(hazardDmg / hp * 100)}%`);
-    if (survives1HKO) subParts.push(`${hasFocusSash ? '기합의띠' : '옹골참'} 타격별 반영`);
-    if (defItemData?.hpRecovery?.kind === 'sitrus') subParts.push('자뭉 타격별 반영');
-    return withKoMetric({
-      label: '난수',
-      turns: '1타',
-      pct: `${(multiHitKoChance * 100).toFixed(1)}%`,
-      cls: 'ohko',
-      sub: subParts.join(' · '),
-    }, multiHitDistribution);
-  }
-
-  // 1타 판정은 진입 위험 후의 startHp 기준
-  const oneHits = damages.filter(d => d >= startHp).length;
-
-  // 확정 1타 (기합의띠 없을 때만)
-  if (multiHitKoChance == null && oneHits === 16 && !survives1HKO) {
-    return withKoMetric(
-      { label: "확정", turns: "1타", pct: "", cls: "ohko" },
-      { possibleTurn: 1, guaranteedTurn: 1, oneMoveKoChance: 1, cumulative: [1] },
-    );
-  }
-  // 기합의띠/옹골참으로 1타 회피
-  if (multiHitKoChance == null && oneHits === 16 && survives1HKO) {
-    const reason = hasFocusSash ? '기합의띠' : '옹골참';
-    return withKoMetric(
-      { label: "확정", turns: "2타", pct: "", cls: "ohko", sub: `${reason}로 1타 회피` },
-      { possibleTurn: 2, guaranteedTurn: 2, oneMoveKoChance: 0, cumulative: [0, 1] },
-    );
-  }
-
-  const hasSitrus = defItemData?.hpRecovery?.kind === 'sitrus';
-
-  if (multiHitKoChance == null && oneHits > 0) {
-    const pct = (oneHits / 16 * 100).toFixed(1);
-    const subParts = [];
-    if (hazardActive) {
-      const hpct = Math.round(hazardDmg / hp * 100);
-      subParts.push(`진입 위험 -${hpct}%`);
-    }
-    if (survives1HKO) {
-      subParts.push(hasFocusSash ? '기합의띠로 1타 회피 가능' : '옹골참으로 1타 회피 가능');
-    } else if (hasSitrus) {
-      const minKOs = simulateKO(min, hp, defItemData, defAbilityData, startHp);
-      subParts.push(`자뭉 시 확정 ${minKOs}타`);
-    }
-    return withKoMetric(
-      { label: "난수", turns: "1타", pct: `${pct}%`, cls: "ohko", sub: subParts.join(' · ') },
-      { possibleTurn: 1, oneMoveKoChance: oneHits / 16, cumulative: [oneHits / 16] },
-    );
-  }
-
-  if (multiHitDistribution?.possibleTurn) {
-    const possibleTurn = multiHitDistribution.possibleTurn;
-    const guaranteedTurn = multiHitDistribution.guaranteedTurn;
-    const isFixed = guaranteedTurn === possibleTurn;
-    const turns = guaranteedTurn
-      ? (isFixed ? `${guaranteedTurn}타` : `${possibleTurn}~${guaranteedTurn}타`)
-      : `${possibleTurn}타 이상`;
-    const subParts = [];
-    if (hazardActive) subParts.push(`진입 위험 -${Math.round(hazardDmg / hp * 100)}%`);
-    if (defItemData?.hpRecovery?.kind === 'sitrus') subParts.push('자뭉 타격별 반영');
-    else if (defItemData?.residualRecovery?.kind === 'endTurn') subParts.push('먹남 반영');
-    else if (defAbilityData?.residualRecovery) subParts.push(`${defAbilityData.koName || defAbilityData.name} 반영`);
-    return withKoMetric({
-      label: isFixed ? '확정' : '난수',
-      turns,
-      pct: '',
-      cls: (guaranteedTurn || possibleTurn) <= 2 ? 'ohko' : '',
-      sub: subParts.join(' · '),
-    }, multiHitDistribution);
-  }
-
-  // 자뭉/회복 아이템 반영한 N타 (진입 위험 후 startHp 기준)
-  let minKOs = simulateKO(min, hp, defItemData, defAbilityData, startHp);
-  let maxKOs = simulateKO(max, hp, defItemData, defAbilityData, startHp);
-  if (multiHitKoChance != null && multiHitKoChance <= 1e-9) {
-    minKOs = Math.max(2, minKOs);
-    maxKOs = Math.max(2, maxKOs);
-  }
-
-  const isFixed = (minKOs === maxKOs);
-  const label = isFixed ? "확정" : "난수";
-  const turns = `${maxKOs}타`;
-
-  const subParts = [];
-  if (hazardActive) {
-    const pct = Math.round(hazardDmg / hp * 100);
-    subParts.push(`진입 위험 -${pct}%`);
-  }
-  if (defItemData?.hpRecovery?.kind === 'sitrus') subParts.push('자뭉 반영');
-  else if (defItemData?.residualRecovery?.kind === 'endTurn') subParts.push('먹남 반영');
-  else if (defAbilityData?.residualRecovery) subParts.push(`${defAbilityData.koName || defAbilityData.name} 반영`);
-
-  return withKoMetric(
-    { label, turns, pct: "", cls: minKOs <= 2 ? "ohko" : "", sub: subParts.join(' · ') },
-    {
-      possibleTurn: minKOs <= 10 ? minKOs : null,
-      guaranteedTurn: maxKOs <= 10 ? maxKOs : null,
-      oneMoveKoChance: 0,
-    },
-  );
+  if (!distribution) return withKoMetric({ label: '계산', turns: '불가', pct: '', cls: 'no' });
+  const possible = distribution.possibleTurn;
+  const guaranteed = distribution.guaranteedTurn;
+  const certain = possible !== null && guaranteed === possible;
+  const chance = possible ? distribution.cumulative[possible - 1] : 0;
+  const notes = [];
+  const recoveryMask = distribution.recoveryMask;
+  if (recoveryMask === undefined ? guaranteed !== 1 && (hpRecovery || item?.residualRecovery) : recoveryMask & 5) notes.push(`${displayName(item)} 회복 반영`);
+  if (recoveryMask === undefined ? guaranteed !== 1 && defAbility === 'cheekpouch' && !blockedBerry && (hpRecovery || koContext?.consumeResistBerry) : recoveryMask & 2) notes.push('볼주머니 회복 반영');
+  if (recoveryMask & 8) notes.push(`던진 ${displayName(koContext.powerModel.flungItem)} 회복 반영`);
+  if (koContext?.powerModel?.removeItemOnHit && (hpRecovery || item?.residualRecovery)) notes.push(`${displayName(item)} 제거 · 이후 회복 없음`);
+  if (startHp < hp) notes.push(`현재 HP ${startHp} 기준`);
+  if (!certain && guaranteed) notes.push(`${guaranteed}타 이내 확정`);
+  return withKoMetric({
+    label: possible ? (certain ? '확정' : '난수') : distribution.impossible ? 'KO' : '초과',
+    turns: possible ? `${possible}타` : distribution.impossible ? '불가' : '10타',
+    pct: possible && !certain ? (chance < 0.0005 ? '0.1% 미만' : chance > 0.9995 ? '99.9% 초과' : `${(chance * 100).toFixed(1)}%`) : '',
+    cls: possible && possible <= 2 ? 'ohko' : '',
+    sub: notes.join(' · '),
+  }, distribution);
 }
 
-/* ════════════════════════════════════════════════════════════
-   속도 계산
-   ════════════════════════════════════════════════════════════ */
-function effectiveSpeed(side, field) {
+/* 입력된 상태에서의 스피드 실수치. 턴 진행이나 자동 랭크 변화는 수행하지 않는다. */
+function effectiveSpeed(side, field, opponent = side) {
   const stats = calcStats(side);
   let spe = applyBoost(stats.spe, side.ranks.spe || 0);
-  const ab = effectiveAbility(side);
+  const { atkAb: ab, defAb: otherAb } = battleAbilityContext(side, opponent);
   const abilityData = ab ? AbilityById[ab] : null;
-  const item = effectiveItem(side);
+  const item = effectiveBattleItem(side, ab);
   const itemData = item ? ItemById[item] : null;
   const pokemon = PokemonById[side.pokemonIdx];
   
@@ -1545,7 +1781,7 @@ function effectiveSpeed(side, field) {
       field,
       bp: 0,
       moveType: 'spe',
-      weather: field.weather,
+      weather: effectiveWeather(field, ab, otherAb),
       effectiveness: 1,
       isCritical: false,
       isPhysical: false,
@@ -1553,6 +1789,8 @@ function effectiveSpeed(side, field) {
       speMods.push(mechanicMod(rule.mod));
     }
   }
+  if (activeParadoxBoost(abilityData, field, effectiveWeather(field, ab, otherAb), itemData, side)
+      && highestBattleStat(stats) === 'spe') speMods.push(MOD.x1_5);
   
   // 아이템
   if (statBoostApplies(pokemon, itemData?.speedStatBoost, 'spe')) {

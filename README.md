@@ -34,6 +34,8 @@ Cloudflare Pages의 Production branch는 `main`, Build command는 `npm run build
 
 ## Validation
 
+현재 데이터는 M-C(2026-09-09)를 반영한다. [반영 내역과 수동 보완 방법](docs/regulation-mc-update.md)을 참고한다.
+
 ```powershell
 npm test
 npm run ui:audit

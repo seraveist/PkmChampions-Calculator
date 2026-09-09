@@ -181,7 +181,17 @@
 
   #page-calc .calc-mobile-summary-ko {
     color: var(--bad);
+    white-space: normal;
+    text-align: right;
   }
+
+  #page-calc .calc-mobile-summary-policy {
+    grid-column: 1 / -1;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  #page-calc:has(.calc-mobile-summary:not([hidden])) { padding-bottom: 160px; }
 
   #page-calc .calc-pair-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -296,7 +306,7 @@
     grid-template-areas:
       "index name name critical"
       "index type power readout";
-    grid-template-rows: 40px 36px;
+    grid-template-rows: 40px auto;
     gap: 4px 6px;
     height: auto;
     min-height: 84px;
@@ -308,15 +318,18 @@
     border-bottom: 0;
   }
 
-  #page-calc .tool-move-col-index {
+  #page-calc .tool-move-col-index,
+  #page-calc .tool-move-row > .tool-move-index {
     grid-area: index;
   }
 
-  #page-calc .tool-move-col-name {
+  #page-calc .tool-move-col-name,
+  #page-calc .tool-move-row > .tool-move-combobox {
     grid-area: name;
   }
 
-  #page-calc .tool-move-col-type {
+  #page-calc .tool-move-col-type,
+  #page-calc .tool-move-row > .tool-move-type-control {
     grid-area: type;
   }
 
@@ -357,7 +370,7 @@
     width: auto;
     max-width: none;
     min-height: 40px;
-    margin: 0 8px 8px;
+    margin: 0;
   }
 
   #page-calc .calc-damage-meta {
@@ -873,7 +886,7 @@
   }
 
   #page-calc .calc-mobile-summary:not([hidden]) {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   #page-calc .calc-mobile-summary-label {

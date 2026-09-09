@@ -1,0 +1,11 @@
+{
+  "_README": "Small corrections applied after Showdown's Champions mod. These files are outside the sync manifest. Keys: pokemon, moves, abilities, items, learnsets, formats. Patches replace top-level fields; availability requires explicit isNonstandard: null and, for Pokemon, a non-Illegal formats tier. Remove a correction after upstream supplies the same data.",
+  "_regulation": "M-C (2026-09-09)",
+  "_source": "https://champions-news.pokemon-home.com/en/page/816.html",
+  "pokemon": {
+    "baxcaliburmega": { "abilities": { "0": "Thermal Exchange" } }
+  },
+  "abilities": {
+    "auraguard": { "isNonstandard": null }
+  }
+}

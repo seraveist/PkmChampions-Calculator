@@ -24,6 +24,10 @@ const revCalcState = {
   nextMyRanks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
   nextOppRanks: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
   observedMyHp: '',
+  observationTiming: 'end',
+  oppStartHpPct: 100,
+  oppAbilityKnown: 'unknown',
+  observedMoveOptions: { my: {}, opp: {} },
   turnOrder: 'unknown',
   field: rcDefaultField(),
   observedFields: {
@@ -41,6 +45,7 @@ const revCalcState = {
 function rcAnalysisField() {
   return {
     ...rcDefaultField(),
+    ...revCalcState.field,
     weather: revCalcState.field.weather || 'none',
     terrain: revCalcState.field.terrain || 'none',
     isCritical: !!revCalcState.field.isCritical,
@@ -273,6 +278,7 @@ function rcItemAffectsObservedNumbers(item) {
     item.speedStatBoost ||
     item.residualRecovery ||
     item.hpRecovery ||
+    item.resistBerryType ||
     item.multiHitModifier ||
     item.groundImmunity ||
     item.grounded !== undefined ||
@@ -283,7 +289,7 @@ function rcItemAffectsObservedNumbers(item) {
 
 function rcItemCandidateMasterList() {
   return ITEMS
-    .filter(item => !item.ms && !item.isBerry && rcItemAffectsObservedNumbers(item))
+    .filter(item => !item.ms && rcItemAffectsObservedNumbers(item))
     .filter((item, idx, arr) => arr.findIndex(other => other.id === item.id) === idx);
 }
 
@@ -380,11 +386,12 @@ function rcOpponentAbilityCandidates(oppP, observations = []) {
   const byId = new Map([[defaultId || '', { id: defaultId || '', impact: false }]]);
   for (const id of rcPokemonAbilityIds(oppP)) {
     if (!id) continue;
-    const impact = obsList.some(obs => rcAbilityAffectsObservedDamage(oppP, id, obs.role, obs.move, obs.field));
+    const impact = obsList.some(obs => rcAbilityAffectsObservedDamage(oppP, id, obs.role, obs.move, obs.field))
+      || (revCalcState.turnOrder !== 'unknown' && !!(AbilityById[id]?.speedStatBoosts || AbilityById[id]?.paradoxBoost || AbilityById[id]?.suppressesWeather));
     if (id === defaultId) {
       byId.get(defaultId || '').impact = impact;
-    } else if (impact) {
-      byId.set(id, { id, impact: true });
+    } else {
+      byId.set(id, { id, impact });
     }
   }
   return [...byId.values()];
@@ -393,7 +400,7 @@ function rcOpponentAbilityCandidates(oppP, observations = []) {
 function rcMatchingRemainingPct(rolls, observedPct, defenderHp) {
   let matches = 0;
   for (const d of rolls) {
-    if (d <= 0) continue;
+    if (d < 0) continue;
     const remaining = Math.max(0, defenderHp - d);
     const remainingPct = Math.floor(remaining / defenderHp * 100);
     if (remainingPct === observedPct) matches++;
@@ -404,7 +411,7 @@ function rcMatchingRemainingPct(rolls, observedPct, defenderHp) {
 function rcMatchingRemainingHp(rolls, observedHp, startingHp) {
   let matches = 0;
   for (const d of rolls) {
-    if (d <= 0) continue;
+    if (d < 0) continue;
     const remaining = Math.max(0, startingHp - d);
     if (remaining === observedHp) matches++;
   }
@@ -456,29 +463,26 @@ function rcSpeedWithMods(baseSpeed, rank, item, status) {
 }
 
 function rcMySpeedValue() {
-  const stats = calcStats(revCalcState.my);
-  return rcSpeedWithMods(
-    stats.spe,
-    revCalcState.my.ranks?.spe || 0,
-    revCalcState.my.item || '',
-    revCalcState.my.status || 'none'
-  );
+  return effectiveSpeed(revCalcState.my, rcAnalysisField());
 }
 
-function rcOpponentSpeedValue(oppP, nature, item, speEv) {
+function rcOpponentSpeedValue(oppP, nature, item, speEv, ability, field = rcAnalysisField()) {
   const oppState = rcBuildOpponentState(oppP, {
     evs: { spe: speEv },
     nature,
     item,
+    ...(ability !== undefined ? { ability } : {}),
   });
-  const baseSpeed = calcStats(oppState).spe;
-  return rcSpeedWithMods(baseSpeed, revCalcState.opp.ranks?.spe || 0, item || '', revCalcState.opp.status || 'none');
+  return effectiveSpeed(oppState, field, revCalcState.my);
 }
 
-function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField()) {
+function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField(), ability) {
   const rawOrder = revCalcState.turnOrder || 'unknown';
-  const order = rawOrder === 'opp-first' || rawOrder === 'my-first' ? rawOrder : 'unknown';
-  const mySpeed = rcMySpeedValue();
+  const myPriority = revCalcState.myMove ? rcMovePriority(revCalcState.my, MoveById[revCalcState.myMove], field) : null;
+  const oppPriority = revCalcState.oppMove ? rcMovePriority(rcBuildOpponentState(oppP, { ability, item }), MoveById[revCalcState.oppMove], field) : null;
+  const priorityUnknown = myPriority == null || oppPriority == null || myPriority !== oppPriority;
+  const order = !priorityUnknown && (rawOrder === 'opp-first' || rawOrder === 'my-first') ? rawOrder : 'unknown';
+  const mySpeed = effectiveSpeed(revCalcState.my, field, rcBuildOpponentState(oppP, { ability, item }));
   if (order === 'unknown') {
     return {
       active: false,
@@ -487,19 +491,19 @@ function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField()) {
       speMin: 0,
       speMax: 32,
       mySpeed,
-      oppSpeed: rcOpponentSpeedValue(oppP, nature, item, 0),
-      label: '속도 조건 없음',
+      oppSpeed: rcOpponentSpeedValue(oppP, nature, item, 0, ability, field),
+      label: priorityUnknown && rawOrder !== 'unknown' ? '우선도 확인 필요 · 속도 미확인' : '속도 조건 없음',
     };
   }
 
   const ok = [];
   for (let speEv = 0; speEv <= 32; speEv++) {
-    const oppSpeed = rcOpponentSpeedValue(oppP, nature, item, speEv);
+    const oppSpeed = rcOpponentSpeedValue(oppP, nature, item, speEv, ability, field);
     let matches = false;
     if (order === 'opp-first') {
-      matches = oppSpeed > mySpeed;
+      matches = field.trickRoom ? oppSpeed <= mySpeed : oppSpeed >= mySpeed;
     } else if (order === 'my-first') {
-      matches = oppSpeed < mySpeed;
+      matches = field.trickRoom ? oppSpeed >= mySpeed : oppSpeed <= mySpeed;
     }
     if (matches) ok.push({ speEv, oppSpeed });
   }
@@ -517,6 +521,6 @@ function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField()) {
     speMax: ok[ok.length - 1].speEv,
     mySpeed,
     oppSpeed: chosen.oppSpeed,
-    label: item === 'choicescarf' ? '구애스카프 속도 조건 충족' : '속도 조건 충족',
+    label: chosen.oppSpeed === mySpeed ? '동속 가능' : item === 'choicescarf' ? '구애스카프 속도 조건 충족' : '속도 조건 충족',
   };
 }

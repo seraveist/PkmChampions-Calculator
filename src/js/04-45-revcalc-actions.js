@@ -1,4 +1,55 @@
 /* Reverse calculator input actions, analysis trigger, and calculator handoff. */
+function rcInvalidateChangedObservation() {
+  const previousKey = revCalcState.results?.inputKey || revCalcState.pendingInputKey;
+  if (!previousKey || previousKey === rcAnalysisCacheKey()) return false;
+  if (revCalcState.analyzing) { revCalcState.analysisRunId++; rcCancelAnalysis(); revCalcState.analyzing = false; }
+  revCalcState.results = null;
+  revCalcState.pendingInputKey = '';
+  revCalcState.resultsStale = true;
+  return true;
+}
+
+function rcReadExtraObservationInput(t) {
+  const action = t.dataset?.rcAction;
+  if (['oppStartHpPct', 'observationTiming', 'oppAbilityKnown'].includes(action)) revCalcState[action] = t.value;
+  if (action === 'myStartHp') setSideCurrentHp(revCalcState.my, Number(t.value));
+  if (action === 'myStatus') revCalcState.my.status = t.value;
+  if (t.dataset?.rcMoveOption) {
+    revCalcState.observedMoveOptions ||= { my: {}, opp: {} };
+    const role = t.dataset.rcRole;
+    revCalcState.observedMoveOptions[role] ||= {};
+    revCalcState.observedMoveOptions[role][t.dataset.rcMoveOption] = t.value;
+  }
+}
+
+let rcInputRefreshTimer = null;
+let rcForecastRefreshId = 0;
+function rcScheduleForecastRefresh() {
+  if (typeof Worker !== 'function') return;
+  const result = revCalcState.results;
+  if (!result?.candidates?.length || revCalcState.analyzing || result.forecastError) return;
+  const key = JSON.stringify([[...new Set(rcVisibleMoveSet())], revCalcState.predictedOppMove || revCalcState.oppMove, rcNextMyRanks(), rcNextOpponentRanks()]);
+  if (result.forecast?.key === key || result.pendingForecastKey === key) return;
+  result.pendingForecastKey = key;
+  result.forecast = null;
+  const request = ++rcForecastRefreshId, inputKey = rcAnalysisCacheKey();
+  rcAnalyzeCachedAsync().then(updated => {
+    if (request !== rcForecastRefreshId || revCalcState.results !== result || rcAnalysisCacheKey() !== inputKey) return;
+    result.forecast = updated.forecast;
+    result.pendingForecastKey = '';
+    renderRevCalcResults();
+  }).catch(() => { if (revCalcState.results === result) { result.pendingForecastKey = ''; result.forecastError = true; renderRevCalcResults(); } });
+}
+for (const type of ['input', 'change', 'click']) document.getElementById('page-revcalc')?.addEventListener(type, e => {
+  if (type !== 'click') rcReadExtraObservationInput(e.target);
+  clearTimeout(rcInputRefreshTimer);
+  rcInputRefreshTimer = setTimeout(() => { if (rcInvalidateChangedObservation()) renderRevCalcResults(); }, 0);
+});
+document.getElementById('page-revcalc')?.addEventListener('keydown', e => {
+  if (!['Enter', ' '].includes(e.key) || e.target.dataset?.rcToggleResult === undefined) return;
+  e.preventDefault(); e.target.click();
+});
+
 function rcComboKind(target) {
   if (target === 'mynature') return 'nature';
   if (target === 'myability') return 'ability';
@@ -161,7 +212,7 @@ document.getElementById('page-revcalc')?.addEventListener('click', e => {
     return;
   }
   const toggledRow = t.closest?.('[data-rc-toggle-result]');
-  if (toggledRow && !t.closest('button, select, input, label, .combobox-options')) {
+  if (toggledRow && (!t.closest('button, select, input, label, .combobox-options') || t.closest('button[data-rc-toggle-result]'))) {
     const idx = parseInt(toggledRow.dataset.rcToggleResult, 10);
     const opened = new Set(Array.isArray(revCalcState.openResultIndexes) ? revCalcState.openResultIndexes : []);
     if (opened.has(idx)) opened.delete(idx);
@@ -232,12 +283,17 @@ document.getElementById('rcAnalyze')?.addEventListener('click', async () => {
 
   rcSyncInputsFromDom();
   const runId = ++revCalcState.analysisRunId;
+  revCalcState.results = null;
+  revCalcState.pendingInputKey = rcAnalysisCacheKey();
+  revCalcState.resultsStale = false;
   revCalcState.analyzing = true;
   renderRevCalcResults();
   try {
     const result = await rcAnalyzeCachedAsync();
     if (runId !== revCalcState.analysisRunId) return;
+    if (revCalcState.pendingInputKey !== rcAnalysisCacheKey()) { rcInvalidateChangedObservation(); return; }
     revCalcState.results = result;
+    revCalcState.pendingInputKey = '';
     revCalcState.selectedResultIndex = 0;
     revCalcState.openResultIndexes = [];
     if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
@@ -267,6 +323,7 @@ function rcApplyResultToCalc(idx) {
   if (c.speEv) defState.evs.spe = c.speEv;
   defState.nature = c.nature;
   if (c.item) defState.item = c.item;
+  defState.ability = c.ability || defState.ability;
   defState.ranks = { ...revCalcState.opp.ranks };
   defState.status = revCalcState.opp.status || 'none';
   // 적용
@@ -296,6 +353,10 @@ function loadSideToRevCalc(sideKey) {
   revCalcState.nextOppRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(state[otherKey].ranks || {}) };
   revCalcState.opp.status = state[otherKey].status || 'none';
   revCalcState.oppItemKnown = 'unknown';
+  revCalcState.oppAbilityKnown = 'unknown';
+  revCalcState.observedMoveOptions = { my: {}, opp: {} };
+  revCalcState.results = null;
+  revCalcState.resultsStale = false;
   rcResetItemCandidatesForOpponent();
   revCalcState.field = rcDefaultField();
   const navBtn = document.querySelector('.nav-tab[data-page="revcalc"]');

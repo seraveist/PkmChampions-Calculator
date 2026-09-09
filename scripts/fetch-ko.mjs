@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTsModule, applyModOverrides } from './ts-loader.mjs';
+import { applyChampionsDataOverrides } from './champions-overrides.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const DATA = path.join(ROOT, 'data');
@@ -206,7 +207,7 @@ function loadTargetIds() {
   const Moves = loadTsModule(path.join(DATA, 'moves.ts')).Moves;
   const Abilities = loadTsModule(path.join(DATA, 'abilities.ts')).Abilities;
   const Items = loadTsModule(path.join(DATA, 'items.ts')).Items;
-  const FormatsData = loadTsModule(path.join(DATA, 'mods', 'champions', 'formats-data.ts')).FormatsData;
+  const FormatsData = applyChampionsDataOverrides('formats', loadTsModule(path.join(DATA, 'mods', 'champions', 'formats-data.ts')).FormatsData);
   const champMoves = loadTsModule(path.join(DATA, 'mods', 'champions', 'moves.ts')).Moves;
   const champAbilities = loadTsModule(path.join(DATA, 'mods', 'champions', 'abilities.ts')).Abilities;
   const champItems = loadTsModule(path.join(DATA, 'mods', 'champions', 'items.ts')).Items;
@@ -218,9 +219,9 @@ function loadTargetIds() {
 
   return {
     pokemon: legalPokemon,
-    moves: Object.entries(applyModOverrides(Moves, champMoves)).filter(([_, m]) => m?.name && isAvailable(m)).map(([id]) => id),
-    abilities: Object.entries(applyModOverrides(Abilities, champAbilities)).filter(([_, a]) => a?.name && isAvailable(a)).map(([id]) => id),
-    items: Object.entries(applyModOverrides(Items, champItems)).filter(([_, i]) => i?.name && isAvailable(i)).map(([id]) => id),
+    moves: Object.entries(applyChampionsDataOverrides('moves', applyModOverrides(Moves, champMoves))).filter(([_, m]) => m?.name && isAvailable(m)).map(([id]) => id),
+    abilities: Object.entries(applyChampionsDataOverrides('abilities', applyModOverrides(Abilities, champAbilities))).filter(([_, a]) => a?.name && isAvailable(a)).map(([id]) => id),
+    items: Object.entries(applyChampionsDataOverrides('items', applyModOverrides(Items, champItems))).filter(([_, i]) => i?.name && isAvailable(i)).map(([id]) => id),
   };
 }
 

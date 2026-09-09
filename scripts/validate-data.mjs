@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTsModule, applyModOverrides } from './ts-loader.mjs';
+import { applyChampionsDataOverrides } from './champions-overrides.mjs';
 import { PS_FILES, PS_REF, PS_REPOSITORY } from './ps-data-source.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -84,6 +85,7 @@ const source = {
   items: applyModOverrides(readBase('items.ts', 'Items'), readChamp('items.ts', 'Items')),
 };
 const filters = filterSets();
+for (const kind of KINDS) source[kind] = applyChampionsDataOverrides(kind, source[kind]);
 const entryEffects = readJson(path.join(DATA, 'overrides', 'entry-effects.json'), { effects: {}, blockers: {} });
 const formGroupsRaw = readJson(path.join(DATA, 'overrides', 'form-groups.json'), {});
 const formGroups = [];

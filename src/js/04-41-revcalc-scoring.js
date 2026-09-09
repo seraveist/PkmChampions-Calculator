@@ -1,8 +1,5 @@
 /* Reverse calculator scoring, grouping, completion, and follow-up helpers. */
 function rcNatureCandidatesForMove(move) {
-  if (!move || move.cat === 'Status') return RC_NATURE_IDS;
-  if (move.cat === 'Physical') return ['adamant', 'jolly', 'impish', 'bold', 'careful', 'calm'];
-  if (move.cat === 'Special') return ['modest', 'timid', 'impish', 'bold', 'careful', 'calm'];
   return RC_NATURE_IDS;
 }
 
@@ -22,6 +19,7 @@ function rcSecondMagicEv(oppP, stat) {
 
 function rcCandidateObservedEvs(c, speedActive, useSpeedMax = false) {
   const evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  if (c.hpFirst) evs.hp = c.hpEv || 0;
   if (c.defStat) {
     evs.hp = Math.max(evs.hp, c.hpEv || 0);
     evs[c.defStat] = Math.max(evs[c.defStat], c.defEv || 0);
@@ -91,6 +89,7 @@ function rcEvRangeForStat(c, stat, speedActive = !!c.speedInfo?.active) {
   }
   if (c.defStat === stat) return [c.defEvMin ?? c.defEv ?? 0, c.defEvMax ?? c.defEv ?? 0];
   if (c.atkStat === stat) return [c.atkEvMin ?? c.atkEv ?? 0, c.atkEvMax ?? c.atkEv ?? 0];
+  if (c.hpFirst && ['def', 'spd'].includes(stat) && (c.hpEvMax ?? c.hpEv ?? 0) < 32) return [0, 0];
   return [0, 32];
 }
 
@@ -106,7 +105,7 @@ function rcCandidateRangeSum(c, stats, speedActive = !!c.speedInfo?.active) {
 }
 
 function rcRolePriority(c, speedActive = !!c.speedInfo?.active) {
-  const usedAtk = c.atkStat || 'spa';
+  const usedAtk = c.atkStat || rcOppAttackProfile(c).favored || 'atk';
   const defStats = usedAtk === 'atk' ? ['def', 'spd'] : ['spd', 'def'];
   const fastByObservation = speedActive && (c.speEvMin ?? c.speEv ?? 0) >= rcSecondMagicEv(PokemonById[revCalcState.opp.pokemonIdx], 'spe');
   const isScarf = c.item === 'choicescarf';
@@ -144,6 +143,8 @@ function rcRolePriority(c, speedActive = !!c.speedInfo?.active) {
 }
 
 function rcRoleCompletionInfo(c, speedActive = !!c.speedInfo?.active) {
+  // Complete a real matching member, never a synthetic cross-product of group ranges.
+  if (c.members?.length) return rcRoleCompletionInfo({ ...c.members[0], members: null }, speedActive);
   const stats = ['hp','atk','def','spa','spd','spe'];
   const role = rcRolePriority(c, speedActive);
   const evs = {};
@@ -285,11 +286,18 @@ function rcRolePresetScore(c) {
   return score;
 }
 
+const rcPracticalScoreCache = new WeakMap();
 function rcPracticalProfileScore(c) {
-  return rcNatureFitScore(c) + rcRolePresetScore(c);
+  // H32는 흔한 내구 배분의 우선순위다. 다른 합법 배분을 탈락시키지는 않는다.
+  if (c.groupCount === undefined && rcPracticalScoreCache.has(c)) return rcPracticalScoreCache.get(c);
+  const score = rcNatureFitScore(c) + rcRolePresetScore(c) + (c.hpEv === 32 ? 8 : 0);
+  if (c.groupCount === undefined) rcPracticalScoreCache.set(c, score);
+  return score;
 }
 
 function rcCompareCandidates(a, b) {
+  const hpPriority = rcCompareHpFirst(a, b);
+  if (hpPriority) return hpPriority;
   if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
   const practicalDiff = rcPracticalProfileScore(b) - rcPracticalProfileScore(a);
   if (practicalDiff) return practicalDiff;
@@ -372,19 +380,21 @@ function rcBriefInvestmentParts(c, speedActive) {
   const speMax = speedActive ? (c.speEvMax ?? speMin) : speMin;
   return [
     `${defRole} ${rcPointRangeLabel(defMin, defMax)}`,
-    `${atkRole} ${rcPointRangeLabel(atkMin, atkMax)}`,
-    `S ${rcPointRangeLabel(speMin, speMax)}`,
+    c.atkStat ? `${atkRole} ${rcPointRangeLabel(atkMin, atkMax)}` : '공격 투자 미확인',
+    speedActive ? `S ${rcPointRangeLabel(speMin, speMax)}` : '속도 투자 미확인',
   ].join(', ');
 }
 
 function rcMoveDefenseStat(move) {
   if (!move || move.cat === 'Status') return null;
+  if (move.fixedDamageKind || move.damage || move.ohko) return null;
   if (move.overrideDefensiveStat) return move.overrideDefensiveStat;
   return move.cat === 'Physical' ? 'def' : 'spd';
 }
 
 function rcMoveOffenseStat(move) {
   if (!move || move.cat === 'Status') return null;
+  if (move.fixedDamageKind || move.damage || move.ohko) return null;
   if (move.overrideOffensivePokemon === 'target') return null;
   if (move.overrideOffensiveStat) return move.overrideOffensiveStat;
   return move.cat === 'Physical' ? 'atk' : 'spa';
@@ -475,6 +485,7 @@ function rcSpeedUnconfirmed() {
 }
 
 function rcAnalyzeMyFollowupMove(c, moveId, speedActive) {
+  if (c.paths || c.members) return rcForecastDirect(c, moveId, 'my', speedActive);
   const move = MoveById[moveId];
   if (!move || move.cat === 'Status') return null;
   const oppP = PokemonById[revCalcState.opp.pokemonIdx];
@@ -507,6 +518,7 @@ function rcAnalyzeMyFollowupMove(c, moveId, speedActive) {
 }
 
 function rcAnalyzeOpponentFollowupMove(c, moveId, speedActive) {
+  if (c.paths || c.members) return rcForecastDirect(c, moveId, 'opp', speedActive);
   const move = MoveById[moveId];
   if (!move) return null;
   if (move.cat === 'Status') {
@@ -604,10 +616,11 @@ function rcRenderNextRankPanel() {
   return `
     <div class="rc-next-rank-panel ui-control-frame ui-subframe ${isOpen ? 'open' : 'collapsed'}">
       <button type="button" class="rc-next-rank-title" data-rc-toggle-next-ranks aria-expanded="${isOpen ? 'true' : 'false'}">
-        <b>다음 행동 랭크</b>
+        <b>다음 행동 랭크 보정</b>
         <span>${isOpen ? '접기' : '펼치기'}</span>
       </button>
       <div class="rc-next-rank-table" ${isOpen ? '' : 'hidden'}>
+        <p class="rc-mini-note">공방에서 자동 반영된 변화에 더해, 입력한 관측 랭크와의 차이만 추가 적용합니다.</p>
         <div class="rc-next-rank-head" aria-hidden="true">
           <span></span><span>공격</span><span>방어</span><span>특공</span><span>특방</span><span>속도</span>
         </div>
@@ -683,29 +696,8 @@ function rcMaxPossibleBulk(c, bulkStat, speedActive) {
 }
 
 function rcApplyNatureInvestmentPreset(candidate, oppP, oppMove, speedActive) {
-  const nature = candidate.nature || 'hardy';
   const next = { ...candidate };
-
-  if (nature === 'modest') {
-    const required = rcSecondMagicEv(oppP, 'spa');
-    if (candidate.atkStat !== 'spa' || (candidate.atkEv || 0) < required) return null;
-  } else if (nature === 'adamant') {
-    const required = rcSecondMagicEv(oppP, 'atk');
-    if (candidate.atkStat !== 'atk' || (candidate.atkEv || 0) < required) return null;
-  }
-
-  if ((nature === 'timid' || nature === 'jolly') && candidate.item !== 'choicescarf') {
-    const required = rcSecondMagicEv(oppP, 'spe');
-    if ((candidate.speEvMax ?? candidate.speEv ?? 0) < required) return null;
-    next.speEvMin = Math.max(candidate.speEvMin ?? candidate.speEv ?? 0, required);
-    next.speEv = next.speEvMin;
-  }
-
-  if (nature === 'bold' || nature === 'impish') {
-    if (rcMaxPossibleBulk(next, 'def', speedActive) < 40) return null;
-  } else if (nature === 'calm' || nature === 'careful') {
-    if (rcMaxPossibleBulk(next, 'spd', speedActive) < 40) return null;
-  }
+  // 흔한 성격/투자량은 순위에만 반영한다. 관측과 일치하는 합법 후보는 보존한다.
 
   const knownEv = rcCandidateKnownPointSum(next);
   const speMin = speedActive ? (next.speEvMin ?? next.speEv ?? 0) : 0;
@@ -726,8 +718,10 @@ function rcApplyNatureInvestmentPreset(candidate, oppP, oppMove, speedActive) {
 }
 
 function rcIsBetterGroupRepresentative(candidate, group) {
+  const hpFirst = rcCompareHpFirst(candidate, group);
+  if (hpFirst) return hpFirst < 0;
   if ((candidate.totalScore || 0) !== (group.totalScore || 0)) return (candidate.totalScore || 0) > (group.totalScore || 0);
-  const practicalDiff = rcPracticalProfileScore(candidate) - rcPracticalProfileScore(group);
+  const practicalDiff = rcPracticalProfileScore(candidate) - (group.bestPracticalScore ?? rcPracticalProfileScore(group));
   if (practicalDiff) return practicalDiff > 0;
   if ((candidate.hpEv || 0) !== (group.hpEv || 0)) return (candidate.hpEv || 0) > (group.hpEv || 0);
   if ((candidate.defEv || 0) !== (group.defEv || 0)) return (candidate.defEv || 0) < (group.defEv || 0);
@@ -737,7 +731,7 @@ function rcIsBetterGroupRepresentative(candidate, group) {
 
 function rcBulkPriorityGroup(c) {
   if (!c.defStat) return 'none';
-  return (c.defEv || 0) > 0 ? `${c.defStat}:hp32` : `${c.defStat}:hp-only`;
+  return `${c.defStat}:${c.hpEv === 32 ? 'hp32' : (c.defEv || 0) > 0 ? 'split' : 'hp-only'}`;
 }
 
 function rcCandidateGroupKey(c) {
@@ -832,6 +826,7 @@ function rcGroupCandidates(candidates) {
       });
     }
     rcAddCandidateAbilityToGroup(group, c);
+    if (c.paths) { group.members ||= []; group.members.push(c); }
     group.groupCount++;
     group.hpEvMin = Math.min(group.hpEvMin, c.hpEv || 0);
     group.hpEvMax = Math.max(group.hpEvMax, c.hpEv || 0);
@@ -864,6 +859,8 @@ function rcGroupCandidates(candidates) {
     group.practicalScore = group.bestPracticalScore;
   });
   return groups.sort((a, b) => {
+    const hpFirst = rcCompareHpFirst(a, b);
+    if (hpFirst) return hpFirst;
     if ((b.bestTotalScore || 0) !== (a.bestTotalScore || 0)) return (b.bestTotalScore || 0) - (a.bestTotalScore || 0);
     if ((b.bestPracticalScore || 0) !== (a.bestPracticalScore || 0)) return (b.bestPracticalScore || 0) - (a.bestPracticalScore || 0);
     const itemDiff = rcItemAssumptionScore(b) - rcItemAssumptionScore(a);

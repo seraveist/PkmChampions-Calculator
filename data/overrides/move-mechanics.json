@@ -3,6 +3,13 @@
   "naturesmadness": { "fixedDamageKind": "targetHalfHp" },
   "finalgambit": { "fixedDamageKind": "sourceCurrentHp" },
   "endeavor": { "fixedDamageKind": "targetMinusSourceHp" },
+  "counter": { "fixedDamageKind": "receivedDamage", "receivedDamageMultiplier": 2, "receivedDamageCategory": "Physical" },
+  "mirrorcoat": { "fixedDamageKind": "receivedDamage", "receivedDamageMultiplier": 2, "receivedDamageCategory": "Special" },
+  "metalburst": { "fixedDamageKind": "receivedDamage", "receivedDamageMultiplier": 1.5 },
+  "comeuppance": { "fixedDamageKind": "receivedDamage", "receivedDamageMultiplier": 1.5 },
+  "ficklebeam": { "variableBpKind": "fickleBeam" },
+  "fling": { "variableBpKind": "fling" },
+  "spitup": { "variableBpKind": "stockpile" },
 
   "gyroball": { "variableBpKind": "gyroBall" },
   "electroball": { "variableBpKind": "electroBall" },

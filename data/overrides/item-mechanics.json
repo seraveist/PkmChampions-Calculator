@@ -34,6 +34,7 @@
   "loadeddice": { "multiHitModifier": "loadedDice" },
   "focussash": { "koSurvival": "fullHpNoHazards" },
   "sitrusberry": { "hpRecovery": { "kind": "sitrus", "trigger": "halfHp", "fraction": [1, 4] } },
+  "oranberry": { "hpRecovery": { "kind": "oran", "trigger": "halfHp", "amount": 10 } },
   "leftovers": { "residualRecovery": { "kind": "endTurn", "fraction": [1, 16] } },
   "choicescarf": { "speedStatBoost": { "stat": "spe", "mod": "x1_5" } },
   "ironball": { "speedStatBoost": { "stat": "spe", "mod": "x0_5" }, "grounded": true },

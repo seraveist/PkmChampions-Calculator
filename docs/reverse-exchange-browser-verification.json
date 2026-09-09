@@ -1,0 +1,38 @@
+[
+  {
+    "analysisMs": 2566,
+    "total": 7234,
+    "forecast": {
+      "rawMin": 64,
+      "rawMax": 93,
+      "pctMin": 37.83783783783784,
+      "pctMax": 54.385964912280706,
+      "koClass": "ko-roll",
+      "koState": "형태에 따라 다름",
+      "survival": "형태에 따라 다름",
+      "order": "동속 또는 후보별 선후공 차이",
+      "formCertain": 0,
+      "formPossible": 48,
+      "formImpossible": 2498
+    },
+    "h32": 32
+  },
+  {
+    "width": 1440,
+    "overflow": -15,
+    "buttons": 5,
+    "missingConditions": []
+  },
+  {
+    "width": 375,
+    "overflow": 0,
+    "buttons": 5,
+    "missingConditions": []
+  },
+  {
+    "width": 320,
+    "overflow": 0,
+    "buttons": 5,
+    "missingConditions": []
+  }
+]

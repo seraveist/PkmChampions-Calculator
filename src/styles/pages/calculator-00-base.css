@@ -87,9 +87,10 @@
   padding: 0 28px 0 10px;
   text-align: left;
   font-family: inherit;
-  line-height: 1;
+  line-height: 1.5;
   vertical-align: middle;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
   cursor: pointer;
 }
 
@@ -486,18 +487,13 @@
 #page-calc .calc-result-card-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-areas:
-    "top"
-    "range"
-    "info";
   align-items: stretch;
   align-content: start;
-  height: 100%;
+  height: auto;
 }
 
 #page-calc .calc-result-card-head {
   display: grid;
-  grid-area: top;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
   border-bottom: 1px solid var(--calc-line-soft);
@@ -676,7 +672,6 @@
 }
 
 #page-calc .calc-damage-range {
-  grid-area: range;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   min-width: 0;
@@ -758,7 +753,6 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  grid-area: info;
   align-content: flex-start;
   padding-top: 1px;
   color: #7a8795;
@@ -778,9 +772,10 @@
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
-  height: 20px;
-  line-height: 1;
-  white-space: nowrap;
+  min-height: 20px;
+  height: auto;
+  line-height: 1.4;
+  white-space: normal;
 }
 
 #page-calc .calc-damage-actual {
@@ -815,7 +810,9 @@
 #page-calc .calc-side-effect-badge,
 #page-calc .calc-timing-power-badge {
   box-sizing: border-box;
-  height: 20px;
+  height: auto;
+  min-height: 20px;
+  max-width: 100%;
   border: 1px solid transparent;
   border-radius: 4px;
 }
@@ -900,7 +897,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  position: absolute;
+  position: static;
   z-index: 1;
   border-radius: 8px;
   border-color: var(--calc-line-soft);
@@ -943,4 +940,20 @@
 
 #page-calc .calc-ko-main.ohko {
   color: var(--atk-deep);
+}
+
+#page-calc .calc-current-hp input {
+  width: 5em;
+  min-width: 0;
+}
+
+#page-calc .calc-move-conditions {
+  gap: 8px;
+}
+
+#page-calc .calc-move-conditions select,
+#page-calc [data-power-choice] {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }

@@ -390,8 +390,7 @@ function isGrounded(side, field, abilityOverride = null, itemOverride = null) {
 /* ════════════════════════════════════════════════════════════
    STAB Modifier (테라스탈 반영)
    ════════════════════════════════════════════════════════════ */
-function getStabMod(side, moveType) {
-  const ab = effectiveAbility(side);
+function getStabMod(side, moveType, ab = effectiveAbility(side)) {
   const abData = abilityData(ab);
   const origTypes = originalTypes(side);
   const isOriginal = origTypes.includes(moveType);
@@ -428,7 +427,7 @@ function getStabMod(side, moveType) {
 /* ════════════════════════════════════════════════════════════
    타입 효과 계산 (특성·도구 포함)
    ════════════════════════════════════════════════════════════ */
-function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCtx = null, itemCtx = null) {
+function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCtx = null, itemCtx = null, immunityNotes = null) {
   const defTypes = effectiveTypes(defSide);
   const ctx = abilityCtx || battleAbilityContext(atkSide, defSide);
   const atkAb = ctx.atkAb;
@@ -438,52 +437,54 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCt
   // Mold Breaker / Teravolt / Turboblaze: 방어측 일부 특성 무시
   const ignoresAbility = !!abilityData(atkAb).ignoresTargetAbility;
   
-  // Freeze-Dry: 얼음 → 물 2배
-  if (move.effectivenessKind === 'freezeDry' && defTypes.includes('Water')) {
-    let eff = 2;
-    for (const t of defTypes) {
-      if (t === 'Water') continue;
-      const m = TYPE_CHART[moveType]?.[t];
-      if (m !== undefined) eff *= m;
+  const powerMode = Array.isArray(immunityNotes);
+  const attackTypes = move.effectivenessKind === 'flyingPress' ? ['Fighting', 'Flying'] : [moveType];
+  let eff = 1;
+  for (const attackType of attackTypes) {
+    for (const type of defTypes) {
+      let factor = TYPE_CHART[attackType]?.[type] ?? 1;
+      if (move.effectivenessKind === 'freezeDry' && type === 'Water') factor = 2;
+      if (type === 'Ghost' && ['Normal', 'Fighting'].includes(attackType) && abilityData(atkAb).ignoreGhostImmunity) factor = 1;
+      if (type === 'Flying' && attackType === 'Ground' && isGrounded(defSide, field, defAb, defItem)) factor = 1;
+      if (factor === 0 && powerMode) {
+        immunityNotes.push(`${TYPE_KO[type] || type} 타입: ${TYPE_KO[attackType] || attackType} 무효`);
+        factor = 1;
+      }
+      eff *= factor;
     }
-    return eff;
   }
-  
-  // Flying Press: 격투 + 비행 동시 계산
-  if (move.effectivenessKind === 'flyingPress') {
-    return typeEff('Fighting', defTypes) * typeEff('Flying', defTypes);
+  const block = label => {
+    if (powerMode) immunityNotes.push(label);
+    else eff = 0;
+  };
+  if (['explosion', 'mindblown', 'mistyexplosion', 'selfdestruct'].includes(move.id) && (atkAb === 'damp' || (defAb === 'damp' && !ignoresAbility))) {
+    block(`${abilityData('damp').koName || '습기'}: 해당 기술 무효`);
   }
-  
-  let eff = typeEff(moveType, defTypes);
+  let priority = move.pri || 0;
+  if (atkAb === 'galewings' && moveType === 'Flying' && sideIsFullHp(atkSide)) priority++;
+  if (atkAb === 'triage' && (move.drain || move.flags?.heal)) priority += 3;
+  if (move.id === 'grassyglide' && field.terrain === 'Grassy' && isGrounded(atkSide, field)) priority = 1;
+  if (priority > 0 && !ignoresAbility && ['armortail', 'dazzling', 'queenlymajesty'].includes(defAb)) block(`${abilityData(defAb).koName || defAb}: 선제 기술 무효`);
+  if (priority > 0 && field.terrain === 'Psychic' && isGrounded(defSide, field, defAb, defItem)) block('사이코필드: 선제 기술 무효');
   
   // 면역 특성 (Mold Breaker로 무시 가능)
-  if (eff > 0 && !ignoresAbility) {
+  if (eff > 0 && !(ignoresAbility && MOLD_BREAKER_IGNORED_ABILITIES.includes(defAb))) {
     for (const immunity of abilityData(defAb).immunities || []) {
+      if (defAb === 'levitate' && isGrounded(defSide, field, defAb, defItem)) continue;
       if (immunity.types?.includes(moveType) || (immunity.flag && move.flags?.[immunity.flag])) {
-        eff = 0;
+        block(`${abilityData(defAb).koName || defAb}: ${immunity.flag ? '해당 기술' : (TYPE_KO[moveType] || moveType)} 무효`);
         break;
       }
     }
+    if (abilityData(defAb).superEffectiveOnly && eff <= 1) block(`${abilityData(defAb).koName || defAb}: 효과가 굉장하지 않은 기술 무효`);
   }
   
   // 땅 면역: 비행 타입 / 풍선 / 부유 필드 제외
   if (moveType === 'Ground' && !field.isGravity) {
-    if (ItemById[defItem]?.groundImmunity) eff = 0;
+    if (ItemById[defItem]?.groundImmunity) block(`${ItemById[defItem].koName || defItem}: 땅 무효`);
     if (defTypes.includes('Flying') && !isGrounded(defSide, field, defAb, defItem)) {
       // (이미 typeEff에서 반영됨)
     }
-  }
-  
-  // 배짱 (Scrappy): 고스트에 노말/격투 기술 사용 가능
-  if (eff === 0 && abilityData(atkAb).ignoreGhostImmunity && ['Normal','Fighting'].includes(moveType) && defTypes.includes('Ghost')) {
-    // eff=0이 노말 vs 고스트 때문이었다면 상성표 재계산
-    let e = 1;
-    for (const t of defTypes) {
-      if (t === 'Ghost' && ['Normal','Fighting'].includes(moveType)) continue;
-      const m = TYPE_CHART[moveType]?.[t];
-      if (m !== undefined) e *= m;
-    }
-    eff = e;
   }
   
   // Tera Shell: full HP target turns non-immune hits into not very effective.

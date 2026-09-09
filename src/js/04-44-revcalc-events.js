@@ -27,6 +27,7 @@ function rcSyncInputsFromDom() {
     });
   }
   root.querySelectorAll('[data-rc-action]').forEach(el => {
+    rcReadExtraObservationInput(el);
     const action = el.dataset.rcAction;
     if (!action) return;
     if (action === 'myMove') {
@@ -47,6 +48,7 @@ function rcSyncInputsFromDom() {
     else if (action === 'observedMyHp') revCalcState.observedMyHp = el.value;
     else if (action === 'turnOrder') revCalcState.turnOrder = el.value;
   });
+  root.querySelectorAll('[data-rc-move-option]').forEach(rcReadExtraObservationInput);
   const nextField = rcDefaultField();
   root.querySelectorAll('[data-rc-field]').forEach(el => {
     const key = el.dataset.rcField;
@@ -210,6 +212,7 @@ function rcWireMyComboboxes() {
 }
 
 function rcApplyMyPokemonSelection(id) {
+  revCalcState.observedMoveOptions = { my: {}, opp: {} };
   const p = PokemonById[id];
   revCalcState.my.pokemonIdx = id;
   if (p) {
@@ -240,6 +243,8 @@ function rcWireOppComboboxes() {
         getDisplayLabel: () => pkName(PokemonById[revCalcState.opp.pokemonIdx] || { name: '' }),
         onSelect: id => {
           revCalcState.opp.pokemonIdx = id;
+          revCalcState.oppAbilityKnown = 'unknown';
+          revCalcState.observedMoveOptions = { my: {}, opp: {} };
           const pokemon = PokemonById[revCalcState.opp.pokemonIdx];
           revCalcState.opp.item = defaultPokemonItemId(pokemon);
           revCalcState.oppItemKnown = rcDefaultKnownOpponentItemForPokemon(pokemon);
@@ -282,6 +287,8 @@ function rcWireOppComboboxes() {
         return;
       }
       revCalcState.opp.pokemonIdx = opt.dataset.id;
+      revCalcState.oppAbilityKnown = 'unknown';
+      revCalcState.observedMoveOptions = { my: {}, opp: {} };
       const pokemon = PokemonById[revCalcState.opp.pokemonIdx];
       revCalcState.opp.item = defaultPokemonItemId(pokemon);
       revCalcState.oppItemKnown = rcDefaultKnownOpponentItemForPokemon(pokemon);
