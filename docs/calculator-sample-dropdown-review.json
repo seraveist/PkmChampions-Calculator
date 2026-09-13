@@ -1,0 +1,170 @@
+[
+  {
+    "width": 700,
+    "kind": "field",
+    "selectTops": [
+      73.296875,
+      73.296875,
+      73.296875
+    ],
+    "height": 168.5,
+    "overflow": false
+  },
+  {
+    "width": 700,
+    "kind": "pokemon",
+    "rows": 350,
+    "maxRowHeight": 48,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 700,
+    "kind": "move",
+    "rows": 60,
+    "maxRowHeight": 48,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 700,
+    "kind": "item",
+    "rows": 168,
+    "maxRowHeight": 48,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 700,
+    "kind": "ability",
+    "rows": 2,
+    "maxRowHeight": 48,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 700,
+    "kind": "nature",
+    "rows": 25,
+    "maxRowHeight": 48,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 375,
+    "kind": "field",
+    "selectTops": [
+      73.296875,
+      73.296875,
+      73.296875
+    ],
+    "height": 206.5,
+    "overflow": false
+  },
+  {
+    "width": 375,
+    "kind": "pokemon",
+    "rows": 350,
+    "maxRowHeight": 44,
+    "overflow": true,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 375,
+    "kind": "move",
+    "rows": 60,
+    "maxRowHeight": 44,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 375,
+    "kind": "item",
+    "rows": 168,
+    "maxRowHeight": 44,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 375,
+    "kind": "ability",
+    "rows": 2,
+    "maxRowHeight": 44,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 375,
+    "kind": "nature",
+    "rows": 25,
+    "maxRowHeight": 44,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 320,
+    "kind": "field",
+    "selectTops": [
+      73.296875,
+      73.296875,
+      73.296875
+    ],
+    "height": 244.5,
+    "overflow": false
+  },
+  {
+    "width": 320,
+    "kind": "pokemon",
+    "rows": 350,
+    "maxRowHeight": 44,
+    "overflow": true,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 320,
+    "kind": "move",
+    "rows": 60,
+    "maxRowHeight": 44,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 320,
+    "kind": "item",
+    "rows": 168,
+    "maxRowHeight": 44,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 320,
+    "kind": "ability",
+    "rows": 2,
+    "maxRowHeight": 44,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  },
+  {
+    "width": 320,
+    "kind": "nature",
+    "rows": 25,
+    "maxRowHeight": 44,
+    "overflow": false,
+    "focusRadius": "10px",
+    "inputOutline": "none"
+  }
+]

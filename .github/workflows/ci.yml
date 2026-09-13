@@ -59,6 +59,6 @@ jobs:
         run: npm run pages:ready
 
       - name: Run Cloudflare Pages browser smoke
-        run: node scripts/browser-layout-smoke.mjs --public --ad-free --require-browser --disable-browser-sandbox
+        run: node scripts/ui-remodel-final-browser.mjs --public --ad-free --require-browser --disable-browser-sandbox
         env:
           UI_SMOKE_SCREENSHOT_DIR: artifacts/ui-smoke/pages

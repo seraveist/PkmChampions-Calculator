@@ -1,0 +1,7895 @@
+{
+  "date": "2026-09-13",
+  "purpose": "Read-only HTML/CSS and visual hierarchy review; populated example builds, not battle correctness tests.",
+  "screens": [
+    {
+      "page": "calc",
+      "variant": "main",
+      "width": 1440,
+      "documentHeight": 2018,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 1429,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "공격측",
+          "x": 41,
+          "top": 145,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "방어측",
+          "x": 737,
+          "top": 145,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "필드 · 부가 효과",
+          "x": 41,
+          "top": 1378,
+          "width": 111,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 41,
+          "top": 1453,
+          "width": 29,
+          "height": 19
+        }
+      ],
+      "frames": 23,
+      "maxFrameDepth": 3,
+      "controlCount": 127,
+      "controlHeights": [
+        13,
+        16,
+        24,
+        26,
+        30,
+        36,
+        38,
+        44,
+        46
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불러오기",
+          "cls": "party-load-button ui-label-action ui-field-action",
+          "x": 105,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "세부조정",
+          "cls": "calc-page-jump-button ui-label-action ui-field-action",
+          "x": 530,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "역계산",
+          "cls": "calc-page-jump-button ui-label-action ui-field-action",
+          "x": 606,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입1 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 54,
+          "top": 293,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입2 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 122,
+          "top": 293,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "초기화",
+          "cls": "type-reset-btn",
+          "x": 190,
+          "top": 293,
+          "width": 58,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "프리셋",
+          "cls": "calc-stat-preset-toggle tool-stat-preset-button ui-popover-trigger",
+          "x": 175,
+          "top": 532,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 275,
+          "top": 606,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "HP EV",
+          "cls": "tool-stat-point-input",
+          "x": 308,
+          "top": 606,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 365,
+          "top": 606,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 275,
+          "top": 642,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "공격 EV",
+          "cls": "tool-stat-point-input",
+          "x": 308,
+          "top": 642,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 365,
+          "top": 642,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 557,
+          "top": 642,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 615,
+          "top": 642,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 275,
+          "top": 678,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "방어 EV",
+          "cls": "tool-stat-point-input",
+          "x": 308,
+          "top": 678,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 365,
+          "top": 678,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 557,
+          "top": 678,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 615,
+          "top": 678,
+          "width": 30,
+          "height": 30
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 0,
+      "customComboboxes": 30,
+      "fonts": {
+        "16px": 4,
+        "13px": 36,
+        "14px": 13,
+        "12px": 62,
+        "12.8px": 2,
+        "11.84px": 10,
+        "12.48px": 24,
+        "13.12px": 28,
+        "12.825px": 10,
+        "9.92px": 2,
+        "10.88px": 3,
+        "10px": 22,
+        "15.04px": 8,
+        "18.4px": 1,
+        "15px": 5,
+        "11px": 26,
+        "18px": 2,
+        "11.5px": 4
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "공격측",
+          "x": 24,
+          "top": 127,
+          "width": 682,
+          "height": 1220
+        },
+        {
+          "label": "방어측",
+          "x": 720,
+          "top": 127,
+          "width": 682,
+          "height": 1220
+        },
+        {
+          "label": "필드 · 부가 효과",
+          "x": 24,
+          "top": 1361,
+          "width": 1377,
+          "height": 54
+        },
+        {
+          "label": "결과",
+          "x": 24,
+          "top": 1429,
+          "width": 1377,
+          "height": 555
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "true"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "calc",
+      "variant": "main",
+      "width": 1024,
+      "documentHeight": 2271,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 1432,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "공격측",
+          "x": 41,
+          "top": 145,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "방어측",
+          "x": 529,
+          "top": 145,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "필드 · 부가 효과",
+          "x": 41,
+          "top": 1382,
+          "width": 111,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 41,
+          "top": 1456,
+          "width": 29,
+          "height": 19
+        }
+      ],
+      "frames": 23,
+      "maxFrameDepth": 3,
+      "controlCount": 127,
+      "controlHeights": [
+        13,
+        16,
+        24,
+        26,
+        28,
+        30,
+        36,
+        38,
+        44,
+        46
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불러오기",
+          "cls": "party-load-button ui-label-action ui-field-action",
+          "x": 105,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "세부조정",
+          "cls": "calc-page-jump-button ui-label-action ui-field-action",
+          "x": 322,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "역계산",
+          "cls": "calc-page-jump-button ui-label-action ui-field-action",
+          "x": 398,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입1 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 54,
+          "top": 293,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입2 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 122,
+          "top": 293,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "초기화",
+          "cls": "type-reset-btn",
+          "x": 190,
+          "top": 293,
+          "width": 58,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "프리셋",
+          "cls": "calc-stat-preset-toggle tool-stat-preset-button ui-popover-trigger",
+          "x": 175,
+          "top": 532,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 202,
+          "top": 606,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "HP EV",
+          "cls": "tool-stat-point-input",
+          "x": 233,
+          "top": 606,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 282,
+          "top": 606,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 202,
+          "top": 640,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "공격 EV",
+          "cls": "tool-stat-point-input",
+          "x": 233,
+          "top": 640,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 282,
+          "top": 640,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 409,
+          "top": 640,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 461,
+          "top": 640,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 202,
+          "top": 674,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "방어 EV",
+          "cls": "tool-stat-point-input",
+          "x": 233,
+          "top": 674,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 282,
+          "top": 674,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 409,
+          "top": 674,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 461,
+          "top": 674,
+          "width": 28,
+          "height": 28
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 0,
+      "customComboboxes": 30,
+      "fonts": {
+        "16px": 4,
+        "13px": 36,
+        "14px": 13,
+        "12px": 28,
+        "12.8px": 2,
+        "11.84px": 10,
+        "12.48px": 24,
+        "13.12px": 28,
+        "11px": 70,
+        "9.92px": 2,
+        "10.88px": 3,
+        "10px": 22,
+        "15.04px": 8,
+        "18.4px": 1,
+        "15px": 5,
+        "18px": 2,
+        "11.5px": 4
+      },
+      "scrollRegions": [
+        {
+          "cls": "tool-stat-table-frame ui-control-frame",
+          "x": 54,
+          "top": 571,
+          "width": 414,
+          "height": 259,
+          "scrollWidth": 438
+        },
+        {
+          "cls": "tool-stat-table-frame ui-control-frame",
+          "x": 542,
+          "top": 571,
+          "width": 414,
+          "height": 259,
+          "scrollWidth": 438
+        }
+      ],
+      "panels": [
+        {
+          "label": "공격측",
+          "x": 24,
+          "top": 127,
+          "width": 474,
+          "height": 1223
+        },
+        {
+          "label": "방어측",
+          "x": 512,
+          "top": 127,
+          "width": 474,
+          "height": 1223
+        },
+        {
+          "label": "필드 · 부가 효과",
+          "x": 24,
+          "top": 1364,
+          "width": 961,
+          "height": 54
+        },
+        {
+          "label": "결과",
+          "x": 24,
+          "top": 1432,
+          "width": 961,
+          "height": 805
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "true"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "calc",
+      "variant": "main",
+      "width": 768,
+      "documentHeight": 3524,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 2685,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "공격측",
+          "x": 41,
+          "top": 145,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "방어측",
+          "x": 41,
+          "top": 1413,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "필드 · 부가 효과",
+          "x": 41,
+          "top": 2635,
+          "width": 111,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 41,
+          "top": 2709,
+          "width": 29,
+          "height": 19
+        }
+      ],
+      "frames": 23,
+      "maxFrameDepth": 3,
+      "controlCount": 127,
+      "controlHeights": [
+        13,
+        16,
+        24,
+        26,
+        28,
+        30,
+        36,
+        38,
+        44,
+        46
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불러오기",
+          "cls": "party-load-button ui-label-action ui-field-action",
+          "x": 105,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "세부조정",
+          "cls": "calc-page-jump-button ui-label-action ui-field-action",
+          "x": 553,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "역계산",
+          "cls": "calc-page-jump-button ui-label-action ui-field-action",
+          "x": 629,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입1 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 54,
+          "top": 293,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입2 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 122,
+          "top": 293,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "초기화",
+          "cls": "type-reset-btn",
+          "x": 190,
+          "top": 293,
+          "width": 58,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "프리셋",
+          "cls": "calc-stat-preset-toggle tool-stat-preset-button ui-popover-trigger",
+          "x": 175,
+          "top": 532,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 287,
+          "top": 606,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "HP EV",
+          "cls": "tool-stat-point-input",
+          "x": 317,
+          "top": 606,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 365,
+          "top": 606,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 287,
+          "top": 640,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "공격 EV",
+          "cls": "tool-stat-point-input",
+          "x": 317,
+          "top": 640,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 365,
+          "top": 640,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 580,
+          "top": 640,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 630,
+          "top": 640,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 287,
+          "top": 674,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "방어 EV",
+          "cls": "tool-stat-point-input",
+          "x": 317,
+          "top": 674,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 365,
+          "top": 674,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 580,
+          "top": 674,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 630,
+          "top": 674,
+          "width": 28,
+          "height": 28
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 0,
+      "customComboboxes": 30,
+      "fonts": {
+        "16px": 4,
+        "13px": 36,
+        "14px": 13,
+        "12px": 28,
+        "12.8px": 2,
+        "11.84px": 10,
+        "12.48px": 24,
+        "13.12px": 28,
+        "11px": 70,
+        "9.92px": 2,
+        "10.88px": 3,
+        "10px": 22,
+        "15.04px": 8,
+        "18.4px": 1,
+        "15px": 5,
+        "18px": 2,
+        "11.5px": 4
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "공격측",
+          "x": 24,
+          "top": 127,
+          "width": 705,
+          "height": 1208
+        },
+        {
+          "label": "방어측",
+          "x": 24,
+          "top": 1395,
+          "width": 705,
+          "height": 1208
+        },
+        {
+          "label": "필드 · 부가 효과",
+          "x": 24,
+          "top": 2617,
+          "width": 705,
+          "height": 54
+        },
+        {
+          "label": "결과",
+          "x": 24,
+          "top": 2685,
+          "width": 705,
+          "height": 805
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 161.796875,
+          "selected": "true"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 165.796875,
+          "right": 303.609375,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 307.609375,
+          "right": 445.40625,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 449.40625,
+          "right": 587.203125,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 591.203125,
+          "right": 729,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "calc",
+      "variant": "main",
+      "width": 375,
+      "documentHeight": 4278,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 2650,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "공격측",
+          "x": 21,
+          "top": 122,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "방어측",
+          "x": 21,
+          "top": 1384,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "필드 · 부가 효과",
+          "x": 21,
+          "top": 2604,
+          "width": 111,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 21,
+          "top": 2663,
+          "width": 333,
+          "height": 19
+        }
+      ],
+      "frames": 21,
+      "maxFrameDepth": 3,
+      "controlCount": 72,
+      "controlHeights": [
+        13,
+        15,
+        16,
+        24,
+        26,
+        34,
+        36,
+        42,
+        44,
+        79
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입1 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 32,
+          "top": 278,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입2 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 100,
+          "top": 278,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "초기화",
+          "cls": "type-reset-btn",
+          "x": 168,
+          "top": 278,
+          "width": 58,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "1번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 219,
+          "top": 835,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "2번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 219,
+          "top": 958,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "3번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 219,
+          "top": 1081,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "4번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 219,
+          "top": 1204,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "방어측 타입1 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 32,
+          "top": 1540,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "방어측 타입2 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 100,
+          "top": 1540,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "초기화",
+          "cls": "type-reset-btn",
+          "x": 168,
+          "top": 1540,
+          "width": 58,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "1번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 211,
+          "top": 2097,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "2번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 211,
+          "top": 2220,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "3번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 211,
+          "top": 2343,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "4번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 211,
+          "top": 2466,
+          "width": 48,
+          "height": 24
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 0,
+      "customComboboxes": 30,
+      "fonts": {
+        "13px": 16,
+        "12px": 28,
+        "10px": 35,
+        "16px": 4,
+        "11px": 33,
+        "14px": 11,
+        "12.16px": 8,
+        "11.2px": 2,
+        "12.48px": 10,
+        "10.24px": 4,
+        "10.88px": 8,
+        "18.4px": 1,
+        "15px": 5,
+        "18px": 2,
+        "11.5px": 4
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "공격측",
+          "x": 8,
+          "top": 104,
+          "width": 359,
+          "height": 1210
+        },
+        {
+          "label": "방어측",
+          "x": 8,
+          "top": 1366,
+          "width": 359,
+          "height": 1210
+        },
+        {
+          "label": "필드 · 부가 효과",
+          "x": 8,
+          "top": 2586,
+          "width": 359,
+          "height": 54
+        },
+        {
+          "label": "결과",
+          "x": 8,
+          "top": 2650,
+          "width": 359,
+          "height": 1380
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "true"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 159.09375,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 162.09375,
+          "right": 231,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 234,
+          "right": 298,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 301,
+          "right": 365,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "calc",
+      "variant": "main",
+      "width": 320,
+      "documentHeight": 4371,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 2650,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "공격측",
+          "x": 21,
+          "top": 122,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "방어측",
+          "x": 21,
+          "top": 1384,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "필드 · 부가 효과",
+          "x": 21,
+          "top": 2604,
+          "width": 111,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 21,
+          "top": 2663,
+          "width": 278,
+          "height": 19
+        }
+      ],
+      "frames": 21,
+      "maxFrameDepth": 3,
+      "controlCount": 72,
+      "controlHeights": [
+        13,
+        15,
+        16,
+        24,
+        26,
+        34,
+        36,
+        42,
+        44,
+        79
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입1 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 32,
+          "top": 278,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입2 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 100,
+          "top": 278,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "초기화",
+          "cls": "type-reset-btn",
+          "x": 168,
+          "top": 278,
+          "width": 58,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "1번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 164,
+          "top": 835,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "2번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 164,
+          "top": 958,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "3번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 164,
+          "top": 1081,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "4번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 164,
+          "top": 1204,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "방어측 타입1 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 32,
+          "top": 1540,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "방어측 타입2 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 100,
+          "top": 1540,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "초기화",
+          "cls": "type-reset-btn",
+          "x": 168,
+          "top": 1540,
+          "width": 58,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "1번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 156,
+          "top": 2097,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "2번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 156,
+          "top": 2220,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "3번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 156,
+          "top": 2343,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "4번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 156,
+          "top": 2466,
+          "width": 48,
+          "height": 24
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 0,
+      "customComboboxes": 30,
+      "fonts": {
+        "13px": 16,
+        "12px": 28,
+        "10px": 35,
+        "16px": 4,
+        "11px": 33,
+        "14px": 11,
+        "12.16px": 8,
+        "11.2px": 2,
+        "12.48px": 10,
+        "10.24px": 4,
+        "10.88px": 8,
+        "18.4px": 1,
+        "15px": 5,
+        "18px": 2,
+        "11.5px": 4
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "공격측",
+          "x": 8,
+          "top": 104,
+          "width": 304,
+          "height": 1210
+        },
+        {
+          "label": "방어측",
+          "x": 8,
+          "top": 1366,
+          "width": 304,
+          "height": 1210
+        },
+        {
+          "label": "필드 · 부가 효과",
+          "x": 8,
+          "top": 2586,
+          "width": 304,
+          "height": 54
+        },
+        {
+          "label": "결과",
+          "x": 8,
+          "top": 2650,
+          "width": 304,
+          "height": 1473
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "true"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 142.6875,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 145.6875,
+          "right": 209.6875,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 212.6875,
+          "right": 276.6875,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 279.6875,
+          "right": 343.6875,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "revcalc",
+      "variant": "main",
+      "width": 1440,
+      "documentHeight": 2704,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 1411,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "내 포켓몬",
+          "x": 41,
+          "top": 203,
+          "width": 63,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "상대 포켓몬",
+          "x": 886,
+          "top": 203,
+          "width": 78,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "한 턴 관측",
+          "x": 41,
+          "top": 968,
+          "width": 68,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "형태 분석 결과",
+          "x": 41,
+          "top": 1429,
+          "width": 97,
+          "height": 19
+        }
+      ],
+      "frames": 33,
+      "maxFrameDepth": 3,
+      "controlCount": 80,
+      "controlHeights": [
+        13,
+        30,
+        34,
+        36,
+        38,
+        46
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불러오기",
+          "cls": "party-load-button ui-label-action ui-field-action",
+          "x": 105,
+          "top": 268,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 252,
+          "top": 647,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 HP 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 285,
+          "top": 647,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 342,
+          "top": 647,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 252,
+          "top": 690,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 공격 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 285,
+          "top": 690,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 342,
+          "top": 690,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 496,
+          "top": 690,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 554,
+          "top": 690,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 252,
+          "top": 733,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 방어 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 285,
+          "top": 733,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 342,
+          "top": 733,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 496,
+          "top": 733,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 554,
+          "top": 733,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 252,
+          "top": 776,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 특공 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 285,
+          "top": 776,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 342,
+          "top": 776,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 496,
+          "top": 776,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 554,
+          "top": 776,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 252,
+          "top": 819,
+          "width": 30,
+          "height": 30
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 2,
+      "customComboboxes": 21,
+      "fonts": {
+        "12px": 79,
+        "13px": 18,
+        "16px": 4,
+        "14px": 40,
+        "11.6667px": 2,
+        "12.825px": 22,
+        "13.12px": 18,
+        "11px": 30,
+        "10px": 3
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "내 포켓몬",
+          "x": 24,
+          "top": 185,
+          "width": 831,
+          "height": 751
+        },
+        {
+          "label": "상대 포켓몬",
+          "x": 869,
+          "top": 185,
+          "width": 532,
+          "height": 751
+        },
+        {
+          "label": "한 턴 관측",
+          "x": 24,
+          "top": 950,
+          "width": 1377,
+          "height": 447
+        },
+        {
+          "label": "형태 분석 결과",
+          "x": 24,
+          "top": 1411,
+          "width": 1377,
+          "height": 1259
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "true"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "revcalc",
+      "variant": "main",
+      "width": 1024,
+      "documentHeight": 4005,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 2448,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "내 포켓몬",
+          "x": 41,
+          "top": 203,
+          "width": 63,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "상대 포켓몬",
+          "x": 41,
+          "top": 1240,
+          "width": 78,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "한 턴 관측",
+          "x": 41,
+          "top": 2005,
+          "width": 68,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "형태 분석 결과",
+          "x": 41,
+          "top": 2466,
+          "width": 97,
+          "height": 19
+        }
+      ],
+      "frames": 33,
+      "maxFrameDepth": 3,
+      "controlCount": 80,
+      "controlHeights": [
+        13,
+        28,
+        30,
+        34,
+        36,
+        38,
+        46
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불러오기",
+          "cls": "party-load-button ui-label-action ui-field-action",
+          "x": 105,
+          "top": 268,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 425,
+          "top": 648,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 HP 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 456,
+          "top": 648,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 504,
+          "top": 648,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 425,
+          "top": 691,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 공격 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 456,
+          "top": 691,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 504,
+          "top": 691,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 820,
+          "top": 691,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 871,
+          "top": 691,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 425,
+          "top": 734,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 방어 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 456,
+          "top": 734,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 504,
+          "top": 734,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 820,
+          "top": 734,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 871,
+          "top": 734,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 425,
+          "top": 777,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 특공 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 456,
+          "top": 777,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 504,
+          "top": 777,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 820,
+          "top": 777,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 871,
+          "top": 777,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 425,
+          "top": 820,
+          "width": 28,
+          "height": 28
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 2,
+      "customComboboxes": 21,
+      "fonts": {
+        "12px": 57,
+        "13px": 18,
+        "16px": 4,
+        "14px": 40,
+        "11.6667px": 2,
+        "11px": 74,
+        "13.12px": 18,
+        "10px": 3
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "내 포켓몬",
+          "x": 24,
+          "top": 185,
+          "width": 961,
+          "height": 1023
+        },
+        {
+          "label": "상대 포켓몬",
+          "x": 24,
+          "top": 1222,
+          "width": 961,
+          "height": 751
+        },
+        {
+          "label": "한 턴 관측",
+          "x": 24,
+          "top": 1987,
+          "width": 961,
+          "height": 447
+        },
+        {
+          "label": "형태 분석 결과",
+          "x": 24,
+          "top": 2448,
+          "width": 961,
+          "height": 1523
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "true"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "revcalc",
+      "variant": "main",
+      "width": 768,
+      "documentHeight": 4044,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 2448,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "내 포켓몬",
+          "x": 41,
+          "top": 203,
+          "width": 63,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "상대 포켓몬",
+          "x": 41,
+          "top": 1240,
+          "width": 78,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "한 턴 관측",
+          "x": 41,
+          "top": 2005,
+          "width": 68,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "형태 분석 결과",
+          "x": 41,
+          "top": 2466,
+          "width": 97,
+          "height": 19
+        }
+      ],
+      "frames": 33,
+      "maxFrameDepth": 3,
+      "controlCount": 80,
+      "controlHeights": [
+        13,
+        28,
+        30,
+        34,
+        36,
+        38,
+        46
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불러오기",
+          "cls": "party-load-button ui-label-action ui-field-action",
+          "x": 105,
+          "top": 268,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 305,
+          "top": 648,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 HP 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 335,
+          "top": 648,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 383,
+          "top": 648,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 305,
+          "top": 691,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 공격 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 335,
+          "top": 691,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 383,
+          "top": 691,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 589,
+          "top": 691,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 639,
+          "top": 691,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 305,
+          "top": 734,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 방어 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 335,
+          "top": 734,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 383,
+          "top": 734,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 589,
+          "top": 734,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 639,
+          "top": 734,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 305,
+          "top": 777,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "내 특공 능력 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 335,
+          "top": 777,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 383,
+          "top": 777,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 589,
+          "top": 777,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 639,
+          "top": 777,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 305,
+          "top": 820,
+          "width": 28,
+          "height": 28
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 2,
+      "customComboboxes": 21,
+      "fonts": {
+        "12px": 57,
+        "13px": 18,
+        "16px": 4,
+        "14px": 40,
+        "11.6667px": 2,
+        "11px": 74,
+        "13.12px": 18,
+        "10px": 3
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "내 포켓몬",
+          "x": 24,
+          "top": 185,
+          "width": 705,
+          "height": 1023
+        },
+        {
+          "label": "상대 포켓몬",
+          "x": 24,
+          "top": 1222,
+          "width": 705,
+          "height": 751
+        },
+        {
+          "label": "한 턴 관측",
+          "x": 24,
+          "top": 1987,
+          "width": 705,
+          "height": 447
+        },
+        {
+          "label": "형태 분석 결과",
+          "x": 24,
+          "top": 2448,
+          "width": 705,
+          "height": 1562
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 161.796875,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 165.796875,
+          "right": 303.609375,
+          "selected": "true"
+        },
+        {
+          "label": "세부조정",
+          "left": 307.609375,
+          "right": 445.40625,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 449.40625,
+          "right": 587.203125,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 591.203125,
+          "right": 729,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "revcalc",
+      "variant": "main",
+      "width": 375,
+      "documentHeight": 5648,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 3355,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "내 포켓몬",
+          "x": 21,
+          "top": 176,
+          "width": 63,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "상대 포켓몬",
+          "x": 21,
+          "top": 1760,
+          "width": 78,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "한 턴 관측",
+          "x": 21,
+          "top": 2613,
+          "width": 68,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "형태 분석 결과",
+          "x": 21,
+          "top": 3373,
+          "width": 97,
+          "height": 19
+        }
+      ],
+      "frames": 33,
+      "maxFrameDepth": 3,
+      "controlCount": 80,
+      "controlHeights": [
+        13,
+        22,
+        34,
+        36,
+        42
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 230,
+          "top": 2252,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 268,
+          "top": 2252,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 230,
+          "top": 2315,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 268,
+          "top": 2315,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 230,
+          "top": 2378,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 268,
+          "top": 2378,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 230,
+          "top": 2441,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 268,
+          "top": 2441,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 230,
+          "top": 2504,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 268,
+          "top": 2504,
+          "width": 22,
+          "height": 22
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 2,
+      "customComboboxes": 21,
+      "fonts": {
+        "12px": 39,
+        "13px": 15,
+        "16px": 4,
+        "14px": 40,
+        "11.6667px": 2,
+        "10px": 15,
+        "13.12px": 18,
+        "10.56px": 32,
+        "11.52px": 10,
+        "11px": 33
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "내 포켓몬",
+          "x": 8,
+          "top": 158,
+          "width": 359,
+          "height": 1575
+        },
+        {
+          "label": "상대 포켓몬",
+          "x": 8,
+          "top": 1743,
+          "width": 359,
+          "height": 843
+        },
+        {
+          "label": "한 턴 관측",
+          "x": 8,
+          "top": 2595,
+          "width": 359,
+          "height": 750
+        },
+        {
+          "label": "형태 분석 결과",
+          "x": 8,
+          "top": 3355,
+          "width": 359,
+          "height": 2204
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 159.09375,
+          "selected": "true"
+        },
+        {
+          "label": "세부조정",
+          "left": 162.09375,
+          "right": 231,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 234,
+          "right": 298,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 301,
+          "right": 365,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "revcalc",
+      "variant": "main",
+      "width": 320,
+      "documentHeight": 5915,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 3386,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "내 포켓몬",
+          "x": 21,
+          "top": 207,
+          "width": 63,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "상대 포켓몬",
+          "x": 21,
+          "top": 1791,
+          "width": 78,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "한 턴 관측",
+          "x": 21,
+          "top": 2644,
+          "width": 68,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "형태 분석 결과",
+          "x": 21,
+          "top": 3404,
+          "width": 97,
+          "height": 19
+        }
+      ],
+      "frames": 33,
+      "maxFrameDepth": 3,
+      "controlCount": 80,
+      "controlHeights": [
+        13,
+        22,
+        34,
+        36,
+        42
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 199,
+          "top": 2283,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 237,
+          "top": 2283,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 199,
+          "top": 2346,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 237,
+          "top": 2346,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 199,
+          "top": 2409,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 237,
+          "top": 2409,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 199,
+          "top": 2472,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 237,
+          "top": 2472,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 199,
+          "top": 2535,
+          "width": 22,
+          "height": 22
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 237,
+          "top": 2535,
+          "width": 22,
+          "height": 22
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 2,
+      "customComboboxes": 21,
+      "fonts": {
+        "12px": 39,
+        "13px": 15,
+        "16px": 4,
+        "14px": 40,
+        "11.6667px": 2,
+        "10px": 15,
+        "13.12px": 18,
+        "10.56px": 32,
+        "11.52px": 10,
+        "11px": 33
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "내 포켓몬",
+          "x": 8,
+          "top": 189,
+          "width": 304,
+          "height": 1575
+        },
+        {
+          "label": "상대 포켓몬",
+          "x": 8,
+          "top": 1773,
+          "width": 304,
+          "height": 843
+        },
+        {
+          "label": "한 턴 관측",
+          "x": 8,
+          "top": 2626,
+          "width": 304,
+          "height": 750
+        },
+        {
+          "label": "형태 분석 결과",
+          "x": 8,
+          "top": 3386,
+          "width": 304,
+          "height": 2441
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 142.6875,
+          "selected": "true"
+        },
+        {
+          "label": "세부조정",
+          "left": 145.6875,
+          "right": 209.6875,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 212.6875,
+          "right": 276.6875,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 279.6875,
+          "right": 343.6875,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "finetune",
+      "variant": "main",
+      "width": 1440,
+      "documentHeight": 2757,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 1892,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "세부조정",
+          "x": 41,
+          "top": 175,
+          "width": 59,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "HP 브레이크포인트",
+          "x": 975,
+          "top": 168,
+          "width": 131,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "상대 / 스피드",
+          "x": 41,
+          "top": 1909,
+          "width": 89,
+          "height": 19
+        }
+      ],
+      "frames": 18,
+      "maxFrameDepth": 3,
+      "controlCount": 73,
+      "controlHeights": [
+        13,
+        26,
+        30,
+        32,
+        34,
+        35,
+        36,
+        38
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불러오기",
+          "cls": "party-load-button ui-label-action ui-field-action",
+          "x": 105,
+          "top": 240,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측",
+          "cls": "ft-apply-side-button ui-label-action ui-field-action",
+          "x": 768,
+          "top": 240,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "방어측",
+          "cls": "ft-apply-side-button ui-label-action ui-field-action",
+          "x": 844,
+          "top": 240,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 217,
+          "top": 657,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "HP 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 250,
+          "top": 657,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 307,
+          "top": 657,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 217,
+          "top": 700,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "공격 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 250,
+          "top": 700,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 307,
+          "top": 700,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 544,
+          "top": 700,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 602,
+          "top": 700,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 217,
+          "top": 743,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "방어 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 250,
+          "top": 743,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 307,
+          "top": 743,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 544,
+          "top": 743,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 602,
+          "top": 743,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 217,
+          "top": 786,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "특공 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 250,
+          "top": 786,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 307,
+          "top": 786,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 544,
+          "top": 786,
+          "width": 30,
+          "height": 30
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 4,
+      "customComboboxes": 8,
+      "fonts": {
+        "12px": 115,
+        "16px": 3,
+        "14px": 19,
+        "13px": 46,
+        "11px": 29,
+        "13.12px": 14,
+        "12.825px": 5,
+        "12.48px": 2,
+        "11.4px": 3,
+        "9px": 4,
+        "10.5px": 12
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "세부조정",
+          "x": 24,
+          "top": 157,
+          "width": 920,
+          "height": 1721
+        },
+        {
+          "label": "HP 브레이크포인트",
+          "x": 958,
+          "top": 157,
+          "width": 443,
+          "height": 1721
+        },
+        {
+          "label": "상대 / 스피드",
+          "x": 24,
+          "top": 1892,
+          "width": 1377,
+          "height": 725
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "true"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "finetune",
+      "variant": "main",
+      "width": 1024,
+      "documentHeight": 3440,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 2202,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "세부조정",
+          "x": 41,
+          "top": 175,
+          "width": 59,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "HP 브레이크포인트",
+          "x": 41,
+          "top": 1323,
+          "width": 131,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "상대 / 스피드",
+          "x": 41,
+          "top": 2220,
+          "width": 89,
+          "height": 19
+        }
+      ],
+      "frames": 18,
+      "maxFrameDepth": 3,
+      "controlCount": 73,
+      "controlHeights": [
+        13,
+        26,
+        28,
+        30,
+        32,
+        35,
+        36,
+        38
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불러오기",
+          "cls": "party-load-button ui-label-action ui-field-action",
+          "x": 105,
+          "top": 240,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측",
+          "cls": "ft-apply-side-button ui-label-action ui-field-action",
+          "x": 809,
+          "top": 240,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "방어측",
+          "cls": "ft-apply-side-button ui-label-action ui-field-action",
+          "x": 885,
+          "top": 240,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 185,
+          "top": 657,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "HP 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 216,
+          "top": 657,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 265,
+          "top": 657,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 185,
+          "top": 700,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "공격 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 216,
+          "top": 700,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 265,
+          "top": 700,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 446,
+          "top": 700,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 498,
+          "top": 700,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 185,
+          "top": 743,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "방어 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 216,
+          "top": 743,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 265,
+          "top": 743,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 446,
+          "top": 743,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 498,
+          "top": 743,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 185,
+          "top": 786,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "특공 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 216,
+          "top": 786,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 265,
+          "top": 786,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 446,
+          "top": 786,
+          "width": 28,
+          "height": 28
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 4,
+      "customComboboxes": 8,
+      "fonts": {
+        "12px": 107,
+        "16px": 3,
+        "14px": 16,
+        "13px": 40,
+        "10px": 9,
+        "13.12px": 14,
+        "11px": 45,
+        "12.48px": 2,
+        "9px": 4,
+        "10.5px": 12
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "세부조정",
+          "x": 24,
+          "top": 157,
+          "width": 961,
+          "height": 1142
+        },
+        {
+          "label": "HP 브레이크포인트",
+          "x": 24,
+          "top": 1312,
+          "width": 961,
+          "height": 876
+        },
+        {
+          "label": "상대 / 스피드",
+          "x": 24,
+          "top": 2202,
+          "width": 961,
+          "height": 1204
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "true"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "finetune",
+      "variant": "main",
+      "width": 768,
+      "documentHeight": 3857,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 2619,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "세부조정",
+          "x": 41,
+          "top": 175,
+          "width": 59,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "HP 브레이크포인트",
+          "x": 41,
+          "top": 1364,
+          "width": 131,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "상대 / 스피드",
+          "x": 41,
+          "top": 2637,
+          "width": 89,
+          "height": 19
+        }
+      ],
+      "frames": 18,
+      "maxFrameDepth": 3,
+      "controlCount": 73,
+      "controlHeights": [
+        13,
+        26,
+        28,
+        30,
+        32,
+        34,
+        35,
+        36,
+        38
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불러오기",
+          "cls": "party-load-button ui-label-action ui-field-action",
+          "x": 105,
+          "top": 240,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측",
+          "cls": "ft-apply-side-button ui-label-action ui-field-action",
+          "x": 553,
+          "top": 240,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "방어측",
+          "cls": "ft-apply-side-button ui-label-action ui-field-action",
+          "x": 629,
+          "top": 240,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 175,
+          "top": 657,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "HP 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 205,
+          "top": 657,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 253,
+          "top": 657,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 175,
+          "top": 700,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "공격 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 205,
+          "top": 700,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 253,
+          "top": 700,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 417,
+          "top": 700,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 467,
+          "top": 700,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 175,
+          "top": 743,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "방어 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 205,
+          "top": 743,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 253,
+          "top": 743,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 417,
+          "top": 743,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 467,
+          "top": 743,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 175,
+          "top": 786,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "특공 포인트",
+          "cls": "tool-stat-point-input",
+          "x": 205,
+          "top": 786,
+          "width": 46,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 253,
+          "top": 786,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 417,
+          "top": 786,
+          "width": 28,
+          "height": 28
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 4,
+      "customComboboxes": 8,
+      "fonts": {
+        "12px": 107,
+        "16px": 3,
+        "14px": 16,
+        "13px": 40,
+        "10px": 9,
+        "13.12px": 14,
+        "11px": 45,
+        "12.48px": 2,
+        "9px": 4,
+        "10.5px": 12
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "세부조정",
+          "x": 24,
+          "top": 157,
+          "width": 705,
+          "height": 1183
+        },
+        {
+          "label": "HP 브레이크포인트",
+          "x": 24,
+          "top": 1353,
+          "width": 705,
+          "height": 1251
+        },
+        {
+          "label": "상대 / 스피드",
+          "x": 24,
+          "top": 2619,
+          "width": 705,
+          "height": 1204
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 161.796875,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 165.796875,
+          "right": 303.609375,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 307.609375,
+          "right": 445.40625,
+          "selected": "true"
+        },
+        {
+          "label": "상성표",
+          "left": 449.40625,
+          "right": 587.203125,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 591.203125,
+          "right": 729,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "finetune",
+      "variant": "main",
+      "width": 375,
+      "documentHeight": 6592,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 4386,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "세부조정",
+          "x": 21,
+          "top": 172,
+          "width": 59,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "HP 브레이크포인트",
+          "x": 21,
+          "top": 2458,
+          "width": 131,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "상대 / 스피드",
+          "x": 21,
+          "top": 4403,
+          "width": 89,
+          "height": 19
+        }
+      ],
+      "frames": 18,
+      "maxFrameDepth": 3,
+      "controlCount": 73,
+      "controlHeights": [
+        13,
+        26,
+        36,
+        42
+      ],
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "label": "추월 마진",
+          "cls": "",
+          "x": 239,
+          "top": 5295,
+          "width": 34,
+          "height": 26
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 4,
+      "customComboboxes": 8,
+      "fonts": {
+        "12px": 89,
+        "16px": 3,
+        "14px": 13,
+        "13px": 40,
+        "11px": 12,
+        "10px": 30,
+        "13.12px": 14,
+        "10.56px": 22,
+        "11.52px": 5,
+        "12.48px": 2,
+        "9px": 4,
+        "10.5px": 12
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "세부조정",
+          "x": 8,
+          "top": 154,
+          "width": 359,
+          "height": 2283
+        },
+        {
+          "label": "HP 브레이크포인트",
+          "x": 8,
+          "top": 2447,
+          "width": 359,
+          "height": 1929
+        },
+        {
+          "label": "상대 / 스피드",
+          "x": 8,
+          "top": 4386,
+          "width": 359,
+          "height": 2118
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 159.09375,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 162.09375,
+          "right": 231,
+          "selected": "true"
+        },
+        {
+          "label": "상성표",
+          "left": 234,
+          "right": 298,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 301,
+          "right": 365,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "finetune",
+      "variant": "main",
+      "width": 320,
+      "documentHeight": 7614,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 5135,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "세부조정",
+          "x": 21,
+          "top": 172,
+          "width": 59,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "HP 브레이크포인트",
+          "x": 21,
+          "top": 2529,
+          "width": 131,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "상대 / 스피드",
+          "x": 21,
+          "top": 5153,
+          "width": 89,
+          "height": 19
+        }
+      ],
+      "frames": 18,
+      "maxFrameDepth": 3,
+      "controlCount": 73,
+      "controlHeights": [
+        13,
+        26,
+        36,
+        42
+      ],
+      "smallControls": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "label": "추월 마진",
+          "cls": "",
+          "x": 184,
+          "top": 6278,
+          "width": 34,
+          "height": 26
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 4,
+      "customComboboxes": 8,
+      "fonts": {
+        "12px": 89,
+        "16px": 3,
+        "14px": 13,
+        "13px": 40,
+        "11px": 12,
+        "10px": 30,
+        "13.12px": 14,
+        "10.56px": 22,
+        "11.52px": 5,
+        "12.48px": 2,
+        "9px": 4,
+        "10.5px": 12
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "세부조정",
+          "x": 8,
+          "top": 154,
+          "width": 304,
+          "height": 2355
+        },
+        {
+          "label": "HP 브레이크포인트",
+          "x": 8,
+          "top": 2519,
+          "width": 304,
+          "height": 2606
+        },
+        {
+          "label": "상대 / 스피드",
+          "x": 8,
+          "top": 5135,
+          "width": 304,
+          "height": 2392
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 142.6875,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 145.6875,
+          "right": 209.6875,
+          "selected": "true"
+        },
+        {
+          "label": "상성표",
+          "left": 212.6875,
+          "right": 276.6875,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 279.6875,
+          "right": 343.6875,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "matchup",
+      "variant": "main",
+      "width": 1440,
+      "documentHeight": 1496,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 541,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "상성표",
+          "x": 41,
+          "top": 145,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 41,
+          "top": 559,
+          "width": 29,
+          "height": 19
+        }
+      ],
+      "frames": 11,
+      "maxFrameDepth": 3,
+      "controlCount": 22,
+      "controlHeights": [
+        28,
+        32,
+        38
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 451,
+          "top": 302,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 892,
+          "top": 302,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 1334,
+          "top": 302,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 451,
+          "top": 410,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 892,
+          "top": 410,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 1334,
+          "top": 410,
+          "width": 28,
+          "height": 28
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 7,
+      "customComboboxes": 6,
+      "fonts": {
+        "16px": 2,
+        "12px": 103,
+        "13px": 1,
+        "11px": 6,
+        "10px": 11,
+        "14px": 58
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "상성표",
+          "x": 24,
+          "top": 127,
+          "width": 1377,
+          "height": 400
+        },
+        {
+          "label": "결과",
+          "x": 24,
+          "top": 541,
+          "width": 1377,
+          "height": 921
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "true"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "matchup",
+      "variant": "main",
+      "width": 1024,
+      "documentHeight": 1604,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 649,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "상성표",
+          "x": 41,
+          "top": 145,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 41,
+          "top": 667,
+          "width": 29,
+          "height": 19
+        }
+      ],
+      "frames": 11,
+      "maxFrameDepth": 3,
+      "controlCount": 22,
+      "controlHeights": [
+        28,
+        32,
+        38
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 464,
+          "top": 302,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 918,
+          "top": 302,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 464,
+          "top": 410,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 918,
+          "top": 410,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 464,
+          "top": 518,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 918,
+          "top": 518,
+          "width": 28,
+          "height": 28
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 7,
+      "customComboboxes": 6,
+      "fonts": {
+        "16px": 2,
+        "12px": 103,
+        "13px": 1,
+        "11px": 6,
+        "10px": 11,
+        "14px": 58
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "상성표",
+          "x": 24,
+          "top": 127,
+          "width": 961,
+          "height": 508
+        },
+        {
+          "label": "결과",
+          "x": 24,
+          "top": 649,
+          "width": 961,
+          "height": 921
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "true"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "matchup",
+      "variant": "main",
+      "width": 768,
+      "documentHeight": 1658,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 649,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "상성표",
+          "x": 41,
+          "top": 145,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 41,
+          "top": 667,
+          "width": 29,
+          "height": 19
+        }
+      ],
+      "frames": 11,
+      "maxFrameDepth": 3,
+      "controlCount": 22,
+      "controlHeights": [
+        28,
+        32,
+        38
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 336,
+          "top": 302,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 662,
+          "top": 302,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 336,
+          "top": 410,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 662,
+          "top": 410,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 336,
+          "top": 518,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 662,
+          "top": 518,
+          "width": 28,
+          "height": 28
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 7,
+      "customComboboxes": 6,
+      "fonts": {
+        "16px": 2,
+        "12px": 103,
+        "13px": 1,
+        "11px": 7,
+        "10px": 11,
+        "14px": 58
+      },
+      "scrollRegions": [
+        {
+          "cls": "matchup-table-wrap",
+          "x": 41,
+          "top": 757,
+          "width": 671,
+          "height": 774,
+          "scrollWidth": 880
+        }
+      ],
+      "panels": [
+        {
+          "label": "상성표",
+          "x": 24,
+          "top": 127,
+          "width": 705,
+          "height": 508
+        },
+        {
+          "label": "결과",
+          "x": 24,
+          "top": 649,
+          "width": 705,
+          "height": 975
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 161.796875,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 165.796875,
+          "right": 303.609375,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 307.609375,
+          "right": 445.40625,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 449.40625,
+          "right": 587.203125,
+          "selected": "true"
+        },
+        {
+          "label": "도감",
+          "left": 591.203125,
+          "right": 729,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "matchup",
+      "variant": "main",
+      "width": 375,
+      "documentHeight": 2092,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 1018,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "상성표",
+          "x": 21,
+          "top": 122,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 21,
+          "top": 1036,
+          "width": 29,
+          "height": 19
+        }
+      ],
+      "frames": 11,
+      "maxFrameDepth": 3,
+      "controlCount": 22,
+      "controlHeights": [
+        36,
+        42
+      ],
+      "smallControls": [],
+      "clippedControls": [],
+      "nativeSelects": 7,
+      "customComboboxes": 6,
+      "fonts": {
+        "16px": 2,
+        "12px": 103,
+        "13px": 1,
+        "11px": 7,
+        "10px": 11,
+        "14px": 58
+      },
+      "scrollRegions": [
+        {
+          "cls": "matchup-table-wrap",
+          "x": 19,
+          "top": 1120,
+          "width": 337,
+          "height": 759,
+          "scrollWidth": 857
+        }
+      ],
+      "panels": [
+        {
+          "label": "상성표",
+          "x": 8,
+          "top": 104,
+          "width": 359,
+          "height": 904
+        },
+        {
+          "label": "결과",
+          "x": 8,
+          "top": 1018,
+          "width": 359,
+          "height": 986
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 159.09375,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 162.09375,
+          "right": 231,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 234,
+          "right": 298,
+          "selected": "true"
+        },
+        {
+          "label": "도감",
+          "left": 301,
+          "right": 365,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "matchup",
+      "variant": "main",
+      "width": 320,
+      "documentHeight": 2111,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 1018,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "상성표",
+          "x": 21,
+          "top": 122,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 21,
+          "top": 1036,
+          "width": 29,
+          "height": 19
+        }
+      ],
+      "frames": 11,
+      "maxFrameDepth": 3,
+      "controlCount": 22,
+      "controlHeights": [
+        36,
+        42
+      ],
+      "smallControls": [],
+      "clippedControls": [],
+      "nativeSelects": 7,
+      "customComboboxes": 6,
+      "fonts": {
+        "16px": 2,
+        "12px": 103,
+        "13px": 1,
+        "11px": 7,
+        "10px": 11,
+        "14px": 58
+      },
+      "scrollRegions": [
+        {
+          "cls": "matchup-table-wrap",
+          "x": 19,
+          "top": 1120,
+          "width": 282,
+          "height": 759,
+          "scrollWidth": 857
+        }
+      ],
+      "panels": [
+        {
+          "label": "상성표",
+          "x": 8,
+          "top": 104,
+          "width": 304,
+          "height": 904
+        },
+        {
+          "label": "결과",
+          "x": 8,
+          "top": 1018,
+          "width": 304,
+          "height": 1005
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 142.6875,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 145.6875,
+          "right": 209.6875,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 212.6875,
+          "right": 276.6875,
+          "selected": "true"
+        },
+        {
+          "label": "도감",
+          "left": 279.6875,
+          "right": 343.6875,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "dex",
+      "variant": "main",
+      "width": 1440,
+      "documentHeight": 1091,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 306,
+      "outline": [],
+      "frames": 1,
+      "maxFrameDepth": 1,
+      "controlCount": 60,
+      "controlHeights": [
+        30,
+        32,
+        34,
+        36,
+        38,
+        42
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "전체",
+          "cls": "type-filter-btn active",
+          "x": 35,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "노말",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 90,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불꽃",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 145,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "물",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 200,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "전기",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 249,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "풀",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 304,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "얼음",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 353,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "격투",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 408,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "독",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 464,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "땅",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 513,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "비행",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 562,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "에스퍼",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 617,
+          "top": 253,
+          "width": 59,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "벌레",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 683,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "바위",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 738,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "고스트",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 793,
+          "top": 253,
+          "width": 59,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "드래곤",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 859,
+          "top": 253,
+          "width": 59,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "악",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 925,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "강철",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 974,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "페어리",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 1029,
+          "top": 253,
+          "width": 59,
+          "height": 30
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 0,
+      "customComboboxes": 0,
+      "fonts": {
+        "13px": 19,
+        "18px": 1,
+        "12px": 220,
+        "11px": 94,
+        "10px": 9
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "포켓몬 기술 특성 도구 ↻ 전체노말불꽃물전기풀얼음격투독땅비행에스퍼벌레바위고스트드래곤악강철페어리최대 2개",
+          "x": 24,
+          "top": 127,
+          "width": 1377,
+          "height": 167
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "true"
+        }
+      ]
+    },
+    {
+      "page": "dex",
+      "variant": "main",
+      "width": 1024,
+      "documentHeight": 1128,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 343,
+      "outline": [],
+      "frames": 1,
+      "maxFrameDepth": 1,
+      "controlCount": 60,
+      "controlHeights": [
+        30,
+        32,
+        34,
+        36,
+        38,
+        42
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "전체",
+          "cls": "type-filter-btn active",
+          "x": 35,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "노말",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 90,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불꽃",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 145,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "물",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 200,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "전기",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 249,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "풀",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 304,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "얼음",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 353,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "격투",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 408,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "독",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 464,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "땅",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 513,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "비행",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 562,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "에스퍼",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 617,
+          "top": 253,
+          "width": 59,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "벌레",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 683,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "바위",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 738,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "고스트",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 793,
+          "top": 253,
+          "width": 59,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "드래곤",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 859,
+          "top": 253,
+          "width": 59,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "악",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 925,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "강철",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 35,
+          "top": 290,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "페어리",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 90,
+          "top": 290,
+          "width": 59,
+          "height": 30
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 0,
+      "customComboboxes": 0,
+      "fonts": {
+        "13px": 19,
+        "18px": 1,
+        "12px": 220,
+        "11px": 94,
+        "10px": 9
+      },
+      "scrollRegions": [
+        {
+          "cls": "dex-table-wrap",
+          "x": 24,
+          "top": 343,
+          "width": 961,
+          "height": 700,
+          "scrollWidth": 1080
+        }
+      ],
+      "panels": [
+        {
+          "label": "포켓몬 기술 특성 도구 ↻ 전체노말불꽃물전기풀얼음격투독땅비행에스퍼벌레바위고스트드래곤악강철페어리최대 2개",
+          "x": 24,
+          "top": 127,
+          "width": 961,
+          "height": 204
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "true"
+        }
+      ]
+    },
+    {
+      "page": "dex",
+      "variant": "main",
+      "width": 768,
+      "documentHeight": 1128,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 343,
+      "outline": [],
+      "frames": 1,
+      "maxFrameDepth": 1,
+      "controlCount": 60,
+      "controlHeights": [
+        30,
+        32,
+        34,
+        36,
+        38,
+        42
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "전체",
+          "cls": "type-filter-btn active",
+          "x": 35,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "노말",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 90,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불꽃",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 145,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "물",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 200,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "전기",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 249,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "풀",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 304,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "얼음",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 353,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "격투",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 408,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "독",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 464,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "땅",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 513,
+          "top": 253,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "비행",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 562,
+          "top": 253,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "에스퍼",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 617,
+          "top": 253,
+          "width": 59,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "벌레",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 35,
+          "top": 290,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "바위",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 90,
+          "top": 290,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "고스트",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 145,
+          "top": 290,
+          "width": 59,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "드래곤",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 211,
+          "top": 290,
+          "width": 59,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "악",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 277,
+          "top": 290,
+          "width": 42,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "강철",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 326,
+          "top": 290,
+          "width": 48,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "페어리",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 382,
+          "top": 290,
+          "width": 59,
+          "height": 30
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 0,
+      "customComboboxes": 0,
+      "fonts": {
+        "13px": 19,
+        "18px": 1,
+        "12px": 220,
+        "11px": 94,
+        "10px": 9
+      },
+      "scrollRegions": [
+        {
+          "cls": "dex-table-wrap",
+          "x": 24,
+          "top": 343,
+          "width": 705,
+          "height": 700,
+          "scrollWidth": 1080
+        }
+      ],
+      "panels": [
+        {
+          "label": "포켓몬 기술 특성 도구 ↻ 전체노말불꽃물전기풀얼음격투독땅비행에스퍼벌레바위고스트드래곤악강철페어리최대 2개",
+          "x": 24,
+          "top": 127,
+          "width": 705,
+          "height": 204
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 161.796875,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 165.796875,
+          "right": 303.609375,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 307.609375,
+          "right": 445.40625,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 449.40625,
+          "right": 587.203125,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 591.203125,
+          "right": 729,
+          "selected": "true"
+        }
+      ]
+    },
+    {
+      "page": "dex",
+      "variant": "main",
+      "width": 375,
+      "documentHeight": 9585,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 345,
+      "outline": [],
+      "frames": 1,
+      "maxFrameDepth": 1,
+      "controlCount": 51,
+      "controlHeights": [
+        28,
+        34,
+        36,
+        41,
+        42
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "전체",
+          "cls": "type-filter-btn active",
+          "x": 19,
+          "top": 226,
+          "width": 40,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "노말",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 64,
+          "top": 226,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불꽃",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 111,
+          "top": 226,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "물",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 158,
+          "top": 226,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "전기",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 205,
+          "top": 226,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "풀",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 252,
+          "top": 226,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "얼음",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 299,
+          "top": 226,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "격투",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 19,
+          "top": 259,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "독",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 66,
+          "top": 259,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "땅",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 113,
+          "top": 259,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "비행",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 160,
+          "top": 259,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "에스퍼",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 207,
+          "top": 259,
+          "width": 50,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "벌레",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 262,
+          "top": 259,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "바위",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 309,
+          "top": 259,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "고스트",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 19,
+          "top": 293,
+          "width": 50,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "드래곤",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 74,
+          "top": 293,
+          "width": 50,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "악",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 130,
+          "top": 293,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "강철",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 177,
+          "top": 293,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "페어리",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 224,
+          "top": 293,
+          "width": 50,
+          "height": 28
+        }
+      ],
+      "clippedControls": [
+        {
+          "label": "이상해꽃 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 367,
+          "width": 47,
+          "height": 36
+        },
+        {
+          "label": "메가이상해꽃 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 743,
+          "width": 47,
+          "height": 42
+        },
+        {
+          "label": "메가리자몽X 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 1501,
+          "width": 47,
+          "height": 42
+        },
+        {
+          "label": "메가리자몽Y 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 1884,
+          "width": 47,
+          "height": 42
+        },
+        {
+          "label": "메가거북왕 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 2642,
+          "width": 47,
+          "height": 42
+        },
+        {
+          "label": "메가독침붕 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 3400,
+          "width": 47,
+          "height": 42
+        },
+        {
+          "label": "메가피죤투 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 4158,
+          "width": 47,
+          "height": 42
+        },
+        {
+          "label": "라이츄 (알로라) 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 5669,
+          "width": 47,
+          "height": 41
+        },
+        {
+          "label": "메가라이츄X 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 6049,
+          "width": 47,
+          "height": 42
+        },
+        {
+          "label": "메가라이츄Y 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 6431,
+          "width": 47,
+          "height": 42
+        },
+        {
+          "label": "메가픽시 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 7190,
+          "width": 47,
+          "height": 42
+        },
+        {
+          "label": "나인테일 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 7572,
+          "width": 47,
+          "height": 36
+        },
+        {
+          "label": "나인테일 (알로라) 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 7948,
+          "width": 47,
+          "height": 41
+        },
+        {
+          "label": "라플레시아 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 8704,
+          "width": 47,
+          "height": 36
+        },
+        {
+          "label": "페르시온 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 9080,
+          "width": 47,
+          "height": 36
+        }
+      ],
+      "nativeSelects": 0,
+      "customComboboxes": 0,
+      "fonts": {
+        "12px": 205,
+        "16px": 1,
+        "11px": 101,
+        "15px": 15,
+        "10px": 9
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "포켓몬 기술 특성 도구 ↻ 전체노말불꽃물전기풀얼음격투독땅비행에스퍼벌레바위고스트드래곤악강철페어리최대 2개",
+          "x": 8,
+          "top": 104,
+          "width": 359,
+          "height": 229
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 159.09375,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 162.09375,
+          "right": 231,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 234,
+          "right": 298,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 301,
+          "right": 365,
+          "selected": "true"
+        }
+      ]
+    },
+    {
+      "page": "dex",
+      "variant": "main",
+      "width": 320,
+      "documentHeight": 9618,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 378,
+      "outline": [],
+      "frames": 1,
+      "maxFrameDepth": 1,
+      "controlCount": 51,
+      "controlHeights": [
+        28,
+        34,
+        36,
+        41,
+        42
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "전체",
+          "cls": "type-filter-btn active",
+          "x": 19,
+          "top": 226,
+          "width": 40,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "노말",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 64,
+          "top": 226,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불꽃",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 111,
+          "top": 226,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "물",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 158,
+          "top": 226,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "전기",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 205,
+          "top": 226,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "풀",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 252,
+          "top": 226,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "얼음",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 19,
+          "top": 259,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "격투",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 66,
+          "top": 259,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "독",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 113,
+          "top": 259,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "땅",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 160,
+          "top": 259,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "비행",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 207,
+          "top": 259,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "에스퍼",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 19,
+          "top": 292,
+          "width": 50,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "벌레",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 74,
+          "top": 292,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "바위",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 121,
+          "top": 292,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "고스트",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 168,
+          "top": 292,
+          "width": 50,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "드래곤",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 224,
+          "top": 292,
+          "width": 50,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "악",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 19,
+          "top": 326,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "강철",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 66,
+          "top": 326,
+          "width": 42,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "페어리",
+          "cls": "type-filter-btn type-pill-mini ",
+          "x": 113,
+          "top": 326,
+          "width": 50,
+          "height": 28
+        }
+      ],
+      "clippedControls": [
+        {
+          "label": "이상해꽃 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 400,
+          "width": 39,
+          "height": 36
+        },
+        {
+          "label": "메가이상해꽃 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 776,
+          "width": 39,
+          "height": 42
+        },
+        {
+          "label": "메가리자몽X 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 1534,
+          "width": 39,
+          "height": 42
+        },
+        {
+          "label": "메가리자몽Y 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 1917,
+          "width": 39,
+          "height": 42
+        },
+        {
+          "label": "메가거북왕 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 2675,
+          "width": 39,
+          "height": 42
+        },
+        {
+          "label": "메가독침붕 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 3433,
+          "width": 39,
+          "height": 42
+        },
+        {
+          "label": "메가피죤투 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 4191,
+          "width": 39,
+          "height": 42
+        },
+        {
+          "label": "라이츄 (알로라) 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 5702,
+          "width": 39,
+          "height": 41
+        },
+        {
+          "label": "메가라이츄X 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 6082,
+          "width": 39,
+          "height": 42
+        },
+        {
+          "label": "메가라이츄Y 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 6464,
+          "width": 39,
+          "height": 42
+        },
+        {
+          "label": "메가픽시 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 7223,
+          "width": 39,
+          "height": 42
+        },
+        {
+          "label": "나인테일 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 7605,
+          "width": 39,
+          "height": 36
+        },
+        {
+          "label": "나인테일 (알로라) 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 7981,
+          "width": 39,
+          "height": 41
+        },
+        {
+          "label": "라플레시아 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 8737,
+          "width": 39,
+          "height": 36
+        },
+        {
+          "label": "페르시온 상세 보기",
+          "cls": "dex-row-open",
+          "x": 30,
+          "top": 9113,
+          "width": 39,
+          "height": 36
+        }
+      ],
+      "nativeSelects": 0,
+      "customComboboxes": 0,
+      "fonts": {
+        "12px": 205,
+        "16px": 1,
+        "11px": 101,
+        "15px": 15,
+        "10px": 9
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "포켓몬 기술 특성 도구 ↻ 전체노말불꽃물전기풀얼음격투독땅비행에스퍼벌레바위고스트드래곤악강철페어리최대 2개",
+          "x": 8,
+          "top": 104,
+          "width": 304,
+          "height": 262
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 142.6875,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 145.6875,
+          "right": 209.6875,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 212.6875,
+          "right": 276.6875,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 279.6875,
+          "right": 343.6875,
+          "selected": "true"
+        }
+      ]
+    },
+    {
+      "page": "calc",
+      "variant": "expanded",
+      "width": 1440,
+      "documentHeight": 2295,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 1706,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "공격측",
+          "x": 41,
+          "top": 145,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "방어측",
+          "x": 737,
+          "top": 145,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "필드 · 부가 효과",
+          "x": 41,
+          "top": 1378,
+          "width": 111,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 41,
+          "top": 1730,
+          "width": 29,
+          "height": 19
+        }
+      ],
+      "frames": 25,
+      "maxFrameDepth": 3,
+      "controlCount": 143,
+      "controlHeights": [
+        13,
+        16,
+        24,
+        26,
+        30,
+        36,
+        38,
+        44,
+        46
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "불러오기",
+          "cls": "party-load-button ui-label-action ui-field-action",
+          "x": 105,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "세부조정",
+          "cls": "calc-page-jump-button ui-label-action ui-field-action",
+          "x": 530,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "역계산",
+          "cls": "calc-page-jump-button ui-label-action ui-field-action",
+          "x": 606,
+          "top": 210,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입1 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 54,
+          "top": 293,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입2 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 122,
+          "top": 293,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "초기화",
+          "cls": "type-reset-btn",
+          "x": 190,
+          "top": 293,
+          "width": 58,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "프리셋",
+          "cls": "calc-stat-preset-toggle tool-stat-preset-button ui-popover-trigger",
+          "x": 175,
+          "top": 532,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 275,
+          "top": 606,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "HP EV",
+          "cls": "tool-stat-point-input",
+          "x": 308,
+          "top": 606,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 365,
+          "top": 606,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 275,
+          "top": 642,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "공격 EV",
+          "cls": "tool-stat-point-input",
+          "x": 308,
+          "top": 642,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 365,
+          "top": 642,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 557,
+          "top": 642,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 615,
+          "top": 642,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "0",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 275,
+          "top": 678,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "INPUT",
+          "type": "number",
+          "label": "방어 EV",
+          "cls": "tool-stat-point-input",
+          "x": 308,
+          "top": 678,
+          "width": 54,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "32",
+          "cls": "tool-stat-point-button ui-stat-button",
+          "x": 365,
+          "top": 678,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "-",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 557,
+          "top": 678,
+          "width": 30,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "+",
+          "cls": "tool-stat-rank-button ui-stat-button",
+          "x": 615,
+          "top": 678,
+          "width": 30,
+          "height": 30
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 1,
+      "customComboboxes": 33,
+      "fonts": {
+        "16px": 4,
+        "13px": 39,
+        "14px": 16,
+        "12px": 74,
+        "12.8px": 2,
+        "11.84px": 10,
+        "12.48px": 24,
+        "13.12px": 28,
+        "12.825px": 10,
+        "9.92px": 2,
+        "10.88px": 3,
+        "10px": 22,
+        "15.04px": 8,
+        "18.4px": 1,
+        "15px": 5,
+        "11px": 26,
+        "18px": 2,
+        "11.5px": 4
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "공격측",
+          "x": 24,
+          "top": 127,
+          "width": 682,
+          "height": 1220
+        },
+        {
+          "label": "방어측",
+          "x": 720,
+          "top": 127,
+          "width": 682,
+          "height": 1220
+        },
+        {
+          "label": "필드 · 부가 효과",
+          "x": 24,
+          "top": 1361,
+          "width": 1377,
+          "height": 331
+        },
+        {
+          "label": "결과",
+          "x": 24,
+          "top": 1706,
+          "width": 1377,
+          "height": 555
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "true"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "calc",
+      "variant": "expanded",
+      "width": 375,
+      "documentHeight": 5849,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 4221,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "공격측",
+          "x": 21,
+          "top": 122,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "방어측",
+          "x": 21,
+          "top": 1936,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "필드 · 부가 효과",
+          "x": 21,
+          "top": 3708,
+          "width": 111,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 21,
+          "top": 4234,
+          "width": 333,
+          "height": 19
+        }
+      ],
+      "frames": 25,
+      "maxFrameDepth": 3,
+      "controlCount": 146,
+      "controlHeights": [
+        13,
+        15,
+        16,
+        24,
+        26,
+        30,
+        34,
+        36,
+        42,
+        44,
+        79
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입1 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 32,
+          "top": 278,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "공격측 타입2 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 100,
+          "top": 278,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "초기화",
+          "cls": "type-reset-btn",
+          "x": 168,
+          "top": 278,
+          "width": 58,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "프리셋",
+          "cls": "calc-stat-preset-toggle tool-stat-preset-button ui-popover-trigger",
+          "x": 153,
+          "top": 611,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "1번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 219,
+          "top": 1387,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "2번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 219,
+          "top": 1510,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "3번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 219,
+          "top": 1633,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "4번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 219,
+          "top": 1756,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "방어측 타입1 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 32,
+          "top": 2092,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "방어측 타입2 선택",
+          "cls": "cb-input cb-trigger",
+          "x": 100,
+          "top": 2092,
+          "width": 62,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "초기화",
+          "cls": "type-reset-btn",
+          "x": 168,
+          "top": 2092,
+          "width": 58,
+          "height": 26
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "프리셋",
+          "cls": "calc-stat-preset-toggle tool-stat-preset-button ui-popover-trigger",
+          "x": 153,
+          "top": 2425,
+          "width": 70,
+          "height": 30
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "1번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 211,
+          "top": 3201,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "2번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 211,
+          "top": 3324,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "3번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 211,
+          "top": 3447,
+          "width": 48,
+          "height": 24
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "4번 기술 위력 자동 복원",
+          "cls": "calc-power-mode",
+          "x": 211,
+          "top": 3570,
+          "width": 48,
+          "height": 24
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 1,
+      "customComboboxes": 33,
+      "fonts": {
+        "13px": 22,
+        "12px": 28,
+        "10px": 23,
+        "16px": 4,
+        "11px": 36,
+        "14px": 13,
+        "12.16px": 12,
+        "11.2px": 14,
+        "12.48px": 10,
+        "13.12px": 24,
+        "10.56px": 44,
+        "11.52px": 17,
+        "9.92px": 2,
+        "10.24px": 4,
+        "10.88px": 8,
+        "18.4px": 1,
+        "15px": 5,
+        "18px": 2,
+        "11.5px": 4
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "공격측",
+          "x": 8,
+          "top": 104,
+          "width": 359,
+          "height": 1762
+        },
+        {
+          "label": "방어측",
+          "x": 8,
+          "top": 1918,
+          "width": 359,
+          "height": 1762
+        },
+        {
+          "label": "필드 · 부가 효과",
+          "x": 8,
+          "top": 3690,
+          "width": 359,
+          "height": 521
+        },
+        {
+          "label": "결과",
+          "x": 8,
+          "top": 4221,
+          "width": 359,
+          "height": 1380
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "true"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 159.09375,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 162.09375,
+          "right": 231,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 234,
+          "right": 298,
+          "selected": "false"
+        },
+        {
+          "label": "도감",
+          "left": 301,
+          "right": 365,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "matchup",
+      "variant": "coverage",
+      "width": 1440,
+      "documentHeight": 2081,
+      "pageOverflow": -15,
+      "headerHeight": 109,
+      "resultTop": 1119,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "상성표",
+          "x": 41,
+          "top": 145,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 41,
+          "top": 1137,
+          "width": 29,
+          "height": 19
+        }
+      ],
+      "frames": 19,
+      "maxFrameDepth": 3,
+      "controlCount": 72,
+      "controlHeights": [
+        28,
+        32,
+        34,
+        38
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 451,
+          "top": 302,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 892,
+          "top": 302,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 1334,
+          "top": 302,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 451,
+          "top": 410,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 892,
+          "top": 410,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-slot-clear",
+          "x": 1334,
+          "top": 410,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 447,
+          "top": 651,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 447,
+          "top": 697,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 447,
+          "top": 743,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 447,
+          "top": 789,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 888,
+          "top": 651,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 888,
+          "top": 697,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 888,
+          "top": 743,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 888,
+          "top": 789,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 1330,
+          "top": 651,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 1330,
+          "top": 697,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 1330,
+          "top": 743,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 1330,
+          "top": 789,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 447,
+          "top": 891,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 447,
+          "top": 937,
+          "width": 28,
+          "height": 28
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 9,
+      "customComboboxes": 30,
+      "fonts": {
+        "16px": 2,
+        "12px": 194,
+        "13px": 1,
+        "11px": 30,
+        "10px": 28
+      },
+      "scrollRegions": [],
+      "panels": [
+        {
+          "label": "상성표",
+          "x": 24,
+          "top": 127,
+          "width": 1377,
+          "height": 978
+        },
+        {
+          "label": "결과",
+          "x": 24,
+          "top": 1119,
+          "width": 1377,
+          "height": 928
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 24,
+          "right": 152,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 156,
+          "right": 284,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 288,
+          "right": 416,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 420,
+          "right": 548,
+          "selected": "true"
+        },
+        {
+          "label": "도감",
+          "left": 552,
+          "right": 680,
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "page": "matchup",
+      "variant": "coverage",
+      "width": 375,
+      "documentHeight": 3799,
+      "pageOverflow": 0,
+      "headerHeight": 94,
+      "resultTop": 2680,
+      "outline": [
+        {
+          "level": "H2",
+          "label": "상성표",
+          "x": 21,
+          "top": 122,
+          "width": 44,
+          "height": 19
+        },
+        {
+          "level": "H2",
+          "label": "결과",
+          "x": 21,
+          "top": 2698,
+          "width": 29,
+          "height": 19
+        }
+      ],
+      "frames": 19,
+      "maxFrameDepth": 3,
+      "controlCount": 72,
+      "controlHeights": [
+        28,
+        34,
+        36,
+        42
+      ],
+      "smallControls": [
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1168,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1218,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1268,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1318,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1424,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1474,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1524,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1574,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1680,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1730,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1780,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1830,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1936,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 1986,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 2036,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 2086,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 2192,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 2242,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 2292,
+          "width": 28,
+          "height": 28
+        },
+        {
+          "tag": "BUTTON",
+          "type": "button",
+          "label": "✕",
+          "cls": "matchup-move-clear",
+          "x": 302,
+          "top": 2342,
+          "width": 28,
+          "height": 28
+        }
+      ],
+      "clippedControls": [],
+      "nativeSelects": 9,
+      "customComboboxes": 30,
+      "fonts": {
+        "16px": 2,
+        "12px": 194,
+        "13px": 1,
+        "11px": 31,
+        "10px": 28
+      },
+      "scrollRegions": [
+        {
+          "cls": "matchup-table-wrap",
+          "x": 19,
+          "top": 2782,
+          "width": 337,
+          "height": 740,
+          "scrollWidth": 829
+        }
+      ],
+      "panels": [
+        {
+          "label": "상성표",
+          "x": 8,
+          "top": 104,
+          "width": 359,
+          "height": 2566
+        },
+        {
+          "label": "결과",
+          "x": 8,
+          "top": 2680,
+          "width": 359,
+          "height": 1031
+        }
+      ],
+      "navigation": [
+        {
+          "label": "계산기",
+          "left": 10,
+          "right": 74,
+          "selected": "false"
+        },
+        {
+          "label": "형태 역계산",
+          "left": 77,
+          "right": 159.09375,
+          "selected": "false"
+        },
+        {
+          "label": "세부조정",
+          "left": 162.09375,
+          "right": 231,
+          "selected": "false"
+        },
+        {
+          "label": "상성표",
+          "left": 234,
+          "right": 298,
+          "selected": "true"
+        },
+        {
+          "label": "도감",
+          "left": 301,
+          "right": 365,
+          "selected": "false"
+        }
+      ]
+    }
+  ],
+  "accessibility": [
+    {
+      "page": "calc",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "page": "revcalc",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "page": "finetune",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "page": "matchup",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "page": "dex",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "page": "calc",
+      "theme": "dark",
+      "violations": []
+    },
+    {
+      "page": "revcalc",
+      "theme": "dark",
+      "violations": []
+    },
+    {
+      "page": "finetune",
+      "theme": "dark",
+      "violations": []
+    },
+    {
+      "page": "matchup",
+      "theme": "dark",
+      "violations": []
+    },
+    {
+      "page": "dex",
+      "theme": "dark",
+      "violations": []
+    }
+  ],
+  "reverse": {
+    "total": 7234
+  },
+  "runtimeExceptions": []
+}

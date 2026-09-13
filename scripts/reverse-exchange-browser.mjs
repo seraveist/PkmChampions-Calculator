@@ -376,12 +376,26 @@ async function main() {
       await captureScreenshot(client,'reverse-exchange-results-'+width);
       const clipped = await client.evaluate("[...document.querySelectorAll('.rc-reference-moves input, .rc-followup-damage')].filter(e=>e.getBoundingClientRect().width>0 && (e.scrollWidth>e.clientWidth+1 || e.getBoundingClientRect().right>e.closest('.rc-exchange-summary,.rc-followup-chip').getBoundingClientRect().right+1)).map(e=>({text:e.value||e.innerText,width:e.clientWidth,scroll:e.scrollWidth}))");
       check(clipped.length===0,'card damage and comparison controls fit at '+width+'px',JSON.stringify(clipped));
+      const headerIssues = await client.evaluate(`Array.from(document.querySelectorAll('.rc-result-rank')).flatMap(button=>{
+        const bounds=button.getBoundingClientRect();
+        return Array.from(button.querySelectorAll('.rc-result-ev,.rc-result-example,.rc-result-title')).filter(e=>e.scrollWidth>e.clientWidth+1||e.getBoundingClientRect().right>bounds.right+1).map(e=>e.textContent);
+      })`);
+      check(headerIssues.length===0,'candidate ranges and compact examples fit at '+width+'px',JSON.stringify(headerIssues));
       report.push({width,...layout});
     }
     await client.evaluate("revCalcState.openResultIndexes=[];renderRevCalcResults();document.querySelector('button.rc-result-rank').focus()");
     await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
     await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
     check(await client.evaluate("document.querySelector('button.rc-result-rank').getAttribute('aria-expanded')==='true'"),'Enter expands a candidate');
+    check(await client.evaluate(`document.activeElement===document.querySelector('button.rc-result-rank') && !document.getElementById(document.activeElement.getAttribute('aria-controls')).hidden`),'candidate toggle retains keyboard focus and resolves its details');
+    await client.evaluate("document.querySelector('.rc-followup-damage').click()");
+    check(await client.evaluate("document.querySelector('button.rc-result-rank').getAttribute('aria-expanded')==='true'"),'reading or selecting damage does not collapse the card');
+    check(await client.evaluate(`!/(랭크 변화 없음|완성 66|예시 배분|비 스카프)/.test(document.getElementById('rc-results-body').textContent) && !document.querySelector('.rc-state-events')`),'unchanged state and allocation bookkeeping stay absent');
+    check(await client.evaluate(`(()=>{
+      const row={hpMin:100,hpMax:101,pctMin:50,pctMax:50.5,ranks:{atk:[0],def:[1],spa:[0],spd:[0],spe:[-1]},events:['지구력 · 방어 +1','암석봉인 · 스피드 -1','자뭉열매 · 소모']};
+      const html=rcRenderNextStateSummary({my:row});
+      return html.includes('지구력 · 방어 +1') && html.includes('암석봉인 · 속도 -1') && html.includes('자뭉열매 · 소모') && !html.includes('공격 0') && (html.match(/class="ui-tag"/g)||[]).length===3;
+    })()`),'actual rank and item changes remain visible');
     await client.evaluate("rcSetMovePickerValue('knownOppMove','flamethrower',0);renderRevCalcResults()");
     await waitFor(()=>client.evaluate("!!revCalcState.results?.forecast && !revCalcState.results?.pendingForecastKey"),60000);
     check(await client.evaluate("revCalcState.results.results[0].cardReport.opp.some(r=>r.move.id==='flamethrower') && document.querySelector('.rc-prediction-panel').innerText.includes('화염방사')"),'known opponent moves refresh cards through the worker');

@@ -1,0 +1,1093 @@
+{
+  "structure": [
+    {
+      "kind": "main",
+      "main": 1,
+      "h1": 1,
+      "lang": "ko",
+      "duplicates": [],
+      "references": [],
+      "nested": [],
+      "implicitButtons": 0
+    },
+    {
+      "kind": "pokemon",
+      "main": 1,
+      "h1": 1,
+      "lang": "ko",
+      "duplicates": [],
+      "references": [],
+      "nested": [],
+      "implicitButtons": 0
+    },
+    {
+      "kind": "move",
+      "main": 1,
+      "h1": 1,
+      "lang": "ko",
+      "duplicates": [],
+      "references": [],
+      "nested": [],
+      "implicitButtons": 0
+    },
+    {
+      "kind": "nature",
+      "main": 1,
+      "h1": 1,
+      "lang": "ko",
+      "duplicates": [],
+      "references": [],
+      "nested": [],
+      "implicitButtons": 0
+    },
+    {
+      "kind": "item",
+      "main": 1,
+      "h1": 1,
+      "lang": "ko",
+      "duplicates": [],
+      "references": [],
+      "nested": [],
+      "implicitButtons": 0
+    },
+    {
+      "kind": "ability",
+      "main": 1,
+      "h1": 1,
+      "lang": "ko",
+      "duplicates": [],
+      "references": [],
+      "nested": [],
+      "implicitButtons": 0
+    },
+    {
+      "kind": "conditions",
+      "main": 1,
+      "h1": 1,
+      "lang": "ko",
+      "duplicates": [],
+      "references": [],
+      "nested": [],
+      "implicitButtons": 0
+    }
+  ],
+  "layouts": [
+    {
+      "scenario": "default",
+      "width": 320,
+      "viewport": 320,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 296,
+        "h": 349.5,
+        "bottom": 540.296875,
+        "right": 308
+      },
+      "def": {
+        "x": 12,
+        "y": 552.296875,
+        "w": 296,
+        "h": 349.5,
+        "bottom": 901.796875,
+        "right": 308
+      },
+      "swap": {
+        "x": 142,
+        "y": 528.296875,
+        "w": 36,
+        "h": 36,
+        "bottom": 564.296875,
+        "right": 178
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "default",
+      "width": 360,
+      "viewport": 360,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 336,
+        "h": 349.5,
+        "bottom": 540.296875,
+        "right": 348
+      },
+      "def": {
+        "x": 12,
+        "y": 552.296875,
+        "w": 336,
+        "h": 349.5,
+        "bottom": 901.796875,
+        "right": 348
+      },
+      "swap": {
+        "x": 162,
+        "y": 528.296875,
+        "w": 36,
+        "h": 36,
+        "bottom": 564.296875,
+        "right": 198
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "default",
+      "width": 361,
+      "viewport": 361,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 337,
+        "h": 349.5,
+        "bottom": 540.296875,
+        "right": 349
+      },
+      "def": {
+        "x": 12,
+        "y": 552.296875,
+        "w": 337,
+        "h": 349.5,
+        "bottom": 901.796875,
+        "right": 349
+      },
+      "swap": {
+        "x": 162.5,
+        "y": 528.296875,
+        "w": 36,
+        "h": 36,
+        "bottom": 564.296875,
+        "right": 198.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "default",
+      "width": 480,
+      "viewport": 480,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 456,
+        "h": 349.5,
+        "bottom": 540.296875,
+        "right": 468
+      },
+      "def": {
+        "x": 12,
+        "y": 552.296875,
+        "w": 456,
+        "h": 349.5,
+        "bottom": 901.796875,
+        "right": 468
+      },
+      "swap": {
+        "x": 222,
+        "y": 528.296875,
+        "w": 36,
+        "h": 36,
+        "bottom": 564.296875,
+        "right": 258
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "default",
+      "width": 481,
+      "viewport": 481,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 457,
+        "h": 349.5,
+        "bottom": 540.296875,
+        "right": 469
+      },
+      "def": {
+        "x": 12,
+        "y": 552.296875,
+        "w": 457,
+        "h": 349.5,
+        "bottom": 901.796875,
+        "right": 469
+      },
+      "swap": {
+        "x": 222.5,
+        "y": 528.296875,
+        "w": 36,
+        "h": 36,
+        "bottom": 564.296875,
+        "right": 258.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "default",
+      "width": 700,
+      "viewport": 700,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 676,
+        "h": 349.5,
+        "bottom": 540.296875,
+        "right": 688
+      },
+      "def": {
+        "x": 12,
+        "y": 552.296875,
+        "w": 676,
+        "h": 349.5,
+        "bottom": 901.796875,
+        "right": 688
+      },
+      "swap": {
+        "x": 332,
+        "y": 528.296875,
+        "w": 36,
+        "h": 36,
+        "bottom": 564.296875,
+        "right": 368
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "default",
+      "width": 701,
+      "viewport": 701,
+      "overflow": false,
+      "atk": {
+        "x": 20,
+        "y": 222.59375,
+        "w": 320.5,
+        "h": 402,
+        "bottom": 624.59375,
+        "right": 340.5
+      },
+      "def": {
+        "x": 360.5,
+        "y": 222.59375,
+        "w": 320.5,
+        "h": 402,
+        "bottom": 624.59375,
+        "right": 681
+      },
+      "swap": {
+        "x": 330.5,
+        "y": 290.59375,
+        "w": 40,
+        "h": 40,
+        "bottom": 330.59375,
+        "right": 370.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "default",
+      "width": 900,
+      "viewport": 885,
+      "overflow": false,
+      "atk": {
+        "x": 20,
+        "y": 222.59375,
+        "w": 412.5,
+        "h": 402,
+        "bottom": 624.59375,
+        "right": 432.5
+      },
+      "def": {
+        "x": 452.5,
+        "y": 222.59375,
+        "w": 412.5,
+        "h": 402,
+        "bottom": 624.59375,
+        "right": 865
+      },
+      "swap": {
+        "x": 422.5,
+        "y": 290.59375,
+        "w": 40,
+        "h": 40,
+        "bottom": 330.59375,
+        "right": 462.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "default",
+      "width": 901,
+      "viewport": 886,
+      "overflow": false,
+      "atk": {
+        "x": 32,
+        "y": 228.59375,
+        "w": 401,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 433
+      },
+      "def": {
+        "x": 453,
+        "y": 228.59375,
+        "w": 401,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 854
+      },
+      "swap": {
+        "x": 423,
+        "y": 296.59375,
+        "w": 40,
+        "h": 40,
+        "bottom": 336.59375,
+        "right": 463
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "default",
+      "width": 1024,
+      "viewport": 1009,
+      "overflow": false,
+      "atk": {
+        "x": 32,
+        "y": 228.59375,
+        "w": 462.5,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 494.5
+      },
+      "def": {
+        "x": 514.5,
+        "y": 228.59375,
+        "w": 462.5,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 977
+      },
+      "swap": {
+        "x": 484.5,
+        "y": 296.59375,
+        "w": 40,
+        "h": 40,
+        "bottom": 336.59375,
+        "right": 524.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "default",
+      "width": 1440,
+      "viewport": 1425,
+      "overflow": false,
+      "atk": {
+        "x": 168.5,
+        "y": 228.59375,
+        "w": 534,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 702.5
+      },
+      "def": {
+        "x": 722.5,
+        "y": 228.59375,
+        "w": 534,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 1256.5
+      },
+      "swap": {
+        "x": 692.5,
+        "y": 296.59375,
+        "w": 40,
+        "h": 40,
+        "bottom": 336.59375,
+        "right": 732.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "long-name",
+      "width": 320,
+      "viewport": 320,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 296,
+        "h": 382.1875,
+        "bottom": 572.984375,
+        "right": 308
+      },
+      "def": {
+        "x": 12,
+        "y": 584.984375,
+        "w": 296,
+        "h": 349.5,
+        "bottom": 934.484375,
+        "right": 308
+      },
+      "swap": {
+        "x": 142,
+        "y": 560.984375,
+        "w": 36,
+        "h": 36,
+        "bottom": 596.984375,
+        "right": 178
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "long-name",
+      "width": 360,
+      "viewport": 360,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 336,
+        "h": 353.84375,
+        "bottom": 544.640625,
+        "right": 348
+      },
+      "def": {
+        "x": 12,
+        "y": 556.640625,
+        "w": 336,
+        "h": 349.5,
+        "bottom": 906.140625,
+        "right": 348
+      },
+      "swap": {
+        "x": 162,
+        "y": 532.640625,
+        "w": 36,
+        "h": 36,
+        "bottom": 568.640625,
+        "right": 198
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "long-name",
+      "width": 361,
+      "viewport": 361,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 337,
+        "h": 357.84375,
+        "bottom": 548.640625,
+        "right": 349
+      },
+      "def": {
+        "x": 12,
+        "y": 560.640625,
+        "w": 337,
+        "h": 349.5,
+        "bottom": 910.140625,
+        "right": 349
+      },
+      "swap": {
+        "x": 162.5,
+        "y": 536.640625,
+        "w": 36,
+        "h": 36,
+        "bottom": 572.640625,
+        "right": 198.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "long-name",
+      "width": 480,
+      "viewport": 480,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 456,
+        "h": 349.5,
+        "bottom": 540.296875,
+        "right": 468
+      },
+      "def": {
+        "x": 12,
+        "y": 552.296875,
+        "w": 456,
+        "h": 349.5,
+        "bottom": 901.796875,
+        "right": 468
+      },
+      "swap": {
+        "x": 222,
+        "y": 528.296875,
+        "w": 36,
+        "h": 36,
+        "bottom": 564.296875,
+        "right": 258
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "long-name",
+      "width": 481,
+      "viewport": 481,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 457,
+        "h": 349.5,
+        "bottom": 540.296875,
+        "right": 469
+      },
+      "def": {
+        "x": 12,
+        "y": 552.296875,
+        "w": 457,
+        "h": 349.5,
+        "bottom": 901.796875,
+        "right": 469
+      },
+      "swap": {
+        "x": 222.5,
+        "y": 528.296875,
+        "w": 36,
+        "h": 36,
+        "bottom": 564.296875,
+        "right": 258.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "long-name",
+      "width": 700,
+      "viewport": 700,
+      "overflow": false,
+      "atk": {
+        "x": 12,
+        "y": 190.796875,
+        "w": 676,
+        "h": 349.5,
+        "bottom": 540.296875,
+        "right": 688
+      },
+      "def": {
+        "x": 12,
+        "y": 552.296875,
+        "w": 676,
+        "h": 349.5,
+        "bottom": 901.796875,
+        "right": 688
+      },
+      "swap": {
+        "x": 332,
+        "y": 528.296875,
+        "w": 36,
+        "h": 36,
+        "bottom": 564.296875,
+        "right": 368
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "long-name",
+      "width": 701,
+      "viewport": 701,
+      "overflow": false,
+      "atk": {
+        "x": 20,
+        "y": 222.59375,
+        "w": 320.5,
+        "h": 417.6875,
+        "bottom": 640.28125,
+        "right": 340.5
+      },
+      "def": {
+        "x": 360.5,
+        "y": 222.59375,
+        "w": 320.5,
+        "h": 417.6875,
+        "bottom": 640.28125,
+        "right": 681
+      },
+      "swap": {
+        "x": 330.5,
+        "y": 290.59375,
+        "w": 40,
+        "h": 40,
+        "bottom": 330.59375,
+        "right": 370.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "long-name",
+      "width": 900,
+      "viewport": 885,
+      "overflow": false,
+      "atk": {
+        "x": 20,
+        "y": 222.59375,
+        "w": 412.5,
+        "h": 402,
+        "bottom": 624.59375,
+        "right": 432.5
+      },
+      "def": {
+        "x": 452.5,
+        "y": 222.59375,
+        "w": 412.5,
+        "h": 402,
+        "bottom": 624.59375,
+        "right": 865
+      },
+      "swap": {
+        "x": 422.5,
+        "y": 290.59375,
+        "w": 40,
+        "h": 40,
+        "bottom": 330.59375,
+        "right": 462.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "long-name",
+      "width": 901,
+      "viewport": 886,
+      "overflow": false,
+      "atk": {
+        "x": 32,
+        "y": 228.59375,
+        "w": 401,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 433
+      },
+      "def": {
+        "x": 453,
+        "y": 228.59375,
+        "w": 401,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 854
+      },
+      "swap": {
+        "x": 423,
+        "y": 296.59375,
+        "w": 40,
+        "h": 40,
+        "bottom": 336.59375,
+        "right": 463
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "long-name",
+      "width": 1024,
+      "viewport": 1009,
+      "overflow": false,
+      "atk": {
+        "x": 32,
+        "y": 228.59375,
+        "w": 462.5,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 494.5
+      },
+      "def": {
+        "x": 514.5,
+        "y": 228.59375,
+        "w": 462.5,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 977
+      },
+      "swap": {
+        "x": 484.5,
+        "y": 296.59375,
+        "w": 40,
+        "h": 40,
+        "bottom": 336.59375,
+        "right": 524.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    },
+    {
+      "scenario": "long-name",
+      "width": 1440,
+      "viewport": 1425,
+      "overflow": false,
+      "atk": {
+        "x": 168.5,
+        "y": 228.59375,
+        "w": 534,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 702.5
+      },
+      "def": {
+        "x": 722.5,
+        "y": 228.59375,
+        "w": 534,
+        "h": 408,
+        "bottom": 636.59375,
+        "right": 1256.5
+      },
+      "swap": {
+        "x": 692.5,
+        "y": 296.59375,
+        "w": 40,
+        "h": 40,
+        "bottom": 336.59375,
+        "right": 732.5
+      },
+      "status": [
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        },
+        {
+          "value": "정상",
+          "textAlign": "center",
+          "textAlignLast": "center",
+          "paddingLeft": "24px",
+          "paddingRight": "24px"
+        }
+      ]
+    }
+  ],
+  "issues": [],
+  "longestName": {
+    "id": "castformrainy",
+    "name": "캐스퐁 (빗방울의 모습)"
+  }
+}

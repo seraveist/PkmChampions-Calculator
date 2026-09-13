@@ -5,43 +5,9 @@ const matchupSlots = [null, null, null, null, null, null];
 const matchupAbilities = ['', '', '', '', '', ''];
 const matchupCoverageMoves = Array.from({ length: 6 }, () => [null, null, null, null]);
 let matchupMode = 'defense';
+const matchupCoverageField = { weather: 'none', terrain: 'none' };
+const MATCHUP_COL = { type: 72, slot: 112, summary: 112, coverageSummary: 84 };
 
-const EFF_SYMBOL = {
-  4: '◎',
-  2: '○',
-  1: '',
-  0.5: '△',
-  0.25: '△△',
-  0: '✕',
-};
-const EFF_CLASS = {
-  4: 'eff-4',
-  2: 'eff-2',
-  1: '',           // 1× 는 클래스 부여 안 함 (색깔 변경 없음)
-  0.5: 'eff-05',
-  0.25: 'eff-025',
-  0: 'eff-0',
-};
-// 매치업 테이블 고정 열 너비 (px). table-layout: fixed 와 함께 사용.
-const MATCHUP_COL = { type: 72, slot: 112, score: 84, coverageSummary: 84 };
-const DEFENSE_CONSISTENCY_SCORE = { 0: 0, 0.25: 0.25, 0.5: 0.5, 1: 1, 2: 2, 4: 4 };
-const THREAT_RANK = { safe: 0, normal: 1, check: 2, caution: 3, danger: 4, max: 5 };
-
-function matchupMetaIds(kind) {
-  return Array.isArray(META_THREATS?.[kind]) ? META_THREATS[kind].filter(Boolean) : [];
-}
-
-function matchupMetaPokemon(kind) {
-  return matchupMetaIds(kind).map(id => PokemonById[id]).filter(Boolean);
-}
-
-function defenseScoreLabel(score) {
-  if (score >= 10) return { label: 'MAX', cls: 'max' };
-  if (score >= 8) return { label: '위험', cls: 'danger' };
-  if (score >= 6) return { label: '일관성', cls: 'caution' };
-  if (score >= 5) return { label: '보통', cls: 'normal' };
-  return { label: '안전', cls: 'safe' };
-}
 
 function matchupAbilityIds(pokemon) {
   return [...new Set(Object.values(pokemon?.ab || {})
@@ -117,10 +83,11 @@ function matchupSetSlotPokemon(slot, pokemonId, { abilityId = '', itemId = '' } 
   if (!pokemon) {
     matchupSlots[slot] = null;
     matchupAbilities[slot] = '';
+    matchupCoverageMoves[slot] = [null, null, null, null];
     return;
   }
   matchupSlots[slot] = pokemon.id;
-  if (previousId && previousId !== pokemon.id) {
+  if (previousId !== pokemon.id) {
     matchupCoverageMoves[slot] = matchupCoverageMoves[slot].map(id => pokemon.ls?.includes(id) ? id : null);
   }
   const abilityIds = matchupAbilityIds(pokemon);
@@ -129,91 +96,72 @@ function matchupSetSlotPokemon(slot, pokemonId, { abilityId = '', itemId = '' } 
     : matchupDefaultAbilityId(pokemon);
 }
 
-function matchupAbilityTypeImmunity(type, abilityId) {
-  const ability = abilityData(abilityId);
-  const blocksType = (ability.immunities || []).some(immunity => immunity.types?.includes(type));
-  return blocksType ? ability : null;
+// Only rules decidable from the attack type belong in a static type table.
+function matchupTypeRule(rule) {
+  return Object.keys(rule).every(key => ['types', 'effectiveness', 'mod'].includes(key))
+    && (!rule.effectiveness || rule.effectiveness === 'superEffective');
 }
 
 function matchupDefenseEffect(type, entry) {
   const pokemon = entry?.pokemon || entry;
   const typeEffect = pokemon ? typeEff(type, pokemon.types) : 1;
-  if (typeEffect === 0) return { eff: 0, ability: null };
-  const ability = matchupAbilityTypeImmunity(type, entry?.abilityId || '');
-  return ability ? { eff: 0, ability } : { eff: typeEffect, ability: null };
+  const data = abilityData(entry?.abilityId || '');
+  if (typeEffect === 0) return { eff: 0, typeEffect, ability: null };
+  const immune = (data.immunities || []).some(rule => matchupTypeRule(rule) && rule.types?.includes(type));
+  if (immune || (data.superEffectiveOnly && typeEffect <= 1)) return { eff: 0, typeEffect, ability: data };
+  let eff = typeEffect;
+  for (const rule of [...(data.defensiveAttackMods || []), ...(data.defensiveFinalMods || [])]) {
+    if (!matchupTypeRule(rule) || (rule.types && !rule.types.includes(type))) continue;
+    if (rule.effectiveness === 'superEffective' && typeEffect <= 1) continue;
+    const mod = typeof rule.mod === 'number' ? rule.mod : MOD[rule.mod];
+    if (Number.isFinite(mod)) eff *= mod / 4096;
+  }
+  return { eff, typeEffect, ability: eff !== typeEffect ? data : null };
 }
 
 function defenseTypeProfile(type, entries) {
   const effects = entries.map(entry => matchupDefenseEffect(type, entry).eff);
-  const rawScore = effects.reduce((sum, eff) => sum + (DEFENSE_CONSISTENCY_SCORE[eff] ?? 0.15), 0);
-  const score = Math.max(0, rawScore);
-  const weakCount = effects.filter(eff => eff > 1).length;
-  const quadCount = effects.filter(eff => eff >= 4).length;
-  const neutralCount = effects.filter(eff => eff === 1).length;
-  const resistCount = effects.filter(eff => eff === 0.5).length;
-  const quarterCount = effects.filter(eff => eff === 0.25).length;
-  const immuneCount = effects.filter(eff => eff === 0).length;
   return {
     type,
-    score,
-    rawScore,
-    weakCount,
-    quadCount,
-    neutralCount,
-    resistCount,
-    quarterCount,
-    immuneCount,
-    grade: defenseScoreLabel(score),
+    weakCount: effects.filter(eff => eff > 1).length,
+    neutralCount: effects.filter(eff => eff === 1).length,
+    resistCount: effects.filter(eff => eff > 0 && eff < 1).length,
+    immuneCount: effects.filter(eff => eff === 0).length,
   };
 }
 
-function formatDefenseScore(score) {
-  if (score >= 10) return '10+';
-  return score.toFixed(2).replace(/0$/, '').replace(/\.0$/, '.0');
-}
-
-function selectedCoverageMoves() {
-  const moves = [];
-  matchupCoverageMoves.forEach((slotMoves, slot) => {
-    slotMoves.forEach(moveId => {
-      const move = moveId ? MoveById[moveId] : null;
-      if (move) moves.push({ slot, move });
-    });
-  });
-  return moves;
+function coverageSlotMoves(slot) {
+  const pokemon = PokemonById[matchupSlots[slot]];
+  if (!pokemon) return [];
+  return (matchupCoverageMoves[slot] || []).map(id => MoveById[id]).filter(move =>
+    move && move.cat !== 'Status' && pokemon.ls?.includes(move.id));
 }
 
 function coverageSlotHasType(slot, type) {
-  return (matchupCoverageMoves[slot] || []).some(moveId => coverageMoveType(slot, MoveById[moveId]) === type);
+  return coverageSlotMoves(slot).some(move => coverageMoveType(slot, move) === type);
 }
 
 function coverageMoveType(slot, move) {
-  if (!move || move.cat === 'Status') return '';
   const pokemon = PokemonById[matchupSlots[slot]];
-  const change = abilityData(matchupSelectedAbilityId(slot, pokemon)).typeChange;
-  if (change && (!change.from || change.from === move.type) && (!change.flag || move.flags?.[change.flag])) return change.type;
-  return move.type;
+  if (!pokemon || !move || move.cat === 'Status') return '';
+  const ability = abilityData(matchupSelectedAbilityId(slot, pokemon));
+  let type = move.type;
+  // Apply the field before ability conversion, in the same order as the calculator.
+  const weather = ability.suppressesWeather ? 'none' : matchupCoverageField.weather;
+  if (move.typeChangeKind === 'weatherBall') {
+    type = ({ Sun: 'Fire', 'Harsh Sunshine': 'Fire', Rain: 'Water', 'Heavy Rain': 'Water', Sand: 'Rock', Snow: 'Ice' })[weather] || type;
+  }
+  if (move.typeChangeKind === 'terrainPulse' && !pokemon.types.includes('Flying') && ability.grounded !== false) {
+    type = ({ Electric: 'Electric', Grassy: 'Grass', Misty: 'Fairy', Psychic: 'Psychic' })[matchupCoverageField.terrain] || type;
+  }
+  const change = ability.typeChange;
+  if (change && (!change.from || change.from === type) && (!change.flag || move.flags?.[change.flag])) type = change.type;
+  return type;
 }
 
 function coverageCountByType(type, slot = null) {
   if (slot !== null) return coverageSlotHasType(slot, type) ? 1 : 0;
   return matchupCoverageMoves.reduce((sum, _, i) => sum + (coverageSlotHasType(i, type) ? 1 : 0), 0);
-}
-
-function coverageSlotCountForTypes(types) {
-  const targets = new Set(types);
-  return matchupCoverageMoves.reduce((sum, slotMoves, slot) => {
-    const hit = slotMoves.some(moveId => targets.has(coverageMoveType(slot, MoveById[moveId])));
-    return sum + (hit ? 1 : 0);
-  }, 0);
-}
-
-function coverageThreatGrade(has4x, quadCovered, alt2Count) {
-  if (has4x && quadCovered) return { label: '안전', cls: 'safe' };
-  if (alt2Count >= 3) return { label: '안전', cls: 'safe' };
-  if (alt2Count === 2) return { label: '견제', cls: 'check' };
-  if (alt2Count === 1) return { label: '주의', cls: 'caution' };
-  return { label: '위험', cls: 'danger' };
 }
 
 function renderMatchupModeTabs() {
@@ -233,50 +181,14 @@ function renderMatchupModeTabs() {
   });
 }
 
-function syncMatchupMetaHeight() {
-  const layout = document.querySelector('#page-matchup .matchup-result-layout');
-  const main = document.querySelector('#page-matchup .matchup-main');
-  const meta = document.getElementById('matchupMeta');
-  if (!layout || !main || !meta) return;
-  if (window.matchMedia('(max-width: 1280px)').matches) {
-    meta.style.maxHeight = '';
-    return;
-  }
-  requestAnimationFrame(() => {
-    meta.style.maxHeight = `${Math.max(260, main.offsetHeight)}px`;
-  });
-}
-
 function renderMatchupSlots() {
-  const container = document.getElementById('matchupSlots');
-  if (!container) return;
-  renderTrustedHTML(container, matchupSlots.map((id, i) => {
-    const p = id ? PokemonById[id] : null;
-    const forms = matchupFormOptions(p);
-    const abilities = matchupAbilityIds(p).map(abilityId => AbilityById[abilityId]).filter(Boolean);
-    return `
-      <div class="matchup-slot ui-control-frame ui-subframe ui-control-grid ${p ? 'filled' : ''}" data-slot="${i}">
-        <div class="matchup-slot-num">${i + 1}</div>
-        ${pokemonSpriteSlot(p, { size: 'md', className: 'matchup-slot-sprite' })}
-        <div class="combobox">
-          <input type="text" class="cb-input matchup-cb-input" data-slot="${i}" data-cb-type="pokemon" data-cb-portal="true" data-field="matchup-pokemon-${i}"
-                 value="${p ? escapeHTML(pkName(p)) : ''}" placeholder="포켓몬 검색..." aria-label="${i + 1}번 슬롯 포켓몬 선택" aria-expanded="false">
-          <div class="combobox-options"></div>
-        </div>
-        <div class="matchup-slot-types">
-          ${p ? p.types.map(t => `<span class="type-pill matchup-type-pill t-${t}">${TYPE_KO[t]}</span>`).join('') : ''}
-        </div>
-        ${p ? `<button type="button" class="matchup-slot-clear" data-slot="${i}" title="비우기">✕</button>` : ''}
-        ${p ? `<div class="matchup-slot-config">
-          ${forms.length > 1 ? `<select class="matchup-form-select" data-slot="${i}" aria-label="${i + 1}번 슬롯 폼 선택">
-            ${forms.map(form => `<option value="${escapeHTML(form.id)}" ${form.id === p.id ? 'selected' : ''}>${escapeHTML(pkName(form))}</option>`).join('')}
-          </select>` : ''}
-          <select class="matchup-ability-select" data-slot="${i}" aria-label="${i + 1}번 슬롯 특성 선택">
-            ${abilities.map(ability => `<option value="${escapeHTML(ability.id)}" ${ability.id === matchupSelectedAbilityId(i, p) ? 'selected' : ''}>${escapeHTML(abName(ability))}</option>`).join('')}
-          </select>
-        </div>` : ''}
-      </div>
-    `;
+  const container=document.getElementById('matchupSlots');
+  if(!container) return;
+  renderTrustedHTML(container,matchupSlots.map((id,slot)=>{
+    const p=PokemonById[id], forms=matchupFormOptions(p), abilities=matchupAbilityIds(p).map(id=>AbilityById[id]).filter(Boolean);
+    return `<section class="matchup-slot ui-surface ${p ? 'filled' : ''}" data-slot="${slot}"><div class="matchup-slot-head"><span class="eyebrow">${String(slot+1).padStart(2,'0')}</span><div class="type-list">${p ? renderToolTypePills(p.types) : ''}</div>${p ? `<button type="button" class="ui-button icon-button matchup-slot-clear" data-slot="${slot}" aria-label="${slot+1}번 포켓몬 비우기">${RotomUI.icon('close')}</button>` : ''}</div>
+      <div class="combobox">${RotomUI.trigger(`${pokemonSpriteSlot(p,{size:'md'})}<strong class="picker-label">${escapeHTML(p ? pkName(p) : '포켓몬 선택')}</strong>`,{'data-slot':slot,'data-cb-type':'pokemon','data-field':`matchup-pokemon-${slot}`,value:p ? pkName(p) : '','aria-label':`${slot+1}번 포켓몬 선택`},'cb-input cb-trigger matchup-cb-input')}<div class="combobox-options" role="listbox"></div></div>
+      ${p ? `<div class="matchup-slot-config">${forms.length>1 ? RotomUI.field('폼',RotomUI.select(forms.map(form=>[form.id,pkName(form)]),p.id,{class:'matchup-form-select','data-slot':slot,'aria-label':`${slot+1}번 폼`})) : ''}${RotomUI.field('특성',RotomUI.select(abilities.map(a=>[a.id,abName(a)]),matchupSelectedAbilityId(slot,p),{class:'matchup-ability-select','data-slot':slot,'aria-label':`${slot+1}번 특성`}))}</div>` : ''}</section>`;
   }).join(''));
   wireMatchupSlots();
 }
@@ -340,7 +252,7 @@ function wireMatchupSlots() {
 
 function coverageMovePool(slot) {
   const p = matchupSlots[slot] ? PokemonById[matchupSlots[slot]] : null;
-  const pool = p?.ls?.length ? p.ls.map(id => MoveById[id]).filter(Boolean) : MOVES;
+  const pool = (p?.ls || []).map(id => MoveById[id]).filter(Boolean);
   return sortMovesForCalcSelect(pool.filter(m => m.cat !== 'Status' && m.type && BATTLE_TYPES.includes(m.type)));
 }
 
@@ -374,262 +286,78 @@ function matchupMoveOptionRows(slot, moveIndex, query) {
 }
 
 function renderMatchupCoverageInputs() {
-  const container = document.getElementById('matchupCoverageInputs');
-  if (!container) return;
-  if (matchupMode !== 'coverage') {
-    renderTrustedHTML(container, '');
-    return;
-  }
-  renderTrustedHTML(container, matchupSlots.map((id, slot) => {
-    const p = id ? PokemonById[id] : null;
-    const title = p ? pkName(p) : `슬롯 ${slot + 1}`;
-    const rows = p ? matchupCoverageMoves[slot].map((moveId, moveIndex) => {
-      const m = moveId ? MoveById[moveId] : null;
-      return `
-        <div class="matchup-move-field ui-control-row">
-          <span class="matchup-move-num">${moveIndex + 1}</span>
-          <div class="combobox matchup-move-combobox">
-            <input type="text" class="cb-input matchup-move-input" data-slot="${slot}" data-move-index="${moveIndex}" data-cb-type="move" data-cb-portal="true" data-cb-portal-size="compact" data-field="matchup-move-${slot}-${moveIndex}"
-                   value="${m ? escapeHTML(mvName(m)) : ''}" placeholder="기술 검색">
-            <div class="combobox-options"></div>
-          </div>
-          <span class="matchup-move-type-slot">
-            ${m ? `<span class="type-pill matchup-type-pill t-${coverageMoveType(slot, m)}">${TYPE_KO[coverageMoveType(slot, m)] || coverageMoveType(slot, m)}</span>` : ''}
-          </span>
-          <button type="button" class="matchup-move-clear" data-slot="${slot}" data-move-index="${moveIndex}" title="비우기" ${m ? '' : 'disabled'}>✕</button>
-        </div>
-      `;
-    }).join('') : '';
-    return `
-      <div class="matchup-coverage-card ui-control-frame ui-subframe ui-subframe-stack ${p ? 'filled' : ''}">
-        <div class="matchup-coverage-head ui-chip-row">
-          <span>${escapeHTML(title)}</span>
-          ${p ? p.types.map(t => `<span class="type-pill matchup-type-pill t-${t}">${TYPE_KO[t] || t}</span>`).join('') : ''}
-        </div>
-        ${p ? `<div class="matchup-move-grid ui-control-grid">${rows}</div>` : '<div class="matchup-coverage-empty">포켓몬 선택 후 기술 입력</div>'}
-      </div>
-    `;
+  const container=document.getElementById('matchupCoverageInputs');
+  if(!container) return;
+  renderMatchupCoverageField();
+  if(matchupMode!=='coverage') { renderTrustedHTML(container,''); return; }
+  renderTrustedHTML(container,matchupSlots.map((id,slot)=>{
+    const p=PokemonById[id];
+    if(!p) return '';
+    return `<section class="matchup-coverage-card ui-surface"><div class="section-heading"><h3>${escapeHTML(pkName(p))}</h3><span class="type-list">${renderToolTypePills(p.types)}</span></div><div class="matchup-move-grid">${matchupCoverageMoves[slot].map((id,moveIndex)=>{
+      const m=MoveById[id];
+      return `<div class="matchup-move-field"><span class="matchup-move-num">${moveIndex+1}</span><div class="combobox">${RotomUI.trigger(`<span class="picker-label">${escapeHTML(m ? mvName(m) : '기술 선택')}</span><span class="matchup-move-type-slot">${m ? renderToolTypePills([coverageMoveType(slot,m)]) : ''}</span>`,{'data-slot':slot,'data-move-index':moveIndex,'data-cb-type':'move','data-field':`matchup-move-${slot}-${moveIndex}`,value:m ? mvName(m) : '','aria-label':`${pkName(p)} ${moveIndex+1}번 기술`},'cb-input cb-trigger matchup-move-input')}<div class="combobox-options" role="listbox"></div></div><button type="button" class="ui-button icon-button matchup-move-clear" data-slot="${slot}" data-move-index="${moveIndex}" aria-label="${moveIndex+1}번 기술 비우기" ${m ? '' : 'disabled'}>${RotomUI.icon('close')}</button></div>`;
+    }).join('')}</div></section>`;
   }).join(''));
   wireMatchupCoverageInputs();
 }
 
 function wireMatchupCoverageInputs() {
-  const container = document.getElementById('matchupCoverageInputs');
-  if (!container) return;
-  container.querySelectorAll('.matchup-move-input').forEach(input => {
-    const slot = parseInt(input.dataset.slot, 10);
-    const moveIndex = parseInt(input.dataset.moveIndex, 10);
-    const cbParent = input.closest('.combobox');
-    const optsEl = cbParent?.querySelector('.combobox-options');
-    if (!optsEl) return;
-    const usesPortal = typeof calcMountComboboxPortal === 'function'
-      ? calcMountComboboxPortal(input, cbParent, optsEl)
-      : false;
-
-    let selectingOption = false;
-    const selectedMoveId = () => matchupCoverageMoves[slot]?.[moveIndex] || '';
-    const restoreInput = () => {
-      const moveId = selectedMoveId();
-      input.value = moveId && MoveById[moveId] ? mvName(MoveById[moveId]) : '';
-    };
-    const applyMoveId = id => {
-      matchupCoverageMoves[slot][moveIndex] = id && MoveById[id] ? id : null;
-      renderMatchupCoverageInputs();
-      renderMatchupTable();
-    };
-    const showMoveOptions = query => {
-      const rows = matchupMoveOptionRows(slot, moveIndex, query);
-      renderTrustedHTML(optsEl, rows
-        ? rows
-        : '<div class="combobox-option empty" aria-disabled="true"><span>\uAC80\uC0C9 \uACB0\uACFC \uC5C6\uC74C</span></div>');
-      if (typeof closeSiblingComboboxOptions === 'function') {
-        closeSiblingComboboxOptions(optsEl, input);
-      }
-      if (usesPortal && typeof calcPositionComboboxPortal === 'function') {
-        requestAnimationFrame(() => calcPositionComboboxPortal(input, optsEl, optsEl.dataset.calcPortalType || input.dataset.cbType || ''));
-      }
-    };
-    const moveCombo = wireSharedComboboxKeyboard(input, optsEl, {
-      showOptions: showMoveOptions,
-      onSelect: opt => {
-        selectingOption = true;
-        applyMoveId(opt.dataset.id || '');
+  const container=document.getElementById('matchupCoverageInputs');
+  if(!container) return;
+  container.querySelectorAll('.matchup-move-input').forEach(input=>{
+    const slot=Number(input.dataset.slot),index=Number(input.dataset.moveIndex),list=input.closest('.combobox')?.querySelector('.combobox-options');
+    if(!list) return;
+    const combo=wireSharedComboboxKeyboard(input,list,{
+      showOptions:query=>renderTrustedHTML(list,matchupMoveOptionRows(slot,index,query) || '<div class="combobox-option empty">검색 결과 없음</div>'),
+      onSelect:option=>{
+        const id=option.dataset.id || '';
+        matchupCoverageMoves[slot][index]=coverageMovePool(slot).some(m=>m.id===id) ? id : null;
+        renderMatchupCoverageInputs();renderMatchupTable();
       },
-      getQuery: () => input.value || '',
-      onInvalidInput: restoreInput,
     });
-
-    input.addEventListener('focus', () => moveCombo?.open(input.value || ''));
-    input.addEventListener('click', () => moveCombo?.open(input.value || ''));
-    input.addEventListener('input', e => {
-      if (!e.target.value.trim()) {
-        matchupCoverageMoves[slot][moveIndex] = null;
-        renderMatchupTable();
-      }
-      moveCombo?.open(e.target.value, { activateFirst: true });
-    });
-    input.addEventListener('compositionend', e => moveCombo?.open(e.target.value, { activateFirst: true }));
-    input.addEventListener('blur', () => setTimeout(() => {
-      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
-        selectingOption = false;
-        restoreInput();
-        moveCombo?.close();
-        return;
-      }
-      if (selectingOption) {
-        selectingOption = false;
-        return;
-      }
-      if (!String(input.value || '').trim()) {
-        applyMoveId('');
-        return;
-      }
-      moveCombo?.commitTyped();
-    }, 180));
-
-    const handleOptionSelect = e => {
-      const opt = e.target.closest('.combobox-option:not(.empty)');
-      if (!opt || opt.classList.contains('empty')) return;
-      selectingOption = true;
-      e.preventDefault();
-      moveCombo?.select(opt);
-    };
-    optsEl.addEventListener('mousedown', handleOptionSelect);
-    optsEl.addEventListener('click', handleOptionSelect);
-    optsEl.addEventListener('touchstart', handleOptionSelect, { passive: false });
+    input.addEventListener('click',()=>combo.open(''));
   });
-  container.querySelectorAll('.matchup-move-clear').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const slot = parseInt(btn.dataset.slot, 10);
-      const moveIndex = parseInt(btn.dataset.moveIndex, 10);
-      matchupCoverageMoves[slot][moveIndex] = null;
+  container.querySelectorAll('.matchup-move-clear').forEach(button=>button.addEventListener('click',()=>{
+    matchupCoverageMoves[Number(button.dataset.slot)][Number(button.dataset.moveIndex)]=null;
+    renderMatchupCoverageInputs();renderMatchupTable();
+  }));
+}
+
+function renderMatchupCoverageField() {
+  const box = document.getElementById('matchupCoverageField');
+  if (!box) return;
+  box.hidden = matchupMode !== 'coverage';
+  for (const key of ['weather', 'terrain']) {
+    const select = document.getElementById(`matchup-${key}`);
+    if (!select) continue;
+    select.value = matchupCoverageField[key];
+    select.onchange = () => {
+      matchupCoverageField[key] = select.value;
       renderMatchupCoverageInputs();
       renderMatchupTable();
-    });
-  });
+    };
+  }
 }
 
-function renderMatchupSideGroup(label, cls, rows, renderRow) {
-  if (!rows.length) return '';
-  return `
-    <div class="matchup-side-section ${cls}">
-      <div class="matchup-side-section-title ${cls}">${label}</div>
-      <div class="matchup-side-section-cards">
-        ${rows.map(renderRow).join('')}
-      </div>
-    </div>
-  `;
-}
-
-function renderMatchupMetaTypeBadges(types) {
-  return types.map(entry => {
-    const type = typeof entry === 'string' ? entry : entry.type;
-    const state = typeof entry === 'string' ? '' : (entry.state || '');
-    return `<span class="matchup-meta-type-badge ${state}"><span class="type-pill t-${type}">${TYPE_KO[type] || type}</span></span>`;
-  }).join('');
-}
-
-function renderMatchupMetaCard(pokemon, gradeClass, types) {
-  return `
-    <div class="matchup-side-card ${gradeClass}">
-      <div class="matchup-side-name">${escapeHTML(pkName(pokemon))}</div>
-      <div class="matchup-side-badges matchup-weakness-list">${renderMatchupMetaTypeBadges(types)}</div>
-    </div>
-  `;
-}
-
-function renderMatchupMeta(kind, context = {}) {
-  const box = document.getElementById('matchupMeta');
-  if (!box) return;
-  if (kind === 'defensiveThreats') {
-    const entries = context.entries || [];
-    if (entries.length < 3) {
-      renderTrustedHTML(box, '<div class="matchup-side-title">주의 포켓몬</div><div class="matchup-side-empty">3마리 이상 선택하면 메타 위협의 타입별 위험도를 표시합니다.</div>');
-      return;
-    }
-    const rows = matchupMetaPokemon('defensiveThreats').map(p => {
-      const profiles = (p.types || []).map(type => defenseTypeProfile(type, entries));
-      const visibleProfiles = profiles.filter(profile => profile.grade.cls === 'danger' || profile.grade.cls === 'caution' || profile.grade.cls === 'max');
-      const maxScore = Math.max(...visibleProfiles.map(s => s.score), 0);
-      const maxRank = Math.max(...visibleProfiles.map(s => THREAT_RANK[s.grade.cls] || 0), 0);
-      const maxGrade = visibleProfiles.find(s => (THREAT_RANK[s.grade.cls] || 0) === maxRank)?.grade || { label: '안전', cls: 'safe' };
-      return { p, profiles: visibleProfiles, maxScore, maxRank, maxGrade };
-    }).filter(row => row.profiles.length)
-      .sort((a, b) => b.maxRank - a.maxRank || b.maxScore - a.maxScore || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
-    const dangerRows = rows.filter(row => row.maxGrade.cls === 'danger' || row.maxGrade.cls === 'max');
-    const cautionRows = rows.filter(row => row.maxGrade.cls === 'caution');
-    const renderDefenseRow = row => renderMatchupMetaCard(row.p, row.maxGrade.cls, row.profiles.map(s => ({ type: s.type, state: s.grade.cls })));
-    const sections = [
-      renderMatchupSideGroup('위험', 'danger', dangerRows, renderDefenseRow),
-      renderMatchupSideGroup('주의', 'caution', cautionRows, renderDefenseRow),
-    ].join('');
-    renderTrustedHTML(box, `
-      <div class="matchup-side-title">주의 포켓몬</div>
-      <div class="matchup-side-list">
-        ${sections || '<div class="matchup-side-empty">현재 선택 기준으로 위험/주의 메타 포켓몬이 없습니다.</div>'}
-      </div>
-    `);
+function renderMatchupLegend() {
+  const box=document.getElementById('matchupLegend');
+  if(!box) return;
+  if(matchupMode==='coverage') {
+    const entries=selectedMatchupEntries(),entered=entries.filter(({slot})=>coverageSlotMoves(slot).length).length;
+    renderTrustedHTML(box,`<span>기술 입력 ${entered} / ${entries.length}</span><span>1 보유 · 0 없음 · — 미입력</span><span>타입당 포켓몬 수 · 특성·날씨·필드 반영</span>`);
     return;
   }
-  const coverageMoves = selectedCoverageMoves();
-  if (coverageMoves.length === 0) {
-    renderTrustedHTML(box, '<div class="matchup-side-title">메타 타점</div><div class="matchup-side-empty">타점 체크에서 기술을 입력하면 메타 포켓몬의 4배/2배 약점 커버를 표시합니다.</div>');
-    return;
-  }
-  const rows = matchupMetaPokemon('coverageChecks').map(p => {
-    const weaknesses = BATTLE_TYPES.map(type => {
-      const eff = typeEff(type, p.types);
-      if (eff <= 1) return null;
-      const count = coverageCountByType(type);
-      return { type, eff, count };
-    }).filter(Boolean);
-    const quadWeaknesses = weaknesses.filter(w => w.eff >= 4);
-    const doubleWeaknesses = weaknesses.filter(w => w.eff === 2);
-    const missing4 = quadWeaknesses.filter(w => w.count === 0);
-    const has4x = quadWeaknesses.length > 0;
-    const quadCovered = quadWeaknesses.some(w => w.count > 0);
-    const alt2Count = coverageSlotCountForTypes(doubleWeaknesses.map(w => w.type));
-    const grade = coverageThreatGrade(has4x, quadCovered, alt2Count);
-    return { p, weaknesses, quadWeaknesses, doubleWeaknesses, missing4, has4x, quadCovered, alt2Count, grade };
-  }).filter(row => row.grade.cls !== 'safe');
-  const dangerRows = rows
-    .filter(row => row.grade.cls === 'danger')
-    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
-  const cautionRows = rows
-    .filter(row => row.grade.cls === 'caution')
-    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
-  const checkRows = rows
-    .filter(row => row.grade.cls === 'check')
-    .sort((a, b) => b.missing4.length - a.missing4.length || a.alt2Count - b.alt2Count || pkName(a.p).localeCompare(pkName(b.p), 'ko'));
-  const renderCoverageRow = row => {
-    const shownWeaknesses = row.missing4.length ? [...row.missing4, ...row.doubleWeaknesses] : row.doubleWeaknesses;
-    return renderMatchupMetaCard(row.p, row.grade.cls, shownWeaknesses.map(w => ({ type: w.type, state: w.count ? 'covered' : 'missing' })));
-  };
-  const sections = [
-    renderMatchupSideGroup('위험', 'danger', dangerRows, renderCoverageRow),
-    renderMatchupSideGroup('주의', 'caution', cautionRows, renderCoverageRow),
-    renderMatchupSideGroup('견제', 'check', checkRows, renderCoverageRow),
-  ].join('');
-  renderTrustedHTML(box, `
-    <div class="matchup-side-title">메타 타점</div>
-    <div class="matchup-side-list">
-      ${sections || '<div class="matchup-side-empty">현재 기술 기준으로 미커버 위험/주의/견제 메타 포켓몬이 없습니다.</div>'}
-    </div>
-  `);
-}
-
-function renderDefenseScoreCell(profile) {
-  const scoreText = formatDefenseScore(profile.score);
-  return `
-    <td class="summary score ${profile.grade.cls}" title="${profile.grade.label} · 약점 ${profile.weakCount} · 반감 ${profile.resistCount} · 1/4 ${profile.quarterCount} · 무효 ${profile.immuneCount}">
-      <div class="matchup-score-main">${scoreText}</div>
-    </td>
-  `;
+  const conditional=[...new Set(selectedMatchupEntries().filter(({abilityId})=>{
+    const data=abilityData(abilityId);
+    return data.defenseStatBoosts?.length || [...(data.defensiveAttackMods || []),...(data.defensiveFinalMods || []),...(data.immunities || [])].some(rule=>!matchupTypeRule(rule));
+  }).map(({abilityId})=>abName(abilityData(abilityId))))];
+  renderTrustedHTML(box,`<span>타입·선택 특성 반영</span><span>마릿수: 약점 / 반감 / 무효</span>${conditional.length ? `<span>조건부 효과 제외: ${escapeHTML(conditional.join(', '))}</span>` : ''}`);
 }
 
 function renderMatchupTable() {
   if (matchupMode === 'coverage') renderCoverageMatchupTable();
   else renderDefenseMatchupTable();
+  renderMatchupLegend();
   wireMatchupScrollHint();
   requestAnimationFrame(updateMatchupScrollHint);
 }
@@ -677,107 +405,64 @@ function configureMatchupTable(table, entries, summaryWidth) {
     ...entries.map(() => MATCHUP_COL.slot),
     summaryWidth,
   ]);
+  table.style.minWidth = `${MATCHUP_COL.type + entries.length * MATCHUP_COL.slot + summaryWidth}px`;
   table.dataset.selectedCount = String(entries.length);
   table.classList.toggle('matchup-table-compact', entries.length <= 3);
 }
 
 function renderDefenseMatchupTable() {
-  const tbl = document.getElementById('matchupTable');
+  const table = document.getElementById('matchupTable');
   const head = document.getElementById('matchupHead');
   const body = document.getElementById('matchupBody');
-  if (!tbl || !head || !body) return;
-
+  if (!table || !head || !body) return;
   const entries = selectedMatchupEntries();
-  const valid = entries.map(entry => entry.pokemon);
-  renderMatchupMeta('defensiveThreats', { entries });
-
-  // colgroup 으로 고정 열 너비 강제 (table-layout: fixed 와 함께)
-  // 슬롯 채워지든 비어 있든 동일한 폭을 유지한다.
-  configureMatchupTable(tbl, entries, MATCHUP_COL.score);
-
-  // 헤더: 공격 타입 컬럼 + 6 슬롯 + 무효/약점 요약
-  renderTrustedHTML(head, `
-    <tr>
-      <th class="matchup-type-head">타입</th>
-      ${entries.map(({ pokemon }) => `<th title="${escapeHTML(pkName(pokemon))}">${escapeHTML(pkName(pokemon))}</th>`).join('')}
-      <th class="summary">일관성</th>
-    </tr>
-  `);
-
-  if (valid.length < 3) {
-    renderTrustedHTML(body, `<tr><td colspan="${entries.length + 2}" class="empty-state-cell">3마리 이상 선택하면 방어 상성 진단을 표시합니다.</td></tr>`);
+  configureMatchupTable(table, entries, MATCHUP_COL.summary);
+  renderTrustedHTML(head, `<tr><th scope="col" class="matchup-type-head">공격 타입</th>
+    ${entries.map(({ pokemon }) => `<th scope="col" title="${escapeHTML(pkName(pokemon))}">${escapeHTML(pkName(pokemon))}</th>`).join('')}
+    <th scope="col" class="summary">마릿수<small>약점 / 반감 / 무효</small></th></tr>`);
+  if (!entries.length) {
+    renderTrustedHTML(body, '<tr><td colspan="2" class="empty-state-cell">포켓몬을 선택하면 방어 상성을 표시합니다.</td></tr>');
     return;
   }
-
-  // 본문: 18 행 × 6 셀 + 요약
-  renderTrustedHTML(body, BATTLE_TYPES.map(t => {
+  renderTrustedHTML(body, BATTLE_TYPES.map(type => {
     const cells = entries.map(entry => {
-      const { eff, ability } = matchupDefenseEffect(t, entry);
-      const sym = ability ? abName(ability) : (EFF_SYMBOL[eff] !== undefined ? EFF_SYMBOL[eff] : eff + '×');
-      const cls = EFF_CLASS[eff] || '';
-      return `<td class="${cls} ${ability ? 'ability-immune' : ''}">${escapeHTML(sym)}</td>`;
+      const { eff, typeEffect, ability } = matchupDefenseEffect(type, entry);
+      const cls = eff === 0 ? 'eff-0' : eff >= 4 ? 'eff-4' : eff > 1 ? 'eff-2' : eff <= 0.25 ? 'eff-025' : eff < 1 ? 'eff-05' : '';
+      return `<td class="${cls}" title="타입 ${typeEffect}배${ability ? ` · ${escapeHTML(abName(ability))} 반영` : ''}">${eff}×${ability ? `<small class="matchup-ability-note">${escapeHTML(abName(ability))}</small>` : ''}</td>`;
     }).join('');
-
-    const profile = defenseTypeProfile(t, entries);
-
-    return `
-      <tr>
-        <td><span class="type-pill matchup-table-type t-${t}">${TYPE_KO[t]}</span></td>
-        ${cells}
-        ${renderDefenseScoreCell(profile)}
-      </tr>
-    `;
+    const profile = defenseTypeProfile(type, entries);
+    return `<tr><th scope="row"><span class="type-pill matchup-table-type t-${type}">${TYPE_KO[type]}</span></th>${cells}
+      <td class="summary" aria-label="약점 ${profile.weakCount}마리, 반감 ${profile.resistCount}마리, 무효 ${profile.immuneCount}마리">${profile.weakCount} / ${profile.resistCount} / ${profile.immuneCount}</td></tr>`;
   }).join(''));
-  syncMatchupMetaHeight();
 }
-/* ════════════════════════════════════════════════════════════
-   도감 상세 모달 — Cross-reference 인덱스 + 렌더러
-   ════════════════════════════════════════════════════════════ */
-// 특성 → 보유 포켓몬 인덱스 (한 번만 빌드)
+
 function renderCoverageMatchupTable() {
-  const tbl = document.getElementById('matchupTable');
+  const table = document.getElementById('matchupTable');
   const head = document.getElementById('matchupHead');
   const body = document.getElementById('matchupBody');
-  if (!tbl || !head || !body) return;
-  renderMatchupMeta('coverageChecks');
-
+  if (!table || !head || !body) return;
   const entries = selectedMatchupEntries();
-  const valid = entries.map(entry => entry.pokemon);
-  configureMatchupTable(tbl, entries, MATCHUP_COL.coverageSummary);
-
-  renderTrustedHTML(head, `
-    <tr>
-      <th class="matchup-type-head">타입</th>
-      ${entries.map(({ pokemon }) => `<th title="${escapeHTML(pkName(pokemon))}">${escapeHTML(pkName(pokemon))}</th>`).join('')}
-      <th class="summary">커버</th>
-    </tr>
-  `);
-
-  if (valid.length < 3) {
-    renderTrustedHTML(body, `<tr><td colspan="${entries.length + 2}" class="empty-state-cell">3마리 이상 선택하고 타점 체크에서 기술을 입력하면 진단을 표시합니다.</td></tr>`);
+  const entered = entries.filter(({ slot }) => coverageSlotMoves(slot).length).length;
+  configureMatchupTable(table, entries, MATCHUP_COL.coverageSummary);
+  renderTrustedHTML(head, `<tr><th scope="col" class="matchup-type-head">기술 타입</th>
+    ${entries.map(({ pokemon }) => `<th scope="col" title="${escapeHTML(pkName(pokemon))}">${escapeHTML(pkName(pokemon))}</th>`).join('')}
+    <th scope="col" class="summary">보유 수</th></tr>`);
+  if (!entered) {
+    renderTrustedHTML(body, `<tr><td colspan="${entries.length + 2}" class="empty-state-cell">${entries.length ? '사용할 공격 기술을 입력하면 타입별 보유 수를 표시합니다.' : '포켓몬을 선택하고 공격 기술을 입력하세요.'}</td></tr>`);
     return;
   }
-
-  renderTrustedHTML(body, BATTLE_TYPES.map(t => {
+  renderTrustedHTML(body, BATTLE_TYPES.map(type => {
     const cells = entries.map(({ slot }) => {
-      const count = coverageCountByType(t, slot);
-      return `<td class="${count ? 'coverage-hit' : 'coverage-miss'}">${count || ''}</td>`;
+      if (!coverageSlotMoves(slot).length) return '<td class="coverage-pending" aria-label="기술 입력 전">—</td>';
+      const count = coverageCountByType(type, slot);
+      return `<td class="${count ? 'coverage-hit' : 'coverage-none'}">${count}</td>`;
     }).join('');
-    const total = coverageCountByType(t);
-    return `
-      <tr>
-        <td><span class="type-pill matchup-table-type t-${t}">${TYPE_KO[t]}</span></td>
-        ${cells}
-        <td class="summary ${total ? 'coverage-hit' : 'coverage-miss'}">${total || ''}</td>
-      </tr>
-    `;
+    const total = coverageCountByType(type);
+    return `<tr><th scope="row"><span class="type-pill matchup-table-type t-${type}">${TYPE_KO[type]}</span></th>${cells}
+      <td class="summary ${total ? 'coverage-hit' : 'coverage-none'}">${total}</td></tr>`;
   }).join(''));
-  syncMatchupMetaHeight();
 }
 
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-  window.addEventListener('resize', () => {
-    syncMatchupMetaHeight();
-    updateMatchupScrollHint();
-  });
+  window.addEventListener('resize', updateMatchupScrollHint);
 }

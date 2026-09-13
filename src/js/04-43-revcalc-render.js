@@ -11,149 +11,15 @@ function rcSetStagePanelState(panelId, state, label) {
 function renderRevCalcMy() {
   const container = document.getElementById('rc-my-body');
   if (!container) return;
-  const my = revCalcState.my;
-  const p = PokemonById[my.pokemonIdx];
-  const formControl = p ? renderToolFormCombobox({
-    pokemonId: my.pokemonIdx,
-    inputClass: 'rc-cb-input',
-    pickAttr: 'data-rc-pick',
-    pickValue: 'myForm',
-    ariaLabel: '내 포켓몬 폼 선택',
-  }) : '';
-  const pokemonPicker = renderToolPokemonSelectSubframe({
-    fieldClass: 'rc-cb-field rc-pokemon-field',
-    headClass: 'rc-pokemon-head ui-section-head',
-    labelClass: 'ui-section-title',
-    primaryActions: uiButton('불러오기', {
-      class: 'party-load-button ui-label-action ui-field-action',
-      'data-party-import-target': 'revcalc:my',
-    }),
-    metaActions: p ? `
-      ${formControl}
-      ${renderToolPokemonTypeStrip({ types: p.types, ariaLabel: '타입' })}
-    ` : '',
-    inputClass: 'rc-cb-input',
-    inputAttrs: { 'data-rc-pick': 'my' },
-    value: p ? pkName(p) : '',
-    placeholder: '포켓몬 검색...',
-  });
-  if (!p) {
-    renderTrustedHTML(container, `
-      <div class="rc-setup-grid tool-settings-layout ui-control-grid">
-        <div class="rc-pokemon-main-row ui-control-row">
-          ${pokemonPicker}
-        </div>
-      </div>
-      <div class="empty-state ui-empty ui-empty--compact ui-empty--guide">포켓몬 선택 필요</div>
-    `);
-    rcWireMyComboboxes();
-    return;
-  }
-  const stats = calcStats(my);
-  const totalEV = ['hp','atk','def','spa','spd','spe'].reduce((a,s) => a + (my.evs[s]||0), 0);
-  const overEV = totalEV > 66;
-  const moveSetRows = rcMoveSet().map((moveId, idx) => `
-    <div class="rc-move-slot-field">
-      ${rcRenderMoveCombobox('moveslot', moveId, { slot: idx, placeholder: '기술 선택' })}
-    </div>
-  `).join('');
-
-  const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
-  const RANK_STATS = ['atk','def','spa','spd','spe'];
-  const statRows = renderToolStatRows(['hp', ...RANK_STATS].map(s => {
-    const ev = my.evs[s] || 0;
-    const final = stats[s];
-    const rank = my.ranks?.[s] || 0;
-    return {
-      stat: s,
-      labelHtml: `<span class="rc-stat-label tool-stat-name-text">${escapeHTML(STAT_KO[s])}</span>`,
-      base: p.bs[s],
-      point: ev,
-      final,
-      rank,
-      natureHtml: renderToolStatNatureMark(s, my.nature, {
-        upClass: 'rc-nature-up',
-        downClass: 'rc-nature-down',
-        emptyClass: 'rc-nature-spacer',
-      }),
-      pointOptions: {
-        zeroAttrs: { 'data-rc-evset': s, 'data-rc-evval': '0' },
-        inputAttrs: { 'data-rc-ev': s, min: '0', max: '32', 'aria-label': `내 ${STAT_KO[s]} 능력 포인트` },
-        maxAttrs: { 'data-rc-evset': s, 'data-rc-evval': '32' },
-      },
-      rankOptions: {
-        rankable: s !== 'hp',
-        decAttrs: { 'data-rc-rank': s, 'data-rc-dir': '-1' },
-        incAttrs: { 'data-rc-rank': s, 'data-rc-dir': '1' },
-      },
-    };
-  }), {
-    rowClass: 'rc-stat-row',
-    nameClass: 'rc-stat-name',
-    baseClass: 'rc-stat-base',
-    finalClass: 'rc-stat-final',
-  });
-
-  renderTrustedHTML(container, `
-    <div class="rc-setup-grid tool-settings-layout ui-control-grid">
-      <div class="rc-pokemon-main-row ui-control-row">
-        ${pokemonPicker}
-      </div>
-      <div class="rc-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
-        <div class="rc-settings-grid tool-settings-grid ui-control-grid">
-          <label class="rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="ability"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">특성</span>
-            <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
-              <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="myability" value="${escapeHTML(rcComboLabel('ability', my.ability))}" placeholder="특성 검색..." autocomplete="off">
-              <div class="combobox-options"></div>
-            </div>
-          </label>
-          <label class="rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="nature"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">성격</span>
-            <div class="combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
-              <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="mynature" value="${escapeHTML(rcComboLabel('nature', my.nature))}" placeholder="성격 검색..." autocomplete="off">
-              <div class="combobox-options"></div>
-            </div>
-          </label>
-          <label class="rc-cb-field rc-field tool-settings-cell tool-settings-choice-cell tool-settings-select-cell ui-control-cell ui-field" data-tool-setting="item"><span class="tool-settings-label tool-settings-choice-label tool-settings-select-label ui-field-label ui-control-label">도구</span>
-            <div class="combobox rc-flex-combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-select-combobox">
-              <input type="text" class="cb-input rc-cb-input tool-settings-choice-surface tool-settings-choice-input tool-settings-select-input" data-rc-pick="myitem" value="${my.item ? escapeHTML(itName(ItemById[my.item] || { name: my.item })) : '없음'}" autocomplete="off">
-              <div class="combobox-options"></div>
-            </div>
-          </label>
-        </div>
-      </div>
-    </div>
-      <label class="rc-start-hp ui-field"><span class="ui-field-label">관측 시작 내 HP</span><input type="number" data-rc-action="myStartHp" min="1" max="${stats.hp}" value="${rcHp(my)}"><small>최대 ${stats.hp} · 아래 랭크도 관측 시작 시점 기준</small></label>
-      <div class="rc-my-build-row ui-control-row">
-      <div class="tool-stat-panel tool-stat-set tool-stat-set--revcalc tool-stat-has-nature ui-control-frame ui-subframe ui-subframe-stack ui-field">
-        <div class="tool-stat-panel-head ui-section-head">
-          <div class="tool-stat-panel-title ui-section-title">능력 포인트</div>
-          <div class="rc-stat-total tool-stat-total ui-metric-chip ${overEV ? 'over' : ''}">
-            총합 <b>${totalEV}</b> / 66 ${overEV ? '<span class="rc-ev-over">초과</span>' : ''}
-          </div>
-        </div>
-        <div class="tool-stat-panel-body">
-          <div class="tool-stat-table-frame ui-control-frame">
-            <div class="rc-stats-grid rc-stat-grid tool-stat-grid ui-stat-grid ui-stat-table">
-              ${renderToolStatHead(['name', 'base', 'point', 'final', 'rank'], {
-                rowClass: 'rc-stat-head-row',
-              })}
-              ${statRows}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="rc-my-moves-panel tool-move-panel tool-move-no-type tool-move-no-power tool-move-no-readout ui-control-frame ui-subframe ui-subframe-stack ui-field">
-        <div class="tool-move-panel-head ui-section-head">
-          <div class="tool-move-panel-title ui-section-title">기술배치</div>
-        </div>
-        <div class="tool-move-panel-body">
-          <div class="tool-move-list-frame ui-control-frame">
-            <div class="rc-move-set-grid compact tool-move-list ui-control-grid">${moveSetRows}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `);
+  const my = revCalcState.my, p = PokemonById[my.pokemonIdx];
+  const picker = renderToolPokemonSelectSubframe({pokemonId:my.pokemonIdx,value:p ? pkName(p) : '',inputClass:'rc-cb-input',inputAttrs:{'data-rc-pick':'my','aria-label':'내 포켓몬'},primaryActions:'<button type="button" class="ui-label-action" data-party-import-target="revcalc:my">불러오기</button>',metaActions:renderToolFormCombobox({pokemonId:my.pokemonIdx,inputClass:'rc-cb-input',pickAttr:'data-rc-pick',pickValue:'myForm'})});
+  const total = Object.values(my.evs).reduce((a,b)=>a+b,0);
+  renderTrustedHTML(container,`${picker}${p ? `
+    <div class="attributes">${['ability','item','nature'].map(key=>RotomUI.picker({ability:'특성',item:'도구',nature:'성격'}[key],rcComboLabel(key,my[key]),{class:'rc-cb-input','data-rc-pick':'my'+key})).join('')}</div>
+    <div class="section-heading stat-heading"><h3>관측 시작 능력치</h3><span class="budget">노력치 <strong>${total}</strong> / 66</span></div>
+    ${uiStatTable(my,{evAttr:'data-rc-ev',rankAttr:'data-rc-rank-select'})}
+    <div class="rc-start-row">${RotomUI.field(`시작 HP / ${calcStats(my).hp}`,RotomUI.number({'data-rc-action':'myStartHp',min:1,max:calcStats(my).hp,value:rcHp(my)}))}${RotomUI.field('상태',RotomUI.select(rcStatusOptions().map(s=>[s.id,s.label]),my.status,{'data-rc-action':'myStatus'}))}</div>
+    <section class="rc-moves-section"><div class="section-heading"><h3>내 기술배치</h3></div><div class="rc-move-set-grid">${rcMoveSet().map((id,slot)=>rcRenderMoveCombobox('moveslot',id,{slot})).join('')}</div></section>` : '<div class="empty-state">포켓몬을 선택하세요.</div>'}`);
   rcWireMyComboboxes();
   rcWireMoveComboboxes(container);
 }
@@ -161,92 +27,12 @@ function renderRevCalcMy() {
 function renderRevCalcOpp() {
   const container = document.getElementById('rc-opp-body');
   if (!container) return;
-  const opp = revCalcState.opp;
-  const p = PokemonById[opp.pokemonIdx];
-  const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
-  const formControl = renderToolFormCombobox({
-    pokemonId: opp.pokemonIdx,
-    inputClass: 'rc-cb-input',
-    pickAttr: 'data-rc-pick',
-    pickValue: 'oppForm',
-    ariaLabel: '상대 포켓몬 폼 선택',
-  });
-  const pokemonPicker = renderToolPokemonSelectSubframe({
-    fieldClass: 'rc-cb-field rc-pokemon-field',
-    headClass: 'rc-pokemon-head ui-section-head',
-    labelClass: 'ui-section-title',
-    metaActions: `
-      ${formControl}
-      ${renderToolPokemonTypeStrip({
-        types: p?.types,
-        ariaLabel: '상대 타입',
-        empty: !p,
-      })}
-    `,
-    inputClass: 'rc-cb-input',
-    inputAttrs: { 'data-rc-pick': 'opp' },
-    value: p ? pkName(p) : '',
-  });
-
-  const statRows = renderToolStatRows(['hp','atk','def','spa','spd','spe'].map(s => {
-    const r = opp.ranks?.[s] || 0;
-    return {
-      stat: s,
-      labelHtml: `<span class="rc-stat-label tool-stat-name-text">${escapeHTML(STAT_KO[s])}</span>`,
-      natureHtml: '<span class="rc-nature-spacer tool-stat-nature-mark tool-stat-nature-empty" aria-hidden="true"></span>',
-      base: p?.bs?.[s] ?? '-',
-      rank: r,
-      rankOptions: {
-        rankable: s !== 'hp',
-        emptyTag: 'span',
-        decAttrs: { 'data-rc-opprank': s, 'data-rc-dir': '-1' },
-        incAttrs: { 'data-rc-opprank': s, 'data-rc-dir': '1' },
-      },
-    };
-  }), {
-    columns: ['name', 'base', 'rank'],
-    rowClass: 'rc-opp-stat-row',
-    nameClass: 'rc-stat-name rc-opp-stat-name',
-    baseClass: 'rc-opp-stat-base',
-  });
-
-  renderTrustedHTML(container, `
-    <div class="rc-setup-grid rc-opp-setup tool-settings-layout ui-control-grid">
-      <div class="rc-pokemon-main-row ui-control-row">
-        ${pokemonPicker}
-      </div>
-      ${p ? `
-        <div class="rc-settings-field rc-opp-settings-field tool-settings-subframe ui-control-frame ui-subframe ui-field">
-          <div class="rc-settings-grid rc-opp-settings-grid tool-settings-grid ui-control-grid">
-            <label class="rc-field rc-opp-status-field tool-settings-cell tool-settings-choice-cell tool-settings-condition-cell ui-control-cell ui-field" data-tool-setting="condition"><span class="tool-settings-label tool-settings-choice-label ui-field-label ui-control-label">상태</span>
-              <div class="combobox rc-status-combobox tool-settings-combobox tool-settings-choice-control tool-settings-choice-combobox tool-settings-condition-control tool-settings-status-combobox">
-                <button type="button" class="cb-input cb-trigger tool-settings-choice-surface tool-settings-choice-input" data-rc-status="opp" aria-label="상대 상태 선택" aria-expanded="false">${escapeHTML(rcStatusDisplayLabel(opp.status))}</button>
-                <div class="combobox-options" role="listbox"></div>
-              </div>
-            </label>
-          </div>
-        </div>
-      ` : ''}
-    </div>
-    ${p ? `
-      <label class="rc-start-hp ui-field"><span class="ui-field-label">관측 시작 상대 HP %</span><input type="number" data-rc-action="oppStartHpPct" min="1" max="100" value="${revCalcState.oppStartHpPct ?? 100}"><small>아래 랭크도 관측 시작 시점 기준</small></label>
-      <div class="rc-opp-stat-panel tool-stat-panel tool-stat-set tool-stat-set--revcalc-opponent ui-control-frame ui-subframe ui-subframe-stack ui-field">
-        <div class="tool-stat-panel-head ui-section-head">
-          <div class="tool-stat-panel-title ui-section-title">능력 상태</div>
-        </div>
-        <div class="tool-stat-panel-body">
-          <div class="tool-stat-table-frame ui-control-frame">
-            <div class="rc-opp-stat-table rc-stat-grid tool-stat-grid ui-stat-grid ui-stat-table">
-              ${renderToolStatHead(['name', 'base', 'rank'], {
-                rowClass: 'rc-opp-stat-head',
-              })}
-              ${statRows}
-            </div>
-          </div>
-        </div>
-      </div>
-    ` : ''}
-  `);
+  const opp = revCalcState.opp, p = PokemonById[opp.pokemonIdx];
+  const picker = renderToolPokemonSelectSubframe({pokemonId:opp.pokemonIdx,value:p ? pkName(p) : '',inputClass:'rc-cb-input',inputAttrs:{'data-rc-pick':'opp','aria-label':'상대 포켓몬'},metaActions:renderToolFormCombobox({pokemonId:opp.pokemonIdx,inputClass:'rc-cb-input',pickAttr:'data-rc-pick',pickValue:'oppForm'})});
+  const keys=['hp','atk','def','spa','spd','spe'],names=['HP','공격','방어','특공','특방','속도'];
+  renderTrustedHTML(container,`${picker}${p ? `<div class="rc-start-row">${RotomUI.field('시작 HP %',RotomUI.number({'data-rc-action':'oppStartHpPct',min:1,max:100,value:revCalcState.oppStartHpPct ?? 100}))}${RotomUI.field('상태',RotomUI.select(rcStatusOptions().map(s=>[s.id,s.label]),opp.status,{'data-rc-action':'oppStatus'}))}</div>
+    <div class="section-heading stat-heading"><h3>관측 시작 랭크</h3></div>
+    <table class="stat-table" aria-label="상대 관측 시작 능력치"><colgroup><col>${keys.map(()=>'<col>').join('')}</colgroup><thead><tr><th scope="col"><span class="sr-only">구분</span></th>${names.map(name=>`<th scope="col">${name}</th>`).join('')}</tr></thead><tbody><tr><th scope="row">종족값</th>${keys.map(key=>`<td class="stat-base">${p.bs[key]}</td>`).join('')}</tr><tr><th scope="row">랭크</th>${keys.map((key,i)=>`<td>${key==='hp' ? '—' : RotomUI.select(Array.from({length:13},(_,j)=>[j-6,j>6 ? `+${j-6}` : j-6]),opp.ranks?.[key] || 0,{'data-rc-opp-rank-select':key,'aria-label':`상대 ${names[i]} 랭크`},'ui-select--rank')}</td>`).join('')}</tr></tbody></table>` : '<div class="empty-state">포켓몬을 선택하세요.</div>'}`);
   rcWireOppComboboxes();
 }
 
@@ -254,7 +40,7 @@ function rcRenderObservationMoveOptions(role) {
   const move = MoveById[role === 'my' ? revCalcState.myMove : revCalcState.oppMove];
   if (!move) return '';
   const options = revCalcState.observedMoveOptions?.[role] || {};
-  const select = (key, label, choices, current) => `<label class="ui-field"><span class="ui-field-label">${label}</span><select data-rc-move-option="${key}" data-rc-role="${role}">${choices.map(([value, text]) => `<option value="${value}" ${String(current ?? '') === String(value) ? 'selected' : ''}>${text}</option>`).join('')}</select></label>`;
+  const select = (key,label,choices,current) => RotomUI.field(label,RotomUI.select(choices,current,{'data-rc-move-option':key,'data-rc-role':role}));
   const controls = [];
   if (move.mh) {
     const min = Array.isArray(move.mh) ? move.mh[0] : move.mh, max = Array.isArray(move.mh) ? move.mh[1] : move.mh;
@@ -271,66 +57,95 @@ function renderRevCalcInputs() {
   if (!container) return;
   const my = revCalcState.my, oppP = PokemonById[revCalcState.opp.pokemonIdx];
   const ready = !!PokemonById[my.pokemonIdx] && !!oppP;
-  rcSetStagePanelState('rc-input-panel', ready ? 'ready' : 'locked', ready ? '입력 가능' : '선택 필요');
-  if (!ready) {
-    renderTrustedHTML(container, '<div class="rc-prerequisite empty-state ui-empty ui-empty--compact ui-empty--guide">내 포켓몬과 상대 포켓몬을 먼저 선택해 주세요.</div>');
-    return;
-  }
+  rcSetStagePanelState('rc-input-panel',ready ? 'ready' : 'locked',ready ? '입력 가능' : '선택 필요');
+  if (!ready) { renderTrustedHTML(container,'<div class="empty-state">양쪽 포켓몬을 선택하세요.</div>'); return; }
   rcNormalizeObservedMyMove();
-  const conditions = (role, title) => `<div class="rc-observation-conditions"><strong>${title}</strong>${rcRenderObservationMoveOptions(role === 'dealt' ? 'my' : 'opp')}<div class="rc-toggle-grid ui-control-grid">${[['defReflect','피격 측 리플렉터'],['defLightScreen','피격 측 빛의장막'],['isCritical','공격 급소']].map(([key,label]) => `<label class="checkbox-label ui-check"><input type="checkbox" data-rc-observed-field="${role}" data-rc-field-key="${key}" ${revCalcState.observedFields[role][key] ? 'checked' : ''}>${label}</label>`).join('')}</div></div>`;
-  renderTrustedHTML(container, `
-    <p class="rc-mini-note">회복·열매 발동까지 끝난 턴 종료 HP를 입력하세요. 내구는 H32를 우선하고 필요한 B/D를 추가해 추정합니다.</p>
-    <div class="rc-input-grid ui-control-grid">
-      <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="rc-section-title ui-section-title">내가 한 행동</div>
-        <div class="rc-control-row rc-observed-row ui-control-row">
-          <label class="ui-field rc-field-wide"><span class="ui-field-label">내가 사용한 기술</span>${rcRenderMoveCombobox('myMove', revCalcState.myMove, {placeholder:'기술배치에서 선택'})}</label>
-          <label class="ui-field rc-field-compact"><span class="ui-field-label">상대 남은 HP %</span><input type="number" data-rc-action="observedTheirPct" value="${revCalcState.observedTheirPct}" min="0" max="100" placeholder="0~100"></label>
-        </div>
-      </div>
-      <div class="rc-input-block rc-action-block ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="rc-section-title ui-section-title">상대가 한 행동</div>
-        <div class="rc-control-row rc-observed-row ui-control-row">
-          <label class="ui-field rc-field-wide"><span class="ui-field-label">상대가 사용한 기술</span>${rcRenderMoveCombobox('oppMove', revCalcState.oppMove, {placeholder:'관측한 기술 선택'})}</label>
-          <label class="ui-field rc-field-compact"><span class="ui-field-label">내 남은 HP</span><input type="number" data-rc-action="observedMyHp" value="${revCalcState.observedMyHp}" min="0" max="${calcStats(my).hp}" placeholder="실수치 입력"></label>
-        </div>
-      </div>
-      <div class="rc-input-block rc-observed-facts ui-control-frame ui-subframe ui-subframe-stack">
-        <div class="rc-section-title ui-section-title">관측한 정보</div>
-        <div class="rc-facts-grid ui-control-grid">
-          <label class="ui-field"><span class="ui-field-label">이번 턴 행동 순서</span>${rcRenderTurnOrderCombobox(revCalcState.turnOrder)}</label>
-          <label class="ui-field"><span class="ui-field-label">관측한 상대 도구</span>${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}</label>
-          <label class="ui-field"><span class="ui-field-label">관측한 상대 특성</span><select data-rc-action="oppAbilityKnown"><option value="unknown">미관측</option>${rcPokemonAbilityIds(oppP).map(id => `<option value="${id}" ${revCalcState.oppAbilityKnown === id ? 'selected' : ''}>${escapeHTML(abName(AbilityById[id] || {name:id}))}</option>`).join('')}</select></label>
-        </div>
-        <p class="rc-mini-note">도구가 미관측이면 피해·속도에 영향을 주는 관련 도구를 자동 검토합니다.</p>
-      </div>
-      <details class="rc-input-block rc-extra-observation ui-control-frame ui-subframe"><summary>날씨·필드·추가 관측</summary>
-        <div class="rc-extra-body ui-subframe-stack">
-          <div class="rc-facts-grid ui-control-grid">
-            <label class="ui-field"><span class="ui-field-label">날씨</span>${rcRenderFieldCombobox('weather', revCalcState.field.weather)}</label>
-            <label class="ui-field"><span class="ui-field-label">필드</span>${rcRenderFieldCombobox('terrain', revCalcState.field.terrain)}</label>
-            <label class="checkbox-label ui-check"><input type="checkbox" data-rc-field="trickRoom" ${revCalcState.field.trickRoom ? 'checked' : ''}>트릭룸</label>
-            <label class="ui-field"><span class="ui-field-label">내 상태</span><select data-rc-action="myStatus">${rcStatusOptions().map(s => `<option value="${s.id}" ${my.status === s.id ? 'selected' : ''}>${escapeHTML(s.label)}</option>`).join('')}</select></label>
-          </div>
-          ${conditions('dealt','내 공격의 관측 조건')}${conditions('received','상대 공격의 관측 조건')}
-          <div class="rc-known-moves"><strong>추가로 확인한 상대 기술</strong><p class="rc-mini-note">알고 있는 기술만 선택하세요. 이번 턴의 피해 추정에는 위에서 선택한 사용 기술만 쓰고, 추가 기술은 결과 카드에서 비교합니다.</p><div class="rc-facts-grid ui-control-grid">${[0,1,2].map(i => `<label class="ui-field"><span class="ui-field-label">추가 기술 ${i+1}</span>${rcRenderMoveCombobox('knownOppMove', revCalcState.knownOppMoves?.[i] || '', {slot:i,placeholder:'선택 사항'})}</label>`).join('')}</div></div>
-        </div>
-      </details>
-    </div>`);
+  const conditions=(role,title)=>`<div class="rc-observation-conditions"><h4>${title}</h4>${rcRenderObservationMoveOptions(role === 'dealt' ? 'my' : 'opp')}<div class="field-checks">${[['defReflect','리플렉터'],['defLightScreen','빛의장막'],['isCritical','급소']].map(([key,label])=>RotomUI.check(label,{'data-rc-observed-field':role,'data-rc-field-key':key,checked:revCalcState.observedFields[role][key]})).join('')}</div></div>`;
+  renderTrustedHTML(container,`
+    <div class="rc-input-grid">
+      <section class="rc-action-block"><h3>내 공격</h3><div class="rc-observed-row"><div class="form-field"><span>사용 기술</span>${rcRenderMoveCombobox('myMove',revCalcState.myMove)}</div>${RotomUI.field('상대 남은 HP %',RotomUI.number({'data-rc-action':'observedTheirPct',value:revCalcState.observedTheirPct,min:0,max:100,placeholder:'0~100'}))}</div></section>
+      <section class="rc-action-block"><h3>상대 공격</h3><div class="rc-observed-row"><div class="form-field"><span>사용 기술</span>${rcRenderMoveCombobox('oppMove',revCalcState.oppMove)}</div>${RotomUI.field('내 남은 HP',RotomUI.number({'data-rc-action':'observedMyHp',value:revCalcState.observedMyHp,min:0,max:calcStats(my).hp,placeholder:'실수치'}))}</div></section>
+    </div>
+    <div class="rc-facts-grid">${RotomUI.field('행동 순서',RotomUI.select(rcTurnOrderOptions().map(s=>[s.id,s.label]),revCalcState.turnOrder,{'data-rc-action':'turnOrder'}))}<div class="form-field"><span>관측 도구</span>${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}</div>${RotomUI.field('관측 특성',RotomUI.select([['unknown','미관측'],...rcPokemonAbilityIds(oppP).map(id=>[id,abName(AbilityById[id] || {name:id})])],revCalcState.oppAbilityKnown,{'data-rc-action':'oppAbilityKnown'}))}</div>
+    <p class="rc-timing-note">HP는 회복·열매 발동 후 기준</p>
+    <details class="field-panel ui-surface rc-extra-observation"><summary class="ui-disclosure"><span class="field-label">${RotomUI.icon('settings')}필드 · 추가 관측</span>${RotomUI.icon('chevron')}</summary><div class="rc-extra-body">
+      <div class="form-grid form-grid--three">${RotomUI.field('날씨',RotomUI.select(CALC_WEATHER_OPTIONS.map(s=>[s.id,s.label]),revCalcState.field.weather,{'data-rc-field':'weather'}))}${RotomUI.field('필드',RotomUI.select(CALC_TERRAIN_OPTIONS.map(s=>[s.id,s.label]),revCalcState.field.terrain,{'data-rc-field':'terrain'}))}${RotomUI.check('트릭룸',{'data-rc-field':'trickRoom',checked:revCalcState.field.trickRoom})}</div>
+      <div class="rc-input-grid">${conditions('dealt','내 공격 조건')}${conditions('received','상대 공격 조건')}</div>
+      <section class="rc-known-moves"><h4>추가로 확인한 상대 기술</h4><div class="rc-facts-grid">${[0,1,2].map(slot=>rcRenderMoveCombobox('knownOppMove',revCalcState.knownOppMoves?.[slot] || '',{slot})).join('')}</div></section>
+    </div></details>`);
   rcWireMoveComboboxes(container);
   rcWireOppItemComboboxes(container);
-  rcWireTurnOrderComboboxes(container);
-  rcWireFieldComboboxes(container);
+}
+
+function rcResultRange(min, max, digits = null) {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return '—';
+  const format = value => digits === null ? String(value) : value.toFixed(digits);
+  return min === max ? format(min) : format(min) + '~' + format(max);
+}
+
+function rcRenderFollowupMoveChip(analysis) {
+  if (!analysis?.move) return '';
+  const move = analysis.move, summary = analysis.summary;
+  const types = analysis.types?.length ? analysis.types : [move.type];
+  const category = analysis.categories?.length === 1 ? analysis.categories[0] : move.cat;
+  const typeBadges = renderToolTypePills(types.filter(Boolean));
+  const order = summary?.order || '';
+  const orderLabel = ({'후보에 따라 선후공 다름':'후보별 선후공','상대 기술 미확인':'상대 기술 미확인','선후공 확인 필요':'선후공 미확인'})[order] || order;
+  const orderClass = order === '내 선공' ? 'my' : order === '상대 선공' ? 'opp' : 'mixed';
+  const name = '<div class="rc-followup-move"><b>' + escapeHTML(mvName(move)) + '</b><span class="rc-followup-meta">' + typeBadges + '<span>' + escapeHTML(calcMoveCategoryLabel(category)) + '</span></span></div>';
+  if (analysis.statusMove || analysis.unavailable || !summary) {
+    const reason = analysis.statusMove ? '변화기' : (analysis.badges || []).join(' · ')
+      .replace('이 대면의 첫 행동 이후 사용 불가','첫 턴 전용').replace('전기 타입 소실로 재사용 불가','재사용 불가').replace('다음 턴 피격에 따라 결정되는 기술','피격량에 따라 결정');
+    return '<div class="rc-followup-chip status">' + name + '<span class="rc-move-unavailable">' + escapeHTML(reason || '조건 확인') + '</span></div>';
+  }
+  const koClass = summary.koClass || 'ko-none';
+  const koText = ({'KO 확정':'확정 KO','KO 난수':'난수 KO','형태에 따라 다름':'형태별 차이','조건 확인 필요':'조건 확인'})[summary.koState] || summary.koState;
+  const unresolved = summary.koState === '조건 확인 필요' && summary.rawMin === 0 && summary.rawMax === 0;
+  const damage = unresolved ? '<strong>—</strong>' : '<strong>' + rcResultRange(summary.pctMin,summary.pctMax,1) + '<small>%</small></strong><span class="rc-damage-raw">' + rcResultRange(summary.rawMin,summary.rawMax) + ' HP</span>';
+  return '<div class="rc-followup-chip">' + name +
+    (orderLabel ? '<span class="rc-move-order rc-order--' + orderClass + '">' + escapeHTML(orderLabel) + '</span>' : '') +
+    '<div class="rc-followup-damage">' + damage + '</div><span class="rc-followup-ko ' + koClass + '">' + escapeHTML(koText) + '</span></div>';
 }
 
 function rcRenderNextStateSummary(summary) {
-  const labels = {atk:'공격',def:'방어',spa:'특공',spd:'특방',spe:'스피드'};
-  const range = (a,b) => a === b ? String(a) : `${a}~${b}`;
-  return `<div class="rc-next-state ui-control-frame ui-subframe"><div class="rc-followup-head"><span>다음 턴 시작 상태</span><small>공방·턴 종료 변화 반영</small></div><div class="rc-state-grid">${['my','opp'].map(role => {
+  if (!summary) return '';
+  const labels = {atk:'공격',def:'방어',spa:'특공',spd:'특방',spe:'속도'};
+  const signed = n => n > 0 ? '+' + n : String(n);
+  const sides = ['my','opp'].map(role => {
     const row = summary[role];
-    const ranks = Object.entries(row.ranks).filter(([,v]) => v.some(n => n !== 0)).map(([s,v]) => `${labels[s]} ${v.map(n => n > 0 ? '+'+n : n).join(' / ')}`);
-    return `<div class="rc-state-side"><strong>${role === 'my' ? '내 포켓몬' : '상대 포켓몬'}</strong><span>HP ${range(row.hpMin,row.hpMax)} (${range(Number(row.pctMin.toFixed(1)),Number(row.pctMax.toFixed(1)))}%)</span><span>${escapeHTML(ranks.join(' · ') || '랭크 변화 없음')}</span><span>도구: ${escapeHTML(row.items.map(id => id ? itName(ItemById[id] || {name:id}) : row.unknownItem ? '미확인 · 피해 보정 없음' : '없음').join(' / '))}</span>${row.events.length ? `<ul>${[...new Set(row.events)].map(event => `<li>${escapeHTML(event)}</li>`).join('')}</ul>` : ''}</div>`;
-  }).join('')}</div></div>`;
+    if (!row) return '';
+    const pokemon = PokemonById[revCalcState[role].pokemonIdx];
+    const events = [...new Set(row.events || [])];
+    const rankPattern = /^(.*?) · (공격|방어|특공|특방|스피드) [+-]\d+/;
+    const changedRanks = Object.entries(row.ranks || {}).filter(([,values]) => values.some(n => n !== 0));
+    const ranks = changedRanks.map(([stat,values]) => {
+      const sources = [...new Set(events.map(event=>event.match(rankPattern)).filter(match=>match && match[2] === (stat === 'spe' ? '스피드' : labels[stat])).map(match=>match[1]))];
+      const value = values.length === 1 ? signed(values[0]) : signed(Math.min(...values)) + '~' + signed(Math.max(...values));
+      return (sources.length ? sources.join('/') + ' · ' : '') + labels[stat] + ' ' + value;
+    });
+    const otherEvents = events.filter(event=>!rankPattern.test(event)).map(event=>event.replace(' (일부 후보)',' (일부)').replace('대검돌격 · 다음 행동 전까지 받는 피해 ×2','대검돌격 · 받는 피해 ×2'));
+    const tags = [...ranks,...otherEvents];
+    const clamp = n => Number.isFinite(n) ? Math.max(0,Math.min(100,n)) : 0;
+    return '<div class="rc-state-side rc-state-side--' + role + '"><div class="rc-state-identity"><span>' + (role === 'my' ? '내' : '상대') + '</span><strong>' + escapeHTML(pokemon ? pkName(pokemon) : '포켓몬') + '</strong></div>' +
+      '<div class="rc-state-hp"><span>HP</span><strong>' + rcResultRange(row.hpMin,row.hpMax) + '</strong><small>' + rcResultRange(row.pctMin,row.pctMax,1) + '%</small></div>' +
+      '<div class="ui-meter rc-state-meter" aria-hidden="true"><span class="ui-meter-fill rc-state-max" data-rc-hp-fill="' + clamp(row.pctMax) + '"></span><span class="ui-meter-fill rc-state-min" data-rc-hp-fill="' + clamp(row.pctMin) + '"></span></div>' +
+      (tags.length ? '<div class="rc-state-events">' + tags.map(tag=>'<span class="ui-tag">' + escapeHTML(tag) + '</span>').join('') + '</div>' : '') + '</div>';
+  }).join('');
+  return '<section class="rc-next-state"><div class="rc-followup-head"><h4>다음 턴 시작 상태</h4></div><div class="rc-state-grid">' + sides + '</div></section>';
+}
+
+function rcRenderCandidateHeader(c, i, speedActive, expanded) {
+  const parts = rcCandidateEvParts(c,speedActive);
+  const example = rcRoleCompletionInfo(c,speedActive).parts.join(' · ');
+  const nature = NATURE_BY_ID[c.nature]?.ko || c.nature;
+  const item = c.item ? itName(ItemById[c.item] || {name:c.item}) : rcKnownOpponentItem() === null ? '도구 미관측' : '';
+  const abilities = rcCandidateAbilityIds(c).map(id=>abName(AbilityById[id] || {name:id}));
+  const label = ['후보 ' + (i+1),nature,item,...abilities,expanded ? '접기' : '펼치기'].filter(Boolean).join(' · ');
+  const tags = (item ? '<span class="rc-result-item">' + escapeHTML(item) + '</span>' : '') + abilities.map(name=>'<span class="rc-result-ability">' + escapeHTML(name) + '</span>').join('');
+  const evs = parts.map(part=>'<span class="rc-result-ev"><small>' + escapeHTML(part[0]) + '</small><b>' + escapeHTML(part.slice(1)) + '</b></span>').join('');
+  return '<button type="button" class="ui-button rc-result-rank" data-rc-toggle-result="' + i + '" aria-label="' + escapeHTML(label) + '" aria-describedby="rc-candidate-values-' + i + '" aria-expanded="' + expanded + '" aria-controls="rc-candidate-details-' + i + '">' +
+    '<span class="rc-candidate-index">' + String(i+1).padStart(2,'0') + '</span><span class="rc-result-title"><b class="rc-result-nature-badge">' + escapeHTML(nature) + '</b>' + tags + '</span>' + RotomUI.icon('chevron') +
+    '<span class="rc-profile-values" id="rc-candidate-values-' + i + '"><span class="rc-result-evs"><span class="sr-only">추정 노력치 </span>' + (evs || '무투자') + '</span><span class="rc-result-example"><span>예시</span><b>' + escapeHTML(example || '—') + '</b></span></span></button>';
 }
 
 function renderRevCalcResults() {
@@ -391,98 +206,23 @@ function renderRevCalcResults() {
     return;
   }
 
-  const scarfBrief = r.speedActive
-    ? (r.scarfViable && !r.nonScarfViable
-        ? '속도 조건은 구애스카프 후보만 남습니다.'
-        : r.scarfViable
-          ? '구애스카프와 비스카프 후보가 함께 남습니다.'
-          : '구애스카프 없이도 속도 조건을 만족합니다.')
-    : '속도 조건은 사용하지 않았습니다.';
-  const first = r.results[0];
-  const topItem = first.item ? itName(ItemById[first.item] || { name: first.item }) : rcKnownOpponentItem() === null ? '도구 미확인(피해 보정 없음 가정)' : '도구 없음';
-  const investmentBrief = rcBriefInvestmentParts(first, r.speedActive);
-  const briefing = `상위 후보는 ${topItem}, ${NATURE_BY_ID[first.nature]?.ko || first.nature} 성격입니다. 관측 투자 범위는 ${investmentBrief}입니다. ${scarfBrief}`;
-
-  const followupMoveIds = rcVisibleMoveSet();
   const openIndexes = new Set((Array.isArray(revCalcState.openResultIndexes) ? revCalcState.openResultIndexes : [])
-    .map(v => parseInt(v, 10))
-    .filter(v => Number.isInteger(v) && v >= 0 && v < r.results.length));
-  const predictedMoveId = revCalcState.predictedOppMove || revCalcState.oppMove || '';
-
-  const rows = r.results.map((c, i) => {
-    const evDesc = rcCandidateEvParts(c, r.speedActive);
-    const natureKo = NATURE_BY_ID[c.nature]?.ko || c.nature;
-    const itemTag = c.item
-      ? `<span class="rc-result-item ${c.item === 'choicescarf' ? 'rc-scarf-item' : ''}">${escapeHTML(itName(ItemById[c.item] || { name: c.item }))}</span>`
-      : `<span class="rc-result-item rc-no-item">${rcKnownOpponentItem() === null ? '도구 미확인 · 피해 보정 없음' : '도구 없음'}</span>`;
-    const natureTag = `<span class="rc-result-nature-badge">${escapeHTML(natureKo)}</span>`;
-    const abilityTag = rcCandidateAbilityIds(c)
-      .map(id => `<span class="rc-result-ability">${escapeHTML(abName(AbilityById[id] || { name: id }))}</span>`)
-      .join('');
-    const speedRange = c.speedInfo?.active
-      ? `S 가능범위 ${c.speEvMin ?? c.speedInfo.speMin}~${c.speEvMax ?? c.speedInfo.speMax}`
-      : '속도 미사용';
-    const totalMin = c.totalEvMin ?? c.totalEv;
-    const totalMax = c.totalEvMax ?? c.maxTotalEv ?? c.totalEv;
-    const totalRange = totalMax !== undefined && totalMax !== totalMin
-      ? `${totalMin}~${totalMax}`
-      : `${totalMin}`;
-    const speedPlan = rcSpeedPlanLabel(c, r.speedActive);
-    const roleInfo = rcRoleCompletionInfo(c, r.speedActive);
-    const expanded = openIndexes.has(i);
-    const report = c.cardReport?.key === rcForecastKey() ? c.cardReport : null;
-    const followupChips = (expanded ? report?.my || [] : [])
-      .map(rcRenderFollowupMoveChip)
-      .filter(Boolean)
-      .join('');
-    const predictedPanel = expanded ? `
-      <div class="rc-prediction-panel ui-control-frame ui-subframe">
-        <div class="rc-followup-head"><span>상대 관측 기술</span><small>내 최대 HP 대비 피해</small></div>
-        <div class="rc-followup-grid">${(report?.opp || []).map(rcRenderFollowupMoveChip).join('') || '<span class="rc-mini-note">관측한 상대 기술을 입력하면 피해 범위를 표시합니다.</span>'}</div>
-      </div>
-    ` : '';
-    const followupPanel = expanded ? `
-      <div class="rc-followup-panel ui-control-frame ui-subframe">
-        <div class="rc-followup-head"><span>내 기술들</span><small>상대 최대 HP 대비 피해</small></div>
-        <div class="rc-followup-grid">
-          ${followupChips || '<span class="rc-mini-note">내 기술폭 4개를 입력하면 후보별 다음 대미지를 표시합니다.</span>'}
-        </div>
-      </div>
-    ` : '';
-    const infoPanel = `
-      <div class="rc-result-profile rc-result-info-panel ui-control-frame ui-subframe">
-        ${expanded ? '<div class="rc-result-panel-label">예상 정보</div>' : ''}
-        <div class="rc-result-title">
-          <b>${evDesc.join(' / ') || '무투자'}</b>
-          ${natureTag}
-          ${itemTag}
-          ${abilityTag}
-        </div>
-        <div class="rc-result-lines">
-          <span>예시 배분 · ${escapeHTML(roleInfo.label)} · ${escapeHTML(roleInfo.parts.join(' / ') || '-')}</span>
-          <span>${escapeHTML(speedPlan)} · ${escapeHTML(speedRange)} · 관측 ${escapeHTML(totalRange)} / 완성 66</span>
-        </div>
-      </div>
-    `;
-    return `
-      <div class="rc-result-row rc-form-result ${expanded ? 'open' : 'collapsed'} ui-control-frame ui-subframe" data-rc-toggle-result="${i}">
-        <button type="button" class="rc-result-rank" data-rc-toggle-result="${i}" aria-label="후보 ${i + 1} ${expanded ? '접기' : '펼치기'}" aria-expanded="${expanded}">#${i + 1}</button>
-        ${expanded
-          ? `<div class="rc-result-expanded-body">${infoPanel}${report ? rcRenderNextStateSummary(report.state) : '<p class="rc-mini-note">다음 턴 정보를 계산하고 있습니다.</p>'}${followupPanel}${predictedPanel}</div>`
-          : infoPanel}
-      </div>
-    `;
+    .map(v => parseInt(v,10)).filter(v => Number.isInteger(v) && v >= 0 && v < r.results.length));
+  const rows = r.results.map((c,i) => {
+    const expanded = openIndexes.has(i), report = c.cardReport?.key === rcForecastKey() ? c.cardReport : null;
+    const moves = (role,title,note) => '<section class="' + (role === 'my' ? 'rc-followup-panel' : 'rc-prediction-panel') + '"><div class="rc-followup-head"><h4><span>' + title + '</span></h4><small>' + note + '</small></div><div class="rc-followup-grid">' +
+      ((report?.[role] || []).map(rcRenderFollowupMoveChip).join('') || '<span class="rc-mini-note">기술 미입력</span>') + '</div></section>';
+    return '<article class="rc-result-row rc-form-result ' + (expanded ? 'open' : 'collapsed') + '">' +
+      rcRenderCandidateHeader(c,i,r.speedActive,expanded) +
+      '<div class="rc-result-expanded-body" id="rc-candidate-details-' + i + '" ' + (expanded ? '' : 'hidden') + '>' +
+      (expanded ? (report ? rcRenderNextStateSummary(report.state) + '<div class="rc-damage-columns">' + moves('my','내 기술','상대 최대 HP 기준') + moves('opp','상대 관측 기술','내 최대 HP 기준') + '</div>' : '<p class="rc-mini-note" role="status">다음 턴 정보 갱신 중</p>') : '') +
+      '</div></article>';
   }).join('');
-
-  renderTrustedHTML(container, `
-    ${r.hpTolerance ? '<p class="rc-hp-approx ui-control-frame ui-subframe" role="status">HP 근사 일치 · 입력한 상대 HP의 ±1%p 범위에서 찾은 후보입니다. 아래 결과도 이 범위를 포함합니다.</p>' : ''}
-    ${rcRenderExchangeSummary(r)}
-    <div class="rc-briefing ui-control-frame ui-subframe">
-      <div class="rc-briefing-title">요약</div>
-      <div>${escapeHTML(briefing)}</div><p class="rc-mini-note">H32 → B/D 추가 우선 · ${r.total}개 후보 / ${r.groupTotal}개 그룹 중 대표 ${r.results.length}개 · 미관측 도구는 없음으로 확정하지 않습니다.</p>
-    </div>
-    <div class="rc-results-list">${rows}</div>
-  `);
+  renderTrustedHTML(container,
+    (r.hpTolerance ? '<p class="rc-hp-approx" role="status">HP 근사 일치 · ±1%p</p>' : '') +
+    rcRenderExchangeSummary(r) +
+    '<div class="rc-briefing"><div class="section-heading"><h3>예상 형태</h3><span class="rc-candidate-count">대표 ' + r.results.length + ' / ' + r.groupTotal + '그룹</span></div><p class="rc-mini-note">H32 우선 · ' + r.total + '개 후보</p></div><div class="rc-results-list">' + rows + '</div>');
+  container.querySelectorAll('[data-rc-hp-fill]').forEach(el => { el.style.width = el.dataset.rcHpFill + '%'; });
   rcWireMoveComboboxes(container);
 }
 

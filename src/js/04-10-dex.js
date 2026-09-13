@@ -12,6 +12,7 @@ const dexViewState = Object.fromEntries(DEX_TABS.map(tab => [tab, {
   query: '',
   typeFilter: [],
   itemCategory: null,
+  scope: 'current',
   page: 1,
   scrollTop: 0,
   scrollLeft: 0,
@@ -25,25 +26,44 @@ const FORM_LABEL_KO = {
   Busted: '들킨 모습', Hangry: '배고픈 모양', Hero: '마이티 폼',
   Mega: '메가', 'Mega-X': '메가 X', 'Mega-Y': '메가 Y', Primal: '원시',
 };
-const VARIABLE_BP_NOTE = {
-  gyroball: '느릴수록 위력 ↑', electroball: '빠를수록 위력 ↑',
-  heatcrash: '무거울수록 위력 ↑', heavyslam: '무거울수록 위력 ↑',
-  lowkick: '대상이 무거울수록', grassknot: '대상이 무거울수록',
-  eruption: 'HP 비율에 비례', waterspout: 'HP 비율에 비례',
-  flail: 'HP 적을수록', reversal: 'HP 적을수록', hardpress: '대상 HP 적을수록 ↓',
-  hex: '상태이상 시 ×2', infernalparade: '상태이상 시 ×2',
-  venoshock: '독 상태 시 ×2', facade: '화상/마비/독 시 ×2',
-  knockoff: '도구 보유 시 ×1.5', boltbeak: '선공 시 ×2', fishiousrend: '선공 시 ×2',
-  payback: '후공 시 ×2', avalanche: '피격 시 ×2', assurance: '대상 피격 시 ×2',
-  risingvoltage: '일렉트릭필드 ×2', expandingforce: '사이코필드 ×1.5',
-  mistyexplosion: '미스트필드 ×1.5', gravapple: '중력장 ×1.5',
-  solarbeam: '쾌청 외 ×0.5', solarblade: '쾌청 외 ×0.5',
-  weatherball: '날씨 → 타입+위력 변경', terrainpulse: '필드 → 타입+위력 변경',
-  storedpower: '+부스트 단계당 +20', powertrip: '+부스트 단계당 +20',
-  lastrespects: '쓰러진 동료당 +50', acrobatics: '도구 미보유 시 ×2',
-  tripleaxel: '1/2/3타 BP 20/40/60', temperflare: '직전 실패 시 ×2',
-  stompingtantrum: '직전 실패 시 ×2',
+// Conditions use the same mechanic keys as the calculator, rather than a second move ID list.
+const DEX_POWER_NOTES = {
+  gyroBall: '상대보다 느릴수록 위력 증가',
+  electroBall: '상대보다 빠를수록 위력 증가',
+  weightRatio: '상대보다 무거울수록 위력 증가', targetWeight: '상대가 무거울수록 위력 증가',
+  userHp150: '자신의 남은 HP 비율에 비례', lowHpFlail: '자신의 남은 HP 비율이 낮을수록 위력 증가',
+  targetHp100: '상대의 남은 HP 비율이 낮을수록 위력 감소',
+  targetStatusDouble: '상대가 상태이상이면 ×2', targetPoisonDouble: '상대가 독·맹독이면 ×2',
+  userStatusDouble: '자신이 화상·마비·독·맹독이면 ×2',
+  knockOff: '상대가 제거 가능한 도구를 지니면 ×1.5 · 해당 포켓몬의 메가스톤 제외',
+  userMovesFirstDouble: '상대보다 먼저 행동하면 ×2', userMovesSecondDouble: '상대보다 나중에 행동하면 ×2',
+  userWasHitDouble: '이번 턴 상대의 공격으로 피해를 받았으면 ×2', targetWasHitDouble: '상대가 이번 턴 이미 피해를 받았으면 ×2',
+  electricTerrainTargetGroundedDouble: '일렉트릭필드에서 상대가 땅에 있으면 ×2',
+  psychicTerrainUserGroundedBoost: '사이코필드에서 자신이 땅에 있으면 ×1.5',
+  mistyTerrainUserGroundedBoost: '미스트필드에서 자신이 땅에 있으면 ×1.5', gravityBoost: '중력 상태에서 ×1.5',
+  weatherWeakenedSolar: '비·모래바람·눈에서 ×0.5 · 날씨가 없으면 원래 위력',
+  weatherBall: '날씨가 있으면 위력 100 · 날씨에 따라 타입 변경',
+  terrainPulse: '필드에서 자신이 땅에 있으면 위력 100 · 필드에 따라 타입 변경',
+  positiveBoostCount: '상승한 능력치 랭크 합계당 위력 +20', fallenAllies: '쓰러진 동료 수에 따라 위력 증가',
+  noItemDouble: '도구를 지니지 않았으면 ×2', lastMoveFailedDouble: '직전 기술이 실패했으면 ×2',
+  tripleAxelAverage: '1·2·3타 위력 20·40·60', beatUpApprox: '참가하는 동료의 공격 종족값에 따라 각 타격의 위력 결정',
+  fickleBeam: '기본 위력 80 · 강화 발동 시 160', fling: '던지는 도구에 따라 위력 결정',
+  stockpile: '비축 1·2·3회에 따라 위력 100·200·300',
+  requiresTargetItem: '상대가 도구를 지니고 있어야 사용 가능', requiresTerrain: '필드가 있어야 사용 가능',
 };
+function movePowerNote(move) {
+  if (move.ohko) return '명중하면 상대를 쓰러뜨리는 일격기';
+  if (move.damage === 'level') return '자신의 레벨만큼 고정 피해';
+  if (typeof move.damage === 'number') return `${move.damage} 고정 피해`;
+  const fixed = {
+    targetHalfHp: '상대의 현재 HP 절반만큼 피해', sourceCurrentHp: '자신의 현재 HP만큼 피해',
+    targetMinusSourceHp: '상대의 현재 HP를 자신의 현재 HP와 같게 만듦',
+    receivedDamage: `받은 ${move.receivedDamageCategory === 'Physical' ? '물리 ' : move.receivedDamageCategory === 'Special' ? '특수 ' : ''}피해의 ${move.receivedDamageMultiplier || 1}배`,
+  };
+  if (move.fixedDamageKind) return fixed[move.fixedDamageKind] || '조건에 따른 고정 피해';
+  if (move.id === 'ragefist') return '공격을 받은 횟수에 따라 위력 증가';
+  return DEX_POWER_NOTES[move.variableBpKind] || '';
+}
 
 function dexSearchText(value) {
   return String(value || '').toLowerCase();
@@ -62,8 +82,37 @@ function moveAccuracyLabel(move) {
   return move.acc === 0 || move.acc === true ? '필중' : (move.acc || '—');
 }
 function movePowerLabel(move) {
-  if (VARIABLE_BP_NOTE[move.id] && (!move.bp || move.bp === 1)) return '가변';
+  if (move.cat === 'Status') return '—';
+  if (move.ohko) return '일격';
+  if (move.damage || move.fixedDamageKind) return '고정 피해';
+  if (move.variableBpKind === 'fickleBeam') return '80/160';
+  if (movePowerNote(move) && (!move.bp || move.bp === 1)) return '가변';
   return move.bp || '—';
+}
+function dexMoveIsVariable(move) {
+  return move.cat !== 'Status' && !move.damage && !move.fixedDamageKind && !move.ohko
+    && !!movePowerNote(move) && !['requiresTargetItem', 'requiresTerrain'].includes(move.variableBpKind);
+}
+function dexEntryIsCurrent(entry, tab) {
+  if (tab === 'moves') return entry.id === 'struggle' || !!PokemonByMove[entry.id]?.length;
+  if (tab === 'abilities') return !!PokemonByAbility[entry.id]?.length;
+  return true;
+}
+function dexScopeEntries(entries, tab) {
+  return dexViewState[tab].scope === 'all' ? [...entries] : entries.filter(entry => dexEntryIsCurrent(entry, tab));
+}
+function dexReferenceLabel(entry, tab) {
+  return dexEntryIsCurrent(entry, tab) ? '' : '참고 · 수록 포켓몬 중 대상 없음';
+}
+function renderDexScopeFilter() {
+  const el = document.getElementById('dexScopeFilter');
+  if (!el) return;
+  el.hidden = !['moves', 'abilities'].includes(currentDex);
+  if (el.hidden) return;
+  const scope = dexViewState[currentDex].scope;
+  renderTrustedHTML(el, [['current', '수록 포켓몬 기준'], ['all', '전체 참고']].map(([value, label]) => uiButton(label, {
+    class: `ui-button ui-button--filter type-filter-btn ${scope === value ? 'active' : ''}`, 'data-dex-scope': value, 'aria-pressed': String(scope === value),
+  })).join(''));
 }
 function dexTypePill(type, extraClass = '') {
   return `<span class="type-pill dex-type-pill t-${type} ${extraClass}">${TYPE_KO[type] || type}</span>`;
@@ -144,20 +193,21 @@ function toggleTypeFilter(t) {
 }
 
 function renderTypeFilter() {
+  renderDexScopeFilter();
   const el = document.getElementById('dexTypeFilter');
   if (!el) return;
   if (currentDex === 'pokemon' || currentDex === 'moves') {
     el.style.display = 'flex';
     const isAll = dexTypeFilter.length === 0;
     const all = uiButton('전체', {
-      class: `type-filter-btn ${isAll ? 'active' : ''}`,
-      'data-filter-type': '',
+      class: `ui-button ui-button--filter type-filter-btn ${isAll ? 'active' : ''}`,
+      'data-filter-type': '', 'aria-pressed': String(isAll),
     });
     const buttons = BATTLE_TYPES.map(t => {
       const active = dexTypeFilter.includes(t);
       return uiButton(TYPE_KO[t], {
-        class: `type-filter-btn type-pill-mini ${active ? 'active' : ''}`,
-        'data-filter-type': t,
+        class: `ui-button ui-button--filter type-filter-btn type-pill-mini ${active ? 'active' : ''}`,
+        'data-filter-type': t, 'aria-pressed': String(active),
         title: TYPE_KO[t],
       });
     }).join('');
@@ -167,14 +217,14 @@ function renderTypeFilter() {
     el.style.display = 'flex';
     const isAll = dexItemCategory === null;
     const all = uiButton('전체', {
-      class: `type-filter-btn ${isAll ? 'active' : ''}`,
-      'data-filter-itemcat': '',
+      class: `ui-button ui-button--filter type-filter-btn ${isAll ? 'active' : ''}`,
+      'data-filter-itemcat': '', 'aria-pressed': String(isAll),
     });
     const buttons = ITEM_CATEGORY_ORDER.map(cat => {
       const active = dexItemCategory === cat;
       return uiButton(ITEM_CATEGORY_LABEL[cat], {
-        class: `type-filter-btn ${active ? 'active' : ''}`,
-        'data-filter-itemcat': cat,
+        class: `ui-button ui-button--filter type-filter-btn ${active ? 'active' : ''}`,
+        'data-filter-itemcat': cat, 'aria-pressed': String(active),
       });
     }).join('');
     renderTrustedHTML(el, `${all}${buttons}`);
@@ -340,9 +390,9 @@ function renderDexPagination(tab, pageData) {
   renderTrustedHTML(pagination, `
     <span class="dex-page-status">${total ? `${start}-${end} / ${total}` : '검색 결과 없음'}</span>
     <span class="dex-page-actions">
-      <button type="button" class="dex-page-button" data-dex-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}>이전</button>
+      <button type="button" class="ui-label-action dex-page-button" data-dex-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}>이전</button>
       <span class="dex-page-current" aria-label="전체 ${pageCount}페이지 중 ${page}페이지">${page} / ${pageCount}</span>
-      <button type="button" class="dex-page-button" data-dex-page="${page + 1}" ${page >= pageCount ? 'disabled' : ''}>다음</button>
+      <button type="button" class="ui-label-action dex-page-button" data-dex-page="${page + 1}" ${page >= pageCount ? 'disabled' : ''}>다음</button>
     </span>
   `);
 }
@@ -392,6 +442,7 @@ document.getElementById('dexResetFilters')?.addEventListener('click', () => {
     dexViewState[currentDex].query = '';
     dexViewState[currentDex].typeFilter = [];
     dexViewState[currentDex].itemCategory = null;
+    dexViewState[currentDex].scope = 'current';
     dexViewState[currentDex].page = 1;
     dexViewState[currentDex].scrollTop = 0;
     dexViewState[currentDex].scrollLeft = 0;
@@ -404,6 +455,16 @@ document.getElementById('dexResetFilters')?.addEventListener('click', () => {
   }
   renderTypeFilter();
   renderDexContent('');
+});
+
+document.getElementById('dexScopeFilter')?.addEventListener('click', e => {
+  const button = e.target.closest('[data-dex-scope]');
+  if (!button || !['current', 'all'].includes(button.dataset.dexScope)) return;
+  dexViewState[currentDex].scope = button.dataset.dexScope;
+  resetDexPage();
+  renderDexScopeFilter();
+  renderDexContent(dexSearchEl?.value || '');
+  document.querySelector(`#dexScopeFilter [data-dex-scope="${button.dataset.dexScope}"]`)?.focus();
 });
 
 document.querySelectorAll('.dex-tab').forEach(tab => {
@@ -500,8 +561,8 @@ function renderPokemonDex(query) {
   renderDexPagination('pokemon', pageData);
 }
 function renderMovesDex(query) {
-  let data = [...MOVES];
-  if (query) data = data.filter(m => dexMatches(query, m.id, m.name, m.koName, m.desc, m.descLong, m.type, TYPE_KO[m.type], m.cat, moveCategoryLabel(m.cat), VARIABLE_BP_NOTE[m.id], Object.keys(m.flags || {}).join(' ')));
+  let data = dexScopeEntries(MOVES, 'moves');
+  if (query) data = data.filter(m => dexMatches(query, m.id, m.name, m.koName, m.desc, m.descLong, m.type, TYPE_KO[m.type], m.cat, moveCategoryLabel(m.cat), movePowerNote(m), dexMoveTraits(m).join(' ')));
   if (dexTypeFilter.length > 0) data = data.filter(m => dexTypeFilter.includes(m.type));
   applyDexSort(data, 'moves');
   const tbody = document.getElementById('dexBodyMoves');
@@ -509,19 +570,20 @@ function renderMovesDex(query) {
   const pageData = paginateDex(data, 'moves');
   renderTrustedHTML(tbody, pageData.items.map(m => {
     const powerLabel = movePowerLabel(m);
-    const variableBadge = VARIABLE_BP_NOTE[m.id] && powerLabel !== '가변' ? '<span class="dex-var-badge">가변</span>' : '';
-    return `<tr data-dex-id="${m.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(mvName(m), escapeHTML(mvName(m)))}</td><td class="dex-type-cell" data-label="타입">${dexTypePill(m.type)}</td><td data-label="분류">${dexMoveCategoryBadge(m.cat)}</td><td class="num" data-label="위력">${powerLabel}${variableBadge}</td><td class="num" data-label="명중">${moveAccuracyLabel(m)}</td><td class="num" data-label="우선도">${m.pri || 0}</td><td class="desc-cell" data-label="설명">${escapeHTML(m.desc || '')}</td></tr>`;
+    const variableBadge = dexMoveIsVariable(m) && powerLabel !== '가변' ? '<span class="dex-var-badge">가변</span>' : '';
+    const reference = dexReferenceLabel(m, 'moves');
+    return `<tr data-dex-id="${m.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(mvName(m), escapeHTML(mvName(m)))}</td><td class="dex-type-cell" data-label="타입">${dexTypePill(m.type)}</td><td data-label="분류">${dexMoveCategoryBadge(m.cat)}</td><td class="num dex-power" data-label="위력">${powerLabel}${variableBadge}</td><td class="num" data-label="명중">${moveAccuracyLabel(m)}</td><td class="num" data-label="PP">${m.pp ?? '—'}</td><td class="num" data-label="우선도">${m.pri || 0}</td><td class="desc-cell" data-label="설명">${reference ? `<span class="dex-reference-note">${reference}</span>` : ''}${escapeHTML(m.desc || '')}</td></tr>`;
   }).join(''));
   renderDexPagination('moves', pageData);
 }
 function renderAbilitiesDex(query) {
-  let data = [...ABILITIES];
+  let data = dexScopeEntries(ABILITIES, 'abilities');
   if (query) data = data.filter(a => dexMatches(query, a.id, a.name, a.koName, a.desc, a.descLong, ...(PokemonByAbility[a.id] || []).map(p => pkName(p))));
   applyDexSort(data, 'abilities');
   const tbody = document.getElementById('dexBodyAbilities');
   if(!tbody) return;
   const pageData = paginateDex(data, 'abilities');
-  renderTrustedHTML(tbody, pageData.items.map(a => `<tr data-dex-id="${a.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(abName(a), escapeHTML(abName(a)))}</td><td class="dim dex-en-cell" data-label="영문명">${escapeHTML(a.name)}</td><td class="desc-cell" data-label="설명">${escapeHTML(a.desc || '')}</td></tr>`).join(''));
+  renderTrustedHTML(tbody, pageData.items.map(a => `<tr data-dex-id="${a.id}"><td class="dex-name-cell" data-label="이름">${dexRowOpenButton(abName(a), escapeHTML(abName(a)))}</td><td class="dim dex-en-cell" data-label="영문명">${escapeHTML(a.name)}</td><td class="desc-cell" data-label="설명">${dexEntryIsCurrent(a, 'abilities') ? '' : `<span class="dex-reference-note">${dexReferenceLabel(a, 'abilities')}</span>`}${escapeHTML(a.desc || '')}</td></tr>`).join(''));
   renderDexPagination('abilities', pageData);
 }
 function renderItemsDex(query) {

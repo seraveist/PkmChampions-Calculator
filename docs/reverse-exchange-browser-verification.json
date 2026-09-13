@@ -1,11 +1,11 @@
 [
   {
-    "analysisMs": 10218,
-    "unknownItems": true,
-    "total": 35414,
+    "analysisMs": 1102,
+    "unknownItems": false,
+    "total": 7234,
     "timings": {
-      "inferenceMs": 8794,
-      "cardsMs": 144
+      "inferenceMs": 768,
+      "cardsMs": 103
     },
     "forecast": {
       "rawMin": 70,

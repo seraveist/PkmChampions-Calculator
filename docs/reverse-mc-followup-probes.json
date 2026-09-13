@@ -1,0 +1,86 @@
+{
+  "method": "Current M-C product engine probes, compared with the pinned Showdown item/move effect definitions. Isolated deterministic state-transition checks; not a real battle accuracy benchmark.",
+  "probes": {
+    "airBalloon": {
+      "damageTaken": 81,
+      "itemAfterHit": "airballoon",
+      "nextEarthquake": [
+        0,
+        0
+      ],
+      "nextEarthquakeAfterRemovingBalloon": [
+        100,
+        118
+      ],
+      "expected": "A damaging hit pops Air Balloon before the next attack."
+    },
+    "glaiveRush": {
+      "bodySlamBefore": [
+        57,
+        67
+      ],
+      "bodySlamAfter": [
+        57,
+        67
+      ],
+      "bothSurvived": true,
+      "expected": "Incoming damage is doubled after Glaive Rush until before its user next acts."
+    },
+    "firstImpression": {
+      "firstAttackDamage": 147,
+      "nextAttackDamageRange": [
+        88,
+        88
+      ],
+      "nextAttackKoPossible": true,
+      "expected": "First Impression fails on the following turn if the user has remained on the field."
+    },
+    "doubleShock": {
+      "typesAfterUse": [
+        "Electric",
+        "Fighting"
+      ],
+      "nextGroundDamage": [
+        188,
+        224
+      ],
+      "groundDamageAfterElectricTypeRemoval": [
+        94,
+        112
+      ],
+      "expected": "Double Shock removes the Electric type; the user cannot immediately reuse it without regaining that type."
+    },
+    "redcard": {
+      "itemAfterHit": "redcard",
+      "sameParticipants": true,
+      "inputWarning": "",
+      "expected": "A successful activation changes the participant; the same uninterrupted duel cannot be assumed."
+    },
+    "ejectbutton": {
+      "itemAfterHit": "ejectbutton",
+      "sameParticipants": true,
+      "inputWarning": "",
+      "expected": "A successful activation changes the participant; the same uninterrupted duel cannot be assumed."
+    },
+    "unknownItems": {
+      "defaultCandidates": [
+        "",
+        "choicescarf",
+        "dragonfang",
+        "metalcoat"
+      ],
+      "masterHasExpertBelt": true,
+      "masterHasNormalGem": false
+    },
+    "hpPriority": {
+      "spreadCount": 65,
+      "includesH32B16": true,
+      "includesH16B16": false
+    },
+    "hpObservation": {
+      "displayedPercent": 45,
+      "exactMatches": true,
+      "plusOnePercentMatches": false
+    }
+  }
+}

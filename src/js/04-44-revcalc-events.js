@@ -100,9 +100,7 @@ function rcWireMyComboboxes() {
 
     const cb = input.closest('.combobox');
     const optsEl = cb.querySelector('.combobox-options');
-    const isButtonTrigger = input.tagName === 'BUTTON';
     const showOpts = q => {
-      calcHideOptionTooltip();
       const s = (q || '').toLowerCase();
       if (target === 'my') {
         const matches = sortPokemonForCalcSelect(POKEMON).filter(d => calcMatches(s, d.koName || pkName(d)));
@@ -121,7 +119,6 @@ function rcWireMyComboboxes() {
           ? header + matches.map(option => calcRenderComboboxOption(kind, option, rcCurrentComboId(kind))).join('')
           : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>');
       }
-      closeSiblingComboboxOptions(optsEl, input);
       optsEl.classList.add('open');
     };
     const applyOption = opt => {
@@ -137,79 +134,12 @@ function rcWireMyComboboxes() {
       } else if (target === 'myability') {
         revCalcState.my.ability = id || '';
       }
-      calcHideOptionTooltip();
       renderRevCalcAll();
-    };
-    const restoreInput = () => {
-      input.value = target === 'my'
-        ? pkName(PokemonById[revCalcState.my.pokemonIdx] || { name: '' })
-        : target === 'myForm'
-          ? calcPokemonFormLabel(PokemonById[revCalcState.my.pokemonIdx])
-        : rcComboLabel(rcComboKind(target), rcCurrentComboId(rcComboKind(target)));
-    };
-    const clearOptionalInput = () => {
-      if (!['myitem', 'myability'].includes(target)) return false;
-      calcHideOptionTooltip();
-      combo?.close();
-      if (target === 'myitem') revCalcState.my.item = '';
-      if (target === 'myability') revCalcState.my.ability = '';
-      renderRevCalcAll();
-      return true;
-    };
-    const handleInvalidInput = () => {
-      if (!clearOptionalInput()) restoreInput();
     };
     const combo = rcWireComboboxKeyboard(input, optsEl, {
       showOptions: showOpts,
       onSelect: applyOption,
-      getQuery: () => input.value || '',
-      onInvalidInput: handleInvalidInput,
     });
-    input.addEventListener('focus', () => combo?.open(''));
-    input.addEventListener('click', () => combo?.open(''));
-    input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
-    input.addEventListener('blur', () => setTimeout(() => {
-      if (isButtonTrigger) {
-        return;
-      }
-      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
-        calcHideOptionTooltip();
-        combo?.close();
-        restoreInput();
-        return;
-      }
-      if (!String(input.value || '').trim()) {
-        if (clearOptionalInput()) return;
-        calcHideOptionTooltip();
-        combo?.close();
-        restoreInput();
-        return;
-      }
-      calcHideOptionTooltip();
-      combo?.commitTyped();
-    }, 200));
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt || opt.classList.contains('empty')) return;
-      e.preventDefault();
-      if (isButtonTrigger) return;
-      combo?.select(opt);
-    });
-    optsEl.addEventListener('click', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt || opt.classList.contains('empty')) return;
-      e.preventDefault();
-      combo?.select(opt);
-    });
-    optsEl.addEventListener('mouseover', e => {
-      const opt = e.target.closest('.tooltip-option[data-tooltip]');
-      if (opt && optsEl.contains(opt)) calcShowOptionTooltip(opt);
-    });
-    optsEl.addEventListener('mouseout', e => {
-      const opt = e.target.closest('.tooltip-option[data-tooltip]');
-      if (opt && !opt.contains(e.relatedTarget)) calcHideOptionTooltip();
-    });
-    optsEl.addEventListener('scroll', calcHideOptionTooltip);
   });
 }
 
@@ -267,7 +197,6 @@ function rcWireOppComboboxes() {
 
     const cb = input.closest('.combobox');
     const optsEl = cb.querySelector('.combobox-options');
-    const isButtonTrigger = input.tagName === 'BUTTON';
     const showOpts = q => {
       const s = (q || '').toLowerCase();
       if (target === 'oppForm') {
@@ -281,7 +210,6 @@ function rcWireOppComboboxes() {
           calcRenderPokemonOption(m, revCalcState.opp.pokemonIdx)
         ).join(''));
       }
-      closeSiblingComboboxOptions(optsEl, input);
       optsEl.classList.add('open');
     };
     const applyOption = opt => {
@@ -307,49 +235,8 @@ function rcWireOppComboboxes() {
     const combo = rcWireComboboxKeyboard(input, optsEl, {
       showOptions: showOpts,
       onSelect: applyOption,
-      getQuery: () => input.value || '',
-      onInvalidInput: () => {
-        input.value = target === 'oppForm'
-          ? calcPokemonFormLabel(PokemonById[revCalcState.opp.pokemonIdx])
-          : pkName(PokemonById[revCalcState.opp.pokemonIdx] || { name: '' });
-      },
-    });
-    input.addEventListener('focus', () => combo?.open(''));
-    input.addEventListener('click', () => combo?.open(''));
-    input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
-    input.addEventListener('blur', () => setTimeout(() => {
-      if (isButtonTrigger) {
-        return;
-      }
-      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
-        combo?.close();
-        input.value = target === 'oppForm'
-          ? calcPokemonFormLabel(PokemonById[revCalcState.opp.pokemonIdx])
-          : pkName(PokemonById[revCalcState.opp.pokemonIdx] || { name: '' });
-        return;
-      }
-      if (!String(input.value || '').trim()) {
-        combo?.close();
-        input.value = pkName(PokemonById[revCalcState.opp.pokemonIdx] || { name: '' });
-        return;
-      }
-      combo?.commitTyped();
-    }, 200));
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt || opt.classList.contains('empty')) return;
-      e.preventDefault();
-      if (isButtonTrigger) return;
-      combo?.select(opt);
-    });
-    optsEl.addEventListener('click', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt || opt.classList.contains('empty')) return;
-      e.preventDefault();
-      combo?.select(opt);
     });
   });
-  rcWireOppStatusComboboxes();
 }
 
 function rcStatusOptions() {
@@ -395,7 +282,7 @@ function rcWireOppStatusComboboxes() {
     };
     const applyOption = opt => {
       revCalcState.opp.status = opt.dataset.id || 'none';
-      button.textContent = rcStatusDisplayLabel(revCalcState.opp.status);
+      uiSetPickerLabel(button,rcStatusDisplayLabel(revCalcState.opp.status));
     };
     const combo = rcWireComboboxKeyboard(button, optsEl, {
       showOptions: show,
@@ -409,7 +296,7 @@ function rcWireOppStatusComboboxes() {
       if (optsEl.classList.contains('open')) combo?.close();
       else combo?.open('');
     });
-    button.addEventListener('blur', () => setTimeout(() => combo?.close(), 160));
+
     optsEl.addEventListener('mousedown', e => {
       const opt = e.target.closest('.combobox-option:not(.empty)');
       if (!opt) return;
@@ -475,7 +362,7 @@ function rcWireTurnOrderComboboxes(scope) {
     const applyOption = opt => {
       revCalcState.turnOrder = rcNormalizeTurnOrderValue(opt.dataset.id || 'unknown');
       button.value = revCalcState.turnOrder;
-      button.textContent = rcTurnOrderLabel(revCalcState.turnOrder);
+      uiSetPickerLabel(button,rcTurnOrderLabel(revCalcState.turnOrder));
       renderRevCalcResults();
     };
     const combo = rcWireComboboxKeyboard(button, optsEl, {
@@ -490,7 +377,7 @@ function rcWireTurnOrderComboboxes(scope) {
       if (optsEl.classList.contains('open')) combo?.close();
       else combo?.open('');
     });
-    button.addEventListener('blur', () => setTimeout(() => combo?.close(), 160));
+
     optsEl.addEventListener('mousedown', e => {
       const opt = e.target.closest('.combobox-option:not(.empty)');
       if (!opt) return;
@@ -559,100 +446,27 @@ function rcWireFieldComboboxes(scope) {
 
 function rcWireMoveComboboxes(scope) {
   const root = scope || document.getElementById('page-revcalc');
-  if (!root) return;
-  root.querySelectorAll('[data-rc-move-picker]').forEach(input => {
-    const target = input.dataset.rcMovePicker;
-    const slot = input.dataset.rcMoveSlot;
-    const cb = input.closest('.combobox');
-    const optsEl = cb?.querySelector('.combobox-options');
-    if (!optsEl) return;
-    let selectingMoveOption = false;
-
-    const showOpts = q => {
-      const pool = rcMovePoolForPicker(target);
-      const noneOption = rcMoveNoneOption();
-      const noneMatches = rcMoveMatchesQuery(noneOption, q) ? [noneOption] : [];
-      const matches = [...noneMatches, ...rcFilterMovePool(pool, q)];
-      const currentId = target === 'moveslot'
-        ? rcMoveSet()[parseInt(slot, 10)] || ''
-        : target === 'knownOppMove' ? revCalcState.knownOppMoves?.[parseInt(slot, 10)] || ''
-        : (revCalcState[target] || '');
-      renderTrustedHTML(optsEl, matches.length
-        ? matches.map(m => rcRenderSimpleMoveOption(m, currentId)).join('')
-        : '<div class="combobox-option ui-option empty"><b>검색 결과 없음</b></div>');
-      optsEl.classList.add('open');
-    };
-
-    const applyMove = id => {
-      rcSetMovePickerValue(target, id, slot);
-      if (target === 'moveslot') {
-        renderRevCalcMy();
-        renderRevCalcInputs();
-        renderRevCalcResults();
-      } else if (target === 'myMove') {
-        renderRevCalcInputs();
-        renderRevCalcResults();
-      } else if (target === 'oppMove') {
-        renderRevCalcInputs();
-        renderRevCalcResults();
-      } else if (['predictedOppMove', 'nextMyMove', 'knownOppMove'].includes(target)) {
-        renderRevCalcResults();
-      }
-    };
-    const combo = rcWireComboboxKeyboard(input, optsEl, {
-      showOptions: showOpts,
-      onSelect: opt => {
-        selectingMoveOption = true;
-        applyMove(opt.dataset.id || '');
+  root?.querySelectorAll('[data-rc-move-picker]').forEach(input => {
+    const target = input.dataset.rcMovePicker, slot = input.dataset.rcMoveSlot;
+    const list = input.closest('.combobox')?.querySelector('.combobox-options');
+    if (!list || input.dataset.pickerWired) return;
+    input.dataset.pickerWired='1';
+    const current=()=>target==='moveslot' ? rcMoveSet()[Number(slot)] || '' : target==='knownOppMove' ? revCalcState.knownOppMoves?.[Number(slot)] || '' : revCalcState[target] || '';
+    const combo=wireSharedComboboxKeyboard(input,list,{
+      showOptions:query=>{
+        const rows=[rcMoveNoneOption(),...rcMovePoolForPicker(target)].filter(move=>rcMoveMatchesQuery(move,query));
+        renderTrustedHTML(list,rows.map(move=>calcRenderMoveOption(move,current())).join('') || '<div class="combobox-option empty">검색 결과 없음</div>');
       },
-      getQuery: () => input.value || '',
-      onInvalidInput: () => applyMove(''),
+      onSelect:option=>{
+        const id=option.dataset.id || '';
+        rcSetMovePickerValue(target,id,slot);
+        uiSetPickerLabel(input,rcMoveLabel(id));
+        if(target==='moveslot') renderRevCalcMy();
+        if(['moveslot','myMove','oppMove'].includes(target)) renderRevCalcInputs();
+        renderRevCalcResults();
+      },
     });
-
-    input.addEventListener('focus', () => combo?.open(''));
-    input.addEventListener('click', () => combo?.open(''));
-    input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
-    input.addEventListener('compositionend', e => combo?.open(e.target.value, { activateFirst: true }));
-    input.addEventListener('keydown', e => {
-      if (e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
-      if (e.key !== 'Enter') return;
-      const pool = rcMovePoolForPicker(target);
-      const id = rcBestMoveForTypedName(input.value, pool);
-      if (id === undefined) return;
-      e.preventDefault();
-      applyMove(id);
-    });
-    input.addEventListener('blur', () => {
-      setTimeout(() => combo?.close(), 180);
-      setTimeout(() => {
-        if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
-          selectingMoveOption = false;
-          const currentId = target === 'moveslot'
-            ? rcMoveSet()[parseInt(slot, 10)] || ''
-            : (revCalcState[target] || '');
-          input.value = rcMoveLabel(currentId);
-          return;
-        }
-        if (selectingMoveOption) {
-          selectingMoveOption = false;
-          return;
-        }
-        const pool = rcMovePoolForPicker(target);
-        const id = rcFindMoveByTypedName(input.value, pool);
-        if (id !== undefined) {
-          rcSetMovePickerValue(target, id, slot);
-        } else {
-          applyMove('');
-        }
-      }, 180);
-    });
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option:not(.empty)');
-      if (!opt) return;
-      selectingMoveOption = true;
-      e.preventDefault();
-      combo?.select(opt);
-    });
+    input.addEventListener('click',()=>combo.open(''));
   });
 }
 
@@ -678,94 +492,27 @@ function rcOppItemLabel(itemId) {
 function rcRenderOppItemCombobox(itemId) {
   return `
     <div class="combobox rc-opp-item-combobox">
-      <input type="text" class="cb-input rc-opp-item-input" data-rc-opp-item="known" value="${escapeHTML(rcOppItemLabel(itemId))}" placeholder="도구 선택" autocomplete="off">
+      <button type="button" class="ui-button ui-select-trigger cb-trigger cb-input rc-opp-item-input" data-rc-opp-item="known" value="${escapeHTML(rcOppItemLabel(itemId))}"><span class="ui-select-content picker-label">${escapeHTML(rcOppItemLabel(itemId))}</span>${RotomUI.icon('chevron')}</button>
       <div class="combobox-options"></div>
     </div>
   `;
 }
 
 function rcWireOppItemComboboxes(scope) {
-  const root = scope || document.getElementById('page-revcalc');
-  if (!root) return;
-  root.querySelectorAll('[data-rc-opp-item="known"]').forEach(input => {
-    const cb = input.closest('.combobox');
-    const optsEl = cb?.querySelector('.combobox-options');
-    if (!optsEl) return;
-    let selectingItemOption = false;
-
-    const matchesFor = query => {
-      const q = String(query || '').trim().toLowerCase();
-      const options = rcOppItemOptions();
-      if (!q) return options;
-      return options.filter(option => [option.id, option.label, option.sub, option.raw?.name, option.raw?.koName]
-        .some(value => String(value || '').toLowerCase().includes(q)));
-    };
-    const restore = () => { input.value = rcOppItemLabel(revCalcState.oppItemKnown); };
-    const showOpts = query => {
-      const matches = matchesFor(query);
-      renderTrustedHTML(optsEl, matches.length
-        ? matches.map(option => calcRenderComboboxOption('item', option, revCalcState.oppItemKnown || '')).join('')
-        : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>');
-      optsEl.classList.add('open');
-    };
-    const applyItem = id => {
-      revCalcState.oppItemKnown = id === undefined ? 'unknown' : id;
-      rcResetItemCandidatesForOpponent();
-      renderRevCalcInputs();
-      renderRevCalcResults();
-    };
-    const combo = rcWireComboboxKeyboard(input, optsEl, {
-      showOptions: showOpts,
-      onSelect: opt => applyItem(opt.dataset.id || ''),
-      getQuery: () => input.value || '',
-      onInvalidInput: () => applyItem(''),
+  const root=scope || document.getElementById('page-revcalc');
+  root?.querySelectorAll('[data-rc-opp-item="known"]').forEach(input=>{
+    const list=input.closest('.combobox')?.querySelector('.combobox-options');
+    if(!list) return;
+    const combo=wireSharedComboboxKeyboard(input,list,{
+      showOptions:query=>{
+        const rows=rcOppItemOptions().filter(option=>calcMatches(query,option.id,option.label,option.sub,option.raw?.name));
+        renderTrustedHTML(list,rows.map(option=>calcRenderItemOption(option,revCalcState.oppItemKnown)).join('') || '<div class="combobox-option empty">검색 결과 없음</div>');
+      },
+      onSelect:option=>{
+        revCalcState.oppItemKnown=option.dataset.id || '';
+        rcResetItemCandidatesForOpponent();renderRevCalcInputs();renderRevCalcResults();
+      },
     });
-
-    input.addEventListener('focus', () => combo?.open(''));
-    input.addEventListener('click', () => combo?.open(''));
-    input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
-    input.addEventListener('keydown', e => {
-      if (e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
-      if (e.key !== 'Enter') return;
-      if (!String(input.value || '').trim()) {
-        e.preventDefault();
-        applyItem('');
-        return;
-      }
-      const first = matchesFor(input.value)[0];
-      if (!first) return;
-      e.preventDefault();
-      applyItem(first.id || '');
-    });
-    input.addEventListener('blur', () => {
-      setTimeout(() => combo?.close(), 180);
-      setTimeout(() => {
-        if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
-          selectingItemOption = false;
-          restore();
-          return;
-        }
-        if (selectingItemOption) {
-          selectingItemOption = false;
-          return;
-        }
-        if (!String(input.value || '').trim()) {
-          applyItem('');
-          return;
-        }
-        const exact = matchesFor(input.value)
-          .find(option => calcSearchText(option.label).trim() === calcSearchText(input.value).trim()
-            || calcSearchText(option.id).trim() === calcSearchText(input.value).trim());
-        if (exact) applyItem(exact.id || '');
-        else applyItem('');
-      }, 180);
-    });
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option:not(.empty)');
-      if (!opt) return;
-      selectingItemOption = true;
-      e.preventDefault();
-      combo?.select(opt);
-    });
+    input.addEventListener('click',()=>combo.open(''));
   });
 }

@@ -1,0 +1,259 @@
+{
+  "generatedAt": "2026-09-13T05:45:47.329Z",
+  "html": {
+    "bytes": 28687,
+    "lines": 457,
+    "staticIds": 106,
+    "duplicateIds": [],
+    "pageSections": 5,
+    "headings": 14,
+    "buttons": 46,
+    "buttonsWithoutType": 0,
+    "inlineStyleAttributes": 0,
+    "inlineEventAttributes": 0
+  },
+  "css": {
+    "files": 37,
+    "bytes": 342361,
+    "rules": 1953,
+    "mediaQueries": 41,
+    "important": 0,
+    "customProperties": 847,
+    "colorLiterals": 378,
+    "largestFiles": [
+      {
+        "file": "pages/02-finetune.css",
+        "bytes": 31322,
+        "lines": 1456,
+        "rules": 196,
+        "mediaQueries": 6,
+        "important": 0,
+        "customProperties": 82,
+        "colorLiterals": 15,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "components/tool-stats.css",
+        "bytes": 26539,
+        "lines": 913,
+        "rules": 96,
+        "mediaQueries": 3,
+        "important": 0,
+        "customProperties": 74,
+        "colorLiterals": 2,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "pages/03-reverse.css",
+        "bytes": 26016,
+        "lines": 1268,
+        "rules": 182,
+        "mediaQueries": 5,
+        "important": 0,
+        "customProperties": 37,
+        "colorLiterals": 22,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "components/party-presets.css",
+        "bytes": 20572,
+        "lines": 951,
+        "rules": 111,
+        "mediaQueries": 0,
+        "important": 0,
+        "customProperties": 0,
+        "colorLiterals": 2,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "pages/calculator-00-base.css",
+        "bytes": 20408,
+        "lines": 960,
+        "rules": 123,
+        "mediaQueries": 0,
+        "important": 0,
+        "customProperties": 3,
+        "colorLiterals": 64,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "responsive.css",
+        "bytes": 19345,
+        "lines": 938,
+        "rules": 156,
+        "mediaQueries": 4,
+        "important": 0,
+        "customProperties": 8,
+        "colorLiterals": 0,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "pages/calculator-10-layout.css",
+        "bytes": 14900,
+        "lines": 603,
+        "rules": 83,
+        "mediaQueries": 0,
+        "important": 0,
+        "customProperties": 30,
+        "colorLiterals": 26,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "pages/dex-00-shell.css",
+        "bytes": 14894,
+        "lines": 347,
+        "rules": 53,
+        "mediaQueries": 0,
+        "important": 0,
+        "customProperties": 86,
+        "colorLiterals": 11,
+        "foreignPageReferences": []
+      }
+    ],
+    "crossPageOwnership": []
+  },
+  "javascript": {
+    "files": 32,
+    "bytes": 705730,
+    "functions": 820,
+    "innerHtmlWrites": 1,
+    "domIdLookups": 171,
+    "filesOver40KiB": [
+      {
+        "file": "02-engine.js",
+        "bytes": 82395,
+        "lines": 1824,
+        "functions": 72,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 0
+      }
+    ],
+    "largestFiles": [
+      {
+        "file": "02-engine.js",
+        "bytes": 82395,
+        "lines": 1824,
+        "functions": 72,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 0
+      },
+      {
+        "file": "04-41-revcalc-scoring.js",
+        "bytes": 36121,
+        "lines": 872,
+        "functions": 49,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 0
+      },
+      {
+        "file": "03-30-calc-side-render.js",
+        "bytes": 35115,
+        "lines": 701,
+        "functions": 17,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 3
+      },
+      {
+        "file": "03-10-calc-state.js",
+        "bytes": 33613,
+        "lines": 904,
+        "functions": 83,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 1
+      },
+      {
+        "file": "04-03-party-presets-ui.js",
+        "bytes": 32746,
+        "lines": 703,
+        "functions": 34,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 40
+      },
+      {
+        "file": "04-44-revcalc-events.js",
+        "bytes": 32420,
+        "lines": 772,
+        "functions": 24,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 8
+      },
+      {
+        "file": "03-20-calc-combobox.js",
+        "bytes": 30927,
+        "lines": 771,
+        "functions": 29,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 1
+      },
+      {
+        "file": "04-43-revcalc-render.js",
+        "bytes": 30219,
+        "lines": 497,
+        "functions": 8,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 6
+      }
+    ]
+  },
+  "publicAssets": {
+    "count": 9,
+    "initialGzipBytes": 298532,
+    "totalGzipBytes": 453169,
+    "assets": [
+      {
+        "role": "theme",
+        "file": "theme.45ae29b0b9d3.js",
+        "bytes": 187,
+        "gzipBytes": 154
+      },
+      {
+        "role": "style",
+        "file": "app.97608f502fa2.css",
+        "bytes": 321047,
+        "gzipBytes": 47441
+      },
+      {
+        "role": "data",
+        "file": "data.b650c4a54c10.js",
+        "bytes": 928841,
+        "gzipBytes": 160663
+      },
+      {
+        "role": "app",
+        "file": "app.96b82da55464.js",
+        "bytes": 366870,
+        "gzipBytes": 90274
+      },
+      {
+        "role": "worker",
+        "file": "reverse-worker.27219d1ba649.js",
+        "bytes": 261478,
+        "gzipBytes": 68773
+      },
+      {
+        "role": "featureDex",
+        "file": "feature-dex.d2c6fda1b58e.js",
+        "bytes": 58392,
+        "gzipBytes": 16389
+      },
+      {
+        "role": "featureMatchup",
+        "file": "feature-matchup.28f0783b9d88.js",
+        "bytes": 27558,
+        "gzipBytes": 7439
+      },
+      {
+        "role": "featureFinetune",
+        "file": "feature-finetune.094e3ba2677b.js",
+        "bytes": 52610,
+        "gzipBytes": 14411
+      },
+      {
+        "role": "featureRevcalc",
+        "file": "feature-revcalc.7ac66074d77c.js",
+        "bytes": 200324,
+        "gzipBytes": 47625
+      }
+    ]
+  }
+}

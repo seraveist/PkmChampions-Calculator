@@ -46,6 +46,7 @@ function loadCalcApi() {
 
   const source = [
     readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8'),
+    readFileSync(path.join(ROOT, 'src', 'js', '01-10-rotom-ui.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '02-engine.js'), 'utf8'),
     `
       globalThis.__calcApi = {

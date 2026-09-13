@@ -1,0 +1,29 @@
+[
+  {
+    "width": 1440,
+    "viewport": 1440,
+    "scale": 1,
+    "overflow": -15,
+    "comparisonRows": 10,
+    "goalCount": 13,
+    "clipped": []
+  },
+  {
+    "width": 375,
+    "viewport": 375,
+    "scale": 1,
+    "overflow": 0,
+    "comparisonRows": 10,
+    "goalCount": 13,
+    "clipped": []
+  },
+  {
+    "width": 320,
+    "viewport": 320,
+    "scale": 1,
+    "overflow": 0,
+    "comparisonRows": 10,
+    "goalCount": 13,
+    "clipped": []
+  }
+]

@@ -22,7 +22,6 @@ const DATA_IDS = [
   'data-natures',
   'data-typechart',
   'data-rules',
-  'data-meta-threats',
 ];
 const ASSET_BUDGETS = {
   theme: { sizeBytes: 1024, gzipBytes: 1024 },

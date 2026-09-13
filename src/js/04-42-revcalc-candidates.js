@@ -80,7 +80,6 @@ function rcAnalysisWorkerData() {
     'data-natures': NATURE_DATA,
     'data-typechart': TYPE_CHART_DATA,
     'data-rules': RULES,
-    'data-meta-threats': META_THREATS,
   };
 }
 

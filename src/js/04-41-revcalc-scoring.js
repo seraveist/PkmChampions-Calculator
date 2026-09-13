@@ -555,46 +555,6 @@ function rcAnalyzeOpponentFollowupMove(c, moveId, speedActive) {
   return { move, summary, badges };
 }
 
-function rcFormatPct(value) {
-  return `${value.toFixed(1)}%`;
-}
-
-function rcFormatDamage(summary) {
-  const pct = `${rcFormatPct(summary.pctMin)}~${rcFormatPct(summary.pctMax)}`;
-  return `${summary.rawMin}~${summary.rawMax} <small>(${pct})</small>`;
-}
-
-function rcRenderInfoBadges(badges) {
-  const unique = [...new Set((badges || []).filter(Boolean))];
-  if (!unique.length) return '';
-  return `<span class="rc-info-badges">${unique.map(b => `<span class="rc-info-badge">${escapeHTML(b)}</span>`).join('')}</span>`;
-}
-
-function rcRenderFollowupMoveChip(analysis) {
-  if (!analysis) return '';
-  const badgeHtml = rcRenderInfoBadges(analysis.badges);
-  if (analysis.unavailable) return `<div class="rc-followup-chip status"><b>${escapeHTML(mvName(analysis.move))}</b><span class="rc-move-unavailable">${escapeHTML(analysis.badges.join(' · '))}</span></div>`;
-  if (analysis.statusMove) {
-    return `
-      <div class="rc-followup-chip status">
-        <b>${escapeHTML(mvName(analysis.move))}</b>
-        <span class="rc-followup-damage status">변화기</span>
-        ${badgeHtml || '<span></span>'}
-        <em>직접 피해 없음</em>
-      </div>
-    `;
-  }
-  const koClass = analysis.summary.koClass || 'ko-none';
-  return `
-    <div class="rc-followup-chip">
-      <em class="${koClass}">${escapeHTML(analysis.summary.koState)}</em>
-      <b>${escapeHTML(mvName(analysis.move))}</b>
-      <span class="rc-followup-damage ${koClass}">${rcFormatDamage(analysis.summary)}</span>
-      <span class="rc-move-order">${escapeHTML(analysis.summary.order || '')}</span>
-    </div>
-  `;
-}
-
 function rcRenderNextRankCells(ranks, action) {
   const labels = { atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
   const sideLabel = action === 'nextmyrank' ? '내' : '상대';

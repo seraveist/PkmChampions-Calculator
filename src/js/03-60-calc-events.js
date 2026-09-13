@@ -1,8 +1,5 @@
 /* Damage calculator field controls and page-level events. */
-document.getElementById('calc-field-head').addEventListener('click', e => {
-  if (e.target.closest('input, select, button, label, .combobox, .calc-field-auto-toggle')) return;
-  document.getElementById('calc-field-panel').classList.toggle('collapsed');
-});
+powerUiRenderField();
 
 document.getElementById('btnCalculate')?.addEventListener('click', runCalc);
 document.getElementById('btnResetManual')?.addEventListener('click', resetCalcManualValues);
@@ -105,18 +102,15 @@ function updateRuinCheckboxes(fieldState = null) {
 }
 // 공격측 ↔ 방어측 교대 (사이드 객체 전체를 통째로 교환)
 // 사이드 패널 점프 버튼 위임 — fine-tune/reverse view modules의 sync 함수 호출
-document.addEventListener('click', e => {
-  if (!e.target.closest('#page-calc .calc-stat-preset-shell') && typeof closeEvPresetPopovers === 'function') {
-    closeEvPresetPopovers();
-  }
+document.addEventListener('click', async e => {
   const ftBtn = e.target.closest('.calc-page-jump-button[data-ft-from-side]');
-  if (ftBtn && typeof loadSideToFineTune === 'function') {
-    loadSideToFineTune(ftBtn.dataset.ftFromSide);
+  if (ftBtn) {
+    if (await activateMainPage('finetune', { updateHash:true })) loadSideToFineTune(ftBtn.dataset.ftFromSide);
     return;
   }
   const rcBtn = e.target.closest('.calc-page-jump-button[data-rc-from-side]');
-  if (rcBtn && typeof loadSideToRevCalc === 'function') {
-    loadSideToRevCalc(rcBtn.dataset.rcFromSide);
+  if (rcBtn) {
+    if (await activateMainPage('revcalc', { updateHash:true })) loadSideToRevCalc(rcBtn.dataset.rcFromSide);
     return;
   }
 });

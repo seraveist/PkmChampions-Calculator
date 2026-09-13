@@ -10,7 +10,7 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const DATA = path.join(ROOT, 'data');
 const CHAMP = path.join(DATA, 'mods', 'champions');
 const HTML_PATH = path.join(ROOT, 'pokemon-champions-calculator-v3.html');
-const UNOFFICIAL_NONSTANDARD = new Set(['CAP', 'Custom']);
+const EXCLUDED_NONSTANDARD = new Set(['CAP', 'Custom', 'Gmax']);
 const KINDS = ['pokemon', 'moves', 'abilities', 'items'];
 
 function readJson(fp, fallback = {}) {
@@ -59,9 +59,10 @@ function isPast(entry) {
 }
 
 function isAvailable(entry, kind, id, filters) {
+  if (entry?.isNonstandard === 'Gmax') return false;
   if (filters.include[kind].has(id)) return !isPast(entry);
   if (filters.exclude[kind].has(id)) return false;
-  return !isPast(entry) && !UNOFFICIAL_NONSTANDARD.has(entry?.isNonstandard);
+  return !isPast(entry) && !EXCLUDED_NONSTANDARD.has(entry?.isNonstandard);
 }
 
 const html = readFileSync(HTML_PATH, 'utf8');

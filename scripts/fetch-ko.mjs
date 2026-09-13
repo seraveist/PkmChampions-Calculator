@@ -20,12 +20,12 @@ const DATA = path.join(ROOT, 'data');
 const KO_DIR = path.join(DATA, 'ko');
 const CSV_BASE = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv';
 const KO_LANG_ID = '3';  // PokéAPI languages.csv 에서 ko=3
-const UNOFFICIAL_NONSTANDARD = new Set(['CAP', 'Custom']);
+const EXCLUDED_NONSTANDARD = new Set(['CAP', 'Custom', 'Gmax']);
 
 // PS id ↔ identifier 정규화
 function psNorm(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function isPast(e) { return e?.isNonstandard === 'Past' || e?.isNonstandard === 'Future'; }
-function isAvailable(e) { return !isPast(e) && !UNOFFICIAL_NONSTANDARD.has(e?.isNonstandard); }
+function isAvailable(e) { return !isPast(e) && !EXCLUDED_NONSTANDARD.has(e?.isNonstandard); }
 
 async function fetchText(url) {
   const res = await fetch(url);

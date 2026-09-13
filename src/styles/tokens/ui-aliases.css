@@ -57,7 +57,7 @@ var(--bg-input);
 --ui-def-head-bg:
 linear-gradient(90deg, rgba(22, 127, 165, 0.13), transparent 56%),
 var(--bg-input);
---ui-control-height: 38px;
+
 --ui-control-height-compact: 36px;
 --ui-control-radius: var(--radius-md);
 --ui-control-border: 1px solid var(--border);

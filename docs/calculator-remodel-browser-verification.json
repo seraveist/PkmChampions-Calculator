@@ -1,0 +1,22 @@
+[
+  {
+    "width": 1440,
+    "overflow": -15,
+    "statInputs": 12
+  },
+  {
+    "width": 768,
+    "overflow": -15,
+    "statInputs": 12
+  },
+  {
+    "width": 390,
+    "overflow": 0,
+    "statInputs": 12
+  },
+  {
+    "width": 320,
+    "overflow": 0,
+    "statInputs": 12
+  }
+]

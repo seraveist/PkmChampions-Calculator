@@ -1,0 +1,507 @@
+{
+  "date": "2026-09-13",
+  "basis": "d05592c plus local fine-tune improvements",
+  "method": "Local generated data and real application functions with a stub DOM; renderSide remains active. Not a browser layout test or a certification of live regulation legality.",
+  "inventory": {
+    "pokemon": {
+      "count": 350,
+      "missingKoreanName": []
+    },
+    "moves": {
+      "count": 569,
+      "missingKoreanName": [],
+      "missingShortDescription": []
+    },
+    "abilities": {
+      "count": 317,
+      "missingKoreanName": [],
+      "missingShortDescription": []
+    },
+    "items": {
+      "count": 167,
+      "missingKoreanName": [],
+      "missingShortDescription": []
+    }
+  },
+  "movePp": {
+    "emitted": 0,
+    "sourceAvailable": 569,
+    "examples": [
+      {
+        "id": "thunderbolt",
+        "sourcePp": 15,
+        "rendered": "—"
+      },
+      {
+        "id": "banefulbunker",
+        "sourcePp": 5,
+        "rendered": "—"
+      },
+      {
+        "id": "beakblast",
+        "sourcePp": 5,
+        "rendered": "—"
+      }
+    ]
+  },
+  "movePowerLabels": [
+    {
+      "id": "gyroball",
+      "basePower": 0,
+      "variableKind": "gyroBall",
+      "list": "가변",
+      "detail": "—",
+      "note": "느릴수록 위력 ↑"
+    },
+    {
+      "id": "electroball",
+      "basePower": 0,
+      "variableKind": "electroBall",
+      "list": "가변",
+      "detail": "—",
+      "note": "빠를수록 위력 ↑"
+    },
+    {
+      "id": "fling",
+      "basePower": 0,
+      "variableKind": "fling",
+      "list": "—",
+      "detail": "—",
+      "note": null
+    },
+    {
+      "id": "beatup",
+      "basePower": 0,
+      "variableKind": "beatUpApprox",
+      "list": "—",
+      "detail": "—",
+      "note": null
+    },
+    {
+      "id": "ficklebeam",
+      "basePower": 80,
+      "variableKind": "fickleBeam",
+      "list": 80,
+      "detail": "80",
+      "note": null
+    }
+  ],
+  "solarCondition": {
+    "note": "쾌청 외 ×0.5",
+    "noWeather": 120,
+    "rain": 60
+  },
+  "terrainCondition": {
+    "note": "일렉트릭필드 ×2",
+    "flyingTarget": 70,
+    "groundedTarget": 140
+  },
+  "knockOffCondition": {
+    "note": "도구 보유 시 ×1.5",
+    "matchingMegaStone": 65,
+    "removableItem": 97
+  },
+  "moveHandoff": [
+    {
+      "route": "move",
+      "selected": "earthquake",
+      "expected": {
+        "bp": 100,
+        "type": "Ground",
+        "critical": false
+      },
+      "actual": {
+        "bp": 200,
+        "type": "Fire",
+        "critical": true,
+        "storedHitCount": 5
+      }
+    },
+    {
+      "route": "same-pokemon-parent",
+      "selected": "earthquake",
+      "expected": {
+        "bp": 100,
+        "type": "Ground",
+        "critical": false
+      },
+      "actual": {
+        "bp": 200,
+        "type": "Fire",
+        "critical": true,
+        "storedHitCount": 5
+      }
+    },
+    {
+      "route": "same-pokemon-from-move",
+      "selected": "earthquake",
+      "expected": {
+        "bp": 100,
+        "type": "Ground",
+        "critical": false
+      },
+      "actual": {
+        "bp": 200,
+        "type": "Fire",
+        "critical": true,
+        "storedHitCount": 5
+      }
+    }
+  ],
+  "scope": {
+    "movesWithoutCurrentUsers": [
+      "anchorshot",
+      "baddybad",
+      "boltbeak",
+      "bouncybubble",
+      "buzzybuzz",
+      "fishiousrend",
+      "floatyfall",
+      "freezyfrost",
+      "geargrind",
+      "glitzyglow",
+      "gmaxbefuddle",
+      "gmaxcannonade",
+      "gmaxcentiferno",
+      "gmaxchistrike",
+      "gmaxcuddle",
+      "gmaxdepletion",
+      "gmaxdrumsolo",
+      "gmaxfinale",
+      "gmaxfireball",
+      "gmaxfoamburst",
+      "gmaxgoldrush",
+      "gmaxgravitas",
+      "gmaxhydrosnipe",
+      "gmaxmalodor",
+      "gmaxmeltdown",
+      "gmaxoneblow",
+      "gmaxrapidflow",
+      "gmaxreplenish",
+      "gmaxresonance",
+      "gmaxsandblast",
+      "gmaxsmite",
+      "gmaxsnooze",
+      "gmaxsteelsurge",
+      "gmaxstonesurge",
+      "gmaxstunshock",
+      "gmaxsweetness",
+      "gmaxtartness",
+      "gmaxterror",
+      "gmaxvinelash",
+      "gmaxvolcalith",
+      "gmaxvoltcrash",
+      "gmaxwildfire",
+      "gmaxwindrage",
+      "meteorassault",
+      "nihillight",
+      "obstruct",
+      "pikapapow",
+      "pound",
+      "powershift",
+      "purify",
+      "sappyseed",
+      "shelltrap",
+      "sizzlyslide",
+      "softboiled",
+      "sparklyswirl",
+      "splishysplash",
+      "spore",
+      "struggle",
+      "veeveevolley",
+      "zippyzap"
+    ],
+    "abilitiesWithoutCurrentOwners": [
+      "airlock",
+      "angershell",
+      "arenatrap",
+      "asoneglastrier",
+      "asonespectrier",
+      "aurabreak",
+      "baddreams",
+      "ballfetch",
+      "battery",
+      "beadsofruin",
+      "beastboost",
+      "chillingneigh",
+      "colorchange",
+      "comatose",
+      "commander",
+      "costar",
+      "cottondown",
+      "dancer",
+      "darkaura",
+      "dauntlessshield",
+      "dazzling",
+      "defeatist",
+      "deltastream",
+      "desolateland",
+      "download",
+      "dragonsmaw",
+      "embodyaspectcornerstone",
+      "embodyaspecthearthflame",
+      "embodyaspectteal",
+      "embodyaspectwellspring",
+      "flareboost",
+      "flowergift",
+      "fullmetalbody",
+      "galvanize",
+      "gorillatactics",
+      "grimneigh",
+      "gulpmissile",
+      "hadronengine",
+      "honeygather",
+      "iceface",
+      "icescales",
+      "intrepidsword",
+      "ironbarbs",
+      "lingeringaroma",
+      "magnetpull",
+      "mindseye",
+      "mistysurge",
+      "multitype",
+      "myceliummight",
+      "neuroforce",
+      "neutralizinggas",
+      "normalize",
+      "orichalcumpulse",
+      "pastelveil",
+      "perishbody",
+      "poisonpuppeteer",
+      "powerconstruct",
+      "powerofalchemy",
+      "powerspot",
+      "primordialsea",
+      "prismarmor",
+      "propellertail",
+      "protosynthesis",
+      "quarkdrive",
+      "rkssystem",
+      "rockypayload",
+      "schooling",
+      "serenegrace",
+      "shadowshield",
+      "shieldsdown",
+      "simple",
+      "slowstart",
+      "soulheart",
+      "steamengine",
+      "steelworker",
+      "stormdrain",
+      "swordofruin",
+      "tabletsofruin",
+      "tanglinghair",
+      "teraformzero",
+      "terashell",
+      "terashift",
+      "teravolt",
+      "tintedlens",
+      "toxicboost",
+      "toxicchain",
+      "transistor",
+      "triage",
+      "truant",
+      "turboblaze",
+      "vesselofruin",
+      "victorystar",
+      "watercompaction",
+      "waterveil",
+      "wellbakedbody",
+      "wimpout",
+      "windpower",
+      "windrider",
+      "wonderguard",
+      "wonderskin",
+      "zenmode"
+    ],
+    "specialSourceTags": [
+      {
+        "id": "baddybad",
+        "tag": "LGPE"
+      },
+      {
+        "id": "bouncybubble",
+        "tag": "LGPE"
+      },
+      {
+        "id": "buzzybuzz",
+        "tag": "LGPE"
+      },
+      {
+        "id": "floatyfall",
+        "tag": "LGPE"
+      },
+      {
+        "id": "freezyfrost",
+        "tag": "LGPE"
+      },
+      {
+        "id": "glitzyglow",
+        "tag": "LGPE"
+      },
+      {
+        "id": "gmaxbefuddle",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxcannonade",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxcentiferno",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxchistrike",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxcuddle",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxdepletion",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxdrumsolo",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxfinale",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxfireball",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxfoamburst",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxgoldrush",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxgravitas",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxhydrosnipe",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxmalodor",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxmeltdown",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxoneblow",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxrapidflow",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxreplenish",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxresonance",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxsandblast",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxsmite",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxsnooze",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxsteelsurge",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxstonesurge",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxstunshock",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxsweetness",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxtartness",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxterror",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxvinelash",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxvolcalith",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxvoltcrash",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxwildfire",
+        "tag": "Gmax"
+      },
+      {
+        "id": "gmaxwindrage",
+        "tag": "Gmax"
+      },
+      {
+        "id": "pikapapow",
+        "tag": "LGPE"
+      },
+      {
+        "id": "sappyseed",
+        "tag": "LGPE"
+      },
+      {
+        "id": "sizzlyslide",
+        "tag": "LGPE"
+      },
+      {
+        "id": "sparklyswirl",
+        "tag": "LGPE"
+      },
+      {
+        "id": "splishysplash",
+        "tag": "LGPE"
+      },
+      {
+        "id": "veeveevolley",
+        "tag": "LGPE"
+      },
+      {
+        "id": "zippyzap",
+        "tag": "LGPE"
+      }
+    ],
+    "note": "No current users does not by itself prove illegality; Struggle is one intentional special case."
+  },
+  "subjectiveAbilityRating": "평가 5.0 / 5 — 필수급 설명 물리공격의 위력이 2배가 된다. This Pokemon&#39;s Attack is doubled. 보유 포켓몬 (4) 마릴리 메가아쿠스타 메가입치트 파르토",
+  "moveFlagExample": "땅 물리 위력 100 명중 100 PP — 플래그 보호 가능 미러 카피 하늘 미사용 메트로놈 "
+}

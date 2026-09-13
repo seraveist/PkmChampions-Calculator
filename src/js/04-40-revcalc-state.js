@@ -223,7 +223,7 @@ function rcRenderMoveCombobox(target, value, options = {}) {
   const placeholder = options.placeholder || '기술 선택';
   return `
     <div class="combobox rc-move-combobox tool-move-combobox${compactClass}">
-      <input type="text" class="cb-input rc-move-input tool-move-input" data-rc-move-picker="${target}"${slotAttr} value="${escapeHTML(rcMoveLabel(value))}" placeholder="${escapeHTML(placeholder)}" autocomplete="off">
+      <button type="button" class="ui-button ui-select-trigger cb-trigger cb-input rc-move-input tool-move-input" data-rc-move-picker="${target}"${slotAttr} value="${escapeHTML(rcMoveLabel(value))}" aria-label="${escapeHTML(placeholder)}${Number.isInteger(options.slot) ? ' '+(options.slot+1) : ''}"><span class="ui-select-content picker-label">${escapeHTML(rcMoveLabel(value) || placeholder)}</span>${RotomUI.icon('chevron')}</button>
       <div class="combobox-options"></div>
     </div>
   `;

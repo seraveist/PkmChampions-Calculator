@@ -1,0 +1,171 @@
+[
+  {
+    "scenario": "defenseFire",
+    "cells": [
+      "불꽃",
+      "○",
+      "△",
+      "",
+      "3.5"
+    ],
+    "summaryTitle": "안전 · 약점 1 · 반감 1 · 1/4 0 · 무효 0"
+  },
+  {
+    "scenario": "weatherBall",
+    "display": "노말",
+    "normal": 1,
+    "fire": 0,
+    "ability": "drought"
+  },
+  {
+    "scenario": "coverageLayout",
+    "width": 375,
+    "scale": 1,
+    "overflow": 0,
+    "tableScroll": 158,
+    "hint": true,
+    "selectors": [
+      {
+        "label": "메가리자몽Y",
+        "width": 33,
+        "textSpace": 0
+      },
+      {
+        "label": "가뭄",
+        "width": 33,
+        "textSpace": 0
+      },
+      {
+        "label": "메가마폭시",
+        "width": 33,
+        "textSpace": 0
+      },
+      {
+        "label": "부유",
+        "width": 33,
+        "textSpace": 0
+      },
+      {
+        "label": "면역",
+        "width": 33,
+        "textSpace": 0
+      }
+    ]
+  },
+  {
+    "scenario": "coverageLayout",
+    "width": 320,
+    "scale": 1,
+    "overflow": 0,
+    "tableScroll": 213,
+    "hint": true,
+    "selectors": [
+      {
+        "label": "메가리자몽Y",
+        "width": 33,
+        "textSpace": 0
+      },
+      {
+        "label": "가뭄",
+        "width": 33,
+        "textSpace": 0
+      },
+      {
+        "label": "메가마폭시",
+        "width": 33,
+        "textSpace": 0
+      },
+      {
+        "label": "부유",
+        "width": 33,
+        "textSpace": 0
+      },
+      {
+        "label": "면역",
+        "width": 33,
+        "textSpace": 0
+      }
+    ]
+  },
+  {
+    "scenario": "defenseAccessibility",
+    "violations": []
+  },
+  {
+    "scenario": "coverageAccessibility",
+    "violations": [
+      {
+        "id": "aria-required-attr",
+        "impact": "critical",
+        "nodes": [
+          {
+            "target": "#calc-cb-control-48",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          },
+          {
+            "target": "#calc-cb-control-49",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          },
+          {
+            "target": "#calc-cb-control-50",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          },
+          {
+            "target": "#calc-cb-control-51",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          },
+          {
+            "target": "#calc-cb-control-52",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          },
+          {
+            "target": "#calc-cb-control-53",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          },
+          {
+            "target": "#calc-cb-control-54",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          },
+          {
+            "target": "#calc-cb-control-55",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          },
+          {
+            "target": "#calc-cb-control-56",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          },
+          {
+            "target": "#calc-cb-control-57",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          },
+          {
+            "target": "#calc-cb-control-58",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          },
+          {
+            "target": "#calc-cb-control-59",
+            "summary": "Fix any of the following:\n  Required ARIA attribute not present: aria-expanded"
+          }
+        ]
+      },
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": ".matchup-coverage-card.ui-subframe-stack.ui-control-frame:nth-child(4) > .matchup-coverage-empty",
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.86 (foreground color: #8b98a6, background color: #fbfcfe, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": ".matchup-coverage-card.ui-subframe-stack.ui-control-frame:nth-child(5) > .matchup-coverage-empty",
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.86 (foreground color: #8b98a6, background color: #fbfcfe, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": ".matchup-coverage-card.ui-subframe-stack.ui-control-frame:nth-child(6) > .matchup-coverage-empty",
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.86 (foreground color: #8b98a6, background color: #fbfcfe, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  }
+]

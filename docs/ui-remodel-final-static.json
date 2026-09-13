@@ -1,0 +1,259 @@
+{
+  "generatedAt": "2026-09-13T12:33:21.033Z",
+  "html": {
+    "bytes": 24133,
+    "lines": 313,
+    "staticIds": 111,
+    "duplicateIds": [],
+    "pageSections": 5,
+    "headings": 19,
+    "buttons": 41,
+    "buttonsWithoutType": 0,
+    "inlineStyleAttributes": 0,
+    "inlineEventAttributes": 0
+  },
+  "css": {
+    "files": 18,
+    "bytes": 81079,
+    "rules": 754,
+    "mediaQueries": 33,
+    "important": 1,
+    "customProperties": 506,
+    "colorLiterals": 134,
+    "largestFiles": [
+      {
+        "file": "pages/dex.css",
+        "bytes": 9385,
+        "lines": 123,
+        "rules": 119,
+        "mediaQueries": 2,
+        "important": 0,
+        "customProperties": 6,
+        "colorLiterals": 0,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "pages/reverse.css",
+        "bytes": 9349,
+        "lines": 115,
+        "rules": 104,
+        "mediaQueries": 5,
+        "important": 0,
+        "customProperties": 6,
+        "colorLiterals": 0,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "tokens/ui-aliases.css",
+        "bytes": 8684,
+        "lines": 230,
+        "rules": 2,
+        "mediaQueries": 0,
+        "important": 0,
+        "customProperties": 214,
+        "colorLiterals": 21,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "components/00-controls.css",
+        "bytes": 6414,
+        "lines": 65,
+        "rules": 54,
+        "mediaQueries": 3,
+        "important": 0,
+        "customProperties": 28,
+        "colorLiterals": 0,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "components/participants.css",
+        "bytes": 5726,
+        "lines": 80,
+        "rules": 72,
+        "mediaQueries": 2,
+        "important": 0,
+        "customProperties": 31,
+        "colorLiterals": 0,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "pages/calculator.css",
+        "bytes": 5496,
+        "lines": 67,
+        "rules": 60,
+        "mediaQueries": 4,
+        "important": 0,
+        "customProperties": 10,
+        "colorLiterals": 0,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "components/party-presets.css",
+        "bytes": 5489,
+        "lines": 64,
+        "rules": 60,
+        "mediaQueries": 2,
+        "important": 0,
+        "customProperties": 12,
+        "colorLiterals": 0,
+        "foreignPageReferences": []
+      },
+      {
+        "file": "components/pickers.css",
+        "bytes": 5340,
+        "lines": 60,
+        "rules": 54,
+        "mediaQueries": 3,
+        "important": 0,
+        "customProperties": 8,
+        "colorLiterals": 0,
+        "foreignPageReferences": []
+      }
+    ],
+    "crossPageOwnership": []
+  },
+  "javascript": {
+    "files": 38,
+    "bytes": 637056,
+    "functions": 778,
+    "innerHtmlWrites": 1,
+    "domIdLookups": 176,
+    "filesOver40KiB": [
+      {
+        "file": "02-engine.js",
+        "bytes": 84218,
+        "lines": 1824,
+        "functions": 72,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 0
+      }
+    ],
+    "largestFiles": [
+      {
+        "file": "02-engine.js",
+        "bytes": 84218,
+        "lines": 1824,
+        "functions": 72,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 0
+      },
+      {
+        "file": "04-41-revcalc-scoring.js",
+        "bytes": 34529,
+        "lines": 832,
+        "functions": 45,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 0
+      },
+      {
+        "file": "04-11-dex-detail.js",
+        "bytes": 31036,
+        "lines": 652,
+        "functions": 19,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 16
+      },
+      {
+        "file": "04-10-dex.js",
+        "bytes": 29645,
+        "lines": 623,
+        "functions": 45,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 14
+      },
+      {
+        "file": "04-42-revcalc-exchange.js",
+        "bytes": 28976,
+        "lines": 405,
+        "functions": 22,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 0
+      },
+      {
+        "file": "03-10-calc-state.js",
+        "bytes": 28035,
+        "lines": 750,
+        "functions": 75,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 1
+      },
+      {
+        "file": "04-03-party-presets-ui.js",
+        "bytes": 27865,
+        "lines": 545,
+        "functions": 28,
+        "innerHtmlWrites": 0,
+        "domIdLookups": 38
+      },
+      {
+        "file": "01-core.js",
+        "bytes": 24027,
+        "lines": 494,
+        "functions": 33,
+        "innerHtmlWrites": 1,
+        "domIdLookups": 7
+      }
+    ]
+  },
+  "publicAssets": {
+    "count": 9,
+    "initialGzipBytes": 261527,
+    "totalGzipBytes": 408795,
+    "assets": [
+      {
+        "role": "theme",
+        "file": "theme.a36b53880ead.js",
+        "bytes": 192,
+        "gzipBytes": 156
+      },
+      {
+        "role": "style",
+        "file": "app.c9ae32f4810b.css",
+        "bytes": 78450,
+        "gzipBytes": 15264
+      },
+      {
+        "role": "data",
+        "file": "data.b650c4a54c10.js",
+        "bytes": 928841,
+        "gzipBytes": 160663
+      },
+      {
+        "role": "app",
+        "file": "app.ad0890b10c6b.js",
+        "bytes": 328643,
+        "gzipBytes": 85444
+      },
+      {
+        "role": "worker",
+        "file": "reverse-worker.513751971a8a.js",
+        "bytes": 258316,
+        "gzipBytes": 67076
+      },
+      {
+        "role": "featureDex",
+        "file": "feature-dex.c312239a1203.js",
+        "bytes": 60680,
+        "gzipBytes": 16626
+      },
+      {
+        "role": "featureMatchup",
+        "file": "feature-matchup.3c7a1e652d7f.js",
+        "bytes": 22973,
+        "gzipBytes": 6338
+      },
+      {
+        "role": "featureFinetune",
+        "file": "feature-finetune.c4076a959123.js",
+        "bytes": 41886,
+        "gzipBytes": 12063
+      },
+      {
+        "role": "featureRevcalc",
+        "file": "feature-revcalc.a1cd4b386647.js",
+        "bytes": 182877,
+        "gzipBytes": 45165
+      }
+    ]
+  }
+}

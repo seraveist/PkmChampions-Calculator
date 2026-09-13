@@ -97,6 +97,11 @@ function rcComboSearchMatches(query, option) {
 // 위임 이벤트 핸들러
 document.getElementById('page-revcalc')?.addEventListener('change', e => {
   const t = e.target;
+  if (t.dataset.rcRankSelect || t.dataset.rcOppRankSelect) {
+    const role = t.dataset.rcRankSelect ? 'my' : 'opp';
+    revCalcState[role].ranks[t.dataset.rcRankSelect || t.dataset.rcOppRankSelect] = Math.max(-6,Math.min(6,Number(t.value) || 0));
+    renderRevCalcResults(); return;
+  }
   const pointInputStat = t.dataset.toolStatPointInput || t.dataset.rcEv;
   if (pointInputStat) {
     const stat = pointInputStat;
@@ -213,7 +218,7 @@ document.getElementById('page-revcalc')?.addEventListener('click', e => {
     return;
   }
   const toggledRow = t.closest?.('[data-rc-toggle-result]');
-  if (toggledRow && (!t.closest('button, select, input, label, .combobox-options') || t.closest('button[data-rc-toggle-result]'))) {
+  if (toggledRow) {
     const idx = parseInt(toggledRow.dataset.rcToggleResult, 10);
     const opened = new Set(Array.isArray(revCalcState.openResultIndexes) ? revCalcState.openResultIndexes : []);
     if (opened.has(idx)) opened.delete(idx);
@@ -221,6 +226,7 @@ document.getElementById('page-revcalc')?.addEventListener('click', e => {
     revCalcState.openResultIndexes = [...opened].sort((a, b) => a - b);
     if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
     renderRevCalcResults();
+    document.querySelector('button[data-rc-toggle-result="' + idx + '"]')?.focus({preventScroll:true});
     return;
   }
   const pointSetStat = t.dataset.toolStatPointSet || t.dataset.rcEvset;

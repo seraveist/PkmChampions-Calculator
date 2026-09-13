@@ -198,10 +198,9 @@ function setComboboxValue(inputId, value, type) {
   const label = calcFieldOptionLabel(type, value);
   input.dataset.value = value;
   if (input.tagName === 'BUTTON') {
-    input.textContent = label;
-    input.value = label;
+    uiSetPickerLabel(input,label);
   } else {
-    input.value = label;
+    input.value = input.tagName === 'SELECT' ? value : label;
   }
 }
 function calcItemCategoryLabel(item) {
@@ -287,122 +286,11 @@ function calcFormOptionDataForPokemon(pokemonId) {
     raw: form,
   }));
 }
-function renderToolFormCombobox({
-  pokemonId,
-  inputClass,
-  pickAttr,
-  pickValue,
-  ariaLabel = '폼 선택',
-  comboboxClass = '',
-  comboboxAttrs = {},
-  buttonAttrs = {},
-} = {}) {
-  const group = calcFormGroupForPokemon(PokemonById[pokemonId]);
-  if (!group || !inputClass || !pickAttr || !pickValue) return '';
-  const currentForm = PokemonById[pokemonId];
-  const currentLabel = calcPokemonFormLabel(currentForm);
-  const { class: buttonClass = '', ...extraButtonAttrs } = buttonAttrs;
-  const attrs = {
-    class: toolClassNames('cb-input cb-trigger form-switch-btn', inputClass, buttonClass),
-    'data-cb-type': 'form',
-    'aria-label': ariaLabel,
-    'aria-expanded': 'false',
-    ...extraButtonAttrs,
-  };
-  attrs[pickAttr] = pickValue;
-  return `
-    <div ${htmlAttrs({
-      class: toolClassNames('combobox tool-form-combobox', comboboxClass),
-      ...comboboxAttrs,
-    })}>
-      <button type="button" ${htmlAttrs(attrs)}>${escapeHTML(currentLabel)}</button>
-      <div class="combobox-options" role="listbox"></div>
-    </div>
-  `;
-}
-function toolClassNames(...parts) {
-  return parts.flat(Infinity)
-    .map(part => String(part || '').trim())
-    .filter(Boolean)
-    .join(' ');
-}
-function renderToolTypePills(types, extraClass = '') {
-  return (types || [])
-    .filter(Boolean)
-    .map(type => `<span class="${toolClassNames('type-pill tool-pokemon-type-pill', extraClass, `t-${type}`)}">${TYPE_KO[type] || type}</span>`)
-    .join('');
-}
-function renderToolPokemonTypeStrip({ types, html, className = '', ariaLabel = '타입', empty = false } = {}) {
-  const content = html ?? renderToolTypePills(types);
-  const isEmpty = empty || !content;
-  return `<div ${htmlAttrs({
-    class: toolClassNames('tool-pokemon-type-strip', className, isEmpty && 'empty'),
-    'aria-label': isEmpty ? null : ariaLabel,
-    'aria-hidden': isEmpty ? 'true' : null,
-  })}>${isEmpty ? '' : content}</div>`;
-}
-function renderToolPokemonSelectSubframe({
-  fieldClass = '',
-  headClass = '',
-  title = '포켓몬',
-  labelClass = '',
-  primaryActions = '',
-  titleActions = '',
-  metaActions = '',
-  comboboxClass = '',
-  comboboxAttrs = {},
-  inputClass = '',
-  inputAttrs = {},
-  value = '',
-  placeholder = '검색...',
-  autocomplete = 'off',
-  optionsRole = '',
-  toolbarActions = '',
-  toolbarClass = '',
-} = {}) {
-  const primaryHtml = primaryActions
-    ? `<div class="tool-pokemon-primary-actions ui-field-actions">${primaryActions}</div>`
-    : '';
-  const titleExtraHtml = titleActions || '';
-  const metaHtml = metaActions
-    ? `<div class="tool-pokemon-meta-actions tool-pokemon-secondary-actions">${metaActions}</div>`
-    : '';
-  const toolbarHtml = toolbarActions
-    ? `<div class="${toolClassNames('tool-pokemon-meta-actions tool-pokemon-secondary-actions tool-pokemon-row tool-pokemon-toolbar-row', toolbarClass)}">${toolbarActions}</div>`
-    : '';
-  return `
-    <div class="tool-pokemon-subframe ui-control-frame ui-subframe">
-      <div class="${toolClassNames('tool-pokemon-field ui-field', fieldClass)}">
-        <div class="${toolClassNames('ui-field-head tool-pokemon-head tool-pokemon-row tool-pokemon-head-row', headClass)}">
-          <div class="tool-pokemon-title-actions">
-            <div class="tool-pokemon-label-actions">
-              <span class="${toolClassNames('ui-field-label', labelClass)}">${escapeHTML(title)}</span>
-              ${primaryHtml}
-            </div>
-            ${titleExtraHtml}
-          </div>
-          ${metaHtml}
-        </div>
-        <div ${htmlAttrs({
-          class: toolClassNames('combobox pokemon-select tool-pokemon-combobox tool-pokemon-control-row', comboboxClass),
-          ...comboboxAttrs,
-        })}>
-          <input ${htmlAttrs({
-            type: 'text',
-            class: toolClassNames('cb-input tool-pokemon-input', inputClass),
-            value,
-            placeholder,
-            autocomplete,
-            'aria-expanded': 'false',
-            ...inputAttrs,
-          })}>
-          <div ${htmlAttrs({ class: 'combobox-options', role: optionsRole || null })}></div>
-        </div>
-        ${toolbarHtml}
-      </div>
-    </div>
-  `;
-}
+
+
+
+
+
 function normalizeSideTypes(side) {
   const pokemon = PokemonById[side?.pokemonIdx];
   const fallback = defaultPokemonTypes(pokemon);
@@ -741,50 +629,8 @@ function normalizeBattleConditionState() {
   state.def.damageBlockActive = !!state.def.damageBlockActive;
 }
 
-function renderManualDamageBlockToggle(sideKey, side) {
-  // 무효 효과는 결과 카드에서 안내한다. 토글로 HP나 순수 피해를 바꾸지 않는다.
-  return '';
-}
 
-function renderTypeControls(sideKey, side) {
-  const type1 = sideTypeId(side, 0);
-  const type2 = sideTypeId(side, 1);
-  return `
-    <div class="type-edit-row ui-chip-row">
-      <div class="combobox type-combobox type-pill-combobox t-${type1 || 'Normal'}" data-cb="${sideKey}-type-1">
-        <button type="button" class="cb-input cb-trigger" data-cb-type="type1" data-side="${sideKey}" data-field="types.0" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 타입1 선택" aria-expanded="false">${escapeHTML(TYPE_KO[type1] || type1)}</button>
-        <div class="combobox-options" role="listbox"></div>
-      </div>
-      <div class="combobox type-combobox type-pill-combobox ${type2 ? `t-${type2}` : 'type-none'}" data-cb="${sideKey}-type-2">
-        <button type="button" class="cb-input cb-trigger" data-cb-type="type2" data-side="${sideKey}" data-field="types.1" aria-label="${sideKey === 'atk' ? '공격측' : '방어측'} 타입2 선택" aria-expanded="false">${escapeHTML(type2 ? (TYPE_KO[type2] || type2) : '없음')}</button>
-        <div class="combobox-options" role="listbox"></div>
-      </div>
-      <button type="button" class="type-reset-btn" data-action="typeReset" data-side="${sideKey}" title="포켓몬 기본 타입으로 복구">초기화</button>
-    </div>
-  `;
-}
-function renderFormSwitchControls(sideKey, side) {
-  const group = calcFormGroupForSide(side);
-  if (!group) return '';
-  const trigger = group.trigger ? ` · ${group.trigger}` : '';
-  const sideLabel = sideKey === 'atk' ? '공격측' : '방어측';
-  const formControl = renderToolFormCombobox({
-    pokemonId: side?.pokemonIdx,
-    inputClass: 'calc-cb-input',
-    pickAttr: 'data-field',
-    pickValue: 'formIdx',
-    ariaLabel: `${sideLabel} ${group.label} 선택`,
-    comboboxAttrs: { 'data-cb': `${sideKey}-form` },
-    buttonAttrs: {
-      'data-side': sideKey,
-    },
-  });
-  return `
-    <div class="form-switch-row ui-chip-row" aria-label="${escapeHTML(group.label + trigger)}">
-      ${formControl}
-    </div>
-  `;
-}
+
 
 function resetSideManualValues(sideKey) {
   const side = state[sideKey];

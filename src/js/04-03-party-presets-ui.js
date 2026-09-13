@@ -11,29 +11,9 @@ function partyPresetSearch(query, ...terms) {
   return calcMatches(needle, ...terms);
 }
 
-function partyPresetOptionHtml(id, label, selected = false, extra = '') {
-  return `<div class="combobox-option party-preset-option${selected ? ' selected' : ''}" data-id="${escapeHTML(id)}" role="option" aria-selected="${selected ? 'true' : 'false'}"><b>${escapeHTML(label)}</b>${extra}</div>`;
-}
 
-function renderPartyPresetPokemonOption(pokemon, currentId) {
-  const typeHtml = (pokemon.types || []).map(type => `<span class="type-pill matchup-type-pill t-${escapeHTML(type)}">${escapeHTML(TYPE_KO[type] || type)}</span>`).join('');
-  return partyPresetOptionHtml(
-    pokemon.id,
-    pkName(pokemon),
-    pokemon.id === currentId,
-    `<small class="party-preset-option-types">${typeHtml}</small>`
-  );
-}
 
-function renderPartyPresetMoveOption(move, currentId) {
-  if (!move?.id) return partyPresetOptionHtml('', '없음', !currentId);
-  return partyPresetOptionHtml(move.id, mvName(move), move.id === currentId);
-}
 
-function renderPartyPresetGenericOption(option, currentId) {
-  const label = option.label || option.koName || option.name || option.id || '없음';
-  return partyPresetOptionHtml(option.id || '', label, String(option.id || '') === String(currentId || ''));
-}
 
 function partyPresetOptions(type, member, query) {
   if (type === 'pokemon') {
@@ -73,81 +53,38 @@ function partyPresetCurrentLabel(type, member, moveIndex = null) {
 }
 
 function renderPartyPresetOptions(type, member, query, currentId) {
-  const options = partyPresetOptions(type, member, query);
-  if (!options.length) return '<div class="combobox-option empty" aria-disabled="true"><b>검색 결과 없음</b></div>';
-  return options.map(option => {
-    if (type === 'pokemon') return renderPartyPresetPokemonOption(option, currentId);
-    if (type === 'move') return renderPartyPresetMoveOption(option, currentId);
-    return renderPartyPresetGenericOption(option, currentId);
-  }).join('');
+  const options=partyPresetOptions(type,member,query);
+  return calcComboboxHeaderHtml(type)+(options.length ? options.map(option=>calcRenderComboboxOption(type,option,currentId)).join('') : '<div class="combobox-option empty">검색 결과 없음</div>');
 }
 
-function partyPresetComboboxHtml({ partyIndex, slotIndex, type, value, label = '', moveIndex = '' }) {
-  const safeMoveIndex = moveIndex === '' ? '' : ` data-move-index="${moveIndex}"`;
-  return `
-    <div class="combobox party-preset-combobox" data-party-preset-combobox="${type}">
-      <input type="text" class="cb-input party-preset-input" value="${escapeHTML(label)}"
-        data-party-index="${partyIndex}" data-slot-index="${slotIndex}" data-preset-field="${type}"${safeMoveIndex}
-        data-value="${escapeHTML(value || '')}" placeholder="${type === 'pokemon' ? '포켓몬 선택' : '선택'}" autocomplete="off" aria-expanded="false">
-      <div class="combobox-options" role="listbox"></div>
+function partyPresetComboboxHtml({partyIndex,slotIndex,type,value,label='',moveIndex=''}) {
+  const attrs={'data-party-index':partyIndex,'data-slot-index':slotIndex,'data-preset-field':type,'data-cb-type':type,'data-value':value || '',...(moveIndex!=='' ? {'data-move-index':moveIndex} : {})};
+  if(type==='pokemon') return `<div class="combobox party-preset-combobox">${RotomUI.trigger(`<span class="picker-label">${escapeHTML(label || '포켓몬 선택')}</span>`,{...attrs,value:label,'aria-label':`포켓몬 ${slotIndex+1}`},'cb-input cb-trigger party-preset-input')}<div class="combobox-options" role="listbox"></div></div>`;
+  const names={ability:'특성',item:'도구',nature:'성격',move:`기술 ${Number(moveIndex)+1}`};
+  return RotomUI.picker(names[type],label,{...attrs,class:'party-preset-input'},'party-preset-combobox');
+}
+
+
+function renderPartyPresetSlot(member,partyIndex,slotIndex) {
+  const p=PokemonById[member.pokemon],collapsed=p && !partyPresetExpandedSlots.has(partyPresetSlotCollapseKey(partyIndex,slotIndex));
+  const total=STATS.reduce((sum,stat)=>sum+(member.evs?.[stat] || 0),0);
+  const attrs=`data-party-index="${partyIndex}" data-slot-index="${slotIndex}"`;
+  const detailId=`party-${partyIndex}-slot-${slotIndex}`;
+  const side={...makeSideState(member.pokemon),evs:member.evs,nature:member.nature};
+  return `<section class="party-preset-slot ui-surface${p ? ' filled' : ''}${collapsed ? ' collapsed' : ''}" ${attrs}>
+    <div class="party-preset-slot-head">
+      <span class="party-preset-slot-label">${slotIndex+1}</span>${pokemonSpriteSlot(p)}
+      ${partyPresetComboboxHtml({partyIndex,slotIndex,type:'pokemon',value:member.pokemon,label:partyPresetCurrentLabel('pokemon',member)})}
+      <button type="button" class="ui-button icon-button party-preset-clear" ${attrs} aria-label="포켓몬 ${slotIndex+1} 비우기" ${p ? '' : 'disabled'}>${RotomUI.icon('close')}</button>
+      ${p ? `<button type="button" class="ui-button icon-button party-preset-slot-toggle" ${attrs} data-party-slot-toggle aria-label="포켓몬 ${slotIndex+1} 설정" aria-expanded="${!collapsed}" aria-controls="${detailId}">${RotomUI.icon('chevron')}</button>` : ''}
     </div>
-  `;
-}
-
-function partyPresetNatureMark(stat, natureId) {
-  const nature = NATURE_BY_ID?.[natureId];
-  if (nature?.up === stat) return '<span class="party-preset-nature-mark up" aria-label="상승">&#9650;</span>';
-  if (nature?.down === stat) return '<span class="party-preset-nature-mark down" aria-label="하락">&#9660;</span>';
-  return '<span class="party-preset-nature-mark empty" aria-hidden="true"></span>';
-}
-
-function renderPartyPresetSlot(member, partyIndex, slotIndex) {
-  const pokemon = member.pokemon ? PokemonById[member.pokemon] : null;
-  const evTotal = STATS.reduce((sum, stat) => sum + (member.evs?.[stat] || 0), 0);
-  const slotKey = partyPresetSlotCollapseKey(partyIndex, slotIndex);
-  const isCollapsed = pokemon && !partyPresetExpandedSlots.has(slotKey);
-  return `
-    <div class="party-preset-slot ui-control-frame ui-subframe ${pokemon ? 'filled' : ''}${isCollapsed ? ' collapsed' : ''}" data-party-index="${partyIndex}" data-slot-index="${slotIndex}">
-      <div class="party-preset-slot-head">
-        <span class="party-preset-slot-label">${slotIndex + 1}</span>
-        ${pokemonSpriteSlot(pokemon, { className: 'party-preset-slot-sprite' })}
-        ${partyPresetComboboxHtml({ partyIndex, slotIndex, type: 'pokemon', value: member.pokemon, label: partyPresetCurrentLabel('pokemon', member) })}
-        <button class="party-preset-clear" type="button" data-party-index="${partyIndex}" data-slot-index="${slotIndex}" aria-label="비우기" title="비우기" ${pokemon ? '' : 'disabled'}>&times;</button>
-      </div>
-      ${pokemon ? `
-        <div class="party-preset-detail">
-          <div class="party-preset-divider" aria-hidden="true"></div>
-          <div class="party-preset-detail-row party-preset-detail-row-3">
-            <label><span>특성</span>${partyPresetComboboxHtml({ partyIndex, slotIndex, type: 'ability', value: member.ability, label: partyPresetCurrentLabel('ability', member) })}</label>
-            <label><span>성격</span>${partyPresetComboboxHtml({ partyIndex, slotIndex, type: 'nature', value: member.nature, label: partyPresetCurrentLabel('nature', member) })}</label>
-            <label><span>도구</span>${partyPresetComboboxHtml({ partyIndex, slotIndex, type: 'item', value: member.item, label: partyPresetCurrentLabel('item', member) })}</label>
-          </div>
-          <div class="party-preset-divider" aria-hidden="true"></div>
-          <div class="party-preset-ev-row">
-            <span class="party-preset-ev-total">
-              <span>총합</span>
-              <span><b>${evTotal}</b>/66</span>
-            </span>
-            ${STATS.map(stat => `
-              <label class="party-preset-ev-cell">
-                <span class="party-preset-ev-head">
-                  <span>${PARTY_PRESET_STAT_LABEL[stat]}</span>
-                  ${partyPresetNatureMark(stat, member.nature)}
-                </span>
-                <input type="text" class="party-preset-ev-input" data-party-index="${partyIndex}" data-slot-index="${slotIndex}" data-preset-ev="${stat}" value="${member.evs?.[stat] || 0}" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-              </label>
-            `).join('')}
-          </div>
-          <div class="party-preset-divider" aria-hidden="true"></div>
-          <div class="party-preset-move-row">
-            ${[0, 1, 2, 3].map(moveIndex => `
-              <label><span>기술 ${moveIndex + 1}</span>${partyPresetComboboxHtml({ partyIndex, slotIndex, type: 'move', value: member.moves?.[moveIndex] || '', label: partyPresetCurrentLabel('move', member, moveIndex), moveIndex })}</label>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-    </div>
-  `;
+    ${p ? `<div class="party-preset-detail" id="${detailId}" ${collapsed ? 'hidden' : ''}>
+      <div class="section-heading">${renderToolTypePills(p.types)}<span class="budget">노력치 <strong>${total}</strong> / 66</span></div>
+      <div class="attributes">${['ability','item','nature'].map(type=>partyPresetComboboxHtml({partyIndex,slotIndex,type,value:member[type],label:partyPresetCurrentLabel(type,member)})).join('')}</div>
+      ${uiStatTable(side,{evAttr:'data-preset-ev',evAttrs:{class:'party-preset-ev-input','data-party-index':partyIndex,'data-slot-index':slotIndex},base:false,label:`포켓몬 ${slotIndex+1} 능력치`})}
+      <div class="party-preset-move-row">${[0,1,2,3].map(moveIndex=>partyPresetComboboxHtml({partyIndex,slotIndex,type:'move',value:member.moves[moveIndex],label:partyPresetCurrentLabel('move',member,moveIndex),moveIndex})).join('')}</div>
+    </div>` : ''}
+  </section>`;
 }
 
 function renderPartyPresetModal() {
@@ -159,19 +96,19 @@ function renderPartyPresetModal() {
     const filledCount = partyPresetFilledMembers(party).length;
     const partyName = normalizePartyPresetName(party.name, partyIndex);
     return `
-    <section class="party-preset-party ui-control-frame ui-subframe ${isCollapsed ? 'collapsed' : ''}" data-party-index="${partyIndex}">
+    <section class="party-preset-party ui-surface ${isCollapsed ? 'collapsed' : ''}" data-party-index="${partyIndex}">
       <div class="party-preset-party-head">
-        <div class="party-preset-party-title">
-          <input type="text" class="party-preset-name-input" data-party-name-index="${partyIndex}" value="${escapeHTML(partyName)}" maxlength="${PARTY_PRESET_MAX_NAME_LENGTH}" aria-label="party ${partyIndex + 1} name">
+        <div class="party-preset-party-title"><button type="button" class="ui-button icon-button" data-party-toggle="${partyIndex}" aria-label="파티 ${partyIndex+1} 접기" aria-expanded="${!isCollapsed}" aria-controls="party-slots-${partyIndex}">${RotomUI.icon('chevron')}</button>
+          <input type="text" class="ui-control party-preset-name-input" data-party-name-index="${partyIndex}" value="${escapeHTML(partyName)}" maxlength="${PARTY_PRESET_MAX_NAME_LENGTH}" aria-label="파티 ${partyIndex + 1} 이름">
           <span class="party-preset-party-count">${filledCount}/6</span>
         </div>
         <div class="party-preset-party-actions">
-          <button type="button" class="party-preset-party-action" data-party-showdown-import="${partyIndex}">텍스트 가져오기</button>
-          <button type="button" class="party-preset-party-action" data-party-showdown-export="${partyIndex}">텍스트 내보내기</button>
-          <button type="button" class="party-preset-party-action" data-party-image-export="${partyIndex}">${PARTY_PRESET_LABELS.imageExport}</button>
+          <button type="button" class="ui-label-action party-preset-party-action" data-party-showdown-import="${partyIndex}">텍스트 가져오기</button>
+          <button type="button" class="ui-label-action party-preset-party-action" data-party-showdown-export="${partyIndex}">텍스트 내보내기</button>
+          <button type="button" class="ui-label-action party-preset-party-action" data-party-image-export="${partyIndex}">${PARTY_PRESET_LABELS.imageExport}</button>
         </div>
       </div>
-      <div class="party-preset-slot-grid">
+      <div class="party-preset-slot-grid" id="party-slots-${partyIndex}" ${isCollapsed ? 'hidden' : ''}>
         ${party.members.map((member, slotIndex) => renderPartyPresetSlot(member, partyIndex, slotIndex)).join('')}
       </div>
     </section>
@@ -182,42 +119,43 @@ function renderPartyPresetModal() {
 
 function ensurePartyPresetModal() {
   if (document.getElementById('partyPresetModal')) return;
-  const modal = document.createElement('div');
+  const modal = document.createElement('dialog');
   modal.id = 'partyPresetModal';
-  modal.className = 'party-preset-modal-backdrop';
+  modal.className = 'ui-dialog ui-surface party-preset-modal-backdrop';
+  modal.setAttribute('aria-labelledby','partyPresetTitle');
   modal.hidden = true;
   renderTrustedHTML(modal, `
-    <div class="party-preset-modal ui-frame" role="dialog" aria-modal="true" aria-labelledby="partyPresetTitle" aria-describedby="partyPresetBackupNote">
-      <div class="party-preset-modal-head ui-frame-head">
+    <div class="party-preset-modal">
+      <div class="dialog-heading party-preset-modal-head">
         <div>
-          <div class="party-preset-eyebrow">PARTY PRESET</div>
+
           <h2 id="partyPresetTitle">파티 프리셋</h2>
         </div>
+        <button type="button" class="ui-button icon-button party-preset-close" aria-label="닫기" id="partyPresetClose">${RotomUI.icon('close')}</button>
         <div class="party-preset-modal-actions">
           <span class="party-preset-status" id="partyPresetStatus" aria-live="polite"></span>
-          <button type="button" class="party-preset-action" id="partyPresetImport">JSON 가져오기</button>
-          <button type="button" class="party-preset-action" id="partyPresetExport">JSON 내보내기</button>
-          <button type="button" class="party-preset-close" id="partyPresetClose">닫기</button>
+          <button type="button" class="ui-label-action party-preset-action" id="partyPresetImport">JSON 가져오기</button>
+          <button type="button" class="ui-label-action party-preset-action" id="partyPresetExport">JSON 내보내기</button>
           <input type="file" id="partyPresetImportFile" accept=".json,application/json" hidden>
         </div>
       </div>
       <div class="party-preset-backup-note" id="partyPresetBackupNote" role="note">
-        프리셋은 현재 브라우저에 저장됩니다. 기기 변경이나 브라우저 초기화 전에 JSON 내보내기로 백업하세요.
+        이 브라우저에 자동 저장 · JSON으로 백업 가능
       </div>
       <div class="party-preset-modal-body ui-frame-body ui-subframe-stack" id="partyPresetBody"></div>
-      <div class="party-preset-text-dialog" id="partyPresetTextDialog" role="dialog" aria-modal="true" aria-labelledby="partyPresetTextTitle" hidden>
-        <div class="party-preset-text-card ui-frame">
-          <div class="party-preset-text-head">
-            <h3 id="partyPresetTextTitle">Showdown 텍스트</h3>
-            <button type="button" class="party-preset-close" id="partyPresetTextClose">닫기</button>
+      <dialog class="ui-dialog ui-surface party-preset-text-dialog" id="partyPresetTextDialog" role="dialog" aria-modal="true" aria-labelledby="partyPresetTextTitle" hidden>
+        <div class="party-preset-text-card">
+          <div class="dialog-heading party-preset-text-head">
+            <h2 id="partyPresetTextTitle">Showdown 텍스트</h2>
+            <button type="button" class="ui-button icon-button party-preset-close" aria-label="닫기" id="partyPresetTextClose">${RotomUI.icon('close')}</button>
           </div>
-          <textarea id="partyPresetTextArea" class="party-preset-textarea" spellcheck="false"></textarea>
+          <textarea id="partyPresetTextArea" class="ui-control party-preset-textarea" aria-labelledby="partyPresetTextTitle" spellcheck="false"></textarea>
           <div class="party-preset-text-actions">
-            <button type="button" class="party-preset-action" id="partyPresetTextApply">가져오기 적용</button>
-            <button type="button" class="party-preset-action" id="partyPresetTextCopy">복사</button>
+            <button type="button" class="ui-label-action party-preset-action" id="partyPresetTextApply">가져오기 적용</button>
+            <button type="button" class="ui-label-action party-preset-action" id="partyPresetTextCopy">복사</button>
           </div>
         </div>
-      </div>
+      </dialog>
     </div>
   `);
   document.body.appendChild(modal);
@@ -230,6 +168,7 @@ function openPartyPresetModal() {
   partyPresetModalReturnFocus = document.activeElement;
   setPartyPresetStatus('');
   modal.hidden = false;
+  if(!modal.open) modal.showModal();
   modal.scrollTop = 0;
   document.getElementById('partyPresetBody')?.scrollTo({ top: 0, left: 0 });
   document.body.classList.add('party-preset-open');
@@ -240,6 +179,7 @@ function closePartyPresetModal() {
   const modal = document.getElementById('partyPresetModal');
   if (!modal) return;
   closePartyPresetTextDialog({ restoreFocus: false });
+  modal.close();
   modal.hidden = true;
   document.body.classList.remove('party-preset-open');
   const returnFocus = partyPresetModalReturnFocus;
@@ -249,18 +189,19 @@ function closePartyPresetModal() {
 
 function ensurePartyPresetPickerModal() {
   if (document.getElementById('partyPresetPickerModal')) return;
-  const modal = document.createElement('div');
+  const modal = document.createElement('dialog');
   modal.id = 'partyPresetPickerModal';
-  modal.className = 'party-preset-picker-backdrop';
+  modal.className = 'ui-dialog ui-surface party-preset-picker-backdrop';
+  modal.setAttribute('aria-labelledby','partyPresetPickerTitle');
   modal.hidden = true;
   renderTrustedHTML(modal, `
-    <div class="party-preset-picker ui-frame" role="dialog" aria-modal="true" aria-labelledby="partyPresetPickerTitle">
-      <div class="party-preset-picker-head ui-frame-head">
+    <div class="party-preset-picker">
+      <div class="dialog-heading party-preset-picker-head">
         <div>
-          <div class="party-preset-eyebrow">PARTY LOAD</div>
+
           <h2 id="partyPresetPickerTitle">불러오기</h2>
         </div>
-        <button type="button" class="party-preset-close" id="partyPresetPickerClose">닫기</button>
+        <button type="button" class="ui-button icon-button party-preset-close" aria-label="닫기" id="partyPresetPickerClose">${RotomUI.icon('close')}</button>
       </div>
       <div class="party-preset-picker-body ui-frame-body ui-subframe-stack" id="partyPresetPickerBody"></div>
     </div>
@@ -282,13 +223,13 @@ function renderPartyPresetPicker() {
 
   if (mode === 'party') {
     renderTrustedHTML(body, `
-      <section class="party-preset-picker-section party-preset-picker-party-section ui-control-frame ui-subframe">
+      <section class="party-preset-picker-section party-preset-picker-party-section ui-surface">
         <div class="party-preset-picker-party-grid">
           ${partyPresetData.parties.map((party, partyIndex) => {
             const members = partyPresetFilledMembers(party);
             const labels = members.map(entry => pkName(PokemonById[entry.member.pokemon])).join(' · ');
             return `
-              <button type="button" class="party-preset-picker-party ${members.length ? '' : 'empty'}" data-party-picker-party="${partyIndex}" ${members.length ? '' : 'disabled'}>
+              <button type="button" class="ui-button party-preset-picker-party ${members.length ? '' : 'empty'}" data-party-picker-party="${partyIndex}" ${members.length ? '' : 'disabled'}>
                 <span class="party-preset-picker-sprite-row" aria-hidden="true">
                   ${members.map(entry => pokemonSpriteSlot(PokemonById[entry.member.pokemon], { size: 'sm', className: 'party-preset-picker-sprite' })).join('')}
                 </span>
@@ -306,13 +247,13 @@ function renderPartyPresetPicker() {
   renderTrustedHTML(body, partyPresetData.parties.map((party, partyIndex) => {
     const members = partyPresetFilledMembers(party);
     return `
-      <section class="party-preset-picker-section ui-control-frame ui-subframe">
+      <section class="party-preset-picker-section ui-surface">
         <div class="party-preset-picker-section-head">${escapeHTML(normalizePartyPresetName(party.name, partyIndex))}</div>
         <div class="party-preset-picker-member-grid">
           ${members.length ? members.map(({ member, slotIndex }) => {
             const pokemon = PokemonById[member.pokemon];
             return `
-              <button type="button" class="party-preset-picker-member" data-party-picker-party="${partyIndex}" data-party-picker-slot="${slotIndex}">
+              <button type="button" class="ui-button party-preset-picker-member" data-party-picker-party="${partyIndex}" data-party-picker-slot="${slotIndex}">
                 ${pokemonSpriteSlot(pokemon, { className: 'party-preset-picker-member-sprite' })}
                 <span>슬롯 ${slotIndex + 1}</span>
                 <b>${escapeHTML(pkName(pokemon))}</b>
@@ -333,6 +274,7 @@ function openPartyPresetPicker(target) {
   const modal = document.getElementById('partyPresetPickerModal');
   if (!modal) return;
   modal.hidden = false;
+  if(!modal.open) modal.showModal();
   modal.scrollTop = 0;
   document.getElementById('partyPresetPickerBody')?.scrollTo({ top: 0, left: 0 });
   document.body.classList.add('party-preset-open');
@@ -341,7 +283,7 @@ function openPartyPresetPicker(target) {
 
 function closePartyPresetPicker() {
   const modal = document.getElementById('partyPresetPickerModal');
-  if (modal) modal.hidden = true;
+  if (modal) { modal.close();modal.hidden = true; }
   partyPresetPickerTarget = '';
   if (document.getElementById('partyPresetModal')?.hidden !== false) {
     document.body.classList.remove('party-preset-open');
@@ -383,6 +325,7 @@ function openPartyPresetTextDialog(partyIndex, mode) {
   if (applyButton) applyButton.hidden = isExport;
   if (copyButton) copyButton.hidden = !isExport;
   dialog.hidden = false;
+  if(!dialog.open) dialog.showModal();
   requestAnimationFrame(() => {
     area.focus();
     if (isExport) area.select();
@@ -391,7 +334,7 @@ function openPartyPresetTextDialog(partyIndex, mode) {
 
 function closePartyPresetTextDialog({ restoreFocus = true } = {}) {
   const dialog = document.getElementById('partyPresetTextDialog');
-  if (dialog) dialog.hidden = true;
+  if (dialog) { dialog.close();dialog.hidden = true; }
   const returnFocus = partyPresetTextReturnFocus;
   partyPresetTextReturnFocus = null;
   if (restoreFocus) partyPresetRestoreFocus(returnFocus);
@@ -472,84 +415,20 @@ function updatePartyPresetEv(input) {
   renderPartyPresetModal();
 }
 
-function closePartyPresetComboboxes(exceptInput = null) {
-  document.querySelectorAll('#partyPresetModal .combobox-options.open').forEach(options => {
-    const input = options.closest('.combobox')?.querySelector('.party-preset-input');
-    if (input && input === exceptInput) return;
-    options.classList.remove('open');
-    input?.setAttribute('aria-expanded', 'false');
-  });
-}
 
 function wirePartyPresetCombobox(input) {
-  const wrapper = input.closest('.combobox');
-  const optsEl = wrapper?.querySelector('.combobox-options');
-  if (!wrapper || !optsEl) return;
-  const partyIndex = Number(input.dataset.partyIndex);
-  const slotIndex = Number(input.dataset.slotIndex);
-  const type = input.dataset.presetField;
-  const moveIndex = input.dataset.moveIndex === undefined ? null : Number(input.dataset.moveIndex);
-  const member = partyPresetMember(partyIndex, slotIndex);
-  const currentId = () => type === 'move' ? (member.moves?.[moveIndex] || '') : (member[type] || '');
-  let pointerSelected = false;
-
-  const showOptions = query => {
-    closePartyPresetComboboxes(input);
-    renderTrustedHTML(optsEl, renderPartyPresetOptions(type, member, query, currentId()));
-    optsEl.classList.add('open');
-    input.setAttribute('aria-expanded', 'true');
-  };
-  const selectOption = option => {
-    const id = option?.dataset?.id || '';
-    optsEl.classList.remove('open');
-    input.setAttribute('aria-expanded', 'false');
-    updatePartyPresetField(partyIndex, slotIndex, type, id, moveIndex);
-    renderPartyPresetModal();
-  };
-  const restoreInput = () => {
-    const fresh = partyPresetMember(partyIndex, slotIndex);
-    input.value = partyPresetCurrentLabel(type, fresh, moveIndex);
-  };
-  const clearOptionalInput = () => {
-    if (!['move', 'ability', 'item'].includes(type)) return false;
-    updatePartyPresetField(partyIndex, slotIndex, type, '', moveIndex);
-    renderPartyPresetModal();
-    return true;
-  };
-  const handleInvalidInput = () => {
-    if (!clearOptionalInput()) restoreInput();
-  };
-
-  const combo = wireSharedComboboxKeyboard(input, optsEl, {
-    showOptions,
-    onSelect: selectOption,
-    getQuery: () => input.value || '',
-    onInvalidInput: handleInvalidInput,
-  });
-  input.addEventListener('focus', () => {
-    combo?.open('');
-    requestAnimationFrame(() => input.select?.());
-  });
-  input.addEventListener('input', () => combo?.open(input.value || '', { activateFirst: true }));
-  input.addEventListener('blur', () => setTimeout(() => {
-    if (pointerSelected) {
-      pointerSelected = false;
-      return;
+  const list=input.closest('.combobox')?.querySelector('.combobox-options');
+  const {partyIndex,slotIndex,presetField:type}=input.dataset;
+  const moveIndex=input.dataset.moveIndex===undefined ? null : Number(input.dataset.moveIndex);
+  uiWirePickerDialog(input,list,{
+    showOptions:query=>{
+      const member=partyPresetMember(Number(partyIndex),Number(slotIndex));
+      renderTrustedHTML(list,renderPartyPresetOptions(type,member,query,type==='move' ? member.moves[moveIndex] : member[type]));
+    },
+    onSelect:option=>{
+      updatePartyPresetField(Number(partyIndex),Number(slotIndex),type,option.dataset.id || '',moveIndex);
+      renderPartyPresetModal();
     }
-    if (!String(input.value || '').trim()) {
-      if (clearOptionalInput()) return;
-      combo?.close();
-      restoreInput();
-      return;
-    }
-    combo?.commitTyped();
-  }, 180));
-  optsEl.addEventListener('mousedown', event => {
-    const option = event.target.closest('.combobox-option:not(.empty)');
-    if (!option) return;
-    event.preventDefault();
-    pointerSelected = true;
-    combo?.select(option);
   });
 }
 
@@ -628,29 +507,18 @@ function initPartyPresets() {
   document.getElementById('partyPresetModal')?.addEventListener('mousedown', event => {
     if (event.target?.id === 'partyPresetModal') closePartyPresetModal();
   });
-  document.getElementById('partyPresetModal')?.addEventListener('click', event => {
-    if (event.target.closest('button, input, textarea, select, .combobox, .combobox-options')) return;
-    const slotHead = event.target.closest('.party-preset-slot-head');
-    if (slotHead) {
-      const slot = slotHead.closest('.party-preset-slot');
-      const partyIndex = Number(slot?.dataset.partyIndex);
-      const slotIndex = Number(slot?.dataset.slotIndex);
-      const member = partyPresetMember(partyIndex, slotIndex);
-      if (!member?.pokemon || !PokemonById[member.pokemon]) return;
-      const key = partyPresetSlotCollapseKey(partyIndex, slotIndex);
-      if (partyPresetExpandedSlots.has(key)) partyPresetExpandedSlots.delete(key);
-      else partyPresetExpandedSlots.add(key);
-      renderPartyPresetModal();
-      return;
-    }
-    const partyHead = event.target.closest('.party-preset-party-head');
-    if (partyHead) {
-      const partyIndex = Number(partyHead.closest('.party-preset-party')?.dataset.partyIndex);
-      if (!Number.isFinite(partyIndex)) return;
-      if (partyPresetCollapsedParties.has(partyIndex)) partyPresetCollapsedParties.delete(partyIndex);
-      else partyPresetCollapsedParties.add(partyIndex);
-      renderPartyPresetModal();
-    }
+  document.getElementById('partyPresetModal')?.addEventListener('click',event=>{
+    const slot=event.target.closest('[data-party-slot-toggle]');
+    const party=event.target.closest('[data-party-toggle]');
+    if(slot) {
+      const key=partyPresetSlotCollapseKey(Number(slot.dataset.partyIndex),Number(slot.dataset.slotIndex));
+      if(partyPresetExpandedSlots.has(key)) partyPresetExpandedSlots.delete(key); else partyPresetExpandedSlots.add(key);
+    } else if(party) {
+      const key=Number(party.dataset.partyToggle);
+      if(partyPresetCollapsedParties.has(key)) partyPresetCollapsedParties.delete(key); else partyPresetCollapsedParties.add(key);
+    } else return;
+    const selector=slot ? `[data-party-slot-toggle][data-party-index="${slot.dataset.partyIndex}"][data-slot-index="${slot.dataset.slotIndex}"]` : `[data-party-toggle="${party.dataset.partyToggle}"]`;
+    renderPartyPresetModal();document.querySelector(selector)?.focus({preventScroll:true});
   });
   document.getElementById('partyPresetPickerModal')?.addEventListener('mousedown', event => {
     if (event.target?.id === 'partyPresetPickerModal') closePartyPresetPicker();
@@ -670,33 +538,7 @@ function initPartyPresets() {
       applyPartyPresetPickerSelection(partyIndex, slotIndex);
     }
   });
-  window.addEventListener('keydown', event => {
-    const modal = document.getElementById('partyPresetModal');
-    const picker = document.getElementById('partyPresetPickerModal');
-    const textDialog = document.getElementById('partyPresetTextDialog');
-    if (event.key === 'Escape') {
-      if (textDialog && !textDialog.hidden) {
-        event.preventDefault();
-        closePartyPresetTextDialog();
-        return;
-      }
-      if (picker && !picker.hidden) {
-        event.preventDefault();
-        closePartyPresetPicker();
-        return;
-      }
-      if (modal && !modal.hidden) {
-        event.preventDefault();
-        closePartyPresetModal();
-      }
-      return;
-    }
-    if (textDialog && !textDialog.hidden) {
-      partyPresetTrapFocus(event, textDialog.querySelector('.party-preset-text-card'));
-    } else if (picker && !picker.hidden) {
-      partyPresetTrapFocus(event, picker.querySelector('.party-preset-picker'));
-    } else if (modal && !modal.hidden) {
-      partyPresetTrapFocus(event, modal.querySelector('.party-preset-modal'));
-    }
-  });
+  for(const [id,close] of [['partyPresetModal',closePartyPresetModal],['partyPresetPickerModal',closePartyPresetPicker],['partyPresetTextDialog',closePartyPresetTextDialog]]) {
+    document.getElementById(id)?.addEventListener('cancel',event=>{event.preventDefault();close();});
+  }
 }

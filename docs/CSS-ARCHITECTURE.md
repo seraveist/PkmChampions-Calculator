@@ -2,49 +2,46 @@
 
 ## Cascade layers
 
-The build and audits share `scripts/css-layer-contract.mjs` as the single source
-of truth for this order:
+`scripts/css-layer-contract.mjs` defines the build and audit order:
 
 `reset -> tokens -> base -> components -> layouts -> pages -> utilities -> themes -> responsive`
 
-Every file named `responsive.css` or ending in `-responsive.css` belongs to the
-final `responsive` layer. Folder placement and alphabetical filename order must
-not decide whether a breakpoint rule wins.
+The remodeled UI uses the first six layers. The last three remain reserved for build compatibility; there is no late `themes.css` or `responsive.css` override sheet. Each component or page owns responsive declarations in the same file as its base rules.
 
-## Ownership rules
+## Shared owners
 
-- `components/` owns reusable geometry, typography, and interaction states.
-- `layouts/` owns the application shell, header, navigation, and global modal layout.
-- `pages/` composes components inside one page scope.
-- `themes.css` owns semantic variables and visual colors only. It must not set
-  geometry, spacing, typography metrics, or raw form-control structure.
-- `responsive` rules adapt an existing owner. They must not introduce a second
-  desktop/base owner.
-- Portaled dropdowns use their portal classes (`calc-page-options-portal`,
-  `tool-move-options-portal`) because they are no longer descendants of a page root.
+| Owner | Responsibility |
+| --- | --- |
+| `00-tokens.css`, `tokens/` | Smart Rotom colors, light/dark variables, typography and geometry tokens |
+| `components/00-controls.css` | Buttons, inputs, selects, icons, chevrons, search, focus, dialogs |
+| `components/primitives.css` | Panels, headings, actions, common layout primitives and `ui-data-table` typography |
+| `components/participants.css` | Pokémon identity, attributes, six-column stats, HP and field controls |
+| `components/pickers.css` | Shared option rows and Pokémon/move/nature columns |
+| `components/settings-dialogs.css` | Calculator condition-dialog layout |
+| `components/party-presets.css` | Party editor layout |
+| `layouts/shell.css` | Header, navigation, content width and advertising rails |
 
-## Page roots
+`RotomUI` and `uiStatTable()` produce shared markup. `uiWirePickerDialog()` owns searching, filtering, keyboard selection, IME handling, focus return and native dialog behavior. Menu code supplies data and state updates. It must not create an independent picker or redraw common controls with another style hierarchy.
 
-| Page | Root | Page stylesheet owner |
+Variants use component classes and custom properties. Page-specific sizing is allowed, but the same selector/property must not gain another unconditional owner within or across components, layouts and pages. The native `[hidden]` display invariant is the sole `!important` declaration.
+
+## Page owners
+
+| Page | Scope | Stylesheet |
 | --- | --- | --- |
-| Damage calculator | `#page-calc` | `pages/calculator-*` |
-| Reverse calculator | `#page-revcalc` | `pages/03-reverse.css` |
-| Fine tune | `#page-finetune` | `pages/02-finetune.css` |
-| Matchup | `#page-matchup` | `pages/01-matchup.css` |
-| Dex | `.dex-surface` | `pages/dex-*` |
+| Damage calculator | `#page-calc` and its named result/field components | `pages/calculator.css` |
+| Reverse calculator | `#page-revcalc`, `rc-*` | `pages/reverse.css` |
+| Fine tune | `#page-finetune`, `ft-*` | `pages/finetune.css` |
+| Matchup | `#page-matchup`, `matchup-*` | `pages/matchup.css` |
+| Dex | `.dex-surface`, `dex-*` | `pages/dex.css` |
 
-The Dex page, full-page detail, and dialog all declare `.dex-surface`. Dynamic
-Dex detail classes must use the `dex-` prefix so they cannot collide with the
-matchup page or other feature bundles.
+Dex page, full-page detail and detail dialog share `.dex-surface`. The search picker uses one native dialog and does not depend on being a descendant of a menu root. Removed portal classes and old stat-editor selectors must not be reintroduced.
 
 ## Required checks
 
-`npm run css:cascade` fails when any of these are introduced:
+- `npm run css:structure`: canonical owners, compact page sheets, one media block per condition/file, centralized palette, CSS budget and absence of late override sheets.
+- `npm run css:cascade`: duplicate unconditional selector/property ownership, responsive rules shadowed by later base owners, structural theme declarations and raw controls in final layers.
+- `npm run html:structure` and `npm run ui:dropdowns`: semantic structure, static references and shared picker contracts.
+- `npm run ui:browser:pages -- --require-browser`: actual shared control sizes, document overflow, references, keyboard behavior and light/dark accessibility across all five pages.
 
-- the same selector/property has multiple unconditional owners in one layer;
-- a later base rule shadows an earlier responsive declaration in the same layer;
-- `themes.css` declares structural properties;
-- `themes.css` or `responsive.css` styles raw input/select/textarea elements.
-
-`npm test` includes this audit. `npm run ui:browser` additionally verifies the
-computed layout at desktop/mobile widths and in light/dark themes.
+Static checks are part of `npm test`. These checks detect explicit duplicate ownership and exercised runtime defects; they do not replace visual review of changed states.

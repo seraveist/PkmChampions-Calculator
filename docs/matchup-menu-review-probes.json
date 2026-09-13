@@ -1,0 +1,146 @@
+{
+  "date": "2026-09-13",
+  "basis": "d05592c with local fine-tune and Dex improvements",
+  "method": "Current application data and actual functions with a stub DOM. No application source changes and no certification of external live rules or metagame.",
+  "probes": {
+    "partySizeScore": [
+      {
+        "count": 3,
+        "party": [
+          "persian",
+          "kangaskhan",
+          "tauros"
+        ],
+        "score": 3,
+        "grade": "안전",
+        "neutral": 3,
+        "weak": 0,
+        "resists": 0
+      },
+      {
+        "count": 6,
+        "party": [
+          "persian",
+          "kangaskhan",
+          "tauros",
+          "ditto",
+          "snorlax",
+          "castform"
+        ],
+        "score": 6,
+        "grade": "일관성",
+        "neutral": 6,
+        "weak": 0,
+        "resists": 0
+      }
+    ],
+    "defensiveAbilityScope": {
+      "pokemon": "venusaurmega",
+      "ability": "thickfat",
+      "fireTable": {
+        "eff": 2,
+        "ability": null
+      },
+      "iceTable": {
+        "eff": 2,
+        "ability": null
+      },
+      "abilityData": [
+        {
+          "types": [
+            "Fire",
+            "Ice"
+          ],
+          "mod": "x0_5"
+        }
+      ],
+      "fireDamageWithAbility": [
+        48,
+        48,
+        49,
+        49,
+        49,
+        51,
+        51,
+        51,
+        52,
+        52,
+        54,
+        54,
+        54,
+        55,
+        55,
+        57
+      ],
+      "fireDamageWithoutAbility": [
+        96,
+        96,
+        98,
+        98,
+        98,
+        102,
+        102,
+        102,
+        104,
+        104,
+        108,
+        108,
+        108,
+        110,
+        110,
+        114
+      ]
+    },
+    "weatherBall": {
+      "legalMove": true,
+      "selectedAbility": "drought",
+      "coverageType": "Normal",
+      "calculatorTypeInSun": "Fire"
+    },
+    "freezeDry": {
+      "user": "ninetalesalola",
+      "target": "gyaradosmega",
+      "distributionType": "Ice",
+      "targetTypeWeaknessesUsedBySidebar": [
+        "Fighting",
+        "Grass",
+        "Bug",
+        "Fairy",
+        "Electric"
+      ],
+      "ordinaryIceEffect": 0.5,
+      "calculatorEffect": 2
+    },
+    "singleWeakMoveHidesThreat": {
+      "ownMove": "firespin",
+      "ownBasePower": 35,
+      "target": "scizormega",
+      "typeEffect": 4,
+      "grade": {
+        "label": "안전",
+        "cls": "safe"
+      },
+      "targetStillVisible": false
+    },
+    "typeDistributionDeduplication": {
+      "twoFireMovesOnOnePokemon": 1,
+      "twoFireUsers": 2
+    },
+    "partialParty": {
+      "table": "3마리 이상 선택하고 타점 체크에서 기술을 입력하면 진단을 표시합니다.",
+      "sidebarShowsThreats": true
+    },
+    "noMovesEntered": {
+      "selectedPokemon": 3,
+      "selectedMoves": 0,
+      "markedMissCells": 72,
+      "sidebar": "메타 타점 타점 체크에서 기술을 입력하면 메타 포켓몬의 4배/2배 약점 커버를 표시합니다."
+    }
+  },
+  "referenceTargets": {
+    "defensiveCount": 26,
+    "coverageCount": 23,
+    "missingIds": [],
+    "source": "data/overrides/meta-threats.json (static list; no current usage rate evidence)"
+  }
+}

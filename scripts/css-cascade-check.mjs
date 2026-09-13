@@ -136,13 +136,14 @@ const rules = files.flatMap(file => {
 const declarations = rules.flatMap(rule => rule.declarations.map(declaration => ({ ...rule, ...declaration })));
 const duplicateGroups = new Map();
 for (const declaration of declarations.filter(item => !item.conditional)) {
-  const key = `${declaration.layer}\n${declaration.selector}\n${declaration.property}`;
+  const ownerLayer = ['components','layouts','pages'].includes(declaration.layer) ? 'ui' : declaration.layer;
+  const key = `${ownerLayer}\n${declaration.selector}\n${declaration.property}`;
   const entries = duplicateGroups.get(key) || [];
   entries.push(declaration);
   duplicateGroups.set(key, entries);
 }
 const unconditionalConflicts = [...duplicateGroups.values()]
-  .filter(entries => new Set(entries.map(entry => entry.file)).size > 1)
+  .filter(entries => entries.length > 1)
   .map(entries => ({
     layer: entries[0].layer,
     selector: entries[0].selector,
@@ -191,7 +192,7 @@ if (process.argv.includes('--json')) {
   console.log(JSON.stringify(report, null, 2));
 } else {
   console.log(`CSS cascade audit: ${files.length} files`);
-  console.log(`Unconditional cross-file conflicts: ${unconditionalConflicts.length}`);
+  console.log(`Duplicate unconditional property owners: ${unconditionalConflicts.length}`);
   for (const item of unconditionalConflicts) {
     console.log(`  ${item.selector} { ${item.property} } -> ${item.owners.join(', ')}`);
   }

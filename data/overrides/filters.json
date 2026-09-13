@@ -1,5 +1,5 @@
 {
-  "_README": "Manual data filters applied during build. CAP and Custom Showdown records are excluded by default; use exclude for additional removals and include for explicit exceptions.",
+  "_README": "Manual data filters applied during build. CAP and Custom Showdown records are excluded by default; use exclude for additional removals and include for explicit exceptions. Gmax moves are disabled by the current ruleset, including explicit include entries, until Dynamax support is introduced.",
   "exclude": {
     "pokemon": [],
     "moves": [],

@@ -1,0 +1,53 @@
+/* Team slots and an aligned type table. Shared controls own all input appearance. */
+.matchup-mode-tabs { display:flex;gap:6px;margin-bottom:16px; }
+.matchup-mode-btn[aria-selected=true] { --button-bg:var(--accent);--button-hover:var(--accent);--button-color:var(--canvas);font-weight:700; }
+.matchup-slots { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px; }
+.matchup-slot { padding:12px;min-width:0; }
+.matchup-slot-head { display:flex;align-items:center;gap:8px;min-height:32px; }
+.matchup-slot-head .eyebrow { color:var(--muted);font-size:var(--text-badge);letter-spacing:1px;margin-right:auto; }
+.matchup-slot-head .type-list { margin-top:0; }
+.matchup-slot-clear { --button-height:32px;--ui-icon-size:16px; }
+.matchup-cb-input { padding:2px 4px;font-size:var(--text-section);font-weight:800;line-height:1.35; }
+.matchup-cb-input .ui-select-content { display:flex;align-items:center;gap:8px; }
+.matchup-cb-input .picker-label { min-width:0;overflow-wrap:anywhere;font-weight:inherit; }
+.matchup-cb-input .pokemon-sprite-slot { width:40px;height:44px;flex-basis:40px; }
+.matchup-slot-config { display:flex;gap:8px;margin-top:10px; }
+.matchup-slot-config>.form-field { flex:1;min-width:0;--field-font:var(--text-meta);--field-gap:4px;--ui-control-height:36px;--control-font:var(--text-compact);--control-weight:650;--control-padding:6px; }
+.matchup-coverage-inputs { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px; }
+.matchup-coverage-inputs:empty { display:none; }
+.matchup-coverage-card { padding:16px;min-width:0; }
+.matchup-coverage-head { display:flex;align-items:center;gap:6px; }
+.matchup-move-grid { display:grid;gap:6px; }
+.matchup-move-field { display:grid;grid-template-columns:14px minmax(0,1fr) 36px;gap:6px;align-items:center; }
+.matchup-move-num { font-size:var(--text-badge);color:var(--muted); }
+.matchup-move-input { padding:6px 8px;background:var(--input);font-size:var(--text-value);font-weight:650; }
+.matchup-move-input .ui-select-content { display:flex;align-items:center;justify-content:space-between;gap:6px; }
+.matchup-move-input .picker-label { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.matchup-move-clear { --ui-icon-size:16px;min-width:36px; }
+.matchup-results-panel { margin-top:24px; }
+.matchup-results-panel h3 { font-size:var(--text-section); }
+.matchup-scroll-hint { font-size:var(--text-meta);color:var(--muted); }
+.matchup-table-wrap { overflow:auto;overscroll-behavior:contain;background:var(--panel);border:1px solid var(--line);border-radius:14px;max-height:76dvh; }
+.matchup-table { width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed; }
+.matchup-table th,.matchup-table td { text-align:center;vertical-align:middle;padding:10px 6px;border-bottom:1px solid var(--line);height:44px; }
+.matchup-table thead th { position:sticky;top:0;z-index:2;background:var(--panel);white-space:normal;overflow-wrap:anywhere; }
+.matchup-table tbody th { position:sticky;left:0;z-index:1;background:var(--panel); }
+.matchup-table thead th:first-child { left:0;z-index:3; }
+.matchup-table tr:last-child>* { border-bottom:0; }
+.matchup-table .summary { font-size:var(--text-label);font-weight:650;background:var(--input); }
+.matchup-table small { display:block;color:var(--muted); }
+.matchup-table .eff-4,.matchup-table .eff-2 { background:color-mix(in srgb,var(--color-side-attack) 12%,var(--panel));color:var(--color-side-attack-strong);font-weight:750; }
+.matchup-table .eff-025,.matchup-table .eff-05 { background:color-mix(in srgb,var(--color-side-defense) 10%,var(--panel));color:var(--color-side-defense-strong); }
+.matchup-table .eff-0 { background:color-mix(in srgb,var(--accent) 8%,var(--panel));color:var(--accent);font-weight:750; }
+.matchup-table .coverage-hit { color:var(--color-side-defense-strong);font-weight:750;background:color-mix(in srgb,var(--color-side-defense) 10%,var(--panel)); }
+.matchup-table .coverage-none,.matchup-table .coverage-pending { color:var(--muted); }
+.matchup-table-type { min-width:44px; }
+.empty-state-cell { color:var(--muted);padding:32px 12px; }
+.matchup-legend { display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;color:var(--muted);font-size:var(--text-meta);margin-top:12px; }
+@media(max-width:900px) { .matchup-slots { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:700px) {
+  .matchup-coverage-inputs { grid-template-columns:minmax(0,1fr); }
+  .matchup-coverage-card { padding:12px; }
+  .matchup-results-panel { margin-top:20px; }
+}
+@media(max-width:480px) { .matchup-slots { grid-template-columns:minmax(0,1fr);gap:10px; } }

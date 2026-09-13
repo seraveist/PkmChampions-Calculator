@@ -80,7 +80,7 @@ function rcForecastDirect(c, moveId, role, speedActive, selectedMyMoveId = null)
   const bounds = rcDamageBounds();
   let formCertain = 0, formPossible = 0, formImpossible = 0, count = 0, incomplete = false;
   let allTied = true;
-  const orders = new Set();
+  const orders = new Set(), moveTypes = new Set(), categories = new Set();
   const predicted = MoveById[revCalcState.predictedOppMove || revCalcState.oppMove];
   for (const member of rcMemberList(c)) {
     for (const path of member.paths || []) {
@@ -121,7 +121,11 @@ function rcForecastDirect(c, moveId, role, speedActive, selectedMyMoveId = null)
               bounds.pctMin = Math.min(bounds.pctMin, pct); bounds.pctMax = Math.max(bounds.pctMax, pct);
             }
             // Survival effects and in-move recovery determine KO without clipping the displayed damage.
-            for (const outcome of rcHitOutcomes(a, d, move, f, cache)) if (outcome.hp <= 0) chance += outcome.chance;
+            for (const outcome of rcHitOutcomes(a, d, move, f, cache)) {
+              if (outcome.hp <= 0) chance += outcome.chance;
+              if (outcome.moveType) moveTypes.add(outcome.moveType);
+              if (outcome.category) categories.add(outcome.category);
+            }
             count++;
             if (chance >= 1 - 1e-9) formCertain++;
             else if (chance > 1e-9) formPossible++;
@@ -139,15 +143,13 @@ function rcForecastDirect(c, moveId, role, speedActive, selectedMyMoveId = null)
     survival: state === 'KO 확정' ? '확정으로 쓰러짐' : state === 'KO 불가' ? '확정 생존' : state === 'KO 난수' ? '난수로 쓰러짐' : state,
     order: !predicted && role === 'my' ? '상대 기술 미확인' : orders.size > 1 ? (allTied ? '동속' : '후보에 따라 선후공 다름') : orders.has('my-first') ? '내 선공' : '상대 선공',
     formCertain, formPossible, formImpossible };
-  return { move, summary, badges: ['다음 턴 시작 상태 · 적중 시', 'HP 우선 후보 기준'] };
+  return { move, summary, types: [...moveTypes], categories: [...categories], badges: ['다음 턴 시작 상태 · 적중 시', 'HP 우선 후보 기준'] };
 }
 
 function rcRenderExchangeSummary(result) {
-  const forecast = result.forecast;
-  if (!forecast) return result.pendingForecastKey ? '<div class="rc-exchange-summary ui-control-frame ui-subframe" role="status">다음 공격 판단을 갱신하고 있습니다.</div>' : result.forecastError ? '<p class="rc-mini-note" role="status">다음 공격 판단을 갱신하지 못했습니다. 분석을 다시 실행해 주세요.</p>' : '';
-  return `<div class="rc-exchange-summary ui-control-frame ui-subframe"><strong>다음 턴 비교 기준</strong>
-    <p class="rc-mini-note">각 형태 카드에서 상태 변화·선후공·양쪽 기술의 대미지를 확인하세요. 다음 턴 시작 상태에서 기술 적중·추가 급소 없음 기준입니다.</p>
-    <div class="rc-reference-moves ui-control-grid"><label class="ui-field"><span class="ui-field-label">상대 기술과 선후공을 비교할 내 기술</span>${rcRenderMoveCombobox('nextMyMove', revCalcState.nextMyMove || revCalcState.myMove, {compact:true})}</label><label class="ui-field"><span class="ui-field-label">내 기술과 선후공을 비교할 상대 기술</span>${rcRenderMoveCombobox('predictedOppMove', forecast.opponentMove, {compact:true,placeholder:'관측 기술 없음'})}</label></div></div>`;
+  const forecast=result.forecast;
+  if(!forecast) return result.pendingForecastKey ? '<div class="rc-exchange-summary" role="status">다음 턴 정보 갱신 중</div>' : result.forecastError ? '<p class="rc-mini-note" role="status">갱신 실패 · 다시 분석하세요.</p>' : '';
+  return `<section class="rc-exchange-summary"><h3>다음 턴 비교</h3><div class="rc-reference-moves"><div class="form-field"><span>내 기준 기술</span>${rcRenderMoveCombobox('nextMyMove',revCalcState.nextMyMove || revCalcState.myMove,{compact:true})}</div><div class="form-field"><span>상대 기준 기술</span>${rcRenderMoveCombobox('predictedOppMove',forecast.opponentMove,{compact:true})}</div></div></section>`;
 }
 
 function rcComputeExchangeForecast(result, { allCandidates = false } = {}) {

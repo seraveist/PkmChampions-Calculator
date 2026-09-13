@@ -14,7 +14,6 @@ const DATA_IDS = [
   'data-natures',
   'data-typechart',
   'data-rules',
-  'data-meta-threats',
 ];
 
 let failed = false;

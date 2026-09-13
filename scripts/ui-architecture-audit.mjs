@@ -8,14 +8,14 @@ const CSS_ROOT = path.join(ROOT, 'src', 'styles');
 const JS_ROOT = path.join(ROOT, 'src', 'js');
 const MANIFEST = path.join(ROOT, 'dist', 'deploy-manifest.json');
 const PAGE_OWNERS = new Map([
-  ['pages/01-matchup.css', 'matchup'],
-  ['pages/02-finetune.css', 'finetune'],
-  ['pages/03-reverse.css', 'revcalc'],
+  ['pages/matchup.css', 'matchup'],
+  ['pages/finetune.css', 'finetune'],
+  ['pages/reverse.css', 'revcalc'],
 ]);
 
 function pageOwner(relative) {
-  if (relative.startsWith('pages/calculator-')) return 'calc';
-  if (relative.startsWith('pages/dex-')) return 'dex';
+  if (relative === 'pages/calculator.css') return 'calc';
+  if (relative === 'pages/dex.css') return 'dex';
   return PAGE_OWNERS.get(relative);
 }
 

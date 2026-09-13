@@ -1,21 +1,16 @@
 /* Fine-tune EV planner.
  * Loaded before 05-init.js by build.mjs alphabetical concatenation.
  */
-// 내 측은 makeSideState 와 같은 형태(전체 세팅 보유), 상대는 최소 정보만.
+// Both complete builds and their shared field survive calculator round trips.
 const fineTuneState = {
   my: makeSideState(),
-  opp: {
-    pokemonIdx: '',
-    scarf: false,
-    speRank: 0,  // 상대 스피드 랭크 (-6 ~ +6)
-    baseSpe: '',
-  },
-  margin: 1,                 // 추월 +n
-  weatherAbilityActive: false, // 내 쪽 SwiftSwim/Chlorophyll 등 발동 체크
+  opp: makeSideState(),
+  field: makeFieldState(),
+  margin: 1,
+  targetSpeed: '',
+  baseline: null,
+  notice: '',
 };
-
-// 스피드 부스트 특성 매핑 (체크박스 켤 때만 ×2)
-const FT_SPEED_X2_ABILITIES = new Set(['swiftswim', 'chlorophyll', 'sandrush', 'slushrush', 'surgesurfer']);
 
 // Fine-tune helpers: keep this tab aligned with the calculator engine.
 function ftStatKeys() {
@@ -44,34 +39,15 @@ function ftSetEv(stat, requested) {
 }
 
 function ftDefaultField() {
-  return makeFieldState({ gameType: state?.field?.gameType || 'Singles' });
-}
-
-function ftAbilitySpeedActivation(abilityId) {
-  const id = toId(abilityId || '');
-  const map = {
-    swiftswim: { label: '비/강한비 속도 특성', field: { weather: 'Rain' } },
-    chlorophyll: { label: '쾌청 속도 특성', field: { weather: 'Sun' } },
-    sandrush: { label: '모래바람 속도 특성', field: { weather: 'Sand' } },
-    slushrush: { label: '눈 속도 특성', field: { weather: 'Snow' } },
-    surgesurfer: { label: '일렉트릭필드 속도 특성', field: { terrain: 'Electric' } },
-    unburden: { label: '곡예 발동', side: { unburdenActive: true } },
-    quickfeet: { label: '속보 발동', side: { status: 'Paralysis' } },
-  };
-  return map[id] || null;
+  return cloneCalcValue(fineTuneState.field);
 }
 
 function ftSpeedFieldFor(side) {
-  const field = ftDefaultField();
-  const activation = fineTuneState.weatherAbilityActive ? ftAbilitySpeedActivation(side?.ability) : null;
-  if (activation?.field) Object.assign(field, activation.field);
-  return field;
+  return ftDefaultField();
 }
 
 function ftSpeedSideFor(side) {
-  const out = cloneCalcValue(side || {});
-  const activation = fineTuneState.weatherAbilityActive ? ftAbilitySpeedActivation(out.ability) : null;
-  if (activation?.side) Object.assign(out, activation.side);
+  const out = { ...makeSideState(side?.pokemonIdx), ...cloneCalcValue(side || {}) };
   if (!out.ranks) out.ranks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
   if (!out.evs) out.evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
   if (typeof deriveHpFlags === 'function') deriveHpFlags(out);
@@ -80,13 +56,10 @@ function ftSpeedSideFor(side) {
 
 function ftMySpeed(my) {
   if (!PokemonById[my?.pokemonIdx]) return 0;
-  return effectiveSpeed(ftSpeedSideFor(my), ftSpeedFieldFor(my));
+  return effectiveSpeed(ftSpeedSideFor(my), ftDefaultField(), ftSpeedSideFor(fineTuneState.opp));
 }
 
 function ftOpponentBaseSpeed(opp = fineTuneState.opp) {
-  const text = String(opp?.baseSpe ?? '').trim();
-  const manual = parseInt(text, 10);
-  if (Number.isFinite(manual)) return Math.max(1, Math.min(255, manual));
   const pokemon = PokemonById[opp?.pokemonIdx];
   return Math.max(1, Math.min(255, pokemon?.bs?.spe || 1));
 }
@@ -96,22 +69,14 @@ function ftNatureForSpeedCase(natureSpec) {
   return Number(natureSpec) > 1 ? 'jolly' : 'hardy';
 }
 
-function ftSpeedStatFromBase(baseSpe, ev, natureSpec) {
-  const nature = NATURE_BY_ID[ftNatureForSpeedCase(natureSpec)] || null;
-  const natureUp = nature?.up || null;
-  const natureDown = nature?.down || null;
-  let raw = Math.floor((2 * ftClampInt(baseSpe, 1, 255) + 31 + ftClampInt(ev, 0, 32) * 2) * 0.5) + 5;
-  if (natureUp === 'spe' && natureDown !== 'spe') raw = Math.floor(raw * 1.1);
-  else if (natureDown === 'spe' && natureUp !== 'spe') raw = Math.floor(raw * 0.9);
-  return raw;
-}
-
 function ftOppSpeedCase(opp, ev, natureSpec) {
   if (!PokemonById[opp?.pokemonIdx]) return 0;
-  let spe = ftSpeedStatFromBase(ftOpponentBaseSpeed(opp), ev, natureSpec);
-  spe = applyBoost(spe, opp.speRank || 0);
-  if (opp.scarf) spe = Math.floor(spe * 1.5);
-  return spe;
+  const side = ftSpeedSideFor(opp);
+  if (ev !== null) {
+    side.evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: ftClampInt(ev, 0, 32) };
+    side.nature = ftNatureForSpeedCase(natureSpec);
+  }
+  return effectiveSpeed(side, ftDefaultField(), ftSpeedSideFor(fineTuneState.my));
 }
 
 function ftOppSpeedRefCases() {
@@ -138,9 +103,7 @@ function ftRefreshOppSpeedChips() {
 }
 
 function ftFindMinSpeedEv(my, targetSpeed) {
-  const otherSum = ftStatKeys().reduce((a, key) => key === 'spe' ? a : a + (my.evs?.[key] || 0), 0);
-  const maxSpeEv = Math.min(32, Math.max(0, 66 - otherSum));
-  for (let ev = 0; ev <= maxSpeEv; ev++) {
+  for (let ev = 0; ev <= 32; ev++) {
     const tmp = { ...my, evs: { ...my.evs, spe: ev } };
     if (ftMySpeed(tmp) >= targetSpeed) return ev;
   }
@@ -158,13 +121,25 @@ function ftSpeedCases() {
 function ftBuildSpeedTable() {
   const my = fineTuneState.my;
   const opp = fineTuneState.opp;
-  const margin = Math.max(0, parseInt(fineTuneState.margin, 10) || 1);
-  return ftSpeedCases().map(c => {
+  const margin = ftClampInt(fineTuneState.margin, 0, 999);
+  const cases = PokemonById[opp.pokemonIdx] ? [...ftSpeedCases(), { label: '입력 배치', sub: '상대 배분·성격 유지', ev: null }] : [];
+  const rows = cases.map(c => {
     const oppSpe = ftOppSpeedCase(opp, c.ev, c.nature);
     const target = oppSpe + margin;
-    const need = ftFindMinSpeedEv(my, target);
-    return { ...c, oppSpe, target, need };
+    return { ...c, oppSpe, target, ...ftSpeedRequirement(my, target) };
   });
+  if (String(fineTuneState.targetSpeed).trim() !== '') {
+    const oppSpe = ftClampInt(fineTuneState.targetSpeed, 1, 10000);
+    rows.push({ label: '직접 입력', sub: '보정 후 상대 실수치', oppSpe, target: oppSpe + margin, ...ftSpeedRequirement(my, oppSpe + margin) });
+  }
+  return rows;
+}
+
+function ftSpeedRequirement(my, target) {
+  const need = ftFindMinSpeedEv(my, target);
+  const other = ftStatKeys().reduce((sum, stat) => sum + (stat === 'spe' ? 0 : my.evs[stat] || 0), 0);
+  const available = Math.max(0, Math.min(32, 66 - other));
+  return { need, available, shortfall: need === null ? 0 : Math.max(0, need - available), achieved: ftMySpeed(my) >= target };
 }
 
 function ftAbilityOptionsForCurrentPokemon() {
@@ -185,17 +160,19 @@ function ftComboData(target) {
   }
   if (target === 'myForm') return calcFormOptionDataForPokemon(fineTuneState.my.pokemonIdx);
   if (target === 'oppForm') return calcFormOptionDataForPokemon(fineTuneState.opp.pokemonIdx);
-  if (target === 'item') {
+  if (target === 'item' || target === 'oppItem') {
     return calcItemOptionData();
   }
-  if (target === 'nature') {
+  if (target === 'nature' || target === 'oppNature') {
     return calcNatureOptionData();
   }
   if (target === 'ability') return ftAbilityOptionsForCurrentPokemon();
+  if (target === 'oppAbility') return calcAbilityOptionDataForPokemon(fineTuneState.opp.pokemonIdx, fineTuneState.opp.ability);
   return [];
 }
 
 function ftComboLabel(target, id) {
+  target = { oppAbility: 'ability', oppItem: 'item', oppNature: 'nature' }[target] || target;
   if (target === 'my' || target === 'opp') return pkName(PokemonById[id] || { name: '' });
   if (target === 'myForm' || target === 'oppForm') return PokemonById[id] ? calcPokemonFormLabel(PokemonById[id]) : '';
   if (target === 'item') return id ? itName(ItemById[id] || { name: id }) : '없음';
@@ -237,30 +214,23 @@ function ftApplyPokemonToFineTune(pokemonId) {
   const pokemon = PokemonById[pokemonId];
   if (!pokemon) return;
   const changed = fineTuneState.my.pokemonIdx !== pokemonId;
-  fineTuneState.my.pokemonIdx = pokemonId;
   if (changed) {
-    fineTuneState.my.ability = defaultPokemonAbilityId(pokemon);
-    fineTuneState.my.types = defaultPokemonTypes(pokemon);
-    fineTuneState.my.teraType = fineTuneState.my.types?.[0] || 'Normal';
-    fineTuneState.my.tera = false;
+    fineTuneState.my = makeSideState(pokemonId);
     fineTuneState.my.item = defaultPokemonItemId(pokemon);
-    fineTuneState.my.damageBlockActive = false;
-    fineTuneState.my.boosterEnergyState = 'auto';
-    fineTuneState.my.moves = [];
-    fineTuneState.my.moveBpOverrides = [null, null, null, null];
+    ftSaveBaseline();
   }
-  if (!ftAbilitySpeedActivation(fineTuneState.my.ability)) fineTuneState.weatherAbilityActive = false;
+  fineTuneState.notice = '';
 }
 
 function ftSelectCombo(target, id) {
   if (target === 'my') ftApplyPokemonToFineTune(id);
   if (target === 'myForm') {
     applyPokemonFormToSideState(fineTuneState.my, id);
-    if (!ftAbilitySpeedActivation(fineTuneState.my.ability)) fineTuneState.weatherAbilityActive = false;
+    ftSaveBaseline();
   }
   if (target === 'opp' && PokemonById[id]) {
-    fineTuneState.opp.pokemonIdx = id;
-    fineTuneState.opp.baseSpe = '';
+    fineTuneState.opp = makeSideState(id);
+    fineTuneState.opp.item = defaultPokemonItemId(PokemonById[id]);
   }
   if (target === 'oppForm') {
     applyPokemonFormToSideState(fineTuneState.opp, id);
@@ -269,8 +239,10 @@ function ftSelectCombo(target, id) {
   if (target === 'nature') fineTuneState.my.nature = id || 'hardy';
   if (target === 'ability') {
     fineTuneState.my.ability = id || '';
-    if (!ftAbilitySpeedActivation(fineTuneState.my.ability)) fineTuneState.weatherAbilityActive = false;
   }
+  if (target === 'oppAbility') fineTuneState.opp.ability = id || '';
+  if (target === 'oppItem') fineTuneState.opp.item = id || '';
+  if (target === 'oppNature') fineTuneState.opp.nature = id || 'hardy';
 }
 
 function ftCurrentComboId(target) {
@@ -281,126 +253,27 @@ function ftCurrentComboId(target) {
   if (target === 'item') return fineTuneState.my.item || '';
   if (target === 'nature') return fineTuneState.my.nature || 'hardy';
   if (target === 'ability') return fineTuneState.my.ability || '';
+  if (target === 'oppAbility') return fineTuneState.opp.ability || '';
+  if (target === 'oppItem') return fineTuneState.opp.item || '';
+  if (target === 'oppNature') return fineTuneState.opp.nature || 'hardy';
   return '';
 }
 
 function ftWireComboboxes(rootId) {
-  const container = document.getElementById(rootId);
-  if (!container) return;
-  container.querySelectorAll('.ft-cb-input').forEach(input => {
-    if (input.dataset.ftWired === '1') return;
-    const target = input.dataset.ftPick;
-    if (target === 'my' || target === 'opp') {
-      const renderPokemonOption = target === 'opp'
-        ? ftRenderOpponentPokemonOption
-        : null;
-      wirePokemonSelectCombobox(input, {
-        wiredKey: 'ftWired',
-        getOptions: () => ftComboData(target),
-        getCurrentId: () => ftCurrentComboId(target),
-        getDisplayLabel: () => ftComboLabel(target, ftCurrentComboId(target)),
-        onSelect: id => {
-          ftSelectCombo(target, id);
-          renderFineTuneAll();
-        },
-        searchLimit: 80,
-        closeDelay: 180,
-        renderOption: renderPokemonOption,
-        renderHeader: renderPokemonOption ? '' : null,
-      });
-      return;
-    }
-
-    input.dataset.ftWired = '1';
-    const cb = input.closest('.combobox');
-    const optsEl = cb?.querySelector('.combobox-options');
-    if (!optsEl) return;
-    const isButtonTrigger = input.tagName === 'BUTTON';
-    const showOptions = q => {
-      calcHideOptionTooltip();
-      const query = String(q || '').trim();
-      const allMatches = ftComboData(target).filter(option => ftSearchMatches(query, option));
-      const matches = query ? allMatches.slice(0, target === 'item' ? 50 : 80) : allMatches;
-      const currentId = ftCurrentComboId(target);
-      const renderType = (target === 'myForm' || target === 'oppForm') ? 'form' : target;
-      const header = target === 'nature'
-        ? (typeof calcComboboxHeaderHtml === 'function' ? calcComboboxHeaderHtml('nature') : '')
-        : '';
-      renderTrustedHTML(optsEl, matches.length ? header + matches.map(option =>
-        calcRenderComboboxOption(renderType, option, currentId)
-      ).join('') : '<div class="combobox-option empty"><b>검색 결과 없음</b></div>');
-      closeSiblingComboboxOptions(optsEl, input);
-      optsEl.classList.add('open');
-    };
-    const restoreInput = () => {
-      input.value = ftComboLabel(target, ftCurrentComboId(target));
-    };
-    const clearOptionalInput = () => {
-      if (!['item', 'ability'].includes(target)) return false;
-      calcHideOptionTooltip();
-      combo?.close();
-      ftSelectCombo(target, '');
-      renderFineTuneAll();
-      return true;
-    };
-    const handleInvalidInput = () => {
-      if (!clearOptionalInput()) restoreInput();
-    };
-    const combo = wireSharedComboboxKeyboard(input, optsEl, {
-      showOptions,
-      onSelect: opt => {
-        calcHideOptionTooltip();
-        ftSelectCombo(target, opt.dataset.id || '');
-        renderFineTuneAll();
+  document.getElementById(rootId)?.querySelectorAll('.ft-cb-input').forEach(input=>{
+    if(input.dataset.ftWired==='1') return;
+    input.dataset.ftWired='1';
+    const target=input.dataset.ftPick;
+    const kind=({my:'pokemon',opp:'pokemon',myForm:'form',oppForm:'form',oppItem:'item',oppAbility:'ability',oppNature:'nature'})[target] || target;
+    input.dataset.cbType=kind;
+    const list=input.closest('.combobox').querySelector('.combobox-options');
+    uiWirePickerDialog(input,list,{
+      showOptions:query=>{
+        const matches=ftComboData(target).filter(option=>ftSearchMatches(query,option));
+        renderTrustedHTML(list,calcComboboxHeaderHtml(kind)+(matches.length ? matches.map(option=>calcRenderComboboxOption(kind,option,ftCurrentComboId(target))).join('') : '<div class="combobox-option empty">검색 결과 없음</div>'));
       },
-      getQuery: () => input.value || '',
-      onInvalidInput: handleInvalidInput,
+      onSelect:option=>{ftSelectCombo(target,option.dataset.id || '');renderFineTuneAll();}
     });
-    input.addEventListener('focus', () => combo?.open(''));
-    input.addEventListener('click', () => combo?.open(''));
-    input.addEventListener('input', e => combo?.open(e.target.value, { activateFirst: true }));
-    input.addEventListener('blur', () => setTimeout(() => {
-      if (isButtonTrigger) {
-        return;
-      }
-      if (typeof calcComboboxFocusMovedToAnother === 'function' && calcComboboxFocusMovedToAnother(input, optsEl)) {
-        calcHideOptionTooltip();
-        combo?.close();
-        restoreInput();
-        return;
-      }
-      if (!String(input.value || '').trim()) {
-        if (clearOptionalInput()) return;
-        calcHideOptionTooltip();
-        combo?.close();
-        restoreInput();
-        return;
-      }
-      calcHideOptionTooltip();
-      combo?.commitTyped();
-    }, 180));
-    optsEl.addEventListener('mousedown', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt || opt.classList.contains('empty')) return;
-      e.preventDefault();
-      if (isButtonTrigger) return;
-      combo?.select(opt);
-    });
-    optsEl.addEventListener('click', e => {
-      const opt = e.target.closest('.combobox-option');
-      if (!opt || opt.classList.contains('empty')) return;
-      e.preventDefault();
-      combo?.select(opt);
-    });
-    optsEl.addEventListener('mouseover', e => {
-      const opt = e.target.closest('.tooltip-option[data-tooltip]');
-      if (opt && optsEl.contains(opt)) calcShowOptionTooltip(opt);
-    });
-    optsEl.addEventListener('mouseout', e => {
-      const opt = e.target.closest('.tooltip-option[data-tooltip]');
-      if (opt && !opt.contains(e.relatedTarget)) calcHideOptionTooltip();
-    });
-    optsEl.addEventListener('scroll', calcHideOptionTooltip);
   });
 }
 
@@ -420,29 +293,50 @@ function ftMultiplierLabel(value) {
 }
 
 function ftHpBreakpointRules(side) {
-  const rules = [
-    { id: 'dot-plus', rule: '16n+1', desc: '도트 대미지 +1턴', predicate: hp => hp % 16 === 1, relevant: true },
-    { id: 'dot-min', rule: '16n-1', desc: '도트 대미지 최소', predicate: hp => hp % 16 === 15, relevant: true },
-    { id: 'seed-plus', rule: '8n+1', desc: '씨뿌리기 +1턴', predicate: hp => hp % 8 === 1, relevant: true },
-    { id: 'seed-min', rule: '8n-1', desc: '씨뿌리기 최소', predicate: hp => hp % 8 === 7, relevant: true },
-    { id: 'sub', rule: '4n+1~3', desc: '대타출동 HP 잔여', predicate: hp => hp % 4 !== 0, relevant: true },
-  ];
-  if (ItemById.lifeorb) rules.push({ id: 'lifeorb', rule: '10n-1', desc: '생명의구슬 반동 최소', predicate: hp => hp % 10 === 9, relevant: side.item === 'lifeorb' });
-  if (ItemById.leftovers) rules.push({ id: 'leftovers', rule: '16n', desc: '먹다남은음식 회복 극대', predicate: hp => hp % 16 === 0, relevant: side.item === 'leftovers' });
-
+  const opponent = fineTuneState.opp;
+  const { atkAb: ability } = battleAbilityContext(side, opponent);
+  const itemId = effectiveBattleItem(side, ability);
+  const item = ItemById[itemId] || {};
+  const guard = ability === 'magicguard';
+  const rules = [];
+  const add = (id, denom, remainder, desc, kind, relevant = true) => rules.push({
+    id, rule: `${denom}n${remainder ? (remainder === denom - 1 ? '-1' : `+${remainder}`) : ''}`,
+    desc, kind, fraction: 1 / denom, predicate: hp => hp % denom === remainder, relevant,
+  });
+  if (!guard) {
+    add('dot-plus', 16, 1, '1/16 고정 소모 · 반복 횟수', 'damage', false);
+    add('dot-min', 16, 15, '1/16 고정 소모 · 내림 구간', 'damage', false);
+    if (!effectiveTypes(side).includes('Grass')) {
+      add('seed-plus', 8, 1, '씨뿌리기 · 반복 횟수', 'damage', false);
+      add('seed-min', 8, 7, '씨뿌리기 · 내림 구간', 'damage', false);
+    }
+  }
+  rules.push({ id: 'sub', rule: '4n+1~3', desc: '대타출동 4회 후 잔여 HP', kind: 'sub', predicate: hp => hp % 4 !== 0, relevant: side.moves?.includes('substitute') });
+  if (itemId === 'lifeorb' && !guard) add('lifeorb', 10, 9, '생명의구슬 반동', 'damage');
+  if (item.residualRecovery?.kind === 'endTurn') {
+    const denom = Math.round(1 / fractionValue(item.residualRecovery.fraction, 1 / 16));
+    add(itemId, denom, 0, `${itName(item)} 회복`, 'heal');
+  }
+  if (item.hpRecovery) {
+    const fraction = fractionValue(item.hpRecovery.fraction, 0);
+    rules.push({ id: itemId, rule: fraction ? `${Math.round(1 / fraction)}n` : '2n',
+      desc: `${itName(item)} 발동·회복`, kind: 'berry', recovery: item.hpRecovery,
+      predicate: hp => hp % (fraction ? Math.round(1 / fraction) : 2) === 0, relevant: true });
+  }
   const rockEff = typeEff('Rock', effectiveTypes(side));
-  if (rockEff > 0) {
+  if (rockEff > 0 && !guard && itemId !== 'heavydutyboots') {
     const denom = Math.max(1, Math.round(8 / rockEff));
     rules.push({
       id: `sr-${denom}`,
       rule: `${denom}n+1`,
-      desc: `스텔스록 ${ftMultiplierLabel(rockEff)} +1턴`,
+      desc: `스텔스록 ${ftMultiplierLabel(rockEff)}`,
+      kind: 'damage', fraction: rockEff / 8,
       predicate: hp => hp % denom === 1,
       relevant: true,
     });
   }
 
-  if (isGrounded(side, ftDefaultField())) {
+  if (!guard && itemId !== 'heavydutyboots' && isGrounded(side, ftDefaultField(), ability, itemId)) {
     [
       { layer: 1, denom: 8 },
       { layer: 2, denom: 6 },
@@ -451,7 +345,8 @@ function ftHpBreakpointRules(side) {
       rules.push({
         id: `spikes-${layer}`,
         rule: `${denom}n+1`,
-        desc: `압정 ${layer}중 +1턴`,
+        desc: `압정 ${layer}중`,
+        kind: 'damage', fraction: 1 / denom,
         predicate: hp => hp % denom === 1,
         relevant: true,
       });
@@ -463,11 +358,11 @@ function ftHpBreakpointRules(side) {
 function ftHpBreakpointDeltas(side, rule) {
   const curEv = side.evs?.hp || 0;
   const otherSum = ftStatKeys().reduce((a, key) => key === 'hp' ? a : a + (side.evs?.[key] || 0), 0);
-  const maxEv = Math.min(32, Math.max(0, 66 - otherSum));
+  const maxEv = 32;
   const hits = [];
   for (let ev = 0; ev <= maxEv; ev++) {
     const hp = ftHpAtEv(side, ev);
-    if (rule.predicate(hp)) hits.push({ ev, hp });
+    if (rule.predicate(hp)) hits.push({ ev, hp, shortfall: Math.max(0, otherSum + ev - 66) });
   }
   const current = hits.find(hit => hit.ev === curEv) || null;
   const prev = [...hits].reverse().find(hit => hit.ev < curEv) || null;

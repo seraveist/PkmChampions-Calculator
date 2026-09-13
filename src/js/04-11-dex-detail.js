@@ -69,9 +69,10 @@ function buildDexContent(type, id, options = {}) {
 function openDexDetail(type, id, parentCtx = null) {
   const modal = document.getElementById('dexDetailModal');
   if (!modal) return;
-  const content = buildDexContent(type, id);
+  const learnsetFilter = { type: null, category: null };
+  const content = buildDexContent(type, id, { learnsetFilter });
   if (!content) return;
-  dexModalCtx = { type, id, parent: parentCtx };
+  dexModalCtx = { type, id, parent: parentCtx, learnsetFilter };
   document.getElementById('dexDetailTitle').textContent = content.titleKo;
   document.getElementById('dexDetailTitleEn').textContent = content.titleEn !== content.titleKo ? content.titleEn : '';
   const detailBody = document.getElementById('dexDetailBody');
@@ -82,14 +83,17 @@ function openDexDetail(type, id, parentCtx = null) {
   renderTrustedHTML(actionsEl, actions);
   actionsEl.hidden = !actions;
   if (!modal.open) modal.showModal();
+  detailBody.scrollTop = 0;
+  detailBody.scrollLeft = 0;
 }
 
 // 풀페이지로 상세 열기 (포켓몬/기술/특성 행 클릭)
 function openDexDetailPage(type, id) {
-  const content = buildDexContent(type, id, { fullPage: true });
+  const learnsetFilter = { type: null, category: null };
+  const content = buildDexContent(type, id, { fullPage: true, learnsetFilter });
   if (!content) return;
   saveDexViewState(currentDex);
-  dexFullPageCtx = { type, id };
+  dexFullPageCtx = { type, id, learnsetFilter };
   const container = document.getElementById('dexFullPageDetail');
   if (!container) return;
   const hasActions = !!(content.actions || '').trim();
@@ -109,11 +113,11 @@ function openDexDetailPage(type, id) {
   `;
   renderTrustedHTML(container, `
     <div class="dex-fullpage-head">
-      <button type="button" class="dex-fullpage-back" id="dexFullPageBack">뒤로</button>
+      <button type="button" class="ui-label-action dex-fullpage-back" id="dexFullPageBack">뒤로</button>
       ${titleBlock}
       ${headerActions}
     </div>
-    <div class="dex-fullpage-body" id="dexFullPageBody">${content.body}</div>
+    <div class="dex-fullpage-body" data-detail-kind="${type}" id="dexFullPageBody">${content.body}</div>
     ${footerActions}
   `);
   applyDexDynamicStyles(container);
@@ -156,9 +160,6 @@ function navigateToDexDetailPage(type, id) {
   openDexDetailPage(type, id);
 }
 
-// 포켓몬 상세 — 모달 내 학습기 타입 필터 상태 (포켓몬 단위로 reset)
-let pokemonDetailTypeFilter = null;
-
 function applyDexDynamicStyles(root) {
   root?.querySelectorAll('[data-stat-percent]').forEach((bar) => {
     const percent = Math.max(0, Math.min(100, Number(bar.dataset.statPercent) || 0));
@@ -166,8 +167,7 @@ function applyDexDynamicStyles(root) {
   });
 }
 
-function renderPokemonDetail(p, { fullPage = false } = {}) {
-  pokemonDetailTypeFilter = null; // 새 포켓몬 열 때마다 초기화
+function renderPokemonDetail(p, { fullPage = false, learnsetFilter = {} } = {}) {
   const stats = ['hp','atk','def','spa','spd','spe'];
   const STAT_KO = { hp: 'HP', atk: '공격', def: '방어', spa: '특공', spd: '특방', spe: '속도' };
   const maxStat = Math.max(...stats.map(s => p.bs[s]));
@@ -183,7 +183,7 @@ function renderPokemonDetail(p, { fullPage = false } = {}) {
     const id = toId(abN);
     const data = AbilityById[id];
     const label = data ? escapeHTML(abName(data)) : escapeHTML(abN);
-    return uiButton(label, { class: 'dex-link', 'data-dex-link': 'ability', 'data-id': id });
+    return uiButton(label, { class: 'ui-label-action dex-link', 'data-dex-link': 'ability', 'data-id': id });
   }).join('');
 
   // 방어 타입 매치업 (각 공격 타입에 대한 효과 배율)
@@ -191,14 +191,14 @@ function renderPokemonDetail(p, { fullPage = false } = {}) {
 
   // 학습 가능 기술 — 타입별 그룹화
   const learnable = (p.ls || []).map(mid => MoveById[mid]).filter(Boolean);
-  const learnsetHtml = renderLearnsetByType(learnable);
+  const learnsetHtml = renderLearnsetByType(learnable, learnsetFilter);
 
   const relatedForms = relatedPokemonForms(p);
   const relatedFormsHtml = relatedForms.length > 0 ? `
     <div class="dex-modal-section">
       <div class="dex-modal-section-title">다른 폼</div>
       <div class="dex-link-list">
-        ${relatedForms.map(form => uiButton(pokemonListName(form), { class: 'dex-link', 'data-dex-link': 'pokemon', 'data-id': form.id })).join('')}
+        ${relatedForms.map(form => uiButton(pokemonListName(form), { class: 'ui-label-action dex-link', 'data-dex-link': 'pokemon', 'data-id': form.id })).join('')}
       </div>
     </div>
   ` : '';
@@ -233,10 +233,10 @@ function renderPokemonDetail(p, { fullPage = false } = {}) {
   `;
 
   const body = `
-    <div class="dex-modal-section">
+    <div class="dex-modal-section dex-detail-overview">
       ${detailLead}
     </div>
-    <div class="dex-modal-section">
+    <div class="dex-modal-section dex-detail-stats">
       <div class="dex-modal-section-title">종족값</div>
       <div class="dex-modal-stat-grid">${statRows}${totalRow}</div>
     </div>
@@ -245,19 +245,20 @@ function renderPokemonDetail(p, { fullPage = false } = {}) {
       <div class="dex-modal-flag-row">${abEntries || '<span class="dex-empty-inline">없음</span>'}</div>
     </div>
     ${relatedFormsHtml}
-    <div class="dex-modal-section">
+    <div class="dex-modal-section dex-detail-matchup">
       <div class="dex-modal-section-title">방어 타입 상성</div>
+      <p class="dex-reference-note">타입만 반영 · 특성·도구 제외</p>
       ${matchupHtml}
     </div>
     <div class="dex-modal-section dex-learnset-section">
       <div class="dex-modal-section-title">학습 가능 기술 (${learnable.length})</div>
-      <div id="learnsetWrap">${learnsetHtml}</div>
+      <div data-learnset-wrap>${learnsetHtml}</div>
     </div>
   `;
 
   const actions = `
-    <button type="button" class="dex-modal-btn atk" data-dex-apply="pokemon-atk">공격측</button>
-    <button type="button" class="dex-modal-btn def" data-dex-apply="pokemon-def">방어측</button>
+    <button type="button" class="ui-label-action dex-modal-btn atk" data-dex-apply="pokemon-atk">공격측</button>
+    <button type="button" class="ui-label-action dex-modal-btn def" data-dex-apply="pokemon-def">방어측</button>
   `;
   return [body, actions];
 }
@@ -290,13 +291,14 @@ function renderDefensiveMatchup(defTypes) {
 }
 
 // 학습 기술을 타입별로 그룹화 + 모달 내 타입 필터
-function renderLearnsetByType(learnable) {
+function renderLearnsetByType(learnable, filters = {}) {
   if (learnable.length === 0) {
     return dexEmptyText('학습 정보 없음');
   }
   // 타입별 분류
   const byType = {};
-  for (const m of learnable) {
+  const filtered = learnable.filter(m => (!filters.type || m.type === filters.type) && (!filters.category || m.cat === filters.category));
+  for (const m of filtered) {
     (byType[m.type] = byType[m.type] || []).push(m);
   }
   // 각 타입 내부 한글 가나다순
@@ -304,25 +306,33 @@ function renderLearnsetByType(learnable) {
     byType[t].sort((a,b) => (a.koName||a.name).localeCompare(b.koName||b.name, 'ko'));
   }
   // 표시용 타입 순서 (배틀 타입 순)
-  const presentTypes = BATTLE_TYPES.filter(t => byType[t]);
+  const presentTypes = BATTLE_TYPES.filter(t => learnable.some(m => m.type === t));
 
   // 필터 버튼 (이 포켓몬이 학습 가능한 타입만 표시)
   const filterButtons = `
-    <div class="dex-learnset-filter-row">
-      ${uiButton('전체', { class: `type-filter-btn ${pokemonDetailTypeFilter === null ? 'active' : ''}`, 'data-learnset-filter': '' })}
+    <div class="dex-learnset-filter-row" role="group" aria-label="학습 기술 분류">
+      ${[['', '전체'], ...Object.entries(MOVE_CATEGORY_LABEL)].map(([category, label]) => uiButton(label, {
+        class: `ui-button ui-button--filter type-filter-btn ${(filters.category || '') === category ? 'active' : ''}`,
+        'data-learnset-category': category, 'aria-pressed': String((filters.category || '') === category),
+      })).join('')}
+    </div>
+    <div class="dex-learnset-filter-row" role="group" aria-label="학습 기술 타입">
+      ${uiButton('전체 타입', { class: `ui-button ui-button--filter type-filter-btn ${!filters.type ? 'active' : ''}`, 'data-learnset-filter': '', 'aria-pressed': String(!filters.type) })}
       ${presentTypes.map(t => {
-        const active = pokemonDetailTypeFilter === t;
+        const active = filters.type === t;
         return uiButton(TYPE_KO[t], {
-          class: `type-filter-btn type-pill-mini ${active ? 'active' : ''}`,
+          class: `ui-button ui-button--filter type-filter-btn type-pill-mini ${active ? 'active' : ''}`,
           'data-learnset-filter': t,
+          'aria-pressed': String(active),
           title: TYPE_KO[t],
         });
       }).join('')}
     </div>
+    <div class="dex-learnset-count" role="status">표시 ${filtered.length} / 전체 ${learnable.length}개</div>
   `;
 
   // 그룹 렌더 — 필터 적용
-  const showTypes = pokemonDetailTypeFilter ? presentTypes.filter(t => t === pokemonDetailTypeFilter) : presentTypes;
+  const showTypes = presentTypes.filter(t => byType[t]?.length);
   const groups = showTypes.map(t => {
     const moves = byType[t];
     return `
@@ -330,46 +340,46 @@ function renderLearnsetByType(learnable) {
         ${dexTypePill(t)}
         <span class="count">${moves.length}개</span>
       </div>
-      <div class="dex-link-list dex-link-list-expanded">
+      <div class="dex-learnset-list">
         ${moves.map(m => {
           const tooltip = `${moveCategoryLabel(m.cat)} | 위력 ${movePowerLabel(m)} | 명중 ${moveAccuracyLabel(m)}`;
-          return uiButton(`<span class="dex-link-text">${escapeHTML(mvName(m))}</span>`, {
-            class: 'dex-link dex-learnset-move-link',
+          return uiButton(`<strong class="dex-link-text">${escapeHTML(mvName(m))}</strong><span class="picker-detail picker-move-detail">${dexTypePill(m.type)}<b class="picker-move-power">${movePowerLabel(m)}</b><span class="picker-move-category">${moveCategoryLabel(m.cat)}</span><span class="picker-description">${escapeHTML(m.desc || '')}</span></span>`, {
+            class: 'ui-button ui-button--option ui-option-row dex-link dex-learnset-move-link',
             'data-dex-link': 'move',
             'data-id': m.id,
-            'data-dex-tooltip': tooltip,
+            'title': [mvName(m),tooltip,m.desc || ''].filter(Boolean).join(' · '),
           });
         }).join('')}
       </div>
     `;
   }).join('');
 
-  return filterButtons + groups;
+  return filterButtons + (groups || dexEmptyText('선택한 타입·분류에 해당하는 기술이 없습니다.'));
+}
+
+function dexMoveTraits(move) {
+  const labels = {
+    contact: '접촉', sound: '소리', punch: '펀치', bite: '물기', pulse: '파동', slicing: '베기',
+    bullet: '탄환', powder: '가루', dance: '춤', wind: '바람', protect: '방어에 막힘',
+    heal: '회복', defrost: '자신의 얼음 상태 해제', gravity: '중력 상태에서 사용 불가',
+    authentic: '대타출동 무시', bypasssub: '대타출동 무시', snatch: '가로채기 대상',
+  };
+  return [...new Set(Object.entries(labels).filter(([key]) => move.flags?.[key]).map(([, label]) => label))];
 }
 
 // 기술 상세
 function renderMoveDetail(m) {
-  const flagLabels = {
-    contact: '접촉', protect: '보호 가능', mirror: '미러 카피', sound: '소리', punch: '펀치', bite: '깨물기',
-    pulse: '파동', slicing: '베기', bullet: '탄환', powder: '가루', dance: '춤', wind: '바람',
-    snatch: '가로채기', heal: '회복', authentic: '실체화', defrost: '해동', gravity: '중력 무효',
-    metronome: '메트로놈', mustpressure: '프레셔', failmimic: '미믹 실패', allyanim: '아군 애니',
-    failencore: '앙코르 실패', bypasssub: '대타출동 무시', failinstruct: 'Instruct 실패', futuremove: '미래 기술',
-    nonsky: '하늘 미사용', nosleeptalk: '잠꼬대 불가', failmefirst: '미퍼스트 실패', noassist: '어시스트 불가',
-    failcopycat: '카피캣 실패',
-  };
-  const flagsHtml = Object.entries(m.flags || {}).filter(([_, v]) => v)
-    .map(([k]) => `<span class="dex-modal-flag">${flagLabels[k] || k}</span>`).join(' ');
+  const flagsHtml = dexMoveTraits(m).map(label => `<span class="dex-modal-flag">${label}</span>`).join(' ');
   // 다단히트
   let multihit = '';
   if (m.mh) multihit = Array.isArray(m.mh) ? `${m.mh[0]}~${m.mh[1]}타` : `${m.mh}타`;
-  const variableNote = VARIABLE_BP_NOTE[m.id];
+  const variableNote = movePowerNote(m);
 
   // 사용 가능 포켓몬
   const users = (PokemonByMove[m.id] || []).slice().sort((a,b) => (a.koName||a.name).localeCompare(b.koName||b.name, 'ko'));
   const userList = users.length > 0
-    ? `<div class="dex-link-list">${users.map(p => uiButton(escapeHTML(pkName(p)), { class: 'dex-link', 'data-dex-link': 'pokemon', 'data-id': p.id })).join('')}</div>`
-    : dexEmptyText('학습 가능 포켓몬 정보 없음');
+    ? `<div class="dex-link-list">${users.map(p => uiButton(escapeHTML(pkName(p)), { class: 'ui-label-action dex-link', 'data-dex-link': 'pokemon', 'data-id': p.id })).join('')}</div>`
+    : dexEmptyText(m.id === 'struggle' ? '학습 기술이 아닙니다. 사용할 수 있는 기술이 없을 때 사용하는 공통 기술입니다.' : '참고 기술 · 현재 수록 포켓몬 중 학습 대상 없음');
 
   const body = `
     <div class="dex-modal-section">
@@ -380,24 +390,25 @@ function renderMoveDetail(m) {
       </div>
     </div>
     <div class="dex-modal-section">
-      <div class="dex-modal-row"><span class="label">위력</span><b>${m.bp || '—'}</b>${variableNote ? `<span class="dex-detail-note">(${variableNote})</span>` : ''}</div>
-      <div class="dex-modal-row"><span class="label">명중</span><b>${m.acc === 0 || m.acc === true ? '필중' : (m.acc || '—')}</b></div>
-      <div class="dex-modal-row"><span class="label">PP</span><b>${m.pp || '—'}</b></div>
+      <div class="dex-modal-row"><span class="label">위력</span><b>${movePowerLabel(m)}</b>${variableNote ? `<span class="dex-detail-note">(${variableNote})</span>` : ''}</div>
+      <div class="dex-modal-row"><span class="label">명중</span><b>${moveAccuracyLabel(m)}</b></div>
+      <div class="dex-modal-row"><span class="label">PP</span><b>${m.pp ?? '—'}</b></div>
       ${multihit ? `<div class="dex-modal-row"><span class="label">다단히트</span><b>${multihit}</b></div>` : ''}
     </div>
-    ${flagsHtml ? `<div class="dex-modal-section"><div class="dex-modal-section-title">플래그</div><div class="dex-modal-flag-row">${flagsHtml}</div></div>` : ''}
+    ${m.referenceTag ? `<div class="dex-modal-section dex-reference-note">다른 작품의 참고 기술 · 현재 사용 가능 여부는 수록 포켓몬의 학습 목록을 확인하세요.</div>` : ''}
+    ${flagsHtml ? `<div class="dex-modal-section"><div class="dex-modal-section-title">기술 특징</div><div class="dex-modal-flag-row">${flagsHtml}</div></div>` : ''}
     ${(m.desc || m.descLong) ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div>${dexDescriptionBlock(m.desc, m.descLong)}</div>` : ''}
     <div class="dex-modal-section">
-      <div class="dex-modal-section-title">사용 가능 포켓몬 (${users.length})</div>
+      <div class="dex-modal-section-title">수록 포켓몬 중 학습 대상 (${users.length})</div>
       ${userList}
     </div>
   `;
 
   const actions = m.cat === 'Status'
-    ? '<button type="button" class="dex-modal-btn" disabled>변화기는 데미지 계산 불가</button>'
+    ? '<button type="button" class="ui-label-action dex-modal-btn" disabled>변화기는 데미지 계산 불가</button>'
     : `
       <span class="dex-action-label">공격측 슬롯</span>
-      ${[1,2,3,4].map(i => uiButton(`슬롯 ${i}`, { class: 'dex-modal-btn atk', 'data-dex-apply': `move-${i-1}` })).join('')}
+      ${[1,2,3,4].map(i => uiButton(`슬롯 ${i}`, { class: 'ui-label-action dex-modal-btn atk', 'data-dex-apply': `move-${i-1}` })).join('')}
     `;
   return [body, actions];
 }
@@ -406,18 +417,8 @@ function renderMoveDetail(m) {
 function renderAbilityDetail(a) {
   const owners = (PokemonByAbility[a.id] || []).slice().sort((x,y) => (x.koName||x.name).localeCompare(y.koName||y.name, 'ko'));
   const ownerList = owners.length > 0
-    ? `<div class="dex-link-list">${owners.map(p => uiButton(escapeHTML(pkName(p)), { class: 'dex-link', 'data-dex-link': 'pokemon', 'data-id': p.id })).join('')}</div>`
-    : dexEmptyText('보유 포켓몬 없음');
-
-  // 평가 (Pokemon Showdown rating: -1~5)
-  const ratingHtml = (typeof a.rating === 'number')
-    ? (() => {
-        const r = a.rating;
-        const label = r < 0 ? '해로움' : r === 0 ? '효과 없음' : r <= 1 ? '제한적' : r <= 2 ? '유용' : r <= 3 ? '효과적' : r <= 4 ? '매우 유용' : '필수급';
-        const ratingClass = r < 0 ? 'bad' : r >= 4 ? 'top' : r >= 3 ? 'good' : 'plain';
-        return `<div class="dex-modal-row"><span class="label">평가</span><b class="dex-rating ${ratingClass}">${r.toFixed(1)} / 5</b><span class="dex-detail-note">— ${label}</span></div>`;
-      })()
-    : '';
+    ? `<div class="dex-link-list">${owners.map(p => uiButton(escapeHTML(pkName(p)), { class: 'ui-label-action dex-link', 'data-dex-link': 'pokemon', 'data-id': p.id })).join('')}</div>`
+    : dexEmptyText('참고 특성 · 현재 수록 포켓몬 중 보유 대상 없음');
 
   // 긴 설명이 있으면 짧은 설명과 함께 표시
   const descBlock = (() => {
@@ -433,7 +434,6 @@ function renderAbilityDetail(a) {
   })();
 
   const body = `
-    ${ratingHtml ? `<div class="dex-modal-section">${ratingHtml}</div>` : ''}
     <div class="dex-modal-section"><div class="dex-modal-section-title">설명</div>${descBlock}</div>
     <div class="dex-modal-section">
       <div class="dex-modal-section-title">보유 포켓몬 (${owners.length})</div>
@@ -471,7 +471,7 @@ function renderItemDetail(it) {
             const origLabel = origData ? pkName(origData) : orig;
             const megaLabel = megaData ? pkName(megaData) : mega;
             return megaData
-              ? uiButton(`${escapeHTML(origLabel)} → ${escapeHTML(megaLabel)}`, { class: 'dex-link', 'data-dex-link': 'pokemon', 'data-id': megaId })
+              ? uiButton(`${escapeHTML(origLabel)} → ${escapeHTML(megaLabel)}`, { class: 'ui-label-action dex-link', 'data-dex-link': 'pokemon', 'data-id': megaId })
               : `<span class="dex-modal-flag">${escapeHTML(origLabel)} → ${escapeHTML(megaLabel)}</span>`;
           }).join('')}
         </div>
@@ -508,13 +508,13 @@ function renderItemDetail(it) {
     ${it.itemUser ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">전용</span>${it.itemUser.map(u => {
       const ud = dexPokemonByLooseName(u);
       return ud
-        ? uiButton(escapeHTML(pkName(ud)), { class: 'dex-link', 'data-dex-link': 'pokemon', 'data-id': ud.id })
+        ? uiButton(escapeHTML(pkName(ud)), { class: 'ui-label-action dex-link', 'data-dex-link': 'pokemon', 'data-id': ud.id })
         : `<span class="dex-modal-flag">${escapeHTML(u)}</span>`;
     }).join(' ')}</div></div>` : ''}
   `;
   const actions = `
-    <button type="button" class="dex-modal-btn atk" data-dex-apply="item-atk">공격측</button>
-    <button type="button" class="dex-modal-btn def" data-dex-apply="item-def">방어측</button>
+    <button type="button" class="ui-label-action dex-modal-btn atk" data-dex-apply="item-atk">공격측</button>
+    <button type="button" class="ui-label-action dex-modal-btn def" data-dex-apply="item-def">방어측</button>
   `;
   return [body, actions];
 }
@@ -539,23 +539,20 @@ function applyDexAction(action, ctx) {
       // 부모가 기술이고 공격측에 적용 중이면 → 기술도 슬롯 1 에 함께 배치
       // (수비측은 기술 의미 없으므로 공격측 한정 — 사용자 요청사항 #3)
       if (sk === 'atk' && parent && parent.type === 'move') {
-        state.atk.moves[0] = parent.id;
+        applyMoveToCalcSlot('atk', 0, parent.id);
       }
     }
   } else if (action.startsWith('move-')) {
-    const slot = parseInt(action.split('-')[1], 10);
-    state.atk.moves[slot] = id;
-    sidesTouched.add('atk'); touched = true;
+    const slot = Number(action.slice(5));
+    if (type !== 'move' || !MoveById[id] || !Number.isInteger(slot) || slot < 0 || slot > 3) return;
     // 부모가 포켓몬이면 → 공격측에도 포켓몬 함께 배치 (사용자 요청사항 #2)
     if (parent && parent.type === 'pokemon') {
-      // 단, 이미 같은 포켓몬이면 기술 슬롯이 초기화되지 않도록 가드
       if (state.atk.pokemonIdx !== parent.id) {
-        // applyPokemonToSide 가 atk.moves 를 비우니, 우리가 방금 넣은 슬롯 값을 보존해서 복원
-        const savedMove = state.atk.moves[slot];
-        applyPokemonToSide(parent.id, 'atk');
-        state.atk.moves[slot] = savedMove;
+        if (!applyPokemonToSide(parent.id, 'atk')) return;
       }
     }
+    applyMoveToCalcSlot('atk', slot, id);
+    sidesTouched.add('atk'); touched = true;
   } else if (action === 'item-atk' || action === 'item-def') {
     const sk = action === 'item-atk' ? 'atk' : 'def';
     state[sk].item = id;
@@ -597,15 +594,23 @@ document.querySelectorAll('.dex-content tbody').forEach(tbody => {
 
 // 학습기 타입 필터 — 풀페이지/모달 어느 쪽이든 처리 (학습기 영역만 다시 그림)
 function handleLearnsetFilterClick(e, scopeRoot, ctx) {
-  const filterBtn = e.target.closest('[data-learnset-filter]');
+  const filterBtn = e.target.closest('[data-learnset-filter], [data-learnset-category]');
   if (!filterBtn) return false;
-  const t = filterBtn.dataset.learnsetFilter;
-  pokemonDetailTypeFilter = t === '' ? null : t;
+  if (ctx.type !== 'pokemon') return false;
+  const filters = ctx.learnsetFilter ||= { type: null, category: null };
+  const category = filterBtn.dataset.learnsetCategory;
+  const key = category === undefined ? 'type' : 'category';
+  const value = category ?? filterBtn.dataset.learnsetFilter;
+  if (value && !(key === 'type' ? BATTLE_TYPES.includes(value) : Object.hasOwn(MOVE_CATEGORY_LABEL, value))) return false;
+  filters[key] = value || null;
   const p = PokemonById[ctx.id];
   if (p) {
     const learnable = (p.ls || []).map(mid => MoveById[mid]).filter(Boolean);
-    const wrap = scopeRoot.querySelector('#learnsetWrap');
-    if (wrap) renderTrustedHTML(wrap, renderLearnsetByType(learnable));
+    const wrap = scopeRoot.querySelector('[data-learnset-wrap]');
+    if (wrap) {
+      renderTrustedHTML(wrap, renderLearnsetByType(learnable, filters));
+      wrap.querySelector(`[data-learnset-${key === 'type' ? 'filter' : 'category'}="${value}"]`)?.focus();
+    }
   }
   return true;
 }

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>대미지 계산기 · 스마트 로토무</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./samples/calculator/calculator.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">계산기로 건너뛰기</a>
+  <header class="app-header">
+    <div class="header-inner">
+      <a class="brand" href="./#calc" aria-label="포켓몬 챔피언스 랩 홈">
+        <svg class="rotom" viewBox="0 0 44 48" aria-hidden="true"><path d="M8 7 17 3 36 7 40 35 29 46 6 39 3 16Z" fill="currentColor"/><path d="m9 14 24-2 1 21-23 3Z" fill="var(--color-surface-input)"/><path d="m14 21 6 2m6-1 5-3" stroke="var(--color-side-defense)" stroke-width="4" stroke-linecap="round"/><path d="m20 30 6-1" stroke="var(--color-side-defense)" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>포켓몬 챔피언스 <b>랩</b></span>
+      </a>
+      <span class="header-rule">M-C · Lv.50</span>
+      <button type="button" id="theme-toggle" class="ui-button icon-button" aria-label="다크 테마로 전환" title="테마 전환"></button>
+    </div>
+    <nav class="main-nav" aria-label="메뉴">
+      <a href="./calculator-sample.html" aria-current="page">계산기</a>
+      <a href="./#revcalc">역계산</a>
+      <a href="./#finetune">세부조정</a>
+      <a href="./#dex">도감</a>
+      <a href="./#matchup">상성표</a>
+    </nav>
+  </header>
+  <main id="main" class="workspace">
+    <div class="page-heading">
+      <div class="heading-title"><span class="eyebrow">DAMAGE CALCULATOR</span><h1>대미지 계산기</h1></div>
+    </div>
+    <section class="matchup-grid" aria-label="대면 설정">
+      <section id="side-atk" class="ui-surface side-card attack" aria-label="공격 포켓몬"></section>
+      <button type="button" id="swap-sides" class="ui-button icon-button swap-button" aria-label="공격과 방어 교체" title="공격과 방어 교체"><span data-ui-icon="swap"></span></button>
+      <section id="side-def" class="ui-surface side-card defense" aria-label="방어 포켓몬"></section>
+    </section>
+    <details id="field-panel" class="ui-surface field-panel">
+      <summary class="ui-disclosure"><span class="field-label"><span data-ui-icon="settings"></span> 필드 설정</span><span id="field-summary"></span><span data-ui-icon="chevron"></span></summary>
+      <div id="field-controls" class="field-controls"></div>
+    </details>
+    <section id="damage-results" class="results-section" aria-labelledby="results-title">
+      <div class="section-heading"><h2 id="results-title">기술별 피해</h2><span id="target-hp" class="ui-surface target-summary"></span></div>
+      <div id="entry-effects" class="entry-effects"></div>
+      <div id="move-rows" class="ui-surface move-rows"></div>
+      <div id="calculation-status" class="sr-only" role="status" aria-live="polite"></div>
+    </section>
+    <footer class="sample-footer"><span class="rotom-dot" aria-hidden="true"></span> 스마트 로토무 <span>UI 샘플</span></footer>
+  </main>
+  <dialog id="picker" class="ui-surface ui-dialog picker-dialog" aria-labelledby="picker-title">
+    <div class="dialog-heading"><h2 id="picker-title">포켓몬 선택</h2><button type="button" class="ui-button icon-button" data-close-dialog aria-label="닫기"><span data-ui-icon="close"></span></button></div>
+    <div class="ui-search picker-search"><span data-ui-icon="search"></span><input id="picker-search" class="ui-control" type="search" placeholder="이름 검색" aria-label="목록 검색" autocomplete="off"></div>
+    <div id="picker-filters" class="picker-filters"></div>
+    <div id="picker-options" class="picker-options"></div>
+  </dialog>
+  <dialog id="move-settings" class="ui-surface ui-dialog settings-dialog" aria-labelledby="move-settings-title">
+    <div class="dialog-heading"><h2 id="move-settings-title">기술 조건</h2><button type="button" class="ui-button icon-button" data-close-dialog aria-label="닫기"><span data-ui-icon="close"></span></button></div>
+    <div id="move-settings-body" class="settings-body"></div>
+    <button type="button" class="ui-button ui-button--primary done-button" data-close-dialog>완료</button>
+  </dialog>
+  <!-- SAMPLE_DATA -->
+  <script src="./samples/calculator/engine.js"></script>
+  <script src="./samples/calculator/ui.js"></script>
+  <script src="./samples/calculator/calculator.js"></script>
+</body>
+</html>

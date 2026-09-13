@@ -21,12 +21,11 @@ const DATA_IDS = [
   'data-natures',
   'data-typechart',
   'data-rules',
-  'data-meta-threats',
 ];
 const FEATURE_FILES = {
   dex: ['04-10-dex.js', '04-11-dex-detail.js'],
   matchup: ['04-20-matchup.js'],
-  finetune: ['04-30-finetune.js', '04-31-finetune-render.js'],
+  finetune: ['04-30-finetune.js', '04-31-finetune-render.js', '04-32-finetune-planner.js'],
   revcalc: [
     '04-40-revcalc-state.js',
     '04-41-revcalc-scoring.js',

@@ -22,6 +22,7 @@ const DEX_MODULES = [
 const FINE_TUNE_MODULES = [
   ['04-30-finetune.js', 'ftHpBreakpointRules'],
   ['04-31-finetune-render.js', 'renderFineTuneHp'],
+  ['04-32-finetune-planner.js', 'ftSaveBaseline'],
 ];
 const REVERSE_EVENT_MODULES = [
   ['04-44-revcalc-events.js', 'rcSyncInputsFromDom'],

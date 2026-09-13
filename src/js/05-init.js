@@ -8,7 +8,6 @@ function ensureMainPageInitialized(pageKey) {
   if (initializedMainPages.has(pageKey)) return;
   const initializers = {
     calc() {
-      initCalcDetailToggles();
       renderSide('atk');
       renderSide('def');
       triggerCalc();
@@ -49,6 +48,7 @@ function ensureMainPageInitialized(pageKey) {
   }
 }
 
+mountRotomIcons();
 initThemeToggle();
 initPartyPresets();
 bindMainNavigation();

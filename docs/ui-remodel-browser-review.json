@@ -1,0 +1,126 @@
+[
+  {
+    "width": 1440,
+    "overflow": -15,
+    "stats": 6,
+    "controls": [
+      "<input data-ft-side=\"my\" data-ft-flag=\"tailwind\" type=\"checkbox\" class=\"ui-checkbox\">",
+      "<input data-ft-side=\"opp\" data-ft-flag=\"tailwind\" type=\"checkbox\" class=\"ui-checkbox\">",
+      "<input data-ft-field=\"isGravity\" type=\"checkbox\" class=\"ui-checkbox\">"
+    ]
+  },
+  {
+    "pick": "my",
+    "width": 1440,
+    "dialog": true,
+    "overflow": -15,
+    "rows": 350
+  },
+  {
+    "pick": "nature",
+    "width": 1440,
+    "dialog": true,
+    "overflow": -15,
+    "rows": 25
+  },
+  {
+    "pick": "item",
+    "width": 1440,
+    "dialog": true,
+    "overflow": -15,
+    "rows": 168
+  },
+  {
+    "width": 768,
+    "overflow": -15,
+    "stats": 6,
+    "controls": [
+      "<input data-ft-side=\"my\" data-ft-flag=\"tailwind\" type=\"checkbox\" class=\"ui-checkbox\">",
+      "<input data-ft-side=\"opp\" data-ft-flag=\"tailwind\" type=\"checkbox\" class=\"ui-checkbox\">",
+      "<input data-ft-field=\"isGravity\" type=\"checkbox\" class=\"ui-checkbox\">"
+    ]
+  },
+  {
+    "pick": "my",
+    "width": 768,
+    "dialog": true,
+    "overflow": -15,
+    "rows": 350
+  },
+  {
+    "pick": "nature",
+    "width": 768,
+    "dialog": true,
+    "overflow": -15,
+    "rows": 25
+  },
+  {
+    "pick": "item",
+    "width": 768,
+    "dialog": true,
+    "overflow": -15,
+    "rows": 168
+  },
+  {
+    "width": 390,
+    "overflow": 0,
+    "stats": 6,
+    "controls": [
+      "<input data-ft-side=\"my\" data-ft-flag=\"tailwind\" type=\"checkbox\" class=\"ui-checkbox\">",
+      "<input data-ft-side=\"opp\" data-ft-flag=\"tailwind\" type=\"checkbox\" class=\"ui-checkbox\">",
+      "<input data-ft-field=\"isGravity\" type=\"checkbox\" class=\"ui-checkbox\">"
+    ]
+  },
+  {
+    "pick": "my",
+    "width": 390,
+    "dialog": true,
+    "overflow": 0,
+    "rows": 350
+  },
+  {
+    "pick": "nature",
+    "width": 390,
+    "dialog": true,
+    "overflow": 0,
+    "rows": 25
+  },
+  {
+    "pick": "item",
+    "width": 390,
+    "dialog": true,
+    "overflow": 0,
+    "rows": 168
+  },
+  {
+    "width": 320,
+    "overflow": 0,
+    "stats": 6,
+    "controls": [
+      "<input data-ft-side=\"my\" data-ft-flag=\"tailwind\" type=\"checkbox\" class=\"ui-checkbox\">",
+      "<input data-ft-side=\"opp\" data-ft-flag=\"tailwind\" type=\"checkbox\" class=\"ui-checkbox\">",
+      "<input data-ft-field=\"isGravity\" type=\"checkbox\" class=\"ui-checkbox\">"
+    ]
+  },
+  {
+    "pick": "my",
+    "width": 320,
+    "dialog": true,
+    "overflow": 0,
+    "rows": 350
+  },
+  {
+    "pick": "nature",
+    "width": 320,
+    "dialog": true,
+    "overflow": 0,
+    "rows": 25
+  },
+  {
+    "pick": "item",
+    "width": 320,
+    "dialog": true,
+    "overflow": 0,
+    "rows": 168
+  }
+]

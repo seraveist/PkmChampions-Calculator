@@ -1,0 +1,39 @@
+/* The same shell width and heading rhythm for all five menus. */
+header { background:var(--panel);border-bottom:1px solid var(--line); }
+.header-top,.main-nav { max-width:1152px;margin:auto; }
+.header-top { display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 32px 10px; }
+.header-brand { display:flex;align-items:center;gap:12px;min-width:0; }
+.header-brand h1 { font-size:16px;font-weight:750;letter-spacing:-.6px; }
+.header-brand h1 b { color:var(--accent); }
+.brand-sub { font-size:10px;color:var(--muted); }
+.brand-rotom { width:31px;height:35px;color:var(--color-side-attack);flex:none; }
+.brand-text { min-width:0; }
+.header-actions { display:flex;align-items:center;gap:8px; }
+.header-utils,.header-util-row { display:flex;align-items:center;gap:8px; }
+.main-nav { display:flex;gap:24px;padding:0 32px; }
+.nav-tab { display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px;padding:12px 6px;border:0;border-bottom:3px solid transparent;background:none;color:var(--muted);font-size:14px;font-weight:650;white-space:nowrap; }
+.nav-tab[aria-selected=true] { color:var(--accent);border-bottom-color:var(--accent); }
+.nav-icon { display:none; }
+.site-shell { max-width:1500px;margin:auto;display:grid;grid-template-columns:160px minmax(0,1152px) 160px;justify-content:center;gap:18px; }
+.app-content { min-width:0;width:100%;padding:30px 32px 36px; }
+.deployment-rail-free .site-shell { max-width:1152px;grid-template-columns:minmax(0,1fr);gap:0; }
+.page { display:none; }
+.page.active { display:block; }
+.page-heading { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px; }
+.page-heading h2 { font-size:var(--text-page);font-weight:800;letter-spacing:-1px; }
+.ad-rail { min-width:0;padding-top:30px; }
+.ad-slot { width:160px;min-height:600px;position:sticky;top:18px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px; }
+.ad-slot span { writing-mode:vertical-rl; }
+@media(max-width:1200px) { .site-shell { grid-template-columns:minmax(0,1152px); }.ad-rail { display:none; } }
+@media(max-width:900px) { .main-nav { padding-inline:20px; } }
+@media(max-width:700px) {
+  .header-top { padding:12px 16px 8px;gap:8px; }
+  .header-brand { gap:8px; }
+  .header-brand h1 { font-size:14px; }
+  .brand-sub { font-size:9px; }
+  .main-nav { gap:0;justify-content:space-between;padding:0 10px; }
+  .nav-tab { flex:1;font-size:12px;padding:11px 2px;min-height:44px; }
+  .app-content { padding:20px 14px 28px; }
+  .page-heading { margin-bottom:16px; }
+}
+@media(max-width:360px) { .app-content { padding-inline:10px; }.header-brand h1 { font-size:13px; }.brand-sub { display:none; } }

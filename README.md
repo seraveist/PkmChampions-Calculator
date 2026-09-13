@@ -6,8 +6,8 @@ Pokémon Champions 규칙과 데이터에 맞춘 대미지 계산·형태 역계
 
 - 공격측·방어측 상태, 필드, 급소, 가변 위력과 다타 기술을 반영한 대미지 계산
 - 한 턴 관측으로 형태를 추정하고 다음 턴 상태·선후공·대미지를 비교하는 [형태 역계산](docs/reverse-rebuild.md)
-- 능력 포인트, 실수치, 내구 지표, HP 매직넘버와 스피드 비교를 제공하는 세부조정
-- 파티 방어 상성과 기술 타점 진단
+- 배치·조건을 보존하며 스피드 목표, HP 조정 효과와 배분 전후를 비교하는 [세부조정](docs/fine-tune-improvements.md)
+- 파티의 방어 배율·약점/반감/무효 마릿수와 공격 기술 타입 분포를 보여 주는 [상성표](docs/matchup-improvements.md)
 - Pokémon Champions 포켓몬·기술·특성·도구 도감
 - JSON·Showdown 텍스트 가져오기/내보내기와 파티 이미지 출력
 - 라이트/다크 테마, 320px 이상 반응형 UI, 키보드 조작과 접근성 상태
@@ -34,7 +34,11 @@ Cloudflare Pages의 Production branch는 `main`, Build command는 `npm run build
 
 ## Validation
 
+전 메뉴에 확정 계산기 샘플의 공통 UI를 적용했다. 메뉴별 개선, HTML 참조·CSS 소유권, 320~1440px 반응형·키보드 검사 결과는 [UI 리모델링 최종 검토](docs/ui-remodel-final-review.md)에 정리했다.
+
 현재 데이터는 M-C(2026-09-09)를 반영한다. [반영 내역과 수동 보완 방법](docs/regulation-mc-update.md)을 참고한다.
+
+도감의 학습 기술 분류 필터·PP·계산기 적용·현재 수록 범위 개선은 [도감 개선](docs/dex-improvements.md)을 참고한다. 전용 검사는 `npm run dex:smoke`, 실제 화면 검사는 `npm run dex:browser`로 실행한다. 거다이맥스 기술은 다이맥스 룰 도입 전까지 현재 출력에서 제외한다.
 
 ```powershell
 npm test
@@ -49,6 +53,7 @@ npm run ui:browser:pages -- --require-browser
 ## Architecture
 
 - CSS cascade: reset → tokens → base → components → layouts → pages → utilities → themes → responsive
+- 공통 선택창·입력·능력치 표는 같은 렌더러와 부품 CSS를 사용하며, 메뉴 CSS는 배치를 담당한다. 반응형 규칙은 해당 부품·메뉴 파일에 둔다.
 - 동적 HTML은 `renderTrustedHTML()` 경계를 사용하며 데이터·사용자 문자열은 `escapeHTML()`로 이스케이프한다.
 - 도감·상성표·세부조정·역계산 코드는 공개 빌드에서 페이지 진입 시 지연 로딩한다.
 - 역계산 후보 탐색은 Worker에서 실행해 메인 스레드 응답성을 유지한다.

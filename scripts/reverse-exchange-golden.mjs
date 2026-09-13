@@ -204,4 +204,12 @@ check('Exchange reuse preserves each build and does not accumulate probability w
  requireCheck(Math.abs(reused.reduce((n,p)=>n+p.chance,0)-weight)<1e-9&&fresh.length===reused.length,'probabilities changed during reuse');
  requireCheck(reused.every((p,i)=>rcHp(p.my)===rcHp(fresh[i].my)&&rcHp(p.opp)===rcHp(fresh[i].opp)),'cached HP differs');
 `);
+check('Forecast move badges reflect the effective weather type',`
+ setupExchange('charizard','snorlax','weatherball','crunch');
+ const c={nature:'hardy',hpEv:0,defStat:'spd',defEv:0,atkStat:'atk',atkEv:0,speEvMin:0,speEvMax:0,paths:[{my:revCalcState.my,opp:rcBuildOpponentState(PokemonById.snorlax),field:{...makeFieldState(),weather:'Rain'},order:'my-first'}]};
+ const f=rcForecastDirect(c,'weatherball','my',false);
+ requireCheck(f.summary.rawMin>0&&f.types.length===1&&f.types[0]==='Water','Weather Ball type did not follow rain');
+ requireCheck(f.categories.length===1&&f.categories[0]==='Special','forecast category missing');
+ const html=rcRenderFollowupMoveChip(f);requireCheck(html.includes('t-Water')&&!html.includes('t-Normal'),'card shows base type instead of effective type');
+`);
 console.log(passed+' exchange checks passed');

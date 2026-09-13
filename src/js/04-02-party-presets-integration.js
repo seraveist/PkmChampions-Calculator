@@ -52,9 +52,10 @@ function partyPresetApplyMemberToCalc(sideKey, member) {
 
 function partyPresetApplyMemberToFineTune(member) {
   if (!member?.pokemon || !PokemonById[member.pokemon]) return false;
+  fineTuneState.my = makeSideState();
   ftApplyPokemonToFineTune(member.pokemon);
   partyPresetApplyMemberToSideState(fineTuneState.my, member);
-  fineTuneState.weatherAbilityActive = false;
+  ftSaveBaseline();
   renderFineTuneAll();
   return true;
 }

@@ -1,0 +1,476 @@
+[
+  {
+    "mode": "defense",
+    "width": 1440,
+    "overflow": -15,
+    "controls": [
+      {
+        "label": "리자몽",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 181.5,
+        "right": 341.828125
+      },
+      {
+        "label": "맹화",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 349.828125,
+        "right": 510.15625
+      },
+      {
+        "label": "거북왕",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 548.15625,
+        "right": 708.484375
+      },
+      {
+        "label": "급류",
+        "width": 160.34375,
+        "textWidth": 120,
+        "left": 716.484375,
+        "right": 876.828125
+      },
+      {
+        "label": "이상해꽃",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 914.828125,
+        "right": 1075.15625
+      },
+      {
+        "label": "심록",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 1083.15625,
+        "right": 1243.484375
+      },
+      {
+        "label": "두꺼운지방",
+        "width": 328.65625,
+        "textWidth": 289,
+        "left": 181.5,
+        "right": 510.15625
+      },
+      {
+        "label": "메가마폭시",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 548.15625,
+        "right": 708.484375
+      },
+      {
+        "label": "부유",
+        "width": 160.34375,
+        "textWidth": 120,
+        "left": 716.484375,
+        "right": 876.828125
+      },
+      {
+        "label": "저수",
+        "width": 328.65625,
+        "textWidth": 289,
+        "left": 914.828125,
+        "right": 1243.484375
+      }
+    ],
+    "columns": 8,
+    "hint": false
+  },
+  {
+    "mode": "coverage",
+    "width": 1440,
+    "overflow": -15,
+    "controls": [
+      {
+        "label": "리자몽",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 181.5,
+        "right": 341.828125
+      },
+      {
+        "label": "맹화",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 349.828125,
+        "right": 510.15625
+      },
+      {
+        "label": "거북왕",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 548.15625,
+        "right": 708.484375
+      },
+      {
+        "label": "급류",
+        "width": 160.34375,
+        "textWidth": 120,
+        "left": 716.484375,
+        "right": 876.828125
+      },
+      {
+        "label": "이상해꽃",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 914.828125,
+        "right": 1075.15625
+      },
+      {
+        "label": "심록",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 1083.15625,
+        "right": 1243.484375
+      },
+      {
+        "label": "두꺼운지방",
+        "width": 328.65625,
+        "textWidth": 289,
+        "left": 181.5,
+        "right": 510.15625
+      },
+      {
+        "label": "메가마폭시",
+        "width": 160.328125,
+        "textWidth": 120,
+        "left": 548.15625,
+        "right": 708.484375
+      },
+      {
+        "label": "부유",
+        "width": 160.34375,
+        "textWidth": 120,
+        "left": 716.484375,
+        "right": 876.828125
+      },
+      {
+        "label": "저수",
+        "width": 328.65625,
+        "textWidth": 289,
+        "left": 914.828125,
+        "right": 1243.484375
+      }
+    ],
+    "columns": 8,
+    "hint": false
+  },
+  {
+    "mode": "defense",
+    "width": 375,
+    "overflow": 0,
+    "controls": [
+      {
+        "label": "리자몽",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 27,
+        "right": 183.5
+      },
+      {
+        "label": "맹화",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 191.5,
+        "right": 348
+      },
+      {
+        "label": "거북왕",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 27,
+        "right": 183.5
+      },
+      {
+        "label": "급류",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 191.5,
+        "right": 348
+      },
+      {
+        "label": "이상해꽃",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 27,
+        "right": 183.5
+      },
+      {
+        "label": "심록",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 191.5,
+        "right": 348
+      },
+      {
+        "label": "두꺼운지방",
+        "width": 321,
+        "textWidth": 281,
+        "left": 27,
+        "right": 348
+      },
+      {
+        "label": "메가마폭시",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 27,
+        "right": 183.5
+      },
+      {
+        "label": "부유",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 191.5,
+        "right": 348
+      },
+      {
+        "label": "저수",
+        "width": 321,
+        "textWidth": 281,
+        "left": 27,
+        "right": 348
+      }
+    ],
+    "columns": 8,
+    "hint": true
+  },
+  {
+    "mode": "coverage",
+    "width": 375,
+    "overflow": 0,
+    "controls": [
+      {
+        "label": "리자몽",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 27,
+        "right": 183.5
+      },
+      {
+        "label": "맹화",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 191.5,
+        "right": 348
+      },
+      {
+        "label": "거북왕",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 27,
+        "right": 183.5
+      },
+      {
+        "label": "급류",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 191.5,
+        "right": 348
+      },
+      {
+        "label": "이상해꽃",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 27,
+        "right": 183.5
+      },
+      {
+        "label": "심록",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 191.5,
+        "right": 348
+      },
+      {
+        "label": "두꺼운지방",
+        "width": 321,
+        "textWidth": 281,
+        "left": 27,
+        "right": 348
+      },
+      {
+        "label": "메가마폭시",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 27,
+        "right": 183.5
+      },
+      {
+        "label": "부유",
+        "width": 156.5,
+        "textWidth": 117,
+        "left": 191.5,
+        "right": 348
+      },
+      {
+        "label": "저수",
+        "width": 321,
+        "textWidth": 281,
+        "left": 27,
+        "right": 348
+      }
+    ],
+    "columns": 8,
+    "hint": true
+  },
+  {
+    "mode": "defense",
+    "width": 320,
+    "overflow": 0,
+    "controls": [
+      {
+        "label": "리자몽",
+        "width": 133,
+        "textWidth": 93,
+        "left": 23,
+        "right": 156
+      },
+      {
+        "label": "맹화",
+        "width": 133,
+        "textWidth": 93,
+        "left": 164,
+        "right": 297
+      },
+      {
+        "label": "거북왕",
+        "width": 133,
+        "textWidth": 93,
+        "left": 23,
+        "right": 156
+      },
+      {
+        "label": "급류",
+        "width": 133,
+        "textWidth": 93,
+        "left": 164,
+        "right": 297
+      },
+      {
+        "label": "이상해꽃",
+        "width": 133,
+        "textWidth": 93,
+        "left": 23,
+        "right": 156
+      },
+      {
+        "label": "심록",
+        "width": 133,
+        "textWidth": 93,
+        "left": 164,
+        "right": 297
+      },
+      {
+        "label": "두꺼운지방",
+        "width": 274,
+        "textWidth": 234,
+        "left": 23,
+        "right": 297
+      },
+      {
+        "label": "메가마폭시",
+        "width": 133,
+        "textWidth": 93,
+        "left": 23,
+        "right": 156
+      },
+      {
+        "label": "부유",
+        "width": 133,
+        "textWidth": 93,
+        "left": 164,
+        "right": 297
+      },
+      {
+        "label": "저수",
+        "width": 274,
+        "textWidth": 234,
+        "left": 23,
+        "right": 297
+      }
+    ],
+    "columns": 8,
+    "hint": true
+  },
+  {
+    "mode": "coverage",
+    "width": 320,
+    "overflow": 0,
+    "controls": [
+      {
+        "label": "리자몽",
+        "width": 133,
+        "textWidth": 93,
+        "left": 23,
+        "right": 156
+      },
+      {
+        "label": "맹화",
+        "width": 133,
+        "textWidth": 93,
+        "left": 164,
+        "right": 297
+      },
+      {
+        "label": "거북왕",
+        "width": 133,
+        "textWidth": 93,
+        "left": 23,
+        "right": 156
+      },
+      {
+        "label": "급류",
+        "width": 133,
+        "textWidth": 93,
+        "left": 164,
+        "right": 297
+      },
+      {
+        "label": "이상해꽃",
+        "width": 133,
+        "textWidth": 93,
+        "left": 23,
+        "right": 156
+      },
+      {
+        "label": "심록",
+        "width": 133,
+        "textWidth": 93,
+        "left": 164,
+        "right": 297
+      },
+      {
+        "label": "두꺼운지방",
+        "width": 274,
+        "textWidth": 234,
+        "left": 23,
+        "right": 297
+      },
+      {
+        "label": "메가마폭시",
+        "width": 133,
+        "textWidth": 93,
+        "left": 23,
+        "right": 156
+      },
+      {
+        "label": "부유",
+        "width": 133,
+        "textWidth": 93,
+        "left": 164,
+        "right": 297
+      },
+      {
+        "label": "저수",
+        "width": 274,
+        "textWidth": 234,
+        "left": 23,
+        "right": 297
+      }
+    ],
+    "columns": 8,
+    "hint": true
+  }
+]

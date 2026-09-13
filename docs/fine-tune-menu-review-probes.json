@@ -1,0 +1,179 @@
+{
+  "basis": "d05592c",
+  "method": "Current application behavior probes, not a battle-accuracy benchmark.",
+  "probes": {
+    "weatherExport": {
+      "fineTuneSpeed": 210,
+      "calculatorSpeed": 105,
+      "exportedWeather": "none"
+    },
+    "weatherImport": {
+      "calculatorSpeed": 210,
+      "fineTuneSpeed": 105,
+      "activation": false
+    },
+    "opponentWeather": {
+      "fineTuneNeutralMax": 137,
+      "engineWithRain": 274
+    },
+    "opponentRoundTrip": {
+      "before": {
+        "pokemon": "garchomp",
+        "evs": {
+          "hp": 32,
+          "atk": 0,
+          "def": 32,
+          "spa": 0,
+          "spd": 2,
+          "spe": 0
+        },
+        "nature": "impish",
+        "item": "leftovers",
+        "moves": [
+          "earthquake"
+        ]
+      },
+      "after": {
+        "pokemon": "garchomp",
+        "evs": {
+          "hp": 0,
+          "atk": 0,
+          "def": 0,
+          "spa": 0,
+          "spd": 0,
+          "spe": 0
+        },
+        "nature": "hardy",
+        "item": "",
+        "moves": []
+      }
+    },
+    "zeroMargin": [
+      {
+        "label": "최속",
+        "opponent": 169,
+        "target": 170,
+        "difference": 1
+      },
+      {
+        "label": "준속",
+        "opponent": 154,
+        "target": 155,
+        "difference": 1
+      },
+      {
+        "label": "무보정",
+        "opponent": 122,
+        "target": 123,
+        "difference": 1
+      }
+    ],
+    "speedBudget": {
+      "target": 151,
+      "withCurrentAllocation": null,
+      "afterReallocation": 29
+    },
+    "sitrusHpRules": [
+      {
+        "id": "dot-plus",
+        "rule": "16n+1",
+        "description": "도트 대미지 +1턴"
+      },
+      {
+        "id": "dot-min",
+        "rule": "16n-1",
+        "description": "도트 대미지 최소"
+      },
+      {
+        "id": "seed-plus",
+        "rule": "8n+1",
+        "description": "씨뿌리기 +1턴"
+      },
+      {
+        "id": "seed-min",
+        "rule": "8n-1",
+        "description": "씨뿌리기 최소"
+      },
+      {
+        "id": "sub",
+        "rule": "4n+1~3",
+        "description": "대타출동 HP 잔여"
+      },
+      {
+        "id": "lifeorb",
+        "rule": "10n-1",
+        "description": "생명의구슬 반동 최소"
+      },
+      {
+        "id": "leftovers",
+        "rule": "16n",
+        "description": "먹다남은음식 회복 극대"
+      },
+      {
+        "id": "sr-8",
+        "rule": "8n+1",
+        "description": "스텔스록 1배 +1턴"
+      },
+      {
+        "id": "spikes-1",
+        "rule": "8n+1",
+        "description": "압정 1중 +1턴"
+      },
+      {
+        "id": "spikes-2",
+        "rule": "6n+1",
+        "description": "압정 2중 +1턴"
+      },
+      {
+        "id": "spikes-3",
+        "rule": "4n+1",
+        "description": "압정 3중 +1턴"
+      }
+    ],
+    "magicGuardHpRules": [
+      {
+        "id": "dot-plus",
+        "description": "도트 대미지 +1턴"
+      },
+      {
+        "id": "dot-min",
+        "description": "도트 대미지 최소"
+      },
+      {
+        "id": "seed-plus",
+        "description": "씨뿌리기 +1턴"
+      },
+      {
+        "id": "seed-min",
+        "description": "씨뿌리기 최소"
+      },
+      {
+        "id": "sub",
+        "description": "대타출동 HP 잔여"
+      },
+      {
+        "id": "sr-8",
+        "description": "스텔스록 1배 +1턴"
+      },
+      {
+        "id": "spikes-1",
+        "description": "압정 1중 +1턴"
+      },
+      {
+        "id": "spikes-2",
+        "description": "압정 2중 +1턴"
+      },
+      {
+        "id": "spikes-3",
+        "description": "압정 3중 +1턴"
+      }
+    ],
+    "hiddenInheritedConditions": {
+      "pokemon": "garchomp",
+      "status": "Paralysis",
+      "tailwind": false,
+      "speed": 61,
+      "displayedFlags": "<span class=\"ft-speed-muted\">추가 보정 없음</span>"
+    }
+  }
+}

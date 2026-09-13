@@ -1,0 +1,1009 @@
+[
+  {
+    "name": "calc",
+    "width": 1440,
+    "fonts": [
+      {
+        "selector": "#page-calc h2",
+        "text": "대미지 계산기",
+        "size": "28px",
+        "weight": "800",
+        "line": "42px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-1px"
+      },
+      {
+        "selector": ".pokemon-name",
+        "text": "한카리아스",
+        "size": "24px",
+        "weight": "800",
+        "line": "32.4px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.8px"
+      },
+      {
+        "selector": ".attribute .ui-select-value",
+        "text": "모래숨기",
+        "size": "14px",
+        "weight": "650",
+        "line": "21px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".attribute .ui-select-label",
+        "text": "특성",
+        "size": "11px",
+        "weight": "400",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".stat-table thead th:nth-child(2)",
+        "text": "HP",
+        "size": "11px",
+        "weight": "650",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".stat-final",
+        "text": "183",
+        "size": "14px",
+        "weight": "700",
+        "line": "21px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".move-name",
+        "text": "기술 선택",
+        "size": "16px",
+        "weight": "750",
+        "line": "24px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.5px"
+      }
+    ]
+  },
+  {
+    "name": "finetune",
+    "width": 1440,
+    "fonts": [
+      {
+        "selector": "#page-finetune h2",
+        "text": "세부조정",
+        "size": "28px",
+        "weight": "800",
+        "line": "42px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-1px"
+      },
+      {
+        "selector": "#page-finetune .ui-panel-head h3",
+        "text": "내 포켓몬",
+        "size": "18px",
+        "weight": "750",
+        "line": "27px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.4px"
+      },
+      {
+        "selector": ".stat-heading h3",
+        "text": "능력치",
+        "size": "14px",
+        "weight": "750",
+        "line": "21px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.4px"
+      },
+      {
+        "selector": "#page-finetune .pokemon-name",
+        "text": "어흥염",
+        "size": "24px",
+        "weight": "800",
+        "line": "32.4px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.8px"
+      },
+      {
+        "selector": ".ft-comparison-row b",
+        "text": "186 → 194",
+        "size": "11px",
+        "weight": "600",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-comparison-row span",
+        "text": "HP",
+        "size": "11px",
+        "weight": "400",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-comparison-metrics .ft-comparison-row b",
+        "text": "49781 → 51922",
+        "size": "10px",
+        "weight": "600",
+        "line": "15px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-speed-table thead th",
+        "text": "상대 배치",
+        "size": "11px",
+        "weight": "500",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-speed-table tbody th b",
+        "text": "최속",
+        "size": "13px",
+        "weight": "900",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-speed-table tbody td",
+        "text": "150",
+        "size": "13px",
+        "weight": "400",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-speed-table small",
+        "text": "N+/E32",
+        "size": "10px",
+        "weight": "400",
+        "line": "15px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-breakpoint-main b",
+        "text": "16n",
+        "size": "14px",
+        "weight": "700",
+        "line": "21px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-breakpoint-main span",
+        "text": "먹다남은음식 회복",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      }
+    ]
+  },
+  {
+    "name": "matchup-defense",
+    "width": 1440,
+    "fonts": [
+      {
+        "selector": "#page-matchup h2",
+        "text": "상성표",
+        "size": "28px",
+        "weight": "800",
+        "line": "42px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-1px"
+      },
+      {
+        "selector": ".matchup-cb-input",
+        "text": "리자몽",
+        "size": "17px",
+        "weight": "750",
+        "line": "25.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-cb-input .picker-label",
+        "text": "리자몽",
+        "size": "17px",
+        "weight": "900",
+        "line": "25.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-slot-config .form-field",
+        "text": "폼리자몽메가리자몽X메가리자몽Y",
+        "size": "10px",
+        "weight": "400",
+        "line": "15px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-slot-config select",
+        "text": "리자몽메가리자몽X메가리자몽Y",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-results-panel h3",
+        "text": "타입별 분포",
+        "size": "18px",
+        "weight": "750",
+        "line": "27px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.4px"
+      },
+      {
+        "selector": ".matchup-table thead th",
+        "text": "공격 타입",
+        "size": "11px",
+        "weight": "650",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-table tbody th",
+        "text": "노말",
+        "size": "13px",
+        "weight": "700",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-table tbody td",
+        "text": "1×",
+        "size": "13px",
+        "weight": "400",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-table small",
+        "text": "약점 / 반감 / 무효",
+        "size": "10px",
+        "weight": "400",
+        "line": "15px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-legend",
+        "text": "타입·선택 특성 반영마릿수: 약점 / 반감 / 무효",
+        "size": "11px",
+        "weight": "400",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      }
+    ]
+  },
+  {
+    "name": "matchup-coverage",
+    "width": 1440,
+    "fonts": [
+      {
+        "selector": ".matchup-move-input",
+        "text": "화염방사불꽃",
+        "size": "13px",
+        "weight": "400",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-move-input .picker-label",
+        "text": "화염방사",
+        "size": "13px",
+        "weight": "400",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-coverage-head",
+        "missing": true
+      },
+      {
+        "selector": ".matchup-coverage-head strong",
+        "missing": true
+      },
+      {
+        "selector": ".matchup-table td",
+        "text": "1",
+        "size": "13px",
+        "weight": "750",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      }
+    ]
+  },
+  {
+    "name": "dex-list",
+    "width": 1440,
+    "fonts": [
+      {
+        "selector": "#page-dex h2",
+        "text": "도감",
+        "size": "28px",
+        "weight": "800",
+        "line": "42px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-1px"
+      },
+      {
+        "selector": ".dex-tab",
+        "text": "포켓몬",
+        "size": "12px",
+        "weight": "700",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-table thead th",
+        "text": "이름",
+        "size": "11px",
+        "weight": "650",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-row-open",
+        "text": "이상해꽃",
+        "size": "12px",
+        "weight": "650",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-pokemon-name-text",
+        "text": "이상해꽃",
+        "size": "12px",
+        "weight": "650",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-table td.num",
+        "text": "80",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-bst",
+        "text": "525",
+        "size": "12px",
+        "weight": "750",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-table .dim",
+        "text": "심록",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-table .type-pill",
+        "text": "풀",
+        "size": "10px",
+        "weight": "700",
+        "line": "16px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      }
+    ]
+  },
+  {
+    "name": "dex-detail",
+    "width": 1440,
+    "fonts": [
+      {
+        "selector": ".dex-fullpage-title",
+        "missing": true
+      },
+      {
+        "selector": ".dex-detail-name b",
+        "text": "리자몽",
+        "size": "24px",
+        "weight": "700",
+        "line": "36px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.8px"
+      },
+      {
+        "selector": ".dex-modal-section-title",
+        "text": "종족값",
+        "size": "14px",
+        "weight": "750",
+        "line": "21px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-modal-stat-grid",
+        "text": "HP78공격84방어78특공109특방85속도100합계534",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-modal-stat-grid .stat-val",
+        "text": "78",
+        "size": "12px",
+        "weight": "650",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-desc-main",
+        "missing": true
+      },
+      {
+        "selector": ".dex-desc-long",
+        "missing": true
+      },
+      {
+        "selector": ".dex-learnset-move-link .dex-link-text",
+        "text": "객기",
+        "size": "14px",
+        "weight": "650",
+        "line": "21px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".picker-move-power",
+        "text": "70",
+        "size": "14px",
+        "weight": "750",
+        "line": "21px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".picker-description",
+        "text": "자신이 독, 마비, 화상 상태일 때 날리면 기술의 위력이 2배가 된다.",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      }
+    ]
+  },
+  {
+    "name": "calc",
+    "width": 390,
+    "fonts": [
+      {
+        "selector": "#page-calc h2",
+        "text": "대미지 계산기",
+        "size": "24px",
+        "weight": "800",
+        "line": "36px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-1px"
+      },
+      {
+        "selector": ".pokemon-name",
+        "text": "한카리아스",
+        "size": "21px",
+        "weight": "800",
+        "line": "28.35px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.8px"
+      },
+      {
+        "selector": ".attribute .ui-select-value",
+        "text": "모래숨기",
+        "size": "13px",
+        "weight": "650",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".attribute .ui-select-label",
+        "text": "특성",
+        "size": "11px",
+        "weight": "400",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".stat-table thead th:nth-child(2)",
+        "text": "HP",
+        "size": "11px",
+        "weight": "650",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".stat-final",
+        "text": "183",
+        "size": "14px",
+        "weight": "700",
+        "line": "21px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".move-name",
+        "text": "기술 선택",
+        "size": "15px",
+        "weight": "750",
+        "line": "22.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.5px"
+      }
+    ]
+  },
+  {
+    "name": "finetune",
+    "width": 390,
+    "fonts": [
+      {
+        "selector": "#page-finetune h2",
+        "text": "세부조정",
+        "size": "24px",
+        "weight": "800",
+        "line": "36px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-1px"
+      },
+      {
+        "selector": "#page-finetune .ui-panel-head h3",
+        "text": "내 포켓몬",
+        "size": "17px",
+        "weight": "750",
+        "line": "25.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.4px"
+      },
+      {
+        "selector": ".stat-heading h3",
+        "text": "능력치",
+        "size": "14px",
+        "weight": "750",
+        "line": "21px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.4px"
+      },
+      {
+        "selector": "#page-finetune .pokemon-name",
+        "text": "어흥염",
+        "size": "21px",
+        "weight": "800",
+        "line": "28.35px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.8px"
+      },
+      {
+        "selector": ".ft-comparison-row b",
+        "text": "186 → 194",
+        "size": "11px",
+        "weight": "600",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-comparison-row span",
+        "text": "HP",
+        "size": "11px",
+        "weight": "400",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-comparison-metrics .ft-comparison-row b",
+        "text": "49781 → 51922",
+        "size": "10px",
+        "weight": "600",
+        "line": "15px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-speed-table thead th",
+        "text": "상대 배치",
+        "size": "11px",
+        "weight": "500",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-speed-table tbody th b",
+        "text": "최속",
+        "size": "13px",
+        "weight": "900",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-speed-table tbody td",
+        "text": "150",
+        "size": "13px",
+        "weight": "400",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-speed-table small",
+        "text": "N+/E32",
+        "size": "10px",
+        "weight": "400",
+        "line": "15px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-breakpoint-main b",
+        "text": "16n",
+        "size": "14px",
+        "weight": "700",
+        "line": "21px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".ft-breakpoint-main span",
+        "text": "먹다남은음식 회복",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      }
+    ]
+  },
+  {
+    "name": "matchup-defense",
+    "width": 390,
+    "fonts": [
+      {
+        "selector": "#page-matchup h2",
+        "text": "상성표",
+        "size": "24px",
+        "weight": "800",
+        "line": "36px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-1px"
+      },
+      {
+        "selector": ".matchup-cb-input",
+        "text": "리자몽",
+        "size": "17px",
+        "weight": "750",
+        "line": "25.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-cb-input .picker-label",
+        "text": "리자몽",
+        "size": "17px",
+        "weight": "900",
+        "line": "25.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-slot-config .form-field",
+        "text": "폼리자몽메가리자몽X메가리자몽Y",
+        "size": "10px",
+        "weight": "400",
+        "line": "15px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-slot-config select",
+        "text": "리자몽메가리자몽X메가리자몽Y",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-results-panel h3",
+        "text": "타입별 분포",
+        "size": "17px",
+        "weight": "750",
+        "line": "25.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.4px"
+      },
+      {
+        "selector": ".matchup-table thead th",
+        "text": "기술 타입",
+        "size": "11px",
+        "weight": "650",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-table tbody th",
+        "text": "노말",
+        "size": "13px",
+        "weight": "700",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-table tbody td",
+        "text": "1",
+        "size": "13px",
+        "weight": "750",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-table small",
+        "missing": true
+      },
+      {
+        "selector": ".matchup-legend",
+        "text": "기술 입력 1 / 31 보유 · 0 없음 · — 미입력타입당 포켓몬 수 · 특성·날씨·필드",
+        "size": "11px",
+        "weight": "400",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      }
+    ]
+  },
+  {
+    "name": "matchup-coverage",
+    "width": 390,
+    "fonts": [
+      {
+        "selector": ".matchup-move-input",
+        "text": "화염방사불꽃",
+        "size": "13px",
+        "weight": "400",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-move-input .picker-label",
+        "text": "화염방사",
+        "size": "13px",
+        "weight": "400",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".matchup-coverage-head",
+        "missing": true
+      },
+      {
+        "selector": ".matchup-coverage-head strong",
+        "missing": true
+      },
+      {
+        "selector": ".matchup-table td",
+        "text": "1",
+        "size": "13px",
+        "weight": "750",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      }
+    ]
+  },
+  {
+    "name": "dex-list",
+    "width": 390,
+    "fonts": [
+      {
+        "selector": "#page-dex h2",
+        "text": "도감",
+        "size": "24px",
+        "weight": "800",
+        "line": "36px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-1px"
+      },
+      {
+        "selector": ".dex-tab",
+        "text": "포켓몬",
+        "size": "12px",
+        "weight": "700",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-table thead th",
+        "text": "이름",
+        "size": "11px",
+        "weight": "650",
+        "line": "16.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-row-open",
+        "text": "이상해꽃",
+        "size": "12px",
+        "weight": "650",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-pokemon-name-text",
+        "text": "이상해꽃",
+        "size": "12px",
+        "weight": "650",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-table td.num",
+        "text": "80",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-bst",
+        "text": "525",
+        "size": "12px",
+        "weight": "750",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-table .dim",
+        "text": "심록",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-table .type-pill",
+        "text": "풀",
+        "size": "10px",
+        "weight": "700",
+        "line": "16px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      }
+    ]
+  },
+  {
+    "name": "dex-detail",
+    "width": 390,
+    "fonts": [
+      {
+        "selector": ".dex-fullpage-title",
+        "missing": true
+      },
+      {
+        "selector": ".dex-detail-name b",
+        "text": "리자몽",
+        "size": "21px",
+        "weight": "700",
+        "line": "31.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "-0.8px"
+      },
+      {
+        "selector": ".dex-modal-section-title",
+        "text": "종족값",
+        "size": "14px",
+        "weight": "750",
+        "line": "21px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-modal-stat-grid",
+        "text": "HP78공격84방어78특공109특방85속도100합계534",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-modal-stat-grid .stat-val",
+        "text": "78",
+        "size": "12px",
+        "weight": "650",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".dex-desc-main",
+        "missing": true
+      },
+      {
+        "selector": ".dex-desc-long",
+        "missing": true
+      },
+      {
+        "selector": ".dex-learnset-move-link .dex-link-text",
+        "text": "객기",
+        "size": "13px",
+        "weight": "650",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".picker-move-power",
+        "text": "70",
+        "size": "13px",
+        "weight": "750",
+        "line": "19.5px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      },
+      {
+        "selector": ".picker-description",
+        "text": "자신이 독, 마비, 화상 상태일 때 날리면 기술의 위력이 2배가 된다.",
+        "size": "12px",
+        "weight": "400",
+        "line": "18px",
+        "family": "\"Noto Sans KR\", \"Malgun Gothic\", system-ui, sans-serif",
+        "letter": "normal"
+      }
+    ]
+  }
+]

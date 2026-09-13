@@ -30,8 +30,7 @@ function applyTheme(theme) {
     const isDark = nextTheme === 'dark';
     toggle.setAttribute('aria-pressed', String(isDark));
     toggle.setAttribute('aria-label', isDark ? '라이트 모드로 전환' : '다크 모드로 전환');
-    const text = toggle.querySelector('.theme-toggle-text');
-    if (text) text.textContent = isDark ? '라이트' : '다크';
+    renderTrustedHTML(toggle, RotomUI.icon(isDark ? 'sun' : 'moon'));
   }
 }
 

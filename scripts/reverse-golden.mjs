@@ -46,7 +46,6 @@ function loadReverseApi() {
     'data-natures',
     'data-typechart',
     'data-rules',
-    'data-meta-threats',
   ].map(id => [id, JSON.stringify(readJsonScript(html, id))]));
 
   const elements = new Map();
@@ -79,6 +78,7 @@ function loadReverseApi() {
 
   const source = [
     readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8'),
+    readFileSync(path.join(ROOT, 'src', 'js', '01-10-rotom-ui.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '01-20-html-structure.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '02-engine.js'), 'utf8'),
     readCalcUiSource(ROOT),
@@ -280,14 +280,14 @@ const reverseCss = listCssFiles(path.join(ROOT, 'src', 'styles'))
 for (const className of [
   '.rc-grid',
   '.rc-input-grid',
-  '.rc-input-block',
-  '.rc-item-grid',
-  '.rc-analyze-btn',
+  '.rc-action-block',
+  '.rc-facts-grid',
+  '.ui-btn-primary',
   '.rc-result-row',
   '.rc-briefing',
   '.rc-followup-grid',
   '.rc-followup-chip',
-  '.rc-info-badge',
+  '.rc-result-title',
   '.rc-prediction-panel',
 ]) {
   assertIncludes(reverseCss, className, `Reverse CSS defines ${className}`);
@@ -307,7 +307,7 @@ assertIncludes(reverseWithSharedUiSource, 'ArrowDown', 'Reverse custom comboboxe
 assertIncludes(reverseWithSharedUiSource, 'aria-activedescendant', 'Reverse custom comboboxes expose active option state');
 assertIncludes(reverseSource, 'rcFilterMovePool', 'Reverse move combobox filters options from the typed query');
 assertIncludes(reverseSource, 'rcBestMoveForTypedName', 'Reverse move combobox resolves typed move names before falling back to the first option');
-assertIncludes(reverseSource, 'selectingMoveOption', 'Reverse move combobox preserves option clicks against delayed blur cleanup');
+assertIncludes(reverseWithSharedUiSource, 'event.stopImmediatePropagation(); select(option)', 'Reverse option clicks use a single shared selection handler');
 assertIncludes(reverseSource, 'rcObservedMyMoveIds', 'Reverse source limits observed own move selection to the entered four-move set');
 assertIncludes(reverseSource, 'openResultIndexes', 'Reverse source tracks individually expanded result cards');
 assertIncludes(reverseSource, 'data-rc-toggle-result', 'Reverse result cards toggle open state on click');
@@ -323,7 +323,7 @@ assertIncludes(reverseSource, '속도 미확인', 'Reverse source marks priority
 
 const initialHtml = reverseRenderedHtml();
 assertIncludes(initialHtml, 'data-rc-pick="my"', 'Reverse initial render exposes blank Pokemon selection');
-assertIncludes(initialHtml, '내 포켓몬과 상대 포켓몬을 먼저 선택해 주세요.', 'Reverse initial render gates observation inputs');
+assertIncludes(initialHtml, '양쪽 포켓몬을 선택하세요.', 'Reverse initial render gates observation inputs');
 assertNotIncludes(initialHtml, 'data-rc-action="observedMyHp"', 'Reverse initial render omits premature observation inputs');
 assertNotIncludes(initialHtml, '기술 1', 'Reverse move slots omit numbered move labels');
 for (const stale of ['undefined', 'NaN']) {
@@ -374,19 +374,21 @@ assertOk(top.completionMinTotal <= 66 && top.completionMaxTotal >= 66, 'Top reve
 assertOk(rankedResult.results.length <= 5, 'Reverse results are limited to five visible candidate groups', JSON.stringify(rankedResult.results.length));
 
 const rankedHtml = reverseRenderedHtml();
-assertIncludes(rankedHtml, '관측 투자 범위', 'Reverse briefing explains observed investment ranges');
-assertIncludes(rankedHtml, '완성 66', 'Reverse rows show full 66 point completion assumption');
-assertNotIncludes(rankedHtml, '내 기술들</span>', 'Reverse rows start collapsed without follow-up damage section');
+assertIncludes(rankedHtml, 'H32 우선', 'Reverse briefing identifies HP-first candidate grouping');
+assertNotIncludes(rankedHtml, '완성 66', 'Reverse rows omit allocation bookkeeping');
+assertIncludes(rankedHtml, 'rc-result-example', 'Reverse rows retain a compact example allocation');
+assertNotIncludes(rankedHtml, '<span>내 기술</span>', 'Reverse rows start collapsed without follow-up damage section');
 assertIncludes(rankedHtml, 'data-rc-move-picker="predictedOppMove"', 'Reverse exposes the shared observed-move comparison selector');
 assertNotIncludes(rankedHtml, 'rc-next-rank-panel', 'Reverse does not require manual re-entry of automatic rank changes');
 assertIncludes(rankedHtml, 'rc-result-nature-badge', 'Reverse rows render nature as a badge');
 api.revCalcState.openResultIndexes = [0, 1];
 const expandedHtml = reverseRenderedHtml();
-assertIncludes(expandedHtml, '내 기술들</span>', 'Reverse expanded rows show follow-up damage section');
+assertIncludes(expandedHtml, '<span>내 기술</span>', 'Reverse expanded rows show follow-up damage section');
 assertIncludes(expandedHtml, 'rc-followup-chip', 'Reverse expanded rows render follow-up damage chips');
 assertIncludes(expandedHtml, 'rc-followup-damage', 'Reverse expanded rows color follow-up damage predictions');
 assertIncludes(expandedHtml, 'data-rc-move-picker="predictedOppMove"', 'Reverse expanded row renders predicted move as a compact combobox');
-assertIncludes(expandedHtml, '예상 정보', 'Reverse expanded row labels the opponent form information column');
+assertNotIncludes(expandedHtml, '랭크 변화 없음', 'Reverse expanded row omits unchanged ranks');
+assertIncludes(expandedHtml, 'rc-state-hp', 'Reverse expanded row highlights next-turn HP');
 assertIncludes(expandedHtml, '상대 관측 기술', 'Reverse expanded row labels observed opponent moves');
 assertIncludes(expandedHtml, 'rc-form-result open', 'Reverse can keep multiple result cards open');
 assertNotIncludes(rankedHtml, 'class="rc-results-summary"', 'Reverse rendered results omit the old mode summary panel');

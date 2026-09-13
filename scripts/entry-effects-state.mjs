@@ -71,6 +71,7 @@ function loadUiApi() {
 
   const source = [
     readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8'),
+    readFileSync(path.join(ROOT, 'src', 'js', '01-10-rotom-ui.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '01-20-html-structure.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '02-engine.js'), 'utf8'),
     readCalcUiSource(ROOT),
@@ -100,7 +101,7 @@ function loadUiApi() {
         resetAutoEntryFieldState,
         resetSideManualValues,
         defaultPokemonAbilityId,
-        renderMoveList,
+        powerUiMoveSettingsMarkup,
         setAutoEntry(value) { return setAutoEntryEffectsEnabled(value); },
         refresh() {
           const calc = makeCalcState();
@@ -247,11 +248,11 @@ assertDeepEqual(state.atk.moveCriticalOverrides, [true, false, false, false], 's
 resetScenario();
 state.atk.moves = ['flowertrick', 'thunderbolt', '', ''];
 state.atk.moveCriticalOverrides = [false, true, false, false];
-const criticalMoveHtml = api.renderMoveList('atk', state.atk);
-assertEqual((criticalMoveHtml.match(/data-action="moveCritical"/g) || []).length, 4, 'attacker renders four move critical controls');
-assertEqual(/data-slot="0"[^>]*checked[^>]*disabled/.test(criticalMoveHtml), true, 'willCrit move renders checked and disabled');
-assertEqual(/data-slot="1"[^>]*checked/.test(criticalMoveHtml), true, 'manual move critical renders independently checked');
-assertEqual(api.renderMoveList('def', state.def).includes('data-action="moveCritical"'), false, 'defender move list omits critical controls');
+const forcedCriticalHtml = api.powerUiMoveSettingsMarkup(0);
+assertEqual(/data-slot="moveCriticalOverrides"[^>]*checked[^>]*disabled/.test(forcedCriticalHtml), true, 'willCrit move is checked and cannot be disabled');
+const manualCriticalHtml = api.powerUiMoveSettingsMarkup(1);
+assertEqual(/data-slot="moveCriticalOverrides"[^>]*checked/.test(manualCriticalHtml), true, 'manual critical belongs to its own slot');
+assertEqual(api.powerUiMoveSettingsMarkup(2), '', 'empty move has no settings');
 const criticalCalcState = api.refresh();
 criticalCalcState.atk.moveCriticalOverrides[1] = false;
 assertEqual(state.atk.moveCriticalOverrides[1], true, 'calc state clones move critical overrides');

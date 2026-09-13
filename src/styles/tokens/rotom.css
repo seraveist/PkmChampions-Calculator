@@ -1,0 +1,8 @@
+/* 1. Shared tokens: palette aliases, typography and control geometry. */
+:root {
+  --canvas:var(--color-surface-canvas);--panel:var(--color-surface-elevated);--input:var(--color-surface-input);--line:var(--color-border-default);--ink:var(--color-text-primary);--muted:var(--color-text-secondary);--accent:var(--color-accent-tera);
+  --text-page:28px;--text-pokemon:24px;--text-result:26px;--text-section:18px;--text-move:16px;--text-value:14px;--text-label:12px;--text-meta:11px;
+  --text-compact:13px;--text-subheading:14px;--text-badge:10px;
+  --ui-radius:10px;--ui-control-height:44px;--ui-icon-size:20px;--ui-chevron-size:20px;--ui-chevron-compact:16px;--ui-chevron-rank:10px;--ui-chevron-stroke:2.2;
+  --ui-focus-color:var(--color-side-defense);--ui-focus-width:2px;--ui-chevron-color:var(--color-side-defense-strong);
+}

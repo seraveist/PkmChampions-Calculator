@@ -24,7 +24,8 @@ const DATA = path.join(ROOT, 'data');
 const CHAMP = path.join(DATA, 'mods', 'champions');
 const OVERRIDES = path.join(DATA, 'overrides');
 
-const UNOFFICIAL_NONSTANDARD = new Set(['CAP', 'Custom']);
+// G-Max moves remain in the upstream files for a future Dynamax ruleset.
+const EXCLUDED_NONSTANDARD = new Set(['CAP', 'Custom', 'Gmax']);
 const ROTOM_LEARNSET_FORM_IDS = new Set(['rotomheat', 'rotomwash', 'rotomfrost', 'rotomfan', 'rotommow']);
 
 function readBase(file, exportName) {
@@ -42,7 +43,7 @@ function isPast(entry) {
   return entry?.isNonstandard === 'Past' || entry?.isNonstandard === 'Future';
 }
 function isUnofficial(entry) {
-  return UNOFFICIAL_NONSTANDARD.has(entry?.isNonstandard);
+  return EXCLUDED_NONSTANDARD.has(entry?.isNonstandard);
 }
 function readJsonFile(fp, fallback = {}) {
   if (!fs.existsSync(fp)) return fallback;
@@ -61,6 +62,7 @@ function readDataFilters() {
   };
 }
 function isAvailable(entry, kind, id, filters) {
+  if (entry?.isNonstandard === 'Gmax') return false;
   if (filters?.include?.[kind]?.has(id)) return !isPast(entry);
   if (filters?.exclude?.[kind]?.has(id)) return false;
   return !isPast(entry) && !isUnofficial(entry);
@@ -189,7 +191,6 @@ async function build() {
   const abilityMechanics = readJsonFile(path.join(OVERRIDES, 'ability-mechanics.json'), {});
   const fieldMechanics = readJsonFile(path.join(OVERRIDES, 'field-mechanics.json'), {});
   const entryEffects = readJsonFile(path.join(OVERRIDES, 'entry-effects.json'), { effects: {}, blockers: {} });
-  const metaThreats = readJsonFile(path.join(OVERRIDES, 'meta-threats.json'), { defensiveThreats: [], coverageChecks: [] });
   const pokemonSpriteOverrides = readJsonFile(path.join(OVERRIDES, 'pokemon-sprites.json'), { spriteIds: {} });
   const pokemonSpriteIds = pokemonSpriteOverrides.spriteIds || {};
 
@@ -313,6 +314,8 @@ async function build() {
         type: m.type,
         cat: m.category,
         bp: m.basePower,
+        pp: m.pp,
+        referenceTag: m.isNonstandard || undefined,
         acc: m.accuracy === true ? 0 : m.accuracy,
         pri: m.priority,
         flags: m.flags || {},
@@ -577,7 +580,6 @@ self.onmessage = event => {
     '__NATURES_DATA__': JSON.stringify(finalNatures),
     '__TYPECHART_DATA__': JSON.stringify(finalTypeChart),
     '__CHAMP_RULES__': JSON.stringify(champRules),
-    '__META_THREATS_DATA__': JSON.stringify(metaThreats),
   };
 
   let outHTML = template;

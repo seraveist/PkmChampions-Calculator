@@ -1067,7 +1067,7 @@ async function main() {
       const cellText = (type, index) => {
         const row = [...document.querySelectorAll('#matchupBody tr')]
           .find(candidate => candidate.querySelector('.matchup-table-type')?.classList.contains('t-' + type));
-        return row?.querySelectorAll('td')[index]?.textContent.trim() || '';
+        return row?.children[index]?.textContent.trim() || '';
       };
       const levitateLabel = cellText('Ground', 1);
       const waterAbsorbLabel = cellText('Water', 2);
@@ -1092,7 +1092,7 @@ async function main() {
     check(matchup.slotHeight > 0 && matchup.slotHeight <= 112 && matchup.centerSpread <= 4 && matchup.spriteDisplay === 'none', 'mobile matchup keeps compact party slots with form and ability controls', JSON.stringify(matchup));
     check(matchup.compact && matchup.compactHeaders === 3 && !matchup.compactHintVisible, 'mobile matchup omits empty comparison columns', JSON.stringify(matchup));
     check(matchup.fullHeaders === 8 && matchup.fullHintVisible, 'mobile matchup announces scrolling only for a full comparison', JSON.stringify(matchup));
-    check(matchup.levitateLabel === '부유' && matchup.waterAbsorbLabel === '저수' && matchup.baseDelphoxGround !== '부유', 'matchup displays concise ability immunity labels by selected form and ability', JSON.stringify(matchup));
+    check(matchup.levitateLabel.includes('부유') && matchup.waterAbsorbLabel.includes('저수') && !matchup.baseDelphoxGround.includes('부유'), 'matchup displays concise ability immunity labels by selected form and ability', JSON.stringify(matchup));
     await checkAxe(client, 'matchup');
 
     const reverse = await client.evaluate(`(async () => {

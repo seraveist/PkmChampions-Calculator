@@ -210,7 +210,7 @@ test('Recommendation prefers 99.6% over 12.1% random two-use KO despite lower mi
 test('Relevant conditions and failed move reasons are retained in result cards', `
   state.atk=makeSideState('garchomp');state.def=makeSideState('snorlax');state.atk.moves=['payback','tripleaxel','stompingtantrum','beatup'];
   const ui=renderCalcMoveConditions('atk',state.atk);assert(ui.includes('moveOrder'));assert(ui.includes('hitCount'));assert(ui.includes('lastMoveFailed'));assert(ui.includes('beatUpMember'));
-  state.atk.moves=['poltergeist'];runCalc();const card=document.getElementById('calc-results-body').innerHTML;assert(card.includes('폴터가이스트'));assert(card.includes('도구를 지녀야'));assert(!card.includes('기술 미설정'));
+  state.atk.moves=['poltergeist'];runCalc();const card=document.getElementById('calc-results-body').innerHTML;assert(card.includes('폴터가이스트'));assert(card.includes('상대 도구 필요'));assert(!card.includes('기술 미설정'));
 `);
 
 test('Legal Machamp Knock Off removes Sitrus before healing: HP 150 -> 73-85 and guaranteed 3 uses', `
@@ -254,15 +254,15 @@ test('Both sides expose fallen allies and Tailwind, clamp by format, and reset c
 test('Power editing explicitly switches modes even at base BP; empty input restores automatic BP', `
   state.atk=makeSideState('typhlosion');state.atk.moves=['eruption'];state.def=makeSideState('snorlax');state.field=makeFieldState();autoEntryEffects=false;setSideHpPct(state.atk,.5);
   const el={dataset:{side:'atk',slot:'0'},value:'150'};applyMoveBpInput(el);assert.equal(state.atk.moveBpOverrides[0],150);
-  assert(document.getElementById('calc-results-body').innerHTML.includes('수동 · 입력 150 → 보정 위력 150'));
-  el.value='';applyMoveBpInput(el);assert.equal(state.atk.moveBpOverrides[0],null);assert(document.getElementById('calc-results-body').innerHTML.includes('자동 · 기본 150 → 보정 위력 74'));
+  assert(document.getElementById('calc-results-body').innerHTML.includes('위력 150'));
+  el.value='';applyMoveBpInput(el);assert.equal(state.atk.moveBpOverrides[0],null);assert(document.getElementById('calc-results-body').innerHTML.includes('위력 74'));
 `);
-test('Mobile summary includes exact random KO chance, exclusions and healing; condition summary is visible', `
+test('Result cards show exact random KO chance, immunity and healing without the removed summary button', `
   state.atk=makeSideState('pikachu');state.atk.moves=['thunderbolt'];state.def=makeSideState('garchomp');state.def.item='sitrusberry';state.field=makeFieldState();autoEntryEffects=false;
-  runCalc();const summary=document.getElementById('calcMobileSummary').innerHTML;assert(summary.includes('무효 조건 제외'));assert(summary.includes('회복 반영'));
+  runCalc();const summary=document.getElementById('calc-results-body').innerHTML;assert(summary.includes('무효'));assert(summary.includes('회복'));assert.equal(document.getElementById('calcMobileSummary').innerHTML,'');
   const derived=makeCalcState(),r=power(derived.atk,derived.def,'thunderbolt',derived.field),label=ko(r,derived.def);
-  setSideCurrentHp(state.def,20);runCalc();const random=ko(power(state.atk,state.def,'thunderbolt'),state.def);assert(random.pct);assert(document.getElementById('calcMobileSummary').innerHTML.includes(random.pct));
-  state.field.weather='Rain';state.atk.tailwind=true;runCalc();assert(document.getElementById('calc-results-body').innerHTML.includes('공격측 순풍'));
+  setSideCurrentHp(state.def,20);runCalc();const random=ko(power(state.atk,state.def,'thunderbolt'),state.def);assert(random.pct);assert(document.getElementById('calc-results-body').innerHTML.includes(random.pct));
+  state.field.weather='Rain';state.atk.tailwind=true;runCalc();assert(document.getElementById('calc-field-summary').textContent.includes('비'));assert(makeCalcState().atk.tailwind);
 `);
 
 
@@ -292,7 +292,7 @@ test('Counter fixed damage ignores type immunity for power cards and cannot acce
  state.atk=makeSideState('charizard');state.atk.moves=['counter'];state.def=makeSideState('gengar');state.field=makeFieldState();autoEntryEffects=false;state.atk.receivedDamage=50;state.atk.receivedDamageCategory='Physical';
  applyMoveBpInput({dataset:{side:'atk',slot:'0'},value:'100'});assert.equal(state.atk.moveBpOverrides[0],null);
  const r=power(state.atk,state.def,'counter');equal(range(r),[100,100]);assert(r.immunityNotes.length);assert.equal(estimateMovePower(state.atk,MoveById.counter,state.def).eff,'고정 100');
- assert(document.getElementById('calc-results-body').innerHTML.includes('매회 같은 피해'));
+ assert(document.getElementById('calc-results-body').innerHTML.includes('100–100 HP'));
 `);
 test('Fling derives item power and rejects missing, suppressed and matching Mega items', `
  const a=makeSideState('charizard'),d=makeSideState('snorlax');assert(PokemonById.charizard.ls.includes('fling'));
@@ -315,8 +315,8 @@ test('Spit Up requires stockpile count and applies 100, 200, 300 BP without manu
 `);
 test('Special conditions render distinct modes, preserve invalid messages and reset both sides', `
  state.atk=makeSideState('hydrapple');state.atk.moves=['ficklebeam'];state.def=makeSideState('snorlax');state.field=makeFieldState();autoEntryEffects=false;setSideCurrentHp(state.def,100);
- runCalc();assert(document.getElementById('calcMobileSummary').innerHTML.includes('강화 30% 반영'));assert(document.getElementById('calc-results-body').innerHTML.includes('24.4%'));
- state.atk.fickleBeamMode='boosted';runCalc();assert(document.getElementById('calcMobileSummary').innerHTML.includes('강화 조건 고정'));assert(document.getElementById('calc-results-body').innerHTML.includes('미합산'));
+ runCalc();assert(document.getElementById('calc-results-body').innerHTML.includes('49–115 HP'));assert(document.getElementById('calc-results-body').innerHTML.includes('24.4%'));
+ state.atk.fickleBeamMode='boosted';runCalc();assert(document.getElementById('calc-results-body').innerHTML.includes('97–115 HP'));assert(!document.getElementById('calc-results-body').innerHTML.includes('24.4%'));
  for(const side of ['atk','def']){state[side].receivedDamage=51;state[side].stockpileCount=3;state[side].fickleBeamMode='boosted';resetSideManualValues(side);assert.equal(state[side].receivedDamage,null);assert.equal(state[side].stockpileCount,0);assert.equal(state[side].fickleBeamMode,'auto');}
 `);
 
