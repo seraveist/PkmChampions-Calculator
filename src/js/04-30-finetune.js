@@ -8,8 +8,6 @@ const fineTuneState = {
   field: makeFieldState(),
   margin: 1,
   targetSpeed: '',
-  baseline: null,
-  notice: '',
 };
 
 // Fine-tune helpers: keep this tab aligned with the calculator engine.
@@ -112,9 +110,9 @@ function ftFindMinSpeedEv(my, targetSpeed) {
 
 function ftSpeedCases() {
   return [
-    { label: '최속', sub: 'N+/E32', ev: 32, nature: 'jolly' },
-    { label: '준속', sub: 'N0/E32', ev: 32, nature: 'hardy' },
-    { label: '무보정', sub: 'N0/E0', ev: 0, nature: 'hardy' },
+    { label: '최속', sub: '상승 성격 · S32', kind:'fastest', ev: 32, nature: 'jolly' },
+    { label: '준속', sub: '무보정 · S32', kind:'neutral-fast', ev: 32, nature: 'hardy' },
+    { label: '무보정', sub: 'S0', kind:'neutral', ev: 0, nature: 'hardy' },
   ];
 }
 
@@ -217,16 +215,13 @@ function ftApplyPokemonToFineTune(pokemonId) {
   if (changed) {
     fineTuneState.my = makeSideState(pokemonId);
     fineTuneState.my.item = defaultPokemonItemId(pokemon);
-    ftSaveBaseline();
   }
-  fineTuneState.notice = '';
 }
 
 function ftSelectCombo(target, id) {
   if (target === 'my') ftApplyPokemonToFineTune(id);
   if (target === 'myForm') {
     applyPokemonFormToSideState(fineTuneState.my, id);
-    ftSaveBaseline();
   }
   if (target === 'opp' && PokemonById[id]) {
     fineTuneState.opp = makeSideState(id);
@@ -304,14 +299,14 @@ function ftHpBreakpointRules(side) {
     desc, kind, fraction: 1 / denom, predicate: hp => hp % denom === remainder, relevant,
   });
   if (!guard) {
-    add('dot-plus', 16, 1, '1/16 고정 소모 · 반복 횟수', 'damage', false);
-    add('dot-min', 16, 15, '1/16 고정 소모 · 내림 구간', 'damage', false);
+    add('dot-plus', 16, 1, '1/16 지속 피해', 'damage', false);
+    add('dot-min', 16, 15, '1/16 지속 피해', 'damage', false);
     if (!effectiveTypes(side).includes('Grass')) {
-      add('seed-plus', 8, 1, '씨뿌리기 · 반복 횟수', 'damage', false);
-      add('seed-min', 8, 7, '씨뿌리기 · 내림 구간', 'damage', false);
+      add('seed-plus', 8, 1, '씨뿌리기', 'damage', false);
+      add('seed-min', 8, 7, '씨뿌리기', 'damage', false);
     }
   }
-  rules.push({ id: 'sub', rule: '4n+1~3', desc: '대타출동 4회 후 잔여 HP', kind: 'sub', predicate: hp => hp % 4 !== 0, relevant: side.moves?.includes('substitute') });
+  rules.push({ id: 'sub', rule: '4n+1~3', desc: '대타출동', kind: 'sub', predicate: hp => hp % 4 !== 0, relevant: side.moves?.includes('substitute') });
   if (itemId === 'lifeorb' && !guard) add('lifeorb', 10, 9, '생명의구슬 반동', 'damage');
   if (item.residualRecovery?.kind === 'endTurn') {
     const denom = Math.round(1 / fractionValue(item.residualRecovery.fraction, 1 / 16));
@@ -372,18 +367,6 @@ function ftHpBreakpointDeltas(side, rule) {
 
 function ftHpBreakpoints(side) {
   return ftHpBreakpointRules(side).map(rule => ftHpBreakpointDeltas(side, rule));
-}
-
-function ftBreakpointRuleDenom(ruleText) {
-  const match = String(ruleText || '').match(/^(\d+)n/);
-  return match ? Number(match[1]) : 0;
-}
-
-function ftCompareBreakpointGroups(a, b) {
-  const denomA = Math.max(...a.entries.map(info => ftBreakpointRuleDenom(info.rule.rule)));
-  const denomB = Math.max(...b.entries.map(info => ftBreakpointRuleDenom(info.rule.rule)));
-  if (denomA !== denomB) return denomB - denomA;
-  return String(a.key).localeCompare(String(b.key), 'ko');
 }
 
 function ftMagicNumbers(side, stat) {
@@ -455,62 +438,55 @@ function ftBulkMetrics(side) {
   };
 }
 
-function ftBreakpointDistance(side, info) {
-  const curEv = side.evs?.hp || 0;
-  if (info.current) return 0;
-  const candidates = [];
-  if (info.next) candidates.push(info.next.ev - curEv);
-  if (info.prev) candidates.push(curEv - info.prev.ev);
-  return candidates.length ? Math.min(...candidates) : 999;
-}
-
-function ftBreakpointBadges(side, info) {
-  const curEv = side.evs?.hp || 0;
-  const badges = [];
-  if (info.current) badges.push('<span class="ft-breakpoint-delta current">충족</span>');
-  if (!info.current && info.next) badges.push(`<span class="ft-breakpoint-delta next">+${info.next.ev - curEv}pt</span>`);
-  if (!info.current && info.prev) badges.push(`<span class="ft-breakpoint-delta prev">-${curEv - info.prev.ev}pt</span>`);
-  if (!badges.length) badges.push('<span class="ft-breakpoint-delta none">불가</span>');
-  return badges.join('');
-}
-
-function ftBreakpointGroupKey(info) {
-  return info.rule.rule;
-}
-
 function ftUniqueJoin(values, separator = ' · ') {
   return [...new Set(values.filter(Boolean))].join(separator);
 }
 
-function ftFormatBreakpointDescriptions(entries) {
-  const labels = [...new Set(entries.map(info => info.rule.desc).filter(Boolean))];
-  if (!labels.length) return '';
-  if (labels.every(label => /\s*\+1턴$/.test(label))) {
-    return `${labels.map(label => label.replace(/\s*\+1턴$/, '')).join(', ')} +1턴`;
-  }
-  return labels.join(', ');
+function ftHpRulePriority(rule) {
+  if (!rule.relevant) return 2;
+  return /^(sr|spikes)-/.test(rule.id) ? 1 : 0;
 }
 
-function ftGroupHpBreakpoints(side, rows) {
-  const groups = new Map();
+function ftFormatBreakpointDescriptions(entries) {
+  const labels = [...new Set(entries.filter(info => !info.rule.id.startsWith('spikes-')).map(info => info.rule.desc))];
+  const layers = entries.filter(info => info.rule.id.startsWith('spikes-')).map(info => info.rule.id.split('-')[1]).sort();
+  if (layers.length) labels.push('압정 ' + layers.join('·') + '중');
+  return labels.join(' · ');
+}
+
+function ftBuildHpTargets(side) {
+  const rows = ftHpBreakpoints(side), currentHp = calcStats(side).hp, currentEv = side.evs.hp || 0;
+  const pointsByHp = new Map();
+  for (let ev = 0; ev <= 32; ev++) {
+    const hp = ftHpAtEv(side,ev);
+    if (!pointsByHp.has(hp)) pointsByHp.set(hp,ev);
+  }
+  const others = ftStatKeys().reduce((total,key) => total + (key === 'hp' ? 0 : side.evs[key] || 0),0);
+  const targets = new Map();
+  const add = (hit,info) => {
+    if (!hit) return;
+    const ev = pointsByHp.get(hit.hp), delta = ev - currentEv;
+    if (!delta || (delta > 0 && hit.hp <= currentHp)) return;
+    if (!targets.has(hit.hp)) targets.set(hit.hp,{hp:hit.hp,ev,delta,shortfall:Math.max(0,others+ev-66),sources:[]});
+    targets.get(hit.hp).sources.push(info);
+  };
   rows.forEach(info => {
-    const key = ftBreakpointGroupKey(info);
-    if (!groups.has(key)) {
-      groups.set(key, {
-        key,
-        entries: [],
-        current: false,
-        relevant: false,
-        distance: 999,
-        sample: info,
-      });
-    }
-    const group = groups.get(key);
-    group.entries.push(info);
-    group.current ||= !!info.current;
-    group.relevant ||= !!info.rule.relevant;
-    group.distance = Math.min(group.distance, ftBreakpointDistance(side, info));
-    if (info.current || !group.sample.current) group.sample = info;
+    // A fulfilled rule stays in the summary; only unmet rules propose more investment.
+    if (!info.current) add(info.next,info);
+    add(info.prev,info);
   });
-  return [...groups.values()];
+  const byPriority = (a,b) => ftHpRulePriority(a.rule)-ftHpRulePriority(b.rule);
+  const goals = [...targets.values()].map(target => {
+    const priority = Math.min(...target.sources.map(info => ftHpRulePriority(info.rule)));
+    const entries = rows.filter(info => info.rule.predicate(target.hp) && (priority === 2 || info.rule.relevant)).sort(byPriority);
+    return {...target,priority,entries};
+  }).sort((a,b) => Number(!!a.shortfall)-Number(!!b.shortfall) || a.priority-b.priority || Math.abs(a.delta)-Math.abs(b.delta) || a.hp-b.hp);
+  return {
+    currentHp,
+    current:rows.filter(info => info.current && info.rule.relevant).sort(byPriority),
+    referenceCurrent:rows.filter(info => info.current && !info.rule.relevant),
+    investment:goals.filter(goal => goal.delta > 0 && goal.priority < 2),
+    savings:goals.filter(goal => goal.delta < 0),
+    reference:goals.filter(goal => goal.delta > 0 && goal.priority === 2),
+  };
 }

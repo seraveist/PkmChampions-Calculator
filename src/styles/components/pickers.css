@@ -15,7 +15,7 @@
 .combobox-option.selected>b { color:var(--color-side-defense-strong); }
 .combobox-option.active { background:var(--color-surface-muted); }
 @media(hover:hover) { .combobox-option:not(.empty):hover { background:var(--color-surface-muted); } }
-.combobox-option.empty { display:block;text-align:center;color:var(--muted);font-size:13px;padding:20px;cursor:default;height:auto; }
+.combobox-option.empty { display:block;text-align:center;color:var(--muted);font-size:var(--text-compact);padding:20px;cursor:default;height:auto; }
 .picker-detail { display:flex;align-items:center;gap:10px;min-width:0;color:var(--muted);font-size:var(--text-label);white-space:nowrap; }
 .picker-description { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .picker-move-detail { display:grid;grid-template-columns:40px 30px 26px minmax(0,1fr);gap:8px; }
@@ -23,22 +23,22 @@
 .picker-move-power { color:var(--ink);font-size:var(--text-value);font-weight:750;text-align:center;font-variant-numeric:tabular-nums; }
 .picker-move-category { font-size:var(--text-label);text-align:center; }
 .nature-option { grid-template-columns:minmax(56px,1fr) repeat(2,76px);column-gap:10px; }
-.nature-effect { display:flex;align-items:center;justify-content:space-between;gap:6px;height:28px;font-size:12px;font-weight:650;padding:4px 8px; }
+.nature-effect { display:flex;align-items:center;justify-content:space-between;gap:6px;height:28px;font-size:var(--text-label);font-weight:650;padding:4px 8px; }
 .nature-effect--up { color:var(--color-side-attack-strong); }
 .nature-effect--down { color:var(--color-side-defense-strong); }
-.nature-neutral { grid-column:2/-1;color:var(--muted);font-size:12px; }
+.nature-neutral { grid-column:2/-1;color:var(--muted);font-size:var(--text-label); }
 .pokemon-option,.pokemon-option-header { grid-template-columns:minmax(300px,1fr) repeat(6,26px) 30px;gap:4px;min-width:534px; }
-.pokemon-option-header { display:grid;align-items:center;position:sticky;top:0;background:var(--panel);z-index:1;padding:10px;border-bottom:1px solid var(--line);font-size:10px;color:var(--muted);text-align:center; }
+.pokemon-option-header { display:grid;align-items:center;position:sticky;top:0;background:var(--panel);z-index:1;padding:10px;border-bottom:1px solid var(--line);font-size:var(--text-meta);color:var(--muted);text-align:center; }
 .pokemon-option-header>span:first-child { text-align:left; }
 .picker-pokemon-name { display:grid;grid-template-columns:28px 160px 83px;align-items:center;gap:8px;min-width:0; }
 .picker-pokemon-name .pokemon-sprite-slot { width:28px;height:32px; }
-.picker-pokemon-name b { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px; }
+.picker-pokemon-name b { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--text-compact); }
 .picker-pokemon-types { display:grid;grid-template-columns:repeat(2,40px);gap:3px; }
 .picker-pokemon-types .type-pill { text-align:center;padding:1px 4px; }
-.picker-stat { text-align:center;font-variant-numeric:tabular-nums;font-size:12px; }
+.picker-stat { text-align:center;font-variant-numeric:tabular-nums;font-size:var(--text-label); }
 .stat-total { font-weight:750; }
-.form-option,.status-option,.weather-option,.terrain-option,.gameType-option { font-size:13px; }
-.combobox-option>small { font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.form-option,.status-option,.weather-option,.terrain-option,.gameType-option { font-size:var(--text-compact); }
+.combobox-option>small { font-size:var(--text-label);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 @media(max-width:700px) {
   .picker-dialog,.picker-dialog[data-kind] { --dialog-width:calc(100% - 20px); }
   .ui-option-row,.combobox-option { grid-template-columns:minmax(80px,.34fr) minmax(0,1fr);gap:10px; }
@@ -54,6 +54,6 @@
   .pokemon-option,.pokemon-option-header { min-width:410px;grid-template-columns:minmax(230px,1fr) repeat(6,22px) 26px;gap:2px;padding-left:4px;padding-right:4px; }
   .picker-pokemon-name { grid-template-columns:140px 83px;gap:5px; }
   .picker-pokemon-name .pokemon-sprite-slot { display:none; }
-  .picker-pokemon-name b { font-size:12px; }
-  .picker-stat { font-size:11px; }
+  .picker-pokemon-name b { font-size:var(--text-label); }
+  .picker-stat { font-size:var(--text-meta); }
 }

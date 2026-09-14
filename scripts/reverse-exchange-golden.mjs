@@ -24,7 +24,7 @@ let passed=0;
 function check(name,code){const start=Date.now();try{vm.runInContext('(()=>{'+code+'})()',ctx,{timeout:60000});passed++;console.log('[PASS] '+name+' ('+(Date.now()-start)+' ms)');}catch(e){console.error('[FAIL] '+name+': '+e.stack);process.exitCode=1;}}
 vm.runInContext(`const initialReverse = JSON.stringify(revCalcState); function setupExchange(my,opp,myMove,oppMove,order='my-first',item=''){ Object.assign(revCalcState,JSON.parse(initialReverse));revCalcState.my=makeSideState(my); revCalcState.opp.pokemonIdx=opp;revCalcState.myMove=myMove;revCalcState.myMoveSet=[myMove,'','',''];revCalcState.oppMove=oppMove;revCalcState.oppItemKnown=item;revCalcState.turnOrder=order; } function requireCheck(c,message){if(!c)throw new Error(message);} `,ctx);
 check('First-hit HP reaches the Eruption retaliation',`
- setupExchange('garchomp','typhlosion','dragonclaw','eruption');revCalcState.observedTheirPct='54';revCalcState.observedMyHp='154';const r=rcAnalyze();globalThis.eruptionResult=r;requireCheck(r.total>0,JSON.stringify(r));requireCheck(r.candidates.some(c=>c.nature==='hardy'&&c.hpEv===0&&c.defEv===0&&c.atkEv===0),'actual H0 C0 missing');console.log(JSON.stringify({total:r.total,groups:r.groupTotal}));
+ setupExchange('garchomp','typhlosion','dragonclaw','eruption');revCalcState.observedTheirPct='54';revCalcState.observedMyHp='154';const r=rcAnalyze();globalThis.eruptionResult=r;requireCheck(r.total>0,JSON.stringify(r));requireCheck(r.candidates.some(c=>c.nature==='brave'&&c.hpEv===0&&c.defEv===0&&c.atkEv===0),'allowed H0 C0 missing');requireCheck(r.candidates.every(c=>RC_NATURE_IDS.includes(c.nature)),'excluded nature entered inference');console.log(JSON.stringify({total:r.total,groups:r.groupTotal}));
 `);
 
 
@@ -61,8 +61,8 @@ setupExchange('garchomp','snorlax','dragonclaw','crunch');revCalcState.results={
 check('Forecast covers every matching Eruption candidate',`
  setupExchange('garchomp','typhlosion','dragonclaw','eruption');const f=rcComputeExchangeForecast(eruptionResult, {allCandidates:true});requireCheck(f.my.length===1&&f.my[0].incoming?.summary,'forecast omitted');console.log(JSON.stringify({own:f.my[0].summary,incoming:f.my[0].incoming.summary}));
 `);
-check('H32 candidates and example completions obey the HP-first budget',`
- setupExchange('garchomp','typhlosion','dragonclaw','eruption');const r=eruptionResult;requireCheck(r.results[0].hpEv===32,'H32 lost first position');for(const c of r.candidates)requireCheck(c.hpEv===32||((c.defEv||0)===0),'split bulk entered main pool');for(const group of r.results){const sample=rcRoleCompletionInfo(group,r.speedActive);requireCheck(sample.evs.hp===32||(!sample.evs.def&&!sample.evs.spd),'completion introduced split bulk');requireCheck(Object.values(sample.evs).reduce((a,b)=>a+b,0)<=66,'over-budget example');requireCheck(group.members.length>0,'exact group members missing');}
+check('Highest matching HP and example completions obey the HP-first budget',`
+ setupExchange('garchomp','typhlosion','dragonclaw','eruption');const r=eruptionResult;const highestHp=Math.max(...r.candidates.map(c=>c.hpEv));requireCheck(r.results[0].hpEv===highestHp,'highest matching HP lost first position');for(const c of r.candidates)requireCheck(c.hpEv===32||((c.defEv||0)===0),'split bulk entered main pool');for(const group of r.results){const sample=rcRoleCompletionInfo(group,r.speedActive);requireCheck(sample.evs.hp===32||(!sample.evs.def&&!sample.evs.spd),'completion introduced split bulk');requireCheck(Object.values(sample.evs).reduce((a,b)=>a+b,0)<=66,'over-budget example');requireCheck(group.members.length>0,'exact group members missing');}
 `);
 check('A known resist berry and ability constrain inference and the next KO',`
  setupExchange('charizard','scizor','flamethrower','','my-first','occaberry');revCalcState.oppAbilityKnown='technician';revCalcState.observedTheirPct='42';const r=rcAnalyze();requireCheck(r.total>0,'known-berry candidates missing');requireCheck(r.candidates.every(c=>c.ability==='technician'&&c.paths.every(p=>p.opp.item==='')),'known ability or spent berry lost');requireCheck(rcComputeExchangeForecast(r, {allCandidates:true}).my[0].summary.koState==='KO 확정','spent berry reduced the next attack again');
@@ -211,5 +211,35 @@ check('Forecast move badges reflect the effective weather type',`
  requireCheck(f.summary.rawMin>0&&f.types.length===1&&f.types[0]==='Water','Weather Ball type did not follow rain');
  requireCheck(f.categories.length===1&&f.categories[0]==='Special','forecast category missing');
  const html=rcRenderFollowupMoveChip(f);requireCheck(html.includes('t-Water')&&!html.includes('t-Normal'),'card shows base type instead of effective type');
+`);
+check('Second-hit prefilter preserves recoil, healing, ability ranks and end-turn paths', `
+ const fixtures=[
+  ['kangaskhanmega','azumarill','thunderpunch','playrough','parentalbond','hugepower','kangaskhanite','lifeorb'],
+  ['garchomp','toxapex','dragonclaw','poisonjab','roughskin','regenerator','','rockyhelmet'],
+  ['archaludon','scizor','bodypress','bulletpunch','stamina','technician','','sitrusberry'],
+  ['charizard','snorlax','flamethrower','crunch','blaze','thickfat','lifeorb','leftovers']
+ ];
+ const signature=paths=>JSON.stringify(paths,(_key,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
+ for(const [my,opp,attack,reply,ability,otherAbility,item,otherItem] of fixtures) for(const order of ['my-first','opp-first']) for(const timing of ['hit','turn-end']) {
+  setupExchange(my,opp,attack,reply,order,otherItem);
+  revCalcState.observationTiming=timing;revCalcState.field.weather='Sand';
+  const a={...revCalcState.my,ability,item,status:'Poison'};
+  const d=rcBuildOpponentState(PokemonById[opp],{nature:'hardy',evs:{hp:32,atk:16,def:8},ability:otherAbility,item:otherItem});
+  const all=rcExchangePaths(a,d,MoveById[attack],MoveById[reply],order,new Map(),false);
+  requireCheck(all.length>0,'empty exhaustive fixture '+my+'/'+opp);
+  for(const index of new Set([0,Math.floor(all.length/2),all.length-1])) {
+    const p=all[index];revCalcState.observedMyHp=String(rcHp(p.my));revCalcState.observedTheirPct=String(Math.floor(rcHp(p.opp)/calcMaxHp(p.opp)*100+1e-9));
+    const expected=all.filter(p=>rcObservedHpMatches(p.my,'my')&&rcObservedHpMatches(p.opp,'opp'));
+    const actual=rcExchangePaths(a,d,MoveById[attack],MoveById[reply],order,new Map());
+    requireCheck(signature(actual)===signature(expected),'changed full path '+my+'/'+opp+' '+order+' '+timing+' '+index);
+  }
+ }
+`);
+check('Only the participant moving first gets the green first-action label', `
+ const analysis={move:MoveById.dragonclaw,summary:{pctMin:20,pctMax:25,rawMin:30,rawMax:40,koState:'KO 불가',order:'내 선공'}};
+ const first=role=>rcRenderFollowupMoveChip(analysis,role).includes('rc-order--first');
+ requireCheck(first('my')&&!first('opp'),'own first action duplicated');
+ analysis.summary.order='상대 선공';requireCheck(!first('my')&&first('opp'),'opponent first action missing or duplicated');
+ analysis.summary.order='동속';requireCheck(!first('my')&&!first('opp'),'tie mislabeled as first');
 `);
 console.log(passed+' exchange checks passed');

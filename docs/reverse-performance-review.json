@@ -1,0 +1,62 @@
+{
+  "baseline": "9bac1b3",
+  "cases": [
+    {
+      "fixture": "eruption",
+      "before": {
+        "total": 7234,
+        "groups": 36,
+        "hash": "39b5201c672a9ba55ccfb6a0ae89a02f2cbcf64b1851b6f2bda80b7b4e165f6d",
+        "inferenceMs": 1001,
+        "cardsMs": 139
+      },
+      "after": {
+        "total": 7234,
+        "groups": 36,
+        "hash": "39b5201c672a9ba55ccfb6a0ae89a02f2cbcf64b1851b6f2bda80b7b4e165f6d",
+        "inferenceMs": 659,
+        "cardsMs": 171
+      },
+      "identical": true,
+      "speedup": 1.52
+    },
+    {
+      "fixture": "orb",
+      "before": {
+        "total": 5387,
+        "groups": 29,
+        "hash": "c5ac46592471773a4b84596cddb20e3f4b31d35fb842e22f87840ce7a63522a2",
+        "inferenceMs": 5028,
+        "cardsMs": 132
+      },
+      "after": {
+        "total": 5387,
+        "groups": 29,
+        "hash": "c5ac46592471773a4b84596cddb20e3f4b31d35fb842e22f87840ce7a63522a2",
+        "inferenceMs": 2149,
+        "cardsMs": 132
+      },
+      "identical": true,
+      "speedup": 2.34
+    },
+    {
+      "fixture": "unknown",
+      "before": {
+        "total": 19771,
+        "groups": 223,
+        "hash": "cfbd7b3b96fc727fee24a15092a5e2957bab333aa754b51873c20461224b4260",
+        "inferenceMs": 53190,
+        "cardsMs": 108
+      },
+      "after": {
+        "total": 19771,
+        "groups": 223,
+        "hash": "cfbd7b3b96fc727fee24a15092a5e2957bab333aa754b51873c20461224b4260",
+        "inferenceMs": 17259,
+        "cardsMs": 94
+      },
+      "identical": true,
+      "speedup": 3.08
+    }
+  ]
+}

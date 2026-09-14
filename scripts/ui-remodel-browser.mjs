@@ -358,7 +358,7 @@ async function main() {
 
 
     await client.evaluate("activateMainPage('finetune', { updateHash: true })",true);
-    await client.evaluate("ftSelectCombo('my','incineroar');fineTuneState.my.item='leftovers';fineTuneState.my.evs={hp:16,atk:32,def:0,spa:0,spd:0,spe:0};ftSaveBaseline();fineTuneState.my.evs.hp=24;ftSelectCombo('opp','qwilfish');fineTuneState.opp.ability='swiftswim';fineTuneState.field.weather='Rain';renderFineTuneAll();");
+    await client.evaluate("ftSelectCombo('my','incineroar');fineTuneState.my.item='leftovers';fineTuneState.my.evs={hp:16,atk:32,def:0,spa:0,spd:0,spe:0};fineTuneState.my.evs.hp=24;ftSelectCombo('opp','qwilfish');fineTuneState.opp.ability='swiftswim';fineTuneState.field.weather='Rain';renderFineTuneAll();");
     const report=[];
     for(const width of [1440,768,390,320]) {
       await setViewport(client,width,1000);

@@ -195,12 +195,12 @@ function renderPokemonDetail(p, { fullPage = false, learnsetFilter = {} } = {}) 
 
   const relatedForms = relatedPokemonForms(p);
   const relatedFormsHtml = relatedForms.length > 0 ? `
-    <div class="dex-modal-section">
-      <div class="dex-modal-section-title">다른 폼</div>
+    <section class="dex-modal-section dex-detail-fact dex-detail-forms">
+      <h3 class="dex-modal-section-title">다른 폼</h3>
       <div class="dex-link-list">
         ${relatedForms.map(form => uiButton(pokemonListName(form), { class: 'ui-label-action dex-link', 'data-dex-link': 'pokemon', 'data-id': form.id })).join('')}
       </div>
-    </div>
+    </section>
   ` : '';
 
   const flags = [];
@@ -236,21 +236,25 @@ function renderPokemonDetail(p, { fullPage = false, learnsetFilter = {} } = {}) 
     <div class="dex-modal-section dex-detail-overview">
       ${detailLead}
     </div>
-    <div class="dex-modal-section dex-detail-stats">
-      <div class="dex-modal-section-title">종족값</div>
-      <div class="dex-modal-stat-grid">${statRows}${totalRow}</div>
+    <div class="ui-frame dex-detail-summary">
+      <section class="dex-modal-section dex-detail-stats">
+        <h3 class="dex-modal-section-title">종족값</h3>
+        <div class="dex-modal-stat-grid">${statRows}${totalRow}</div>
+      </section>
+      <div class="dex-detail-facts">
+        <section class="dex-modal-section dex-detail-fact dex-detail-abilities">
+          <h3 class="dex-modal-section-title">특성</h3>
+          <div class="dex-modal-flag-row">${abEntries || '<span class="dex-empty-inline">없음</span>'}</div>
+        </section>
+        ${relatedFormsHtml}
+        <section class="dex-modal-section dex-detail-matchup">
+          <h3 class="dex-modal-section-title">방어 타입 상성</h3>
+          <p class="dex-reference-note">타입만 반영 · 특성·도구 제외</p>
+          ${matchupHtml}
+        </section>
+      </div>
     </div>
-    <div class="dex-modal-section">
-      <div class="dex-modal-section-title">특성</div>
-      <div class="dex-modal-flag-row">${abEntries || '<span class="dex-empty-inline">없음</span>'}</div>
-    </div>
-    ${relatedFormsHtml}
-    <div class="dex-modal-section dex-detail-matchup">
-      <div class="dex-modal-section-title">방어 타입 상성</div>
-      <p class="dex-reference-note">타입만 반영 · 특성·도구 제외</p>
-      ${matchupHtml}
-    </div>
-    <div class="dex-modal-section dex-learnset-section">
+    <div class="ui-frame dex-modal-section dex-learnset-section">
       <div class="dex-modal-section-title">학습 가능 기술 (${learnable.length})</div>
       <div data-learnset-wrap>${learnsetHtml}</div>
     </div>
@@ -382,23 +386,23 @@ function renderMoveDetail(m) {
     : dexEmptyText(m.id === 'struggle' ? '학습 기술이 아닙니다. 사용할 수 있는 기술이 없을 때 사용하는 공통 기술입니다.' : '참고 기술 · 현재 수록 포켓몬 중 학습 대상 없음');
 
   const body = `
-    <div class="dex-modal-section">
+    <div class="ui-frame dex-modal-section">
       <div class="dex-modal-row">
         ${dexTypePill(m.type)}
         ${dexMoveCategoryBadge(m.cat)}
         ${m.pri && m.pri !== 0 ? `<span class="dex-priority">우선도 ${m.pri > 0 ? '+' : ''}${m.pri}</span>` : ''}
       </div>
     </div>
-    <div class="dex-modal-section">
+    <div class="ui-frame dex-modal-section">
       <div class="dex-modal-row"><span class="label">위력</span><b>${movePowerLabel(m)}</b>${variableNote ? `<span class="dex-detail-note">(${variableNote})</span>` : ''}</div>
       <div class="dex-modal-row"><span class="label">명중</span><b>${moveAccuracyLabel(m)}</b></div>
       <div class="dex-modal-row"><span class="label">PP</span><b>${m.pp ?? '—'}</b></div>
       ${multihit ? `<div class="dex-modal-row"><span class="label">다단히트</span><b>${multihit}</b></div>` : ''}
     </div>
-    ${m.referenceTag ? `<div class="dex-modal-section dex-reference-note">다른 작품의 참고 기술 · 현재 사용 가능 여부는 수록 포켓몬의 학습 목록을 확인하세요.</div>` : ''}
-    ${flagsHtml ? `<div class="dex-modal-section"><div class="dex-modal-section-title">기술 특징</div><div class="dex-modal-flag-row">${flagsHtml}</div></div>` : ''}
-    ${(m.desc || m.descLong) ? `<div class="dex-modal-section"><div class="dex-modal-section-title">설명</div>${dexDescriptionBlock(m.desc, m.descLong)}</div>` : ''}
-    <div class="dex-modal-section">
+    ${m.referenceTag ? `<div class="ui-frame dex-modal-section dex-reference-note">다른 작품의 참고 기술 · 현재 사용 가능 여부는 수록 포켓몬의 학습 목록을 확인하세요.</div>` : ''}
+    ${flagsHtml ? `<div class="ui-frame dex-modal-section"><div class="dex-modal-section-title">기술 특징</div><div class="dex-modal-flag-row">${flagsHtml}</div></div>` : ''}
+    ${(m.desc || m.descLong) ? `<div class="ui-frame dex-modal-section"><div class="dex-modal-section-title">설명</div>${dexDescriptionBlock(m.desc, m.descLong)}</div>` : ''}
+    <div class="ui-frame dex-modal-section">
       <div class="dex-modal-section-title">수록 포켓몬 중 학습 대상 (${users.length})</div>
       ${userList}
     </div>
@@ -434,8 +438,8 @@ function renderAbilityDetail(a) {
   })();
 
   const body = `
-    <div class="dex-modal-section"><div class="dex-modal-section-title">설명</div>${descBlock}</div>
-    <div class="dex-modal-section">
+    <div class="ui-frame dex-modal-section"><div class="dex-modal-section-title">설명</div>${descBlock}</div>
+    <div class="ui-frame dex-modal-section">
       <div class="dex-modal-section-title">보유 포켓몬 (${owners.length})</div>
       ${ownerList}
     </div>
@@ -460,7 +464,7 @@ function renderItemDetail(it) {
     // ms = { "Charizard": "Charizard-Mega-X" } 형태 — 영문 포켓몬 이름. 한글 매핑 시도.
     const targets = Object.entries(it.ms);
     megaInfo = `
-      <div class="dex-modal-section">
+      <div class="ui-frame dex-modal-section">
         <div class="dex-modal-section-title">메가스톤 — 변환 대상</div>
         <div class="dex-link-list">
           ${targets.map(([orig, mega]) => {
@@ -498,14 +502,14 @@ function renderItemDetail(it) {
   })();
 
   const body = `
-    <div class="dex-modal-section">
+    <div class="ui-frame dex-modal-section">
       <div class="dex-modal-flag-row">${subTags.join(' ')}</div>
     </div>
-    <div class="dex-modal-section"><div class="dex-modal-section-title">설명</div>${descBlock}</div>
-    ${berryInfo ? `<div class="dex-modal-section">${berryInfo}</div>` : ''}
-    ${it.flingBp ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">던지기 위력</span><b>${it.flingBp}</b></div></div>` : ''}
+    <div class="ui-frame dex-modal-section"><div class="dex-modal-section-title">설명</div>${descBlock}</div>
+    ${berryInfo ? `<div class="ui-frame dex-modal-section">${berryInfo}</div>` : ''}
+    ${it.flingBp ? `<div class="ui-frame dex-modal-section"><div class="dex-modal-row"><span class="label">던지기 위력</span><b>${it.flingBp}</b></div></div>` : ''}
     ${megaInfo}
-    ${it.itemUser ? `<div class="dex-modal-section"><div class="dex-modal-row"><span class="label">전용</span>${it.itemUser.map(u => {
+    ${it.itemUser ? `<div class="ui-frame dex-modal-section"><div class="dex-modal-row"><span class="label">전용</span>${it.itemUser.map(u => {
       const ud = dexPokemonByLooseName(u);
       return ud
         ? uiButton(escapeHTML(pkName(ud)), { class: 'ui-label-action dex-link', 'data-dex-link': 'pokemon', 'data-id': ud.id })

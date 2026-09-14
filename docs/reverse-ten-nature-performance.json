@@ -1,0 +1,74 @@
+{
+  "baseline": "9bac1b3",
+  "inferenceNatures": [
+    "adamant",
+    "jolly",
+    "impish",
+    "careful",
+    "modest",
+    "timid",
+    "bold",
+    "calm",
+    "naive",
+    "brave"
+  ],
+  "cases": [
+    {
+      "fixture": "eruption",
+      "before": {
+        "total": 3810,
+        "groups": 12,
+        "hash": "74d3555dda6ca8041c2b1aefb8ad48b1dcec6ed006e9618963328d8f869b6ec0",
+        "inferenceMs": 570,
+        "cardsMs": 518
+      },
+      "after": {
+        "total": 3810,
+        "groups": 12,
+        "hash": "74d3555dda6ca8041c2b1aefb8ad48b1dcec6ed006e9618963328d8f869b6ec0",
+        "inferenceMs": 329,
+        "cardsMs": 509
+      },
+      "identical": true,
+      "speedup": 1.73
+    },
+    {
+      "fixture": "orb",
+      "before": {
+        "total": 2197,
+        "groups": 12,
+        "hash": "263c1296f7396e291bca44b1a669871bba4beb4ea783d668e218ed1e4117bed2",
+        "inferenceMs": 4066,
+        "cardsMs": 145
+      },
+      "after": {
+        "total": 2197,
+        "groups": 12,
+        "hash": "263c1296f7396e291bca44b1a669871bba4beb4ea783d668e218ed1e4117bed2",
+        "inferenceMs": 1446,
+        "cardsMs": 128
+      },
+      "identical": true,
+      "speedup": 2.81
+    },
+    {
+      "fixture": "unknown",
+      "before": {
+        "total": 8225,
+        "groups": 79,
+        "hash": "dc0712e9844a69264baec8befc2ca9e25a8bbe64d81c04cd83d6ccf2f4706086",
+        "inferenceMs": 26635,
+        "cardsMs": 70
+      },
+      "after": {
+        "total": 8225,
+        "groups": 79,
+        "hash": "dc0712e9844a69264baec8befc2ca9e25a8bbe64d81c04cd83d6ccf2f4706086",
+        "inferenceMs": 7877,
+        "cardsMs": 71
+      },
+      "identical": true,
+      "speedup": 3.38
+    }
+  ]
+}

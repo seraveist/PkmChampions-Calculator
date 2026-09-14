@@ -358,6 +358,26 @@ async function main() {
     const report=[];
     await client.evaluate('globalThis.__reverseUnknownItems='+process.argv.includes('--unknown-items'));
     await client.evaluate("activateMainPage('revcalc', { updateHash: false })",true);
+    await client.evaluate("revCalcState.my=makeSideState('garchomp');revCalcState.opp={pokemonIdx:'typhlosion',ranks:{},status:'none'};renderRevCalcAll()");
+    check(await client.evaluate("document.querySelectorAll('#rc-opp-body [data-rc-move-picker=knownOppMove]').length===4 && !document.querySelector('#rc-input-body [data-rc-move-picker=knownOppMove]')"),'all four opponent move slots belong to the opponent build');
+    const opponentMoveIds=await client.evaluate("rcLearnableMovesForPokemon(PokemonById.typhlosion).slice(0,4).map(m=>m.id)");
+    for (const [index,slot] of [3,0,2,1].entries()) {
+      const id=opponentMoveIds[index];
+      await client.evaluate(`document.querySelector('#rc-opp-body [data-rc-move-slot="${slot}"]').click();var search=document.querySelector('.picker-dialog input');search.value=rcMoveLabel(${JSON.stringify(id)});search.dispatchEvent(new Event('input',{bubbles:true}));`);
+      await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+      await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+      check(await client.evaluate(`revCalcState.knownOppMoves[${slot}]===${JSON.stringify(id)} && revCalcState.oppMove===${JSON.stringify(id)} && document.querySelector('#rc-input-body [data-rc-move-picker=oppMove]').value===rcMoveLabel(${JSON.stringify(id)})`),'last selected opponent move updates observed attack from slot '+(slot+1));
+      await client.evaluate('rcSyncInputsFromDom();renderRevCalcAll()');
+      check(await client.evaluate(`revCalcState.oppMove===${JSON.stringify(id)} && revCalcState.predictedOppMove===${JSON.stringify(id)}`),'input sync preserves selection order after slot '+(slot+1));
+    }
+    check(await client.evaluate("revCalcState.knownOppMoves.length===4 && rcKnownOpponentMoves().length===4"),'the full opponent moveset remains available for follow-up comparisons');
+    await client.evaluate("revCalcState.knownOppMoves=['','','',''];revCalcState.oppMove='';revCalcState.predictedOppMove='';renderRevCalcAll()");
+    for (const enabled of [true,false]) {
+      await client.evaluate(`var trick=document.querySelector('[data-rc-field=trickRoom]');trick.value='${enabled}';trick.dispatchEvent(new Event('change',{bubbles:true}));`);
+      check(await client.evaluate(`revCalcState.field.trickRoom===${enabled}`),'Trick Room change stores boolean '+enabled);
+      await client.evaluate('rcSyncInputsFromDom();renderRevCalcInputs()');
+      check(await client.evaluate(`revCalcState.field.trickRoom===${enabled} && document.querySelector('[data-rc-field=trickRoom]').value==='${enabled}'`),'Trick Room survives input sync and redraw: '+enabled);
+    }
     await client.evaluate("revCalcState.my=makeSideState('garchomp'); revCalcState.opp={pokemonIdx:'typhlosion',ranks:{atk:0,def:0,spa:0,spd:0,spe:0},status:'none'}; revCalcState.myMove='dragonclaw'; revCalcState.myMoveSet=['dragonclaw','earthquake','rockslide','firefang']; revCalcState.oppMove='eruption'; revCalcState.predictedOppMove='eruption'; revCalcState.oppItemKnown=globalThis.__reverseUnknownItems?'unknown':''; revCalcState.observedTheirPct='54'; revCalcState.observedMyHp='154'; revCalcState.turnOrder='my-first'; renderRevCalcAll(); document.getElementById('rcAnalyze').click();");
     const started=Date.now();
     check(await client.evaluate("!!revCalcState.analyzing"),'analysis runs without blocking the page');
@@ -372,6 +392,20 @@ async function main() {
       const layout=await client.evaluate("({overflow:document.documentElement.scrollWidth-innerWidth,buttons:document.querySelectorAll('button.rc-result-rank').length,missingConditions:['myStartHp','oppStartHpPct','oppAbilityKnown'].filter(k=>!document.querySelector('[data-rc-action=\"'+k+'\"]'))})");
       check(layout.overflow<=1,'no horizontal overflow at '+width+'px',JSON.stringify(layout));
       check(layout.buttons>0 && !layout.missingConditions.length,'candidate buttons and optional observation inputs at '+width+'px');
+      check(await client.evaluate(`(() => {
+        const controls=['weather','terrain','trickRoom'].map(k=>document.querySelector('[data-rc-field='+k+']'));
+        const sizes=controls.map(e=>e.getBoundingClientRect());
+        const moves=[...document.querySelectorAll('#rc-opp-body .rc-move-combobox')];
+        return sizes.every(r=>Math.abs(r.height-sizes[0].height)<1 && Math.abs(r.width-sizes[0].width)<1)
+          && (innerWidth<=700 || sizes.every(r=>Math.abs(r.top-sizes[0].top)<1))
+          && moves.every(e=>e.scrollWidth<=e.clientWidth+1);
+      })()`),'field controls align and opponent move slots fit at '+width+'px');
+      const compact=await client.evaluate(`(() => {
+        const sameRow=(a,b)=>Math.abs((a.top+a.bottom-b.top-b.bottom)/2)<2;
+        return {start:[...document.querySelectorAll('.rc-start-row')].every(row=>sameRow(row.querySelector('input').getBoundingClientRect(),row.querySelector('.ui-choice-trigger').getBoundingClientRect())),state:[...document.querySelectorAll('.rc-state-side')].every(row=>sameRow(row.querySelector('.rc-state-identity').getBoundingClientRect(),row.querySelector('.rc-state-health').getBoundingClientRect())),weights:[...document.querySelectorAll('#page-revcalc input.ui-control,#page-revcalc select.ui-control,#page-revcalc .ui-select-trigger')].filter(e=>e.getBoundingClientRect().width>0).map(e=>Number(getComputedStyle(e).fontWeight)),clipped:[...document.querySelectorAll('.rc-state-hp,.rc-start-row')].filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent)};
+      })()`);
+      check(compact.start&&compact.state&&!compact.clipped.length&&compact.weights.every(w=>w>=650),'inline HP, bold inputs and compact state headers fit at '+width+'px',JSON.stringify(compact));
+      check(await client.evaluate("!/(H32 우선|개 후보|대표.*그룹)/.test(document.getElementById('rc-results-body').innerText)"),'result bookkeeping is absent');
       await client.evaluate("document.getElementById('rc-results-panel').scrollIntoView({block:'start'})");
       await captureScreenshot(client,'reverse-exchange-results-'+width);
       const clipped = await client.evaluate("[...document.querySelectorAll('.rc-reference-moves input, .rc-followup-damage')].filter(e=>e.getBoundingClientRect().width>0 && (e.scrollWidth>e.clientWidth+1 || e.getBoundingClientRect().right>e.closest('.rc-exchange-summary,.rc-followup-chip').getBoundingClientRect().right+1)).map(e=>({text:e.value||e.innerText,width:e.clientWidth,scroll:e.scrollWidth}))");
@@ -393,10 +427,18 @@ async function main() {
     check(await client.evaluate(`!/(랭크 변화 없음|완성 66|예시 배분|비 스카프)/.test(document.getElementById('rc-results-body').textContent) && !document.querySelector('.rc-state-events')`),'unchanged state and allocation bookkeeping stay absent');
     check(await client.evaluate(`(()=>{
       const row={hpMin:100,hpMax:101,pctMin:50,pctMax:50.5,ranks:{atk:[0],def:[1],spa:[0],spd:[0],spe:[-1]},events:['지구력 · 방어 +1','암석봉인 · 스피드 -1','자뭉열매 · 소모']};
-      const html=rcRenderNextStateSummary({my:row});
+      const html=rcRenderNextStateSummary({my:row},'my');
       return html.includes('지구력 · 방어 +1') && html.includes('암석봉인 · 속도 -1') && html.includes('자뭉열매 · 소모') && !html.includes('공격 0') && (html.match(/class="ui-tag"/g)||[]).length===3;
     })()`),'actual rank and item changes remain visible');
-    await client.evaluate("rcSetMovePickerValue('knownOppMove','flamethrower',0);renderRevCalcResults()");
+    await client.evaluate("document.querySelector('#rc-opp-body [data-rc-move-picker=knownOppMove]').click();var search=document.querySelector('.picker-dialog input');search.value='화염방사';search.dispatchEvent(new Event('input',{bubbles:true}));");
+    await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+    await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+    check(await client.evaluate("revCalcState.knownOppMoves[0]==='flamethrower' && !document.querySelector('.picker-dialog[open]') && document.activeElement.dataset.rcMovePicker==='knownOppMove'"),'opponent move picker selects by keyboard and returns focus to its new location');
+    check(await client.evaluate("revCalcState.oppMove==='flamethrower' && !revCalcState.results && revCalcState.resultsStale"),'automatically updated observed attack invalidates the previous analysis');
+    await client.evaluate('renderRevCalcOpp();rcSyncInputsFromDom()');
+    check(await client.evaluate("revCalcState.knownOppMoves[0]==='flamethrower' && document.querySelector('#rc-opp-body [data-rc-move-picker=knownOppMove]').innerText.includes('화염방사')"),'opponent move selection survives redraw and input sync');
+    await client.evaluate("rcSetMovePickerValue('oppMove','eruption');renderRevCalcInputs();document.getElementById('rcAnalyze').click()");
+    await waitFor(()=>client.evaluate("!revCalcState.analyzing"),60000);
     await waitFor(()=>client.evaluate("!!revCalcState.results?.forecast && !revCalcState.results?.pendingForecastKey"),60000);
     check(await client.evaluate("revCalcState.results.results[0].cardReport.opp.some(r=>r.move.id==='flamethrower') && document.querySelector('.rc-prediction-panel').innerText.includes('화염방사')"),'known opponent moves refresh cards through the worker');
     check(await client.evaluate("!!document.querySelector('.rc-next-state') && document.querySelector('.rc-followup-damage').innerText.includes('%')"),'cards show final state and damage ranges');
@@ -415,6 +457,20 @@ async function main() {
     await client.evaluate("revCalcState.observedTheirPct='54';renderRevCalcInputs();document.getElementById('rcAnalyze').click();document.getElementById('rcNewObservation').click();");
     await sleep(150);
     check(await client.evaluate("!revCalcState.analyzing&&!revCalcState.results&&revCalcState.myMoveSet[0]==='dragonclaw'&&revCalcState.observedMyHp===''&&!revCalcState.opp.pokemonIdx&&rcKnownOpponentMoves().length===0"),'new observation cancels pending work, clears observations and preserves the build');
+    await client.evaluate("revCalcState.my=makeSideState('kangaskhanmega');Object.assign(revCalcState.my,{nature:'adamant',evs:{hp:32,atk:32,def:0,spa:0,spd:0,spe:0},ability:'parentalbond',item:'kangaskhanite'});revCalcState.opp={pokemonIdx:'azumarill',ranks:{atk:0,def:0,spa:0,spd:0,spe:0},status:'none'};Object.assign(revCalcState,{myMove:'thunderpunch',myMoveSet:['thunderpunch','','',''],oppMove:'playrough',predictedOppMove:'playrough',oppItemKnown:'fairyfeather',observedTheirPct:'32',observedMyHp:'109',turnOrder:'my-first'});renderRevCalcAll();document.getElementById('rcAnalyze').click()");
+    await waitFor(()=>client.evaluate("!revCalcState.analyzing"),60000);
+    await client.evaluate("revCalcState.openResultIndexes=[0];renderRevCalcResults()");
+    check(await client.evaluate("revCalcState.results.total>0 && document.querySelectorAll('.rc-duel-side.ui-frame--my .rc-order--first').length===1 && !document.querySelector('.rc-duel-side.ui-frame--opp .rc-move-order')"),'Kangaskhan / Azumarill shows a single first-action indicator on the actual first participant');
+    for(const width of [1440,375,320]) {
+      await setViewport(client,width,1000);
+      await client.evaluate("document.getElementById('rc-my-body').scrollIntoView({block:'start'})");
+      await captureScreenshot(client,'reverse-compact-participant-'+width);
+      await client.evaluate("document.getElementById('rc-results-panel').scrollIntoView({block:'start'})");
+      await captureScreenshot(client,'reverse-compact-kangaskhan-'+width);
+    }
+    await checkAxe(client,'compact first-action indicator');
+    await client.evaluate("document.documentElement.dataset.theme='dark'");
+    await checkAxe(client,'compact first-action indicator in dark theme');
     const exceptions=browserErrors.filter(e=>!/(net::ERR|Failed to load resource|favicon|pokeapi|pokemonshowdown)/i.test(e));
     check(!exceptions.length,'no runtime exceptions',exceptions.join(' | '));
     writeFileSync(path.join(ROOT,'docs/reverse-exchange-browser-verification.json'),JSON.stringify(report,null,2)+'\n');

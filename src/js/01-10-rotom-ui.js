@@ -16,9 +16,16 @@ const RotomUI = (() => {
   const icon = name => `<svg class="ui-icon${name === 'chevron' ? ' ui-chevron' : ''}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths[name]}</svg>`;
   const options = (values,selected) => values.map(([value,label]) => `<option${attributes({value,selected:String(value) === String(selected)})}>${escape(label)}</option>`).join('');
   const trigger = (content,attrs,className='') => `<button${attributes({...attrs,type:'button',class:`ui-button ui-select-trigger ${className}`})}><span class="ui-select-content">${content}</span>${icon('chevron')}</button>`;
-  const select = (values,selected,attrs={},variant='') => `<span class="ui-select ${variant}"><select${attributes({...attrs,class:`ui-control ${attrs.class || ''}`})}>${options(values,selected)}</select>${icon('chevron')}</span>`;
+  const select = (values,selected,attrs={},variant='') => {
+    const choice = variant.split(' ').includes('ui-select--choice');
+    const label = values.find(([value])=>String(value)===String(selected))?.[1] ?? values[0]?.[1] ?? '';
+    const choiceAttrs = {'aria-label':`${attrs['aria-label'] || '선택'}: ${label}`,'aria-haspopup':'listbox','aria-expanded':'false',disabled:attrs.disabled};
+    return `<span class="ui-select ${variant}"><select${attributes({...attrs,hidden:choice,class:`ui-control ${attrs.class || ''}`})}>${options(values,selected)}</select>${choice ? trigger(escape(label),choiceAttrs,'ui-choice-trigger') : icon('chevron')}</span>`;
+  };
   const number = attrs => `<input${attributes({type:'number',step:1,inputmode:'numeric',...attrs,class:`ui-control ui-number ${attrs.class || ''}`})}>`;
-  const field = (label,control) => `<label class="form-field">${escape(label)}${control}</label>`;
+  const field = (label,control,variant='') => control.includes('ui-select--choice')
+    ? `<div class="form-field${variant ? ' '+variant : ''}"><span>${escape(label)}</span>${control}</div>`
+    : `<label class="form-field${variant ? ' '+variant : ''}"><span>${escape(label)}</span>${control}</label>`;
   const check = (label,attrs) => `<label class="ui-check check"><input${attributes({...attrs,type:'checkbox',class:'ui-checkbox'})}>${escape(label)}</label>`;
   const picker = (label,value,attrs={},variant='') => `<div class="combobox ui-picker ${variant}">${trigger(`<span class="ui-select-label">${escape(label)}</span><strong class="ui-select-value">${escape(value || '선택')}</strong>`,{...attrs,value,'aria-label':label,'aria-expanded':'false'},`cb-input cb-trigger ui-select-trigger--compact attribute ${attrs.class || ''}`)}<div class="combobox-options" role="listbox"></div></div>`;
   return {icon,trigger,select,number,field,check,picker};

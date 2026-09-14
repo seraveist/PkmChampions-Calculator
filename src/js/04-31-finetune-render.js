@@ -6,10 +6,15 @@ function renderFineTuneHp() {
   const hasPokemon = !!PokemonById[my.pokemonIdx];
   if (panel) panel.hidden = !hasPokemon;
   if (!hasPokemon) { renderTrustedHTML(container,''); return; }
-  const groups = ftGroupHpBreakpoints(my,ftHpBreakpoints(my).filter(info => info.rule.relevant || info.current || info.next || info.prev)).sort((a,b) => Number(b.relevant)-Number(a.relevant) || ftCompareBreakpointGroups(a,b));
-  const render = group => `<div class="ft-breakpoint-item ${group.current ? 'active' : ''}"><div class="ft-breakpoint-main"><b>${escapeHTML(ftUniqueJoin(group.entries.map(info => info.rule.rule)))}</b><span>${escapeHTML(ftFormatBreakpointDescriptions(group.entries))}</span></div><div class="ft-breakpoint-deltas">${ftBreakpointBadges(my,group.sample)}</div>${ftHpTargetHtml(my,group)}</div>`;
-  const general = groups.filter(group => !group.relevant);
-  renderTrustedHTML(container,`<div class="section-heading"><span class="muted">현재 HP</span><strong>${calcStats(my).hp}</strong></div><div class="ft-breakpoint-list">${groups.filter(group => group.relevant).map(render).join('')}</div>${general.length ? `<details class="ft-hp-general"><summary class="ui-disclosure">참고 기준점 ${RotomUI.icon('chevron')}</summary><div class="ft-breakpoint-list">${general.map(render).join('')}</div></details>` : ''}`);
+  const plan = ftBuildHpTargets(my);
+  const list = targets => '<div class="ft-breakpoint-list">' + targets.map(target => ftHpTargetHtml(plan.currentHp,target)).join('') + '</div>';
+  const current = entries => entries.length ? '<div class="ft-hp-current"><span class="ui-state ui-state--positive">현재 충족</span><span>' + escapeHTML(ftFormatBreakpointDescriptions(entries)) + '</span></div>' : '';
+  const disclosure = (label,content,kind) => '<details class="ft-hp-disclosure" data-ft-hp-section="' + kind + '"><summary class="ui-disclosure">' + label + RotomUI.icon('chevron') + '</summary>' + content + '</details>';
+  renderTrustedHTML(container,'<div class="section-heading"><span class="muted">현재 HP</span><strong>' + plan.currentHp + '</strong></div>' + current(plan.current) +
+    (plan.investment.length ? '<section class="ft-hp-investment" data-ft-hp-section="investment"><div class="section-heading"><h3>추가 투자</h3></div>' + list(plan.investment) + '</section>' : '') +
+    (plan.savings.length ? disclosure('노력치 절약',list(plan.savings),'savings') : '') +
+    (plan.reference.length || plan.referenceCurrent.length ? disclosure('참고 기준점',current(plan.referenceCurrent) + list(plan.reference),'reference') : ''));
+
 }
 
 function renderFineTuneMy() {
@@ -30,7 +35,7 @@ function renderFineTuneMy() {
     ${uiStatTable(my,{evAttr:'data-ft-ev',rankAttr:'data-ft-rank-select',magic:NATURE_BY_ID[my.nature]?.up ? key => ftRenderMagicCell(my,key,my.evs[key] || 0) : null})}
     ${ftSideConditionsHtml('my')}
     <div class="metric-strip"><span>물리 내구 <strong>${bulk.phys}</strong></span><span>특수 내구 <strong>${bulk.spec}</strong></span></div>
-    ${ftComparisonHtml()}` : '<div class="empty-state">포켓몬을 선택하세요.</div>'}`);
+` : '<div class="empty-state">포켓몬을 선택하세요.</div>'}`);
   ftWireMyComboboxes();
 }
 
@@ -59,21 +64,18 @@ function renderFineTuneSpeed() {
   const my = fineTuneState.my;
   if (!PokemonById[my.pokemonIdx]) { renderTrustedHTML(container,'<div class="empty-state">내 포켓몬을 선택하세요.</div>'); return; }
   const rows = ftBuildSpeedTable(), margin = ftClampInt(fineTuneState.margin,0,999);
-  renderTrustedHTML(container,`<div class="ft-speed-summary"><span>내 속도</span><strong>${ftMySpeed(my)}</strong><span class="muted">${escapeHTML(ftConditionLabels(my))}</span></div>
-    ${rows.length ? `<div class="data-table-scroll" role="region" aria-label="스피드 비교 표" tabindex="0"><table class="ui-data-table data-table ft-speed-table"><thead><tr><th scope="col">상대 배치</th><th scope="col">속도</th><th scope="col">${margin === 0 ? '동속 이상' : '목표'}</th><th scope="col">필요 S</th><th scope="col">적용</th></tr></thead><tbody>${rows.map(row => `<tr class="ft-speed-case ${row.need !== null && !row.shortfall ? 'possible' : 'impossible'}"><th scope="row">${escapeHTML(row.label)}<small>${escapeHTML(row.sub || '')}</small></th><td>${row.oppSpe}</td><td title="${margin === 0 ? '동속 이상' : '+'+margin+' 추월'}">${row.target}</td><td><strong>${row.need === null ? '—' : row.need}</strong>${row.shortfall ? `<small>${row.shortfall}pt 부족</small>` : ''}</td><td>${row.need === null ? '<span class="muted">S32 불가</span>' : `<button type="button" class="ui-label-action" data-ft-target="spe" data-ft-point="${row.need}" ${row.shortfall ? 'disabled' : ''}>${row.achieved ? '현재 달성' : '적용'}</button>`}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">상대 포켓몬 또는 목표 속도를 입력하세요.</div>'}`);
+  renderTrustedHTML(container,`<div class="ft-speed-summary"><span>내 속도</span><strong>${ftMySpeed(my)}</strong></div>
+    ${rows.length ? `<div class="data-table-scroll" role="region" aria-label="스피드 비교 표" tabindex="0"><table class="ui-data-table data-table ft-speed-table"><thead><tr><th scope="col">상대 배치</th><th scope="col">속도</th><th scope="col">${margin === 0 ? '동속 이상' : '목표'}</th><th scope="col">필요 S</th><th scope="col">적용</th></tr></thead><tbody>${rows.map(row => `<tr class="ft-speed-case ${row.need !== null && !row.shortfall ? 'possible' : 'impossible'}"><th scope="row"><span class="ft-speed-label ${row.kind || ''}">${escapeHTML(row.label)}</span><small>${escapeHTML(row.sub || '')}</small></th><td>${row.oppSpe}</td><td title="${margin === 0 ? '동속 이상' : '+'+margin+' 추월'}">${row.target}</td><td><strong>${row.need === null ? '—' : row.need}</strong></td><td>${ftSpeedTargetHtml(my,row)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">상대 포켓몬 또는 목표 속도를 입력하세요.</div>'}`);
 }
 
 function renderFineTuneAll() {
   const active = document.activeElement;
   const stat = active?.dataset?.ftEv || active?.dataset?.toolStatPointInput;
   const selection = stat ? [active.selectionStart, active.selectionEnd] : null;
-  if (PokemonById[fineTuneState.my.pokemonIdx] && fineTuneState.baseline?.pokemonIdx !== fineTuneState.my.pokemonIdx) ftSaveBaseline();
   renderFineTuneMy();
   renderFineTuneHp();
   renderFineTuneOpp();
   renderFineTuneSpeed();
-  const notice = document.getElementById('ftNotice');
-  if (notice) notice.textContent = fineTuneState.notice;
   const targetInput = document.getElementById('ftTargetSpeed');
   if (targetInput && targetInput !== active) targetInput.value = fineTuneState.targetSpeed;
   if (stat) {
@@ -123,8 +125,6 @@ document.getElementById('page-finetune')?.addEventListener('click', e => {
   const t = e.target;
   const targetButton = t.closest?.('[data-ft-target]');
   if (targetButton) { ftApplyTarget(targetButton.dataset.ftTarget, targetButton.dataset.ftPoint); renderFineTuneAll(); return; }
-  const baselineButton = t.closest?.('[data-ft-baseline]');
-  if (baselineButton) { baselineButton.dataset.ftBaseline === 'save' ? ftSaveBaseline() : ftRestoreBaseline(); renderFineTuneAll(); return; }
   const clearButton = t.closest?.('[data-ft-clear-conditions]');
   if (clearButton) { ftClearConditions(clearButton.dataset.ftClearConditions); renderFineTuneAll(); return; }
   const applySideButton = t.closest?.('[data-ft-apply-side]');
@@ -188,7 +188,6 @@ function loadSideToFineTune(sideKey) {
   fineTuneState.opp = cloneCalcValue(state[otherKey]);
   fineTuneState.field = cloneCalcValue(state.field);
   fineTuneState.targetSpeed = '';
-  ftSaveBaseline();
   // 세부조정 탭 이동
   const ftNav = document.querySelector('.nav-tab[data-page="finetune"]');
   if (ftNav) ftNav.click();

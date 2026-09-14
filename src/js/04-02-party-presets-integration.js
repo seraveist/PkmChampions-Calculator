@@ -55,7 +55,6 @@ function partyPresetApplyMemberToFineTune(member) {
   fineTuneState.my = makeSideState();
   ftApplyPokemonToFineTune(member.pokemon);
   partyPresetApplyMemberToSideState(fineTuneState.my, member);
-  ftSaveBaseline();
   renderFineTuneAll();
   return true;
 }

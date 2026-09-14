@@ -311,7 +311,7 @@ assertIncludes(reverseWithSharedUiSource, 'event.stopImmediatePropagation(); sel
 assertIncludes(reverseSource, 'rcObservedMyMoveIds', 'Reverse source limits observed own move selection to the entered four-move set');
 assertIncludes(reverseSource, 'openResultIndexes', 'Reverse source tracks individually expanded result cards');
 assertIncludes(reverseSource, 'data-rc-toggle-result', 'Reverse result cards toggle open state on click');
-assertIncludes(reverseSource, 'rc-result-expanded-body', 'Reverse expanded cards use a three-column detail body');
+assertIncludes(reverseSource, 'rc-duel-grid', 'Reverse expanded cards group each participant state and moves in one frame');
 assertIncludes(reverseSource, '상대 관측 기술', 'Reverse expanded cards label observed opponent moves');
 assertIncludes(reverseSource, 'nextMyRanks', 'Reverse source stores next-action own rank controls');
 assertIncludes(reverseSource, 'nextOppRanks', 'Reverse source stores next-action opponent rank controls');
@@ -367,14 +367,15 @@ api.rcComputeExchangeForecast(rankedResult);
 api.revCalcState.results = rankedResult;
 const top = rankedResult.results[0];
 assertOk(top.hpEv === 32 && top.defEv === 0, 'H32 with no extra defense outranks a lower-HP preferred nature', JSON.stringify(top, (key,value) => ['paths','members'].includes(key) ? undefined : value));
-assertOk((top.atkEvMax ?? top.atkEv) === 32, 'Ranking keeps the highest matching offensive investment in grouped ranges', JSON.stringify(top, (key,value) => ['paths','members'].includes(key) ? undefined : value));
+const highestGroupAttack = Math.max(...top.members.map(c => c.atkEv || 0));
+assertOk((top.atkEvMax ?? top.atkEv) === highestGroupAttack && top.atkEv === highestGroupAttack, 'Ranking keeps the highest matching offensive investment in grouped ranges', JSON.stringify(top, (key,value) => ['paths','members'].includes(key) ? undefined : value));
 assertOk((top.speEvMin ?? top.speEv) === 0 && (top.speEvMax ?? top.speEv) > 0, 'Speed observation is rendered as a possible range, not exact S0', JSON.stringify(top, (key,value) => ['paths','members'].includes(key) ? undefined : value));
 assertOk(top.groupCount > 1, 'Reverse results compress near-identical random-roll candidates into one group', JSON.stringify(top, (key,value) => ['paths','members'].includes(key) ? undefined : value));
 assertOk(top.completionMinTotal <= 66 && top.completionMaxTotal >= 66, 'Top reverse group can be completed to the full 66 point budget', JSON.stringify(top, (key,value) => ['paths','members'].includes(key) ? undefined : value));
 assertOk(rankedResult.results.length <= 5, 'Reverse results are limited to five visible candidate groups', JSON.stringify(rankedResult.results.length));
 
 const rankedHtml = reverseRenderedHtml();
-assertIncludes(rankedHtml, 'H32 우선', 'Reverse briefing identifies HP-first candidate grouping');
+assertOk(!/H32 우선|개 후보|rc-candidate-count/.test(rankedHtml), 'Reverse briefing omits candidate and group bookkeeping');
 assertNotIncludes(rankedHtml, '완성 66', 'Reverse rows omit allocation bookkeeping');
 assertIncludes(rankedHtml, 'rc-result-example', 'Reverse rows retain a compact example allocation');
 assertNotIncludes(rankedHtml, '<span>내 기술</span>', 'Reverse rows start collapsed without follow-up damage section');

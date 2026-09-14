@@ -1,11 +1,11 @@
 /* One observed singles exchange. Pure transitions are shared with the next-action forecast. */
 function rcSetHp(side, hp) {
-  const max = calcStats(side).hp;
+  const max = calcMaxHp(side);
   const current = Math.max(0, Math.min(max, Math.floor(hp)));
   return { ...side, hpPct: current / max, fullHP: current === max, pinch: current <= Math.floor(max / 3) };
 }
 
-function rcHp(side) { return Math.max(0, Math.round(calcStats(side).hp * sideHpPct(side))); }
+function rcHp(side) { return Math.max(0, Math.round(calcMaxHp(side) * sideHpPct(side))); }
 
 function rcMoveForObservation(role) {
   const id = role === 'my' ? revCalcState.myMove : revCalcState.oppMove;
@@ -146,10 +146,10 @@ function rcAdvanceAttack(a, d, move, field, cache) {
         hp += hit.defAbility === 'liquidooze' ? -healing : healing;
       }
       if (move?.recoil && !['rockhead', 'magicguard'].includes(hit.atkAbility)) hp -= Math.max(1, Math.round(hit.damage * fractionValue(move.recoil, 0)));
-      if (a.item === 'lifeorb' && hit.atkAbility !== 'magicguard' && !(hit.atkAbility === 'sheerforce' && move?.sec)) hp -= Math.max(1, Math.floor(calcStats(a).hp / 10));
+      if (a.item === 'lifeorb' && hit.atkAbility !== 'magicguard' && !(hit.atkAbility === 'sheerforce' && move?.sec)) hp -= Math.max(1, Math.floor(calcMaxHp(a) / 10));
       if (move?.flags?.contact && hit.atkAbility !== 'longreach' && !(a.item === 'punchingglove' && move.flags.punch) && hit.atkAbility !== 'magicguard') {
-        if (['roughskin', 'ironbarbs'].includes(hit.defAbility)) hp -= Math.max(1, Math.floor(calcStats(a).hp / 8)) * hit.hits;
-        if (d.item === 'rockyhelmet') hp -= Math.max(1, Math.floor(calcStats(a).hp / 6)) * hit.hits;
+        if (['roughskin', 'ironbarbs'].includes(hit.defAbility)) hp -= Math.max(1, Math.floor(calcMaxHp(a) / 8)) * hit.hits;
+        if (d.item === 'rockyhelmet') hp -= Math.max(1, Math.floor(calcMaxHp(a) / 6)) * hit.hits;
       }
       attacker = rcSetHp(attacker, hp);
       if (hit.consumesAttackItem) {
@@ -164,7 +164,7 @@ function rcAdvanceAttack(a, d, move, field, cache) {
       for (const [stat, amount] of Object.entries(move.statusBoosts || {})) rcObservedBoost(attacker, stat, amount, mvName(move));
       if (move.statusHeal && rcHp(attacker) > 0) {
         const before = rcHp(attacker);
-        attacker = rcSetHp(attacker, before + Math.max(1, Math.round(calcStats(attacker).hp * fractionValue(move.statusHeal, 0))));
+        attacker = rcSetHp(attacker, before + Math.max(1, Math.round(calcMaxHp(attacker) * fractionValue(move.statusHeal, 0))));
         if (rcHp(attacker) > before) rcStateEvent(attacker, `${mvName(move)} · HP +${rcHp(attacker) - before}`);
       }
     }
@@ -187,7 +187,7 @@ function rcAdvanceAttack(a, d, move, field, cache) {
 function rcEndOfExchange(side, opposingSide, field, forceEnd = false) {
   if (side.observationEnded || rcHp(side) <= 0 || (!forceEnd && revCalcState.observationTiming === 'hit')) return side;
   side = { ...side, ranks: { ...side.ranks }, observationEnded: true };
-  const max = calcStats(side).hp;
+  const max = calcMaxHp(side);
   let hp = rcHp(side);
   const { atkAb: ability, defAb: otherAbility } = battleAbilityContext(side, opposingSide);
   const itemId = effectiveBattleItem(side, ability), item = ItemById[itemId] || {};
@@ -217,7 +217,7 @@ function rcObservedHpMatches(side, role) {
   const raw = role === 'my' ? revCalcState.observedMyHp : revCalcState.observedTheirPct;
   if (raw === '' || raw == null) return true;
   const hp = rcHp(side);
-  return role === 'my' ? hp === Number(raw) : Math.abs(Math.floor(hp / calcStats(side).hp * 100 + 1e-9) - Number(raw)) <= (revCalcState.hpTolerance || 0);
+  return role === 'my' ? hp === Number(raw) : Math.abs(Math.floor(hp / calcMaxHp(side) * 100 + 1e-9) - Number(raw)) <= (revCalcState.hpTolerance || 0);
 }
 
 function rcActionChangesOwnHp(move, side, target, projectLifeOrb = false) {
@@ -231,7 +231,7 @@ function rcProjectedEndHpMatches(side, other, field, followingMove, role) {
     // Conservatively include both a successful hit and no Orb recoil. This prefilter
     // only removes impossible HP spreads; the full exchange still verifies each path.
     if (followingMove && followingMove.cat !== 'Status' && rcHp(side) > 0 && effectiveBattleItem(side, atkAb) === 'lifeorb' && atkAb !== 'magicguard' && !(atkAb === 'sheerforce' && followingMove.sec)) {
-      hpStates.push(rcSetHp(side, rcHp(side) - Math.max(1, Math.floor(calcStats(side).hp / 10))));
+      hpStates.push(rcSetHp(side, rcHp(side) - Math.max(1, Math.floor(calcMaxHp(side) / 10))));
     }
     return hpStates.some(s => rcObservedHpMatches(rcEndOfExchange(s, other, field), role));
 }
@@ -255,6 +255,9 @@ function rcExchangePaths(my, opp, myMove, oppMove, order, cache, prune = true) {
     const selfChanges = rcActionChangesOwnHp(secondMove, first.d, first.a, true) || ['sandspit', 'seedsower'].includes(first.a.ability);
     if (prune && !selfChanges && !rcProjectedEndHpMatches(first.d, first.a, first.field, secondMove, targetRole)) continue;
     const secondField = { ...first.field, ...revCalcState.observedFields?.[myFirst ? 'received' : 'dealt'], atkMovesFirst: false, atkMovesSecond: true };
+    // Reuse the final receiver-HP feasibility result before materializing both sides
+    // for every second-hit roll. The full exchange still verifies all accepted paths.
+    if (prune && secondMove && cache && !rcFirstHitCanMatch(first.d, first.a, secondMove, secondField, myFirst ? 'my' : 'opp', cache)) continue;
     const seconds = !secondMove
       ? [{ a: first.d, d: first.a, field: secondField, chance: 1 }]
       : rcAdvanceAttack(first.d, first.a, secondMove, secondField, cache);
@@ -303,7 +306,7 @@ function rcValidateExchangeInput(myMove, oppMove) {
       return block?.manual && damageBlockApplies(block, pokemon, { ...side, damageBlockActive: true }, incoming, incoming.cat === 'Physical');
     })) return '탈·아이스페이스의 차단 상태를 아직 입력할 수 없어 이 관측은 지원하지 않습니다. 차단이 해제된 폼이라면 해당 폼을 선택해 주세요.';
   }
-  for (const [raw, max, label] of [[revCalcState.observedTheirPct, 100, '상대 남은 HP %'], [revCalcState.observedMyHp, calcStats(revCalcState.my).hp, '내 남은 HP']]) {
+  for (const [raw, max, label] of [[revCalcState.observedTheirPct, 100, '상대 남은 HP %'], [revCalcState.observedMyHp, calcMaxHp(revCalcState.my), '내 남은 HP']]) {
     if (raw !== '' && raw != null && (!Number.isInteger(Number(raw)) || Number(raw) < 0 || Number(raw) > max)) return `${label}를 0~${max}의 정수로 입력해 주세요.`;
   }
   if (!Number.isFinite(Number(revCalcState.oppStartHpPct)) || Number(revCalcState.oppStartHpPct) < 1 || Number(revCalcState.oppStartHpPct) > 100) return '상대 시작 HP %를 1~100으로 입력해 주세요.';
@@ -343,7 +346,7 @@ function rcAnalyzeExchange() {
       let pairOrders = orders;
       if (orders.includes('my-first') && hasDef && !speedCoupled && !myMove.overrideOffensivePokemon && !AbilityById[ability]?.paradoxBoost && !rcActionChangesOwnHp(oppMove, { item }, my, true) && !['sandspit', 'seedsower'].includes(my.ability)) {
         let probe = rcObservationSide(rcBuildOpponentState(oppP, { evs: { hp: pair.hp, ...(defStat ? { [defStat]: pair.defense } : {}) }, nature, ability, item }), 'opp');
-        probe = rcSetHp(probe, Math.floor(calcStats(probe).hp * Number(revCalcState.oppStartHpPct ?? 100) / 100));
+        probe = rcSetHp(probe, Math.floor(calcMaxHp(probe) * Number(revCalcState.oppStartHpPct ?? 100) / 100));
         const f = { ...rcObservedField('dealt'), atkMovesFirst: true, atkMovesSecond: false };
         if (!rcFirstHitCanMatch(my, probe, myMove, f, 'opp', cache, oppMove)) pairOrders = orders.filter(order => order !== 'my-first');
       }
@@ -357,7 +360,7 @@ function rcAnalyzeExchange() {
         if (speMin > speMax) continue;
         for (const spe of speedCoupled ? Array.from({ length: speMax - speMin + 1 }, (_, i) => speMin + i) : [speMin]) {
           const opp = rcObservationSide(rcBuildOpponentState(oppP, { evs: { ...evs, spe }, nature, ability, item }), 'opp');
-          Object.assign(opp, rcSetHp(opp, Math.floor(calcStats(opp).hp * Number(revCalcState.oppStartHpPct ?? 100) / 100)));
+          Object.assign(opp, rcSetHp(opp, Math.floor(calcMaxHp(opp) * Number(revCalcState.oppStartHpPct ?? 100) / 100)));
           let candidateOrders = pairOrders;
           if (myMove && oppMove) {
             const possibleOrders = new Set(rcBattleOrder(my, opp, myMove, oppMove, field));

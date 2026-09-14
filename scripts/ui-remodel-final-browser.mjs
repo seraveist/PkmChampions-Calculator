@@ -386,6 +386,46 @@ async function main() {
     await waitFor(()=>client.evaluate("document.activeElement.dataset.cbType==='nature'"),1500).catch(()=>false);
     check(await client.evaluate("state.atk.nature==='adamant' && document.activeElement.dataset.cbType==='nature'"),'keyboard Enter selects the matching nature and returns focus',JSON.stringify(await client.evaluate("({nature:state.atk.nature,focus:document.activeElement.outerHTML.slice(0,500),rows:[...document.querySelectorAll('.picker-dialog .combobox-option')].map(e=>e.dataset.id)})"))+' | '+browserErrors.join(' | '));
     await installAxe(client);
+    for (const width of [1440,320]) {
+      await setViewport(client,width,1000);
+      await client.evaluate("document.querySelector('#atk-body .ui-choice-trigger').click()");
+      const choice = await client.evaluate(`(() => {
+        const menu=document.querySelector('.ui-choice-menu'),r=menu.getBoundingClientRect();
+        const rows=[...menu.children].map(el=>{const c=getComputedStyle(el);return {align:c.textAlign,height:el.getBoundingClientRect().height};});
+        return {width:innerWidth,left:r.left,right:r.right,top:r.top,bottom:r.bottom,height:innerHeight,rows};
+      })()`);
+      check(choice.left>=0 && choice.right<=choice.width && choice.top>=0 && choice.bottom<=choice.height && choice.rows.every(r=>r.align==='center'&&r.height>=40),`status options are centered and stay within the ${width}px viewport`,JSON.stringify(choice));
+      await checkAxe(client,`status choice ${width}px`);
+      await captureScreenshot(client,`status-choice-${width}`);
+      await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Home',code:'Home',windowsVirtualKeyCode:36});
+      await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowDown',code:'ArrowDown',windowsVirtualKeyCode:40});
+      await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r',unmodifiedText:'\r'});
+      await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+      check(await client.evaluate("state.atk.status===CALC_STATUS_OPTIONS[1].id && !document.querySelector('.ui-choice-menu') && document.activeElement.classList.contains('ui-choice-trigger')"),'status keyboard selection updates damage state and restores its trigger',JSON.stringify(await client.evaluate("({status:state.atk.status,expected:CALC_STATUS_OPTIONS[1].id,menu:!!document.querySelector('.ui-choice-menu'),focus:document.activeElement.outerHTML.slice(0,300)})")));
+      await client.evaluate("document.activeElement.click()");
+      await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+      // Native popover dismissal queues its toggle event; inspect the settled UI.
+      await waitFor(()=>client.evaluate("!document.querySelector('.ui-choice-menu')"),1000);
+      check(await client.evaluate("!document.querySelector('.ui-choice-menu') && document.activeElement.classList.contains('ui-choice-trigger') && state.atk.status===CALC_STATUS_OPTIONS[1].id"),'status Escape returns focus without changing the selection',JSON.stringify(await client.evaluate("({status:state.atk.status,focus:document.activeElement.outerHTML.slice(0,300)})")));
+      await client.evaluate("document.activeElement.click()");
+      await waitFor(()=>client.evaluate("document.activeElement.classList.contains('ui-choice-option')"),1000);
+      await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+      await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+      check(await client.evaluate("!document.querySelector('.ui-choice-menu') && !document.activeElement.classList.contains('ui-choice-trigger')"),'status Tab closes the list and advances to the next control',JSON.stringify(await client.evaluate("({menu:!!document.querySelector('.ui-choice-menu'),focus:document.activeElement.outerHTML.slice(0,300)})")));
+      const point=await client.evaluate("(() => {const e=document.querySelector('#atk-body .ui-choice-trigger');e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()");
+      await sleep(100);
+      for (let i=0;i<2;i++) {
+        await client.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...point});
+        await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...point});
+        await sleep(60);
+        check(await client.evaluate("!!document.querySelector('.ui-choice-menu:popover-open')") === (i===0),'status pointer toggle '+i+' has the expected open state');
+      }
+      check(await client.evaluate("!document.querySelector('.ui-choice-menu')"),'clicking the status trigger again closes its list');
+    }
+    await client.evaluate("activateMainPage('finetune')",true);
+    await client.evaluate("document.querySelector('[data-ft-value=status]').parentElement.querySelector('button').click();document.querySelector('.ui-choice-option[value=Burn]').click()");
+    check(await client.evaluate("fineTuneState.my.status==='Burn' && document.activeElement.classList.contains('ui-choice-trigger')"),'status mouse selection survives a complete fine-tune rerender');
+    check(await client.evaluate("document.getElementById('ftMargin').parentElement.firstElementChild.textContent==='+' && document.getElementById('ftMargin').value==='1'"),'speed margin displays a plus prefix while retaining the numeric input');
     for(const page of ['calc','finetune','revcalc','matchup','dex']) {
       await client.evaluate(`activateMainPage('${page}',{updateHash:true})`,true);
       for(const theme of ['light','dark']) {

@@ -117,6 +117,7 @@ function loadFineTuneApi() {
         ftSpeedSideFor,
         ftSetEv,
         ftHpBreakpoints,
+        ftBuildHpTargets,
         ftBuildSpeedTable,
         ftOppSpeedCase,
         ftOpponentBaseSpeed,
@@ -124,10 +125,7 @@ function loadFineTuneApi() {
         ftComboData,
         ftRenderOpponentPokemonOption,
         loadSideToFineTune,
-        ftSaveBaseline,
-        ftRestoreBaseline,
         ftApplyTarget,
-        ftHpEffectText,
         makeFieldState,
         ftClearConditions,
         ftSelectCombo,
@@ -255,7 +253,7 @@ assertOk(!ftMyHtml.includes('ft-summary-body'), 'fine-tune render omits standalo
 assertOk(ftMyHtml.includes('class="budget"'), 'fine-tune render uses the common stat budget');
 assertOk(ftMyHtml.includes(' / 66'), 'fine-tune stat budget labels point total');
 assertOk(api.elements.get('ft-hp-body').innerHTML.includes('ft-breakpoint-list'), 'fine-tune render includes HP breakpoint panel');
-assertOk(api.elements.get('ft-hp-body').innerHTML.includes('스텔스록 2배, 압정 3중'), 'fine-tune HP breakpoints merge identical rule rows');
+assertOk(api.ftBuildHpTargets(api.fineTuneState.my).investment.some(target => target.entries.some(info => info.rule.id === 'sr-4') && target.entries.some(info => info.rule.id === 'spikes-3')), 'one HP target covers Stealth Rock and three-layer Spikes');
 assertOk(!api.elements.get('ft-hp-body').innerHTML.includes('ft-breakpoint-target'), 'fine-tune HP breakpoint panel omits target HP subline');
 assertOk(ftMyHtml.includes('data-ft-pick="nature"'), 'fine-tune nature uses combobox markup');
 assertOk(ftMyHtml.includes('metric-strip'), 'fine-tune render includes common durability metrics');
@@ -328,12 +326,10 @@ api.fineTuneState.my.item = 'sitrusberry';
 api.fineTuneState.my.evs.hp = 16;
 const berryRow = api.ftHpBreakpoints(api.fineTuneState.my).find(row => row.rule.id === 'sitrusberry');
 assertOk(berryRow, 'selected Sitrus Berry supplies an HP breakpoint');
-assertEqual(api.ftHpEffectText(api.fineTuneState.my, berryRow.rule, 156), 'HP 78 이하 발동 · 회복 39', 'Sitrus effect shows actual trigger and rounded recovery');
-assertOk(api.ftHpEffectText(api.fineTuneState.my, berryRow.rule, 157).includes('회복 39'), 'HP adjustment does not invent a recovery increase between rounding thresholds');
 api.fineTuneState.my.item = 'leftovers';
 const leftRow = api.ftHpBreakpoints(api.fineTuneState.my).find(row => row.rule.id === 'leftovers');
-assertEqual(api.ftHpEffectText(api.fineTuneState.my, leftRow.rule, 160), '회복 10', 'Leftovers effect shows actual recovery at a breakpoint');
-assertEqual(api.ftHpEffectText(api.fineTuneState.my, leftRow.rule, 159), '회복 9', 'Leftovers comparison exposes the recovery tradeoff');
+assertOk(leftRow.rule.predicate(160) && !leftRow.rule.predicate(159), 'Leftovers keeps its recovery breakpoint');
+assertOk(berryRow.rule.predicate(156) && !berryRow.rule.predicate(157), 'Sitrus retains its recovery breakpoint');
 api.fineTuneState.my = api.makeSideState('clefable');
 api.fineTuneState.my.ability = 'magicguard';
 assertOk(!api.ftHpBreakpoints(api.fineTuneState.my).some(row => row.rule.kind === 'damage'), 'Magic Guard removes inapplicable indirect damage breakpoints');
@@ -347,23 +343,46 @@ assertEqual(api.ftApplyTarget('hp', overHp.next.ev), false, 'HP goal refuses an 
 api.fineTuneState.my = api.makeSideState('qwilfish');
 api.fineTuneState.my.evs.hp = 16;
 api.fineTuneState.my.nature = 'jolly';
-api.ftSaveBaseline();
 api.fineTuneState.my.evs.hp = 31;
 api.fineTuneState.my.nature = 'impish';
 api.fineTuneState.my.item = 'leftovers';
 api.fineTuneState.field.weather = 'Rain';
 api.renderFineTuneAll();
-assertOk(api.elements.get('ft-my-body').innerHTML.includes('기준 배분과 비교'), 'baseline comparison is rendered');
-api.ftRestoreBaseline();
-assertEqual(api.fineTuneState.my.evs.hp, 16, 'restoring baseline restores points');
-assertEqual(api.fineTuneState.my.nature, 'jolly', 'restoring baseline restores nature');
-assertOk(api.fineTuneState.my.item === 'leftovers' && api.fineTuneState.field.weather === 'Rain', 'restoring allocation keeps current item and field');
+assertOk(!api.elements.get('ft-my-body').innerHTML.includes('기준 배분과 비교'), 'removed baseline comparison stays absent');
 api.fineTuneState.my.status = 'Paralysis';
 api.fineTuneState.my.tailwind = true;
 api.fineTuneState.my.ranks.spe = 2;
 api.ftApplyPokemonToFineTune('garchomp');
 assertOk(api.fineTuneState.my.status === 'none' && !api.fineTuneState.my.tailwind && api.fineTuneState.my.ranks.spe === 0, 'new species clears hidden inherited battle conditions');
-assertEqual(api.fineTuneState.baseline.pokemonIdx, 'garchomp', 'new species resets the baseline');
 api.fineTuneState.my.status = 'Paralysis';
 api.ftClearConditions('my');
 assertEqual(api.fineTuneState.my.status, 'none', 'explicit condition reset clears status');
+
+// HP list behavior: distinct targets, explicit cost and no repeated fulfilled-rule investment.
+api.fineTuneState.my = api.makeSideState('gengar');
+let hpPlan = api.ftBuildHpTargets(api.fineTuneState.my);
+const hp137 = hpPlan.investment.filter(target => target.hp === 137);
+assertEqual(hp137.length, 1, 'identical HP goals from different formulas merge into one target');
+assertEqual(hp137[0].ev, 2, 'merged HP target keeps the actual point requirement');
+assertOk(['sr-8','spikes-1','spikes-3'].every(id => hp137[0].entries.some(info => info.rule.id === id)), 'merged HP target lists all applicable hazard criteria');
+assertEqual(hpPlan.investment.map(target => target.hp).join(','), '137,139', 'nearby applicable goals precede generic reference targets');
+api.fineTuneState.my.evs.hp = 2;
+hpPlan = api.ftBuildHpTargets(api.fineTuneState.my);
+assertOk(['sr-8','spikes-1','spikes-3'].every(id => hpPlan.current.some(info => info.rule.id === id)), 'fulfilled rules move into the current HP summary');
+assertEqual(hpPlan.investment.map(target => target.hp).join(','), '139', 'fulfilled formulas do not repeat their next investment goal');
+assertOk(hpPlan.savings.length > 0 && hpPlan.savings.every(target => target.delta < 0 && target.hp <= hpPlan.currentHp), 'lower HP choices live in effort savings');
+api.fineTuneState.my.evs.hp = 0;
+api.fineTuneState.my.item = 'leftovers';
+hpPlan = api.ftBuildHpTargets(api.fineTuneState.my);
+assertEqual(hpPlan.investment[0].hp, 144, 'equipped-item HP target precedes hazard targets when affordable');
+api.fineTuneState.my.evs.atk = 32;
+api.fineTuneState.my.evs.def = 32;
+hpPlan = api.ftBuildHpTargets(api.fineTuneState.my);
+assertEqual(hpPlan.investment[0].hp, 137, 'affordable target precedes an item target needing reallocation');
+assertOk(hpPlan.investment.slice(1).every(target => target.shortfall > 0), 'over-budget targets stay explicit at the end');
+for (const id of ['gengar','garchomp','clefable','shedinja']) {
+  const side = api.makeSideState(id);side.evs.hp=16;
+  const plan=api.ftBuildHpTargets(side), targets=[...plan.investment,...plan.savings,...plan.reference];
+  assertEqual(new Set(targets.map(target=>target.hp)).size,targets.length,'HP goals stay unique across all sections: '+id);
+  assertOk(targets.every(target=>api.calcStats({...side,evs:{...side.evs,hp:target.ev}}).hp===target.hp && target.entries.every(info=>info.rule.predicate(target.hp))),'every displayed HP and criterion matches the calculator: '+id);
+}

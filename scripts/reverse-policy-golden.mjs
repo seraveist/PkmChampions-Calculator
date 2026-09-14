@@ -30,7 +30,10 @@ check('reverse defense retains a known Occa Berry in the matching candidate', `
   const pct=Math.floor((hp-damage.damages[0])/hp*100);
   return rcBuildDefenseMatches(revCalcState.my,p,m,pct,f,'spd',['careful'],[{id:'technician',impact:false}]).get('careful').some(c=>c.hpEv===32&&c.defEv===20&&c.item==='occaberry');
 `);
-check('all 25 natures remain available to reverse inference', `return rcNatureCandidatesForMove(MoveById.earthquake).length===25;`);
+check('reverse searches exactly the ten requested battle natures', `
+ const expected=['adamant','jolly','impish','careful','modest','timid','bold','calm','naive','brave'];
+ return ['earthquake','flamethrower'].every(id=>JSON.stringify(rcNatureCandidatesForMove(MoveById[id]))===JSON.stringify(expected)) && NATURES.length===25;
+`);
 check('reverse speed uses Swift Swim rain, and keeps alternate speed abilities', `
   revCalcState.my=makeSideState('qwilfish');revCalcState.my.ability='swiftswim';revCalcState.field=makeFieldState({weather:'Rain'});revCalcState.turnOrder='opp-first';
   return rcMySpeedValue()===calcStats(revCalcState.my).spe*2 && rcOpponentAbilityCandidates(PokemonById.qwilfish).some(c=>c.id==='swiftswim');

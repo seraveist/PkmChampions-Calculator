@@ -1,4 +1,9 @@
 /* Reverse calculator DOM synchronization and events. */
+function rcFieldInputValue(input) {
+  if (input.type === 'checkbox') return input.checked;
+  return input.dataset.rcField === 'trickRoom' ? input.value === 'true' : input.value;
+}
+
 function rcSyncInputsFromDom() {
   const root = document.getElementById('page-revcalc');
   if (!root) return;
@@ -52,7 +57,7 @@ function rcSyncInputsFromDom() {
   const nextField = rcDefaultField();
   root.querySelectorAll('[data-rc-field]').forEach(el => {
     const key = el.dataset.rcField;
-    nextField[key] = el.type === 'checkbox' ? el.checked : el.value;
+    nextField[key] = rcFieldInputValue(el);
   });
   revCalcState.field = nextField;
   root.querySelectorAll('[data-rc-observed-field]').forEach(el => {
@@ -460,9 +465,11 @@ function rcWireMoveComboboxes(scope) {
       onSelect:option=>{
         const id=option.dataset.id || '';
         rcSetMovePickerValue(target,id,slot);
+        // Only an explicit move choice updates the observed attack; DOM sync must preserve it.
+        if(target==='knownOppMove' && id) rcSetMovePickerValue('oppMove',id);
         uiSetPickerLabel(input,rcMoveLabel(id));
         if(target==='moveslot') renderRevCalcMy();
-        if(['moveslot','myMove','oppMove'].includes(target)) renderRevCalcInputs();
+        if(['moveslot','myMove','oppMove','knownOppMove'].includes(target)) renderRevCalcInputs();
         renderRevCalcResults();
       },
     });

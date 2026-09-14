@@ -9,8 +9,8 @@ const css=new Map(files(dir).map(f=>[f,readFileSync(path.join(dir,f),'utf8')]));
 const all=[...css.values()].join('\n');let failures=0;
 function check(ok,label){console[ok?'log':'error'](`[${ok?'PASS':'FAIL'}] ${label}`);if(!ok)failures++;}
 const owners={
-  'components/00-controls.css':['.ui-control {','.ui-button {','.ui-select-trigger {','.ui-select {','.ui-search {','.ui-icon {','.ui-chevron {','.ui-dialog {','.dialog-heading {'],
-  'components/primitives.css':['.ui-panel {','.ui-panel-head {','.ui-panel-body {'],
+  'components/00-controls.css':['.ui-control {','.ui-button {','.ui-select-trigger {','.ui-select {','.ui-search {','.ui-icon {','.ui-chevron {','.ui-dialog {','.dialog-heading {','.ui-choice-trigger {','.ui-choice-menu {','.ui-number-prefix {'],
+  'components/primitives.css':['.ui-panel {','.ui-panel-head {','.ui-panel-body {','.ui-frame {','.ui-state {'],
   'components/participants.css':['.pokemon-select {','.pokemon-sprite-slot {','.stat-table {','.hp-row {','.attributes {'],
   'components/pickers.css':['.combobox {','.picker-dialog {','.ui-option-row,.combobox-option {','.nature-option {','.picker-pokemon-types {'],
 };
@@ -18,7 +18,7 @@ for(const [file,selectors] of Object.entries(owners)) for(const selector of sele
 for(const menu of ['calculator','reverse','finetune','matchup','dex']) {
   const file=`pages/${menu}.css`,source=css.get(file)||'';
   check(!!source&&Buffer.byteLength(source)<16*1024,`${menu} has one compact page stylesheet`);
-  check(!/\n\s*\.(?:ui-control|ui-button|ui-select-trigger|ui-icon|ui-chevron|combobox-option|stat-table)\s*\{/.test(source),`${menu} does not redefine shared base elements`);
+  check(!/\n\s*\.(?:ui-control|ui-button|ui-select-trigger|ui-icon|ui-chevron|ui-choice-trigger|ui-choice-menu|ui-frame|ui-state|combobox-option|stat-table)\s*\{/.test(source),`${menu} does not redefine shared base elements`);
 }
 check(!css.has('components/tool-stats.css')&&!css.has('themes.css')&&!css.has('responsive.css'),'obsolete stat editor and late override layers are removed');
 check(Buffer.byteLength(all)<100*1024,'total source CSS remains under 100 KiB');

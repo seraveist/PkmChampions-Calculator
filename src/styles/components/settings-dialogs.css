@@ -1,6 +1,6 @@
 /* Settings dialogs: the same surface, heading and control scale as search dialogs. */
 .settings-body { display:grid;gap:16px;padding:8px 20px 16px;overflow:auto;min-height:0; }
-.settings-body h3 { font-size:13px;font-weight:650;margin-bottom:10px; }
+.settings-body h3 { font-size:var(--text-compact);font-weight:650;margin-bottom:10px; }
 .dialog-actions { display:flex;padding:0 20px 20px; }
 .dialog-actions>.ui-button { width:100%; }
 #calc-side-settings { --dialog-width:min(580px,calc(100% - 32px)); }

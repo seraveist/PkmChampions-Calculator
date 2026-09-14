@@ -16,7 +16,7 @@ const revCalcState = {
   observedTheirPct: '',
   oppMove: '',
   oppMoveBp: '',
-  knownOppMoves: ['', '', ''],
+  knownOppMoves: ['', '', '', ''],
   oppItemKnown: 'unknown',
   predictedOppMove: '',
   nextMyMove: '',
@@ -66,9 +66,8 @@ function rcActiveFieldSummary(field) {
   return parts.join(',') || 'none';
 }
 
-const RC_NATURE_IDS = [...new Set((Array.isArray(NATURES) && NATURES.length)
-  ? NATURES.map(n => n.id).filter(Boolean)
-  : Object.keys(NATURE_BY_ID || {}))];
+// Opponent inference policy; manual Pokemon editors retain the complete nature list.
+const RC_NATURE_IDS = ['adamant','jolly','impish','careful','modest','timid','bold','calm','naive','brave'];
 const RC_MOVESET_SIZE = 4;
 const RC_MOVE_COLLATOR = typeof Intl !== 'undefined'
   ? new Intl.Collator('ko-KR', { sensitivity: 'base', numeric: true })
@@ -233,8 +232,8 @@ function rcSetMovePickerValue(target, id, slot = null) {
   const moveId = id && MoveById[id] ? id : '';
   if (target === 'knownOppMove') {
     const index = Number(slot);
-    if (Number.isInteger(index) && index >= 0 && index < 3) {
-      revCalcState.knownOppMoves ||= ['', '', ''];
+    if (Number.isInteger(index) && index >= 0 && index < RC_MOVESET_SIZE) {
+      revCalcState.knownOppMoves ||= ['', '', '', ''];
       revCalcState.knownOppMoves[index] = moveId;
     }
     return;

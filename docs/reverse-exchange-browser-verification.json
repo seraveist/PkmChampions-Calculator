@@ -1,26 +1,26 @@
 [
   {
-    "analysisMs": 1102,
+    "analysisMs": 1191,
     "unknownItems": false,
-    "total": 7234,
+    "total": 3810,
     "timings": {
-      "inferenceMs": 768,
-      "cardsMs": 103
+      "inferenceMs": 474,
+      "cardsMs": 465
     },
     "forecast": {
-      "rawMin": 70,
-      "rawMax": 93,
-      "pctMin": 37.83783783783784,
-      "pctMax": 50.27027027027027,
+      "rawMin": 69,
+      "rawMax": 82,
+      "pctMin": 37.91208791208791,
+      "pctMax": 53.59477124183007,
       "koClass": "ko-none",
       "koState": "KO 불가",
       "survival": "확정 생존",
       "order": "후보에 따라 선후공 다름",
       "formCertain": 0,
       "formPossible": 0,
-      "formImpossible": 76
+      "formImpossible": 128
     },
-    "h32": 32
+    "h32": 29
   },
   {
     "width": 1440,

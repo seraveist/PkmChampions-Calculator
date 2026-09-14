@@ -396,6 +396,18 @@ async function main() {
     check(await client.evaluate("dexViewState.moves.scope==='all' && document.getElementById('dexSearch').value==='baddybad'"), 'scope and search survive switching Dex tabs');
     await client.evaluate("document.getElementById('dexResetFilters').click()");
     check(await client.evaluate("dexViewState.moves.scope==='current' && !document.getElementById('dexSearch').value && !MOVES.some(m=>m.id.startsWith('gmax')) && MOVES.every(m=>Number.isInteger(m.pp))"), 'reset restores current scope, PP is present, and G-Max moves are absent');
+    const summarySpecies=await client.evaluate("['venusaur', [...POKEMON].sort((a,b)=>relatedPokemonForms(b).length-relatedPokemonForms(a).length)[0].id, POKEMON.find(p=>!relatedPokemonForms(p).length).id]");
+    for (const width of [1440,768,375,320]) {
+      await setViewport(client,width,1000);
+      for (const id of summarySpecies) {
+        await client.evaluate('openDexDetailPage("pokemon",'+JSON.stringify(id)+');document.querySelector(".dex-detail-overview").scrollIntoView({block:"start"})');
+        report.push({width,id,summary:await client.evaluate("(()=>{const root=document.querySelector('#dexFullPageBody'),frame=root.querySelector('.dex-detail-summary');return {height:frame.getBoundingClientRect().height,abilitiesHeight:root.querySelector('.dex-detail-abilities').getBoundingClientRect().height,overflow:document.documentElement.scrollWidth-innerWidth,clipped:[...frame.querySelectorAll('.dex-detail-fact,.dex-matchup-types')].filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent)}})()")});
+        await captureScreenshot(client,'dex-summary-'+id+'-'+width);
+      }
+      await client.evaluate("openDexDetail('pokemon','venusaur')");
+      await captureScreenshot(client,'dex-summary-popup-'+width);
+      await client.evaluate('closeDexDetail()');
+    }
     for (const width of [1440,375,320]) {
       await setViewport(client,width,1000);
       await client.evaluate("openDexDetailPage('pokemon','charizard');document.querySelector('#dexFullPageDetail [data-learnset-category=Special]').click();document.querySelector('#dexFullPageDetail [data-learnset-filter=Fire]').click();document.querySelector('.dex-learnset-section').scrollIntoView({block:'start'})");

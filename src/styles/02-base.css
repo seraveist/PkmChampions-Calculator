@@ -1,5 +1,5 @@
 * { box-sizing:border-box; }
-body { margin:0;background:var(--canvas);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;font-size:14px;line-height:1.5; }
+body { margin:0;background:var(--canvas);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;font-size:15px;line-height:1.5; }
 button,input,select { font:inherit;color:inherit; }
 button,a,input,select,summary { -webkit-tap-highlight-color:transparent; }
 button,summary,select { cursor:pointer; }

@@ -56,9 +56,14 @@
 .dex-fullpage-title { font-size:var(--text-pokemon);font-weight:800;line-height:1.35; }
 .dex-fullpage-title-en { font-size:var(--text-label);color:var(--muted); }
 .dex-fullpage-body { display:grid;gap:22px;padding:20px; }
-.dex-fullpage-body[data-detail-kind=pokemon] { grid-template-columns:repeat(2,minmax(0,1fr)); }
-.dex-detail-overview,.dex-learnset-section { grid-column:1/-1; }
+.dex-fullpage-body[data-detail-kind=pokemon] { gap:16px; }
+.dex-detail-summary { display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:20px;align-items:start; }
+.dex-detail-facts { display:grid;gap:12px;min-width:0;padding-left:20px;border-left:1px solid var(--line); }
+.dex-detail-fact { display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:center; }
+.dex-detail-fact>.dex-modal-section-title { margin-bottom:0; }
+.dex-detail-facts>.dex-detail-matchup { padding-top:14px;border-top:1px solid var(--line); }
 .dex-modal-section { min-width:0; }
+.dex-learnset-list>.ui-button + .ui-button { border-top:1px solid var(--line);border-radius:0; }
 .dex-modal-section-title { font-size:var(--text-subheading);font-weight:750;margin-bottom:10px; }
 .dex-modal-row { display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:var(--text-compact); }
 .dex-modal-row>.label { width:44px;color:var(--muted);font-size:var(--text-label); }
@@ -111,7 +116,8 @@
   .dex-table td { height:48px; }
   .dex-fullpage-head { padding:12px;gap:8px;flex-wrap:wrap; }
   .dex-fullpage-body { padding:14px;gap:20px; }
-  .dex-fullpage-body[data-detail-kind=pokemon] { grid-template-columns:minmax(0,1fr); }
+  .dex-detail-summary { grid-template-columns:minmax(0,1fr);gap:14px; }
+  .dex-detail-facts { padding-left:0;padding-top:14px;border-left:0;border-top:1px solid var(--line); }
   .dex-detail-name>small { display:block;flex-basis:100%; }
   .dex-detail-sprite { width:56px;height:56px;flex-basis:56px; }
   .dex-modal { --dialog-width:calc(100% - 20px); }

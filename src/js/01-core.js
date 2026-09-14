@@ -237,6 +237,11 @@ const NATURES = Array.isArray(NATURE_DATA) && NATURE_DATA.length
   : FALLBACK_NATURES;
 const NATURE_BY_ID = Object.fromEntries(NATURES.map(n => [n.id, n]));
 
+function calcMaxHp(side) {
+  const p = PokemonById[side.pokemonIdx];
+  return p ? Math.floor((2 * p.bs.hp + 31 + (side.evs.hp || 0) * 2) * .5) + 60 : 0;
+}
+
 function calcStats(side) {
   const p = PokemonById[side.pokemonIdx];
   if (!p) return { hp:0, atk:0, def:0, spa:0, spd:0, spe:0 };
@@ -258,8 +263,7 @@ function calcStats(side) {
   // 다른 스탯: floor((2*base + 31 + floor(EV/4)) * Lv/100) + 5, ±10% 성격 보정
   //   = floor((2*base + 31 + pt*2) * 0.5) + 5
 
-  const hpEv = side.evs.hp || 0;
-  out.hp = Math.floor((2 * bs.hp + 31 + hpEv * 2) * 0.5) + 60;
+  out.hp = calcMaxHp(side);
 
   for (const s of RANK_STATS) {
     const ev = side.evs[s] || 0;

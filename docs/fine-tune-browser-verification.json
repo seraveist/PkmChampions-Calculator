@@ -4,8 +4,7 @@
     "viewport": 1440,
     "scale": 1,
     "overflow": -15,
-    "comparisonRows": 10,
-    "goalCount": 13,
+    "goalCount": 10,
     "clipped": []
   },
   {
@@ -13,8 +12,7 @@
     "viewport": 375,
     "scale": 1,
     "overflow": 0,
-    "comparisonRows": 10,
-    "goalCount": 13,
+    "goalCount": 10,
     "clipped": []
   },
   {
@@ -22,8 +20,7 @@
     "viewport": 320,
     "scale": 1,
     "overflow": 0,
-    "comparisonRows": 10,
-    "goalCount": 13,
+    "goalCount": 10,
     "clipped": []
   }
 ]

@@ -3,6 +3,10 @@
 .ui-control:focus-visible { outline:none;box-shadow:0 0 0 var(--ui-focus-width) var(--ui-focus-color); }
 .ui-button { border:0;background:var(--button-bg,transparent);border-radius:var(--button-radius,var(--ui-radius));min-width:0;min-height:var(--button-height,var(--ui-control-height));color:var(--button-color,inherit); }
 .ui-button:disabled { cursor:default;opacity:.45; }
+.ui-number-prefix { display:inline-grid;grid-template-columns:auto minmax(0,1fr);align-items:center;position:relative; }
+.ui-number-prefix>span { grid-column:1;grid-row:1;z-index:1;padding-left:20px;color:var(--ink);pointer-events:none; }
+.ui-number-prefix>input { grid-column:1/-1;grid-row:1;padding-left:30px;appearance:textfield; }
+.ui-number-prefix>input::-webkit-inner-spin-button,.ui-number-prefix>input::-webkit-outer-spin-button { appearance:none;margin:0; }
 @media (hover:hover) { .ui-button:not(:disabled):hover { background:var(--button-hover,var(--color-surface-muted)); } }
 .ui-button--primary { --button-bg:var(--accent);--button-hover:var(--accent);--button-color:var(--color-surface-canvas);font-weight:700; }
 .ui-button--primary:hover { filter:brightness(.95); }
@@ -16,7 +20,7 @@
 .ui-icon { display:block;flex:none;width:var(--ui-icon-size);height:var(--ui-icon-size);fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none; }
 .ui-chevron { width:var(--ui-chevron-size);height:var(--ui-chevron-size);color:var(--ui-chevron-color);stroke-width:var(--ui-chevron-stroke); }
 .icon-button { display:grid;place-items:center;min-width:var(--button-height,var(--ui-control-height));padding:0; }
-.ui-select-trigger { --focus-offset:0;display:flex;align-items:center;gap:8px;text-align:left; }
+.ui-select-trigger { --focus-offset:0;display:flex;align-items:center;gap:8px;text-align:left;font-weight:var(--weight-control); }
 .ui-select-content { display:block;flex:1;min-width:0; }
 .ui-select-trigger--compact { --ui-chevron-size:var(--ui-chevron-compact);display:grid;grid-template-columns:minmax(0,1fr) var(--ui-chevron-size);column-gap:4px;row-gap:2px;align-content:center; }
 .ui-select-trigger--compact>.ui-select-content { display:contents; }
@@ -34,17 +38,26 @@
 details[open]>.ui-disclosure>.ui-chevron { transform:rotate(180deg); }
 
 /* 4. Inputs: fields, dense stat controls, checkboxes and search are explicit variants. */
-.ui-control { min-width:0;width:100%;min-height:var(--ui-control-height);border:1px solid var(--control-border,var(--line));background:var(--input);color:var(--ink);font-size:var(--control-font,var(--text-value));font-weight:var(--control-weight,400);border-radius:var(--control-radius,var(--ui-radius));padding:var(--control-padding,8px);text-align:var(--control-align,left); }
+.ui-control { min-width:0;width:100%;min-height:var(--ui-control-height);border:1px solid var(--control-border,var(--line));background:var(--input);color:var(--ink);font-size:var(--control-font,var(--text-value));font-weight:var(--control-weight,var(--weight-control));border-radius:var(--control-radius,var(--ui-radius));padding:var(--control-padding,8px);text-align:var(--control-align,left); }
 .ui-control:hover { border-color:var(--line); }
 .ui-number { appearance:textfield; }
 .ui-number::-webkit-inner-spin-button { -webkit-appearance:none; }
 .form-field { display:flex;flex-direction:column;min-width:0;gap:var(--field-gap,6px);font-size:var(--field-font,var(--text-label));color:var(--muted); }
+.form-field--inline { flex-direction:row;align-items:center;white-space:nowrap; }
 .ui-check { display:flex;align-items:center;gap:var(--check-gap,8px);min-height:var(--check-height,40px);font-size:var(--check-font,13px);color:var(--ink);cursor:pointer; }
 .ui-checkbox { width:var(--check-size,17px);height:var(--check-size,17px);flex:none;margin:0;accent-color:var(--accent); }
 .ui-search { display:flex;align-items:center;gap:10px;background:var(--input);border:1px solid var(--line);border-radius:var(--ui-radius);padding:0 12px; }
 .ui-search:focus-within { border-color:var(--ui-focus-color);box-shadow:0 0 0 var(--ui-focus-width) var(--ui-focus-color); }
 .ui-search>.ui-icon { --ui-icon-size:18px;color:var(--muted); }
 .ui-search>.ui-control { border:0;background:none;box-shadow:none;padding:8px 0; }
+
+/* Small fixed choices use one anchored list; arrows never shift the centered label. */
+.ui-choice-trigger { --button-bg:var(--input);position:relative;width:100%;padding:8px 24px;font-size:var(--control-font,var(--text-value));color:var(--ink);text-align:center; }
+.ui-choice-trigger>.ui-chevron { position:absolute;right:6px;top:50%;transform:translateY(-50%); }
+.ui-choice-menu { position:fixed;inset:auto;margin:0;padding:4px;border:1px solid var(--line);border-radius:var(--ui-radius);background:var(--panel);color:var(--ink);box-shadow:var(--shadow-surface);overflow:auto;overscroll-behavior:contain; }
+.ui-choice-menu:popover-open { display:grid; }
+.ui-choice-option { --focus-offset:-2px;min-height:40px;padding:8px;width:100%;text-align:center;font-size:var(--text-label);font-weight:var(--weight-control); }
+.ui-choice-option[aria-selected=true] { --button-bg:var(--input);color:var(--color-side-defense-strong);font-weight:700; }
 
 .dialog-heading { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px 8px;flex-shrink:0; }
 .dialog-heading h2 { font-size:var(--text-section); }
@@ -54,11 +67,11 @@ details[open]>.ui-disclosure>.ui-chevron { transform:rotate(180deg); }
 .ui-dialog { --surface-radius:20px;background:var(--panel);color:var(--ink);padding:0;margin:auto;max-width:none;box-shadow:var(--shadow-surface);width:var(--dialog-width,min(480px,calc(100% - 32px)));max-height:min(720px,calc(100dvh - 48px)); }
 .ui-dialog::backdrop { background:var(--color-surface-overlay);backdrop-filter:blur(3px); }
 .ui-tag { padding:2px 6px;border-radius:4px;background:var(--input);font-size:var(--text-meta);color:var(--muted); }
-.type-chip { font-size:10px;font-weight:700;line-height:1.6;padding:1px 7px;background:var(--type-bg);color:var(--type-fg);white-space:nowrap; }
+.type-chip { font-size:var(--text-badge);font-weight:700;line-height:1.6;padding:1px 7px;background:var(--type-bg);color:var(--type-fg);white-space:nowrap; }
 .ui-meter { height:5px;background:var(--color-surface-muted);border-radius:5px;overflow:hidden; }
 .ui-meter-fill { display:block;height:100%;background:var(--meter-color,var(--color-side-attack));border-radius:inherit; }
 @media (max-width:900px) { :root { --text-pokemon:21px; } }
 @media (max-width:700px) {
-  :root { --text-page:24px;--text-result:25px;--text-section:17px;--text-move:15px;--text-value:13px; }
+  :root { --text-page:24px;--text-result:25px;--text-section:17px;--text-move:15px;--text-value:14px; }
   .ui-dialog { --dialog-width:calc(100% - 20px);--surface-radius:16px; }
 }

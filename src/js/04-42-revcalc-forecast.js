@@ -116,7 +116,7 @@ function rcForecastDirect(c, moveId, role, speedActive, selectedMyMoveId = null)
             if (!outcomes.length) { incomplete = true; continue; }
             let chance = 0;
             for (const outcome of outcomes) {
-              const pct = outcome.damage / calcStats(d).hp * 100;
+              const pct = outcome.damage / calcMaxHp(d) * 100;
               bounds.rawMin = Math.min(bounds.rawMin, outcome.damage); bounds.rawMax = Math.max(bounds.rawMax, outcome.damage);
               bounds.pctMin = Math.min(bounds.pctMin, pct); bounds.pctMax = Math.max(bounds.pctMax, pct);
             }
@@ -187,7 +187,7 @@ function rcNextStateSummary(c) {
     let unknownItem = false;
     let hpMin = Infinity, hpMax = 0, pctMin = Infinity, pctMax = 0;
     for (const member of rcMemberList(c)) for (const path of member.paths || []) {
-      const side = rcForecastStartState(path, role), hp = rcHp(side), pct = hp / calcStats(side).hp * 100;
+      const side = rcForecastStartState(path, role), hp = rcHp(side), pct = hp / calcMaxHp(side) * 100;
       pathCount++;
       hpMin = Math.min(hpMin, hp); hpMax = Math.max(hpMax, hp); pctMin = Math.min(pctMin, pct); pctMax = Math.max(pctMax, pct);
       for (const s of Object.keys(ranks)) ranks[s].add(side.ranks[s] || 0);

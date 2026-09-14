@@ -105,7 +105,6 @@
       <section class="ui-panel rc-stage-panel" id="rc-input-panel" data-rc-stage="observations" data-stage-state="locked" aria-disabled="true">
         <div class="ui-panel-head">
           <h3 class="ui-panel-title">한 턴 관측</h3>
-          <span class="ui-panel-tag rc-stage-status" id="rc-input-stage-status">선택 필요</span>
         </div>
         <div class="ui-panel-body" id="rc-input-body"></div>
       </section>
@@ -127,12 +126,11 @@
     <!-- 세부조정 -->
     <section id="page-finetune" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-finetune" aria-hidden="true" hidden>
       <div class="page-heading"><h2>세부조정</h2></div>
-      <p id="ftNotice" class="notice" role="status" aria-live="polite"></p>
       <div class="ft-layout" id="ft-layout">
         <section class="ui-panel participant-panel ft-editor"><div class="ui-panel-head"><h3 class="side-label">내 포켓몬</h3></div><div class="ui-panel-body" id="ft-my-body"></div></section>
         <section class="ui-panel participant-panel defense ft-speed-panel"><div class="ui-panel-head"><h3 class="side-label">상대 / 스피드</h3></div><div class="ui-panel-body">
           <div id="ft-opp-body"></div>
-          <section class="ft-speed-embedded"><div class="section-heading"><h3>스피드 비교</h3><label class="ft-margin-field">차이 <input class="ui-control ui-number" type="number" inputmode="numeric" id="ftMargin" min="0" max="999" value="1" aria-label="추월 마진"></label></div>
+          <section class="ft-speed-embedded"><div class="section-heading"><h3>스피드 비교</h3><label class="ft-margin-field">차이 <span class="ui-number-prefix"><span aria-hidden="true">+</span><input class="ui-control ui-number" type="number" inputmode="numeric" id="ftMargin" min="0" max="999" value="1" aria-label="추월 마진"></span></label></div>
             <label class="form-field">상대 속도 직접 입력<input class="ui-control ui-number" type="number" id="ftTargetSpeed" min="1" max="10000" placeholder="선택"></label>
             <div id="ft-speed-body"></div>
           </section>

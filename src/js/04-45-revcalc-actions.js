@@ -160,8 +160,7 @@ document.getElementById('page-revcalc')?.addEventListener('change', e => {
   if (t.dataset.rcAction === 'turnOrder') { revCalcState.turnOrder = t.value; renderRevCalcInputs(); return; }
   if (t.dataset.rcField) {
     const k = t.dataset.rcField;
-    const v = t.type === 'checkbox' ? t.checked : t.value;
-    revCalcState.field[k] = v;
+    revCalcState.field[k] = rcFieldInputValue(t);
     return;
   }
   if (t.dataset.rcObservedField) {
@@ -385,7 +384,7 @@ function rcNewObservation({ opponentId = '', keepField = false, render = true } 
     ability: build.ability, item: build.item, moves: [...(build.moves || [])] };
   Object.assign(revCalcState, {
     opp: { pokemonIdx: opponentId, ranks: ranks(), status: 'none' },
-    myMove: '', myMoveBp: '', oppMove: '', oppMoveBp: '', knownOppMoves: ['', '', ''],
+    myMove: '', myMoveBp: '', oppMove: '', oppMoveBp: '', knownOppMoves: ['', '', '', ''],
     observedTheirPct: '', observedMyHp: '', oppStartHpPct: 100, observationTiming: 'end', hpTolerance: 0,
     oppItemKnown: rcDefaultKnownOpponentItemForPokemon(PokemonById[opponentId]), oppAbilityKnown: 'unknown',
     predictedOppMove: '', nextMyMove: '', nextMyRanks: ranks(), nextOppRanks: ranks(), nextRankOpen: false,
