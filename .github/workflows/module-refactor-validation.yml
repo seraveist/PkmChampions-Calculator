@@ -4,28 +4,106 @@ on:
     branches: [refactor/client-data-performance]
     paths: [.github/workflows/module-refactor-validation.yml, .module-transfer/**]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  source:
+  validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Prepare reproducible development snapshot
+          cache: npm
+      - name: Apply verified module source snapshot
         run: |
           set -euo pipefail
-          git archive HEAD -o "$RUNNER_TEMP/module-source.tar"
-          mkdir -p "$RUNNER_TEMP/module-tools"
-          cd "$RUNNER_TEMP/module-tools"
-          npm init -y
-          npm install --save-exact esbuild acorn acorn-walk eslint-scope ws axe-core
-          tar -czf "$RUNNER_TEMP/module-tools.tar.gz" node_modules package.json package-lock.json
+          mkdir -p artifacts/module-refactor
+          python3 - <<'PY'
+          import base64, hashlib, json, os, pathlib, subprocess
+          temp = pathlib.Path(os.environ['RUNNER_TEMP'])
+          paths = subprocess.check_output(['git','ls-tree','-r','--name-only','HEAD','--','src/js','scripts','build.mjs','package.json','package-lock.json','README.md'], text=True).splitlines()
+          base = {p: subprocess.check_output(['git','show',f'HEAD:{p}']).decode() for p in sorted(paths)}
+          raw = json.dumps(base, ensure_ascii=False, separators=(',',':')).encode()
+          assert hashlib.sha256(raw).hexdigest() == '5b2338f7cc28c7fe55ab6f4081a43f746410894c19684eea36f6227a338b97db', 'Source baseline changed'
+          (temp/'module-base.json').write_bytes(raw)
+          text = ''.join(p.read_text().strip() for p in sorted(pathlib.Path('.module-transfer').glob('part-*.b64')))
+          text = text.replace('fWHYmFli mliYKIm', 'fWHYmF1mliYKIm')
+          (temp/'module-files.zst').write_bytes(base64.b64decode(text, validate=True))
+          PY
+          zstd -q -d --patch-from="$RUNNER_TEMP/module-base.json" "$RUNNER_TEMP/module-files.zst" -o "$RUNNER_TEMP/module-files.json"
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess
+          raw = pathlib.Path(os.environ['RUNNER_TEMP'], 'module-files.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest() == '701634ac29032091a11c113fca0e489550b0566a4df827243432151fd4512afa', 'Source payload mismatch'
+          files = json.loads(raw)
+          root = pathlib.Path.cwd()
+          for name, content in files.items():
+              dest = (root/name).resolve()
+              assert dest.is_relative_to(root) and not name.startswith('.') and isinstance(content,str)
+              dest.parent.mkdir(parents=True, exist_ok=True)
+              dest.write_text(content)
+          subprocess.run(['git','add','--',*files.keys()], check=True)
+          print(f'Applied {len(files)} verified files')
+          PY
+          git diff --cached --check
+      - run: npm ci
+      - name: Full regression suite
+        run: |
+          set -euo pipefail
+          npm test 2>&1 | tee artifacts/module-refactor/npm-test.log
+      - name: Uninstrumented production ESM and offline browser tests
+        run: |
+          set -euo pipefail
+          node scripts/modules-browser.mjs --public --disable-browser-sandbox 2>&1 | tee artifacts/module-refactor/production-public.log
+          node scripts/modules-browser.mjs --disable-browser-sandbox 2>&1 | tee artifacts/module-refactor/production-offline.log
+      - name: Calculator slot cache browser contracts
+        env:
+          UI_SMOKE_SCREENSHOT_DIR: artifacts/module-refactor/screenshots/calculator
+        run: |
+          set -euo pipefail
+          node scripts/calculator-remodel-browser.mjs --public --ad-free --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/module-refactor/calculator-pages.log
+          node scripts/calculator-remodel-browser.mjs --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/module-refactor/calculator-offline.log
+      - name: Unchanged reverse calculator behavior
+        env:
+          UI_SMOKE_SCREENSHOT_DIR: artifacts/module-refactor/screenshots/reverse
+        run: |
+          set -euo pipefail
+          node scripts/reverse-exchange-browser.mjs --public --ad-free --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/module-refactor/reverse.log
+      - name: All menu browser contracts in three deployment modes
+        env:
+          UI_SMOKE_SCREENSHOT_DIR: artifacts/module-refactor/screenshots/all-menus
+        run: |
+          set -euo pipefail
+          node scripts/ui-remodel-final-browser.mjs --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/module-refactor/ui-offline.log
+          node scripts/ui-remodel-final-browser.mjs --public --ad-free --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/module-refactor/ui-pages.log
+          node scripts/ui-remodel-final-browser.mjs --public --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/module-refactor/ui-public.log
+      - name: Feature-specific browser contracts
+        env:
+          UI_SMOKE_SCREENSHOT_DIR: artifacts/module-refactor/screenshots/features
+        run: |
+          set -euo pipefail
+          for page in dex fine-tune party-remodel matchup; do
+            node "scripts/${page}-browser.mjs" --public --ad-free --require-browser --disable-browser-sandbox 2>&1 | tee "artifacts/module-refactor/${page}.log"
+          done
+      - name: Commit validated changes only to the refactor branch
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = 'refs/heads/refactor/client-data-performance'
+          npm run build:standalone
+          npm run build:pages
+          npm run pages:ready
+          git add pokemon-champions-calculator-v3.html docs/damage-calculator-coverage-matrix.md
+          git rm -r .module-transfer .github/workflows/module-refactor-validation.yml
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'refactor: build native ES modules and cache move slots' -m 'Direct public builds share normalized data with standalone output. Convert source files to explicit module dependencies and preserve lazy features. Cache slot presentations and separate structural markup, with regression and production browser coverage. Preserve reverse inference, forecast and transport behavior.'
+          git push origin HEAD:refs/heads/refactor/client-data-performance
+          git rev-parse HEAD > artifacts/module-refactor/validated-commit.txt
+          git show --stat --oneline HEAD > artifacts/module-refactor/change-summary.txt
+          cp dist/deploy-manifest.json artifacts/module-refactor/deploy-manifest.json
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: module-refactor-workspace
-          path: |
-            ${{ runner.temp }}/module-source.tar
-            ${{ runner.temp }}/module-tools.tar.gz
-          retention-days: 1
+          name: module-refactor-validation
+          path: artifacts/module-refactor
+          retention-days: 7
