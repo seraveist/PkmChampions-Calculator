@@ -1,0 +1,127 @@
+name: HTML comment cleanup
+on:
+  push:
+    branches: [chore/html-comment-cleanup]
+    paths: [.github/workflows/html-comment-cleanup.yml]
+permissions:
+  contents: write
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - name: Record original public output
+        run: |
+          mkdir -p artifacts/html-cleanup
+          node --input-type=module - <<'JS'
+          import path from 'node:path';
+          import { buildPublic } from './scripts/build-public.mjs';
+          await buildPublic({dist:path.join(process.env.RUNNER_TEMP,'html-baseline'),adFree:true});
+          JS
+      - name: Remove only HTML comment nodes
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import os, subprocess
+          class CommentNodes(HTMLParser):
+              def __init__(self, text):
+                  super().__init__(convert_charrefs=False)
+                  self.text=text
+                  self.offsets=[0]
+                  for line in text.splitlines(keepends=True):
+                      self.offsets.append(self.offsets[-1]+len(line))
+                  self.spans=[]
+                  self.feed(text)
+                  self.close()
+              def handle_comment(self, data):
+                  line,column=self.getpos()
+                  start=self.offsets[line-1]+column
+                  end=start+len(data)+7
+                  assert self.text[start:end]=='<!--'+data+'-->'
+                  assert not data.lstrip().startswith('[if'), 'Conditional comment needs review'
+                  self.spans.append((start,end))
+          def clean(text):
+              nodes=CommentNodes(text)
+              result=text
+              for start,end in reversed(nodes.spans):
+                  line_start=text.rfind('\n',0,start)+1
+                  line_end=text.find('\n',end)
+                  if line_end<0: line_end=len(text)
+                  if not text[line_start:start].strip() and not text[end:line_end].strip():
+                      start=line_start
+                      end=min(line_end+1,len(text))
+                  result=result[:start]+result[end:]
+              assert not CommentNodes(result).spans
+              return result,len(nodes.spans)
+          expected=Path(os.environ['RUNNER_TEMP'],'html-expected')
+          expected.mkdir()
+          for name in ['src/calc-template.html','pokemon-champions-calculator-v3.html']:
+              text=subprocess.check_output(['git','show','HEAD:'+name]).decode('utf-8')
+              result,count=clean(text)
+              assert count==6, (name,count)
+              (expected/Path(name).name).write_text(result,encoding='utf-8')
+              if name.startswith('src/'):
+                  Path(name).write_text(result,encoding='utf-8')
+              print(f'{name}: {count} HTML comment nodes removed; other content preserved')
+          baseline=Path(os.environ['RUNNER_TEMP'],'html-baseline/index.html').read_text(encoding='utf-8')
+          result,count=clean(baseline)
+          (expected/'index.html').write_text(result,encoding='utf-8')
+          print(f'Public HTML baseline: {count} comments')
+          PY
+      - name: Rebuild HTML and validate unchanged assets
+        run: |
+          npm run build:standalone
+          npm run html:structure
+          npm run spa:hosting
+          npm run build:pages
+          npm run pages:ready
+          python3 - <<'PY' | tee artifacts/html-cleanup/equivalence.txt
+          from pathlib import Path
+          from html.parser import HTMLParser
+          import os, subprocess, hashlib
+          temp=Path(os.environ['RUNNER_TEMP'])
+          expected=temp/'html-expected'
+          for actual,name in [('src/calc-template.html','calc-template.html'),('pokemon-champions-calculator-v3.html','pokemon-champions-calculator-v3.html'),('dist/index.html','index.html')]:
+              assert Path(actual).read_bytes()==(expected/name).read_bytes(), actual
+              print('PASS: '+actual+' differs only by removal of 6 HTML comments')
+          before=temp/'html-baseline'
+          old={p.name:p.read_bytes() for p in (before/'assets').iterdir() if p.is_file()}
+          new={p.name:p.read_bytes() for p in Path('dist/assets').iterdir() if p.is_file()}
+          assert old==new, 'JS/CSS/data/Worker changed'
+          print('PASS: every public JS, CSS, data and Worker asset is byte-identical')
+          for name in ['404.html','robots.txt','_headers','_redirects']:
+              assert (before/name).read_bytes()==Path('dist',name).read_bytes(), name
+          print('PASS: 404, security headers, redirects and robots unchanged')
+          changed=subprocess.check_output(['git','diff','--name-only'],text=True).splitlines()
+          assert set(changed)=={'src/calc-template.html','pokemon-champions-calculator-v3.html'}, changed
+          print('PASS: only the source HTML and generated offline HTML changed')
+          PY
+      - name: Verify public and offline application behavior
+        run: |
+          node scripts/modules-browser.mjs --public --disable-browser-sandbox 2>&1 | tee artifacts/html-cleanup/public-browser.log
+          node scripts/modules-browser.mjs --disable-browser-sandbox 2>&1 | tee artifacts/html-cleanup/offline-browser.log
+      - name: Commit only validated HTML changes
+        run: |
+          test "$GITHUB_REF" = 'refs/heads/chore/html-comment-cleanup'
+          git add src/calc-template.html pokemon-champions-calculator-v3.html
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'chore: remove HTML comments without changing scripts or styles'
+          git push origin HEAD:refs/heads/chore/html-comment-cleanup
+          git rev-parse HEAD > artifacts/html-cleanup/validated-commit.txt
+          git diff HEAD^ HEAD -- src/calc-template.html > artifacts/html-cleanup/template.diff
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: html-comment-cleanup-validation
+          path: artifacts/html-cleanup
+          retention-days: 7
