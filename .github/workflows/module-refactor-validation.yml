@@ -61,6 +61,14 @@ jobs:
                 await waitFor(()=>client.evaluate("document.activeElement.classList.contains('ui-choice-option') && !!document.querySelector('.ui-choice-menu:popover-open')"),1500);
                 await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Home'"""
           assert old in s
+          s=s.replace(old,new,1)
+          old='''      await sleep(80);
+                check(await client.evaluate("!document.querySelector('.picker-dialog[open]') && document.activeElement.dataset.cbType==='"+kind+"'"),`${kind} Escape closes only its dialog and restores focus`);'''
+          new='''      // Native cancel/close and requestAnimationFrame focus restoration settle
+                // asynchronously. Assert the final contract, not a fixed 80 ms delay.
+                const pickerClosed=await waitFor(()=>client.evaluate("!document.querySelector('.picker-dialog[open]') && document.activeElement.dataset.cbType==='"+kind+"'"),1500).catch(()=>false);
+                check(pickerClosed,`${kind} Escape closes only its dialog and restores focus`,JSON.stringify(await client.evaluate("({open:document.querySelector('.picker-dialog[open]')?.dataset.kind,focus:document.activeElement.outerHTML.slice(0,300)})")));'''
+          assert old in s
           p.write_text(s.replace(old,new,1))
           PY
           git add scripts/ui-remodel-final-browser.mjs
