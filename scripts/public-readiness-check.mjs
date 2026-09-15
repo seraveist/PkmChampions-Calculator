@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -117,7 +118,7 @@ for (const source of referencedAssets) {
 }
 
 for (const id of DATA_IDS) {
-  check(index.includes(`<script id="${id}" type="application/json"></script>`), `${id} has an empty bootstrap target`);
+  check(!index.includes(`id="${id}"`), `${id} is absent from public HTML`);
 }
 
 check(!headers.includes("'unsafe-inline'"), 'CSP does not allow unsafe-inline scripts or styles');
@@ -146,6 +147,18 @@ if (manifest) {
   check(manifest.mode === expectedMode, `deploy manifest records ${expectedMode} mode`);
   check(manifest.artifact === 'index.html', 'deploy manifest records index artifact');
   check(manifest.sizeBytes === statSync(INDEX).size, 'deploy manifest records the current index size');
+  try {
+    const dataSource = read(path.join(DIST, 'assets', manifest.assets.data.file));
+    // No document is provided: loading public data must not depend on a DOM.
+    const data = vm.runInNewContext(`${dataSource}\nJSON.stringify(PKM_DATA);`, {}, { timeout: 5000 });
+    const payload = JSON.parse(data);
+    for (const id of DATA_IDS) {
+      const raw = standalone.match(new RegExp(`<script id="${id}" type="application/json">([\\s\\S]*?)<\\/script>`))?.[1];
+      check(raw !== undefined && JSON.stringify(payload[id.slice(5)]) === JSON.stringify(JSON.parse(raw)), `${id} matches standalone data without DOM bootstrap`);
+    }
+  } catch (error) {
+    check(false, `public data object is valid (${error.message})`);
+  }
   check(
     Object.keys(manifest.assets || {}).sort().join(',')
       === 'app,data,featureDex,featureFinetune,featureMatchup,featureRevcalc,style,theme,worker',

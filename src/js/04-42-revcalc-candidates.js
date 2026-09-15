@@ -72,15 +72,7 @@ function rcAnalyzeCached() {
 }
 
 function rcAnalysisWorkerData() {
-  return {
-    'data-pokemon': POKEMON,
-    'data-moves': MOVES,
-    'data-abilities': ABILITIES,
-    'data-items': ITEMS,
-    'data-natures': NATURE_DATA,
-    'data-typechart': TYPE_CHART_DATA,
-    'data-rules': RULES,
-  };
+  return GAME_DATA;
 }
 
 function rcTerminateAnalysisWorker(reason = null) {
@@ -132,7 +124,7 @@ function rcCreateAnalysisWorker() {
     const error = new Error(event.message || '역계산 Worker를 실행하지 못했습니다.');
     rcTerminateAnalysisWorker(error);
   });
-  rcAnalysisWorker.postMessage({ type: 'init', dataScripts: rcAnalysisWorkerData() });
+  rcAnalysisWorker.postMessage({ type: 'init', data: rcAnalysisWorkerData() });
   return rcAnalysisWorker;
 }
 

@@ -3,13 +3,30 @@
  * (build.mjs 가 src/js/*.js 를 알파벳순 concat 후 calc-template.html 에 주입)
  * ════════════════════════════════════════════════════════════ */
 
-const POKEMON   = JSON.parse(document.getElementById('data-pokemon').textContent);
-const MOVES     = JSON.parse(document.getElementById('data-moves').textContent);
-const ABILITIES = JSON.parse(document.getElementById('data-abilities').textContent);
-const ITEMS     = JSON.parse(document.getElementById('data-items').textContent);
-const NATURE_DATA = JSON.parse(document.getElementById('data-natures')?.textContent || '[]');
-const TYPE_CHART_DATA = JSON.parse(document.getElementById('data-typechart')?.textContent || '{}');
-const RULES     = JSON.parse(document.getElementById('data-rules')?.textContent || '{}');
+// Public builds and workers supply the same plain object. Only the offline
+// standalone adapter reads JSON script elements; the engine never needs a DOM.
+function readEmbeddedGameData() {
+  const read = (id, fallback) => {
+    const raw = document.getElementById(`data-${id}`)?.textContent;
+    if (raw) return JSON.parse(raw);
+    if (fallback !== undefined) return fallback;
+    throw new Error(`Missing game data: ${id}`);
+  };
+  return {
+    pokemon: read('pokemon'), moves: read('moves'),
+    abilities: read('abilities'), items: read('items'),
+    natures: read('natures', []), typechart: read('typechart', {}),
+    rules: read('rules', {}),
+  };
+}
+const GAME_DATA = typeof PKM_DATA !== 'undefined' ? PKM_DATA : readEmbeddedGameData();
+const POKEMON = GAME_DATA.pokemon;
+const MOVES = GAME_DATA.moves;
+const ABILITIES = GAME_DATA.abilities;
+const ITEMS = GAME_DATA.items;
+const NATURE_DATA = GAME_DATA.natures;
+const TYPE_CHART_DATA = GAME_DATA.typechart;
+const RULES = GAME_DATA.rules;
 
 const PokemonById   = Object.fromEntries(POKEMON.map(p => [p.id, p]));
 const MoveById      = Object.fromEntries(MOVES.map(m => [m.id, m]));
@@ -150,7 +167,7 @@ function handlePokemonSpriteError(img) {
   img.closest?.('.pokemon-sprite-slot')?.classList.add('is-empty');
 }
 
-if (typeof document.addEventListener === 'function') {
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
   document.addEventListener('error', (event) => {
     const image = event.target;
     if (image instanceof HTMLImageElement && image.closest('.pokemon-sprite-slot')) {

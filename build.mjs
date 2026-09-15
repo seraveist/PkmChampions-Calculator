@@ -524,13 +524,7 @@ async function build() {
       .map(file => fs.readFileSync(path.join(jsDir, file), 'utf8'))
       .join('\n\n');
     return `
-function createReverseAnalyzer(dataScripts) {
-  const document = {
-    getElementById(id) {
-      const value = dataScripts[id];
-      return value === undefined ? null : { textContent: JSON.stringify(value) };
-    },
-  };
+function createReverseAnalyzer(PKM_DATA) {
   ${workerBody}
   return function analyzeReverseState(snapshot) {
     Object.assign(revCalcState, cloneCalcValue(snapshot));
@@ -543,7 +537,7 @@ self.onmessage = event => {
   const message = event.data || {};
   if (message.type === 'init') {
     try {
-      reverseAnalyze = createReverseAnalyzer(message.dataScripts || {});
+      reverseAnalyze = createReverseAnalyzer(message.data);
       self.postMessage({ type: 'ready' });
     } catch (error) {
       self.postMessage({ type: 'error', id: message.id, message: error?.message || String(error) });

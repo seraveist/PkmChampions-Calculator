@@ -59,6 +59,9 @@ npm run ui:browser:pages -- --require-browser
 - 동적 HTML은 `renderTrustedHTML()` 경계를 사용하며 데이터·사용자 문자열은 `escapeHTML()`로 이스케이프한다.
 - 도감·상성표·세부조정·역계산 코드는 공개 빌드에서 페이지 진입 시 지연 로딩한다.
 - 역계산 후보 탐색은 Worker에서 실행해 메인 스레드 응답성을 유지한다.
+- 공개 빌드의 게임 데이터는 별도 JS 객체로 제공하며 HTML에 재주입하지 않는다. 단일 HTML만 오프라인용 JSON 어댑터를 사용한다.
+- 계산 결과의 기술 행·선택 버튼은 재사용하고 달라진 결과 영역만 갱신한다. 동일 노력치의 `input`/`change`는 중복 계산하지 않는다.
+- 데이터·입력 갱신 계약은 `npm run client:golden`, 실제 DOM·선택창 계약은 `npm run calculator:browser -- --require-browser`로 검증한다. [변경 범위](docs/client-data-performance.md)를 참고한다.
 
 세부 기준은 다음 문서를 참고한다.
 

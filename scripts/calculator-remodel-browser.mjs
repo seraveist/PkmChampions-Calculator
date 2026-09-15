@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import WebSocket from 'ws';
+import { runClientPerformanceBrowserChecks } from './client-performance-browser-checks.mjs';
 
 const require = createRequire(import.meta.url);
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -360,6 +361,7 @@ async function main() {
     const report=[];
     await client.evaluate("state.atk=makeSideState('garchomp');state.def=makeSideState('dragonite');state.atk.moves=['earthquake','dragonclaw','rockslide','firefang'];state.atk.item='lifeorb';state.def.evs.hp=32;renderSide('atk');renderSide('def');runCalc();");
     check(await client.evaluate("document.querySelectorAll('#calc-results-body .move-row').length===4"),'four moves render in the shared result grid');
+    await runClientPerformanceBrowserChecks(client,check,{publicMode:PUBLIC_MODE});
     await client.evaluate("var point=document.querySelector('[data-calc-ev=hp]');point.focus();point.value='20';point.dispatchEvent(new Event('input',{bubbles:true}));");
     check(await client.evaluate("state.atk.evs.hp===20 && document.activeElement.dataset.calcEv==='hp'"),'live effort input preserves focus');
     await client.evaluate("document.querySelector('[data-calc-side-settings=atk]').click()");

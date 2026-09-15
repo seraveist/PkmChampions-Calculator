@@ -87,19 +87,11 @@ function extractInlineScript(source, predicate, label) {
 }
 
 function buildDataBootstrap(dataScripts) {
-  const payload = dataScripts
-    .map(({ id, raw }) => `    ${JSON.stringify(id)}: ${JSON.stringify(raw)}`)
-    .join(',\n');
-  return `(() => {
-  const payloads = {
-${payload}
-  };
-  for (const [id, value] of Object.entries(payloads)) {
-    const node = document.getElementById(id);
-    if (!node) throw new Error(\`Missing embedded data target: \${id}\`);
-    node.textContent = value;
-  }
-})();`;
+  const data = Object.fromEntries(dataScripts.map(({ id, raw }) => [
+    id.replace(/^data-/, ''), JSON.parse(raw),
+  ]));
+  // Plain JS data: no escaped JSON strings and no DOM injection or fetch required.
+  return `const PKM_DATA = ${JSON.stringify(data)};`;
 }
 
 function splitApplicationSource(source) {
@@ -181,8 +173,8 @@ const featureAssets = Object.fromEntries(Object.entries(applicationSource.featur
 
 html = html.replace(themeMatch[0], `<script src="${themeAsset.path}"></script>`);
 html = html.replace(styleMatch[0], `<link rel="stylesheet" href="${styleAsset.path}">`);
-for (const { id, match } of dataScripts) {
-  html = html.replace(match[0], `<script id="${id}" type="application/json"></script>`);
+for (const { match } of dataScripts) {
+  html = html.replace(match[0], '');
 }
 html = html.replace(
   reverseWorkerMatch[0],
@@ -261,7 +253,7 @@ const manifest = {
   assets,
   notes: [
     'The offline standalone artifact remains pokemon-champions-calculator-v3.html.',
-    'HTML, CSS, core application code, embedded data, page features, and the lazy reverse-analysis worker are emitted as separate static assets.',
+    'HTML, CSS, core application code, plain-object data, page features, and the lazy reverse-analysis worker are emitted as separate static assets.',
     'Hashed assets are safe to cache immutably.',
     PRIVATE_TEST
       ? 'Search indexing and advertising rails are disabled for the private test deployment.'

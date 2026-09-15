@@ -125,19 +125,28 @@ function calcAbilityOptionDataForPokemon(pokemonId, currentAbility = '', { inclu
   return includeEmpty ? [{ id: '', label: '없음', sub: emptySub }, ...options] : options;
 }
 
+// Display data is fixed for one build; callers receive their own array.
+let calcItemOptionsCache = null;
+let calcNatureOptionsCache = null;
 function calcItemOptionData({ includeEmpty = true } = {}) {
-  const options = sortItemsForCalcSelect(ITEMS).map(i => ({ id: i.id, label: itName(i), sub: i.name || i.id, raw: i }));
-  return includeEmpty ? [{ id: '', label: '없음', sub: '' }, ...options] : options;
+  const options = calcItemOptionsCache ||= sortItemsForCalcSelect(ITEMS).map(i => ({ id: i.id, label: itName(i), sub: i.name || i.id, raw: i }));
+  return includeEmpty ? [{ id: '', label: '없음', sub: '' }, ...options] : options.slice();
 }
 
 function calcNatureOptionData() {
-  return calcSortNatureOptions(NATURES).map(n => ({ id: n.id, label: calcNatureLabel(n), sub: n.up ? `${n.up}+ / ${n.down}-` : '보정 없음', raw: n }));
+  const options = calcNatureOptionsCache ||= calcSortNatureOptions(NATURES).map(n => ({ id: n.id, label: calcNatureLabel(n), sub: n.up ? `${n.up}+ / ${n.down}-` : '보정 없음', raw: n }));
+  return options.slice();
 }
 
 function makeCombobox(sideKey, type) {
-  const dataset = calcDatasetForCombobox(sideKey, type);
-  // 필터링 함수
+  // Retained controls must follow Pokemon/form changes, without sorting on every keystroke.
+  let dataset = null, datasetPokemonId;
   return (searchText) => {
+    const pokemonId = state[sideKey]?.pokemonIdx;
+    if (!dataset || datasetPokemonId !== pokemonId) {
+      dataset = calcDatasetForCombobox(sideKey, type);
+      datasetPokemonId = pokemonId;
+    }
     const s = calcSearchText(searchText).trim();
     const matches = dataset.filter(d => {
       if (type === 'pokemon') {
