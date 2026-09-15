@@ -1,3 +1,10 @@
+import { RotomUI } from './01-10-rotom-ui.js';
+import { AbilityById, ITEMS, MOVES, MoveById, PokemonById, calcStats, escapeHTML, mvName, toId } from './01-core.js';
+import { calculateDamage, effectiveSpeed } from './02-engine.js';
+import { makeFieldState, makeSideState } from './03-10-calc-state.js';
+import { rcBuildOpponentState } from './04-42-revcalc-candidates.js';
+import { rcMovePriority } from './04-42-revcalc-exchange.js';
+
 /* Reverse calculator state, field, move picker, item, ability, and speed helpers. */
 function rcDefaultField() {
   return makeFieldState();
@@ -555,3 +562,5 @@ function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField(), abi
     label: chosen.oppSpeed === mySpeed ? '동속 가능' : item === 'choicescarf' ? '구애스카프 속도 조건 충족' : '속도 조건 충족',
   };
 }
+
+export { rcDefaultField, revCalcState, rcAnalysisField, rcActiveFieldSummary, RC_NATURE_IDS, RC_MOVESET_SIZE, RC_MOVE_COLLATOR, rcSortMovesByName, rcMoveSearchTokens, rcMoveNoneOption, rcMoveMatchesQuery, rcFilterMovePool, rcFindMoveByTypedName, rcBestMoveForTypedName, rcMoveLabel, rcMoveSet, rcEnsureMoveInSet, rcVisibleMoveSet, rcKnownOpponentMoves, rcForecastKey, rcLearnableMovesForPokemon, rcMoveOptionLabel, rcRenderSimpleMoveOption, rcObservedMyMoveIds, rcNormalizeObservedMyMove, rcMovePoolForPicker, rcRenderMoveCombobox, rcSetMovePickerValue, rcTypeBoostItemIdsForTypes, RC_ITEM_CANDIDATE_EXTRA_IDS, RC_ITEM_CANDIDATE_EXCLUDED_IDS, rcItemAffectsObservedNumbers, rcItemCandidateMasterList, rcSanitizeItemCandidateIds, rcDefaultItemCandidatesForOpponent, rcResetItemCandidatesForOpponent, rcKnownOpponentItem, rcActiveItemCandidates, rcItemCandidateCountLabel, rcObservedField, rcDefaultOpponentAbility, rcPokemonAbilityIds, rcDamageSignature, rcAbilityAffectsObservedDamage, rcOpponentAbilityCandidates, rcMatchingRemainingPct, rcMatchingRemainingHp, rcCurrentHpValue, rcStageModifiedStat, rcNextOpponentRanks, rcNextMyRanks, rcBuildMyNextState, rcSpeedWithMods, rcMySpeedValue, rcOpponentSpeedValue, rcSpeedCandidateInfo };

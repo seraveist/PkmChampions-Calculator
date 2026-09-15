@@ -1,3 +1,13 @@
+import { RotomUI, uiSetPickerLabel } from './01-10-rotom-ui.js';
+import { ITEMS, ItemById, POKEMON, PokemonById, escapeHTML, itName, pkName, renderTrustedHTML, toId } from './01-core.js';
+import { CALC_STATUS_OPTIONS, applyPokemonFormToSideState, calcFieldOptionLabel, calcFormOptionDataForPokemon, calcMatches, calcStatusDisplayLabel, defaultPokemonItemId, sortItemsForCalcSelect, sortPokemonForCalcSelect } from './03-10-calc-state.js';
+import { wirePokemonSelectCombobox, wireSharedComboboxKeyboard } from './03-20-calc-combobox.js';
+import { calcComboboxHeaderHtml, calcRenderComboboxOption, calcRenderItemOption, calcRenderMoveOption, calcRenderPokemonOption, calcRenderSimplePokemonOption } from './03-21-calc-combobox-options.js';
+import { wireCalcCombobox } from './03-22-calc-combobox-events.js';
+import { RC_MOVESET_SIZE, rcDefaultField, rcFindMoveByTypedName, rcMoveLabel, rcMoveMatchesQuery, rcMoveNoneOption, rcMovePoolForPicker, rcMoveSet, rcObservedMyMoveIds, rcResetItemCandidatesForOpponent, rcSetMovePickerValue, revCalcState } from './04-40-revcalc-state.js';
+import { renderRevCalcAll, renderRevCalcInputs, renderRevCalcMy, renderRevCalcResults } from './04-43-revcalc-render.js';
+import { rcComboData, rcComboKind, rcComboSearchMatches, rcCurrentComboId, rcNewObservation, rcReadExtraObservationInput } from './04-45-revcalc-actions.js';
+
 /* Reverse calculator DOM synchronization and events. */
 function rcFieldInputValue(input) {
   if (input.type === 'checkbox') return input.checked;
@@ -523,3 +533,5 @@ function rcWireOppItemComboboxes(scope) {
     input.addEventListener('click',()=>combo.open(''));
   });
 }
+
+export { rcFieldInputValue, rcSyncInputsFromDom, rcWireComboboxKeyboard, rcWireMyComboboxes, rcApplyMyPokemonSelection, rcDefaultKnownOpponentItemForPokemon, rcWireOppComboboxes, rcStatusOptions, rcStatusDisplayLabel, rcStatusOptionTemplate, rcWireOppStatusComboboxes, rcTurnOrderOptions, rcNormalizeTurnOrderValue, rcTurnOrderLabel, rcRenderTurnOrderCombobox, rcTurnOrderOptionTemplate, rcWireTurnOrderComboboxes, rcFieldComboboxLabel, rcRenderFieldCombobox, rcWireFieldComboboxes, rcWireMoveComboboxes, rcOppItemOptions, rcOppItemLabel, rcRenderOppItemCombobox, rcWireOppItemComboboxes };

@@ -43,7 +43,7 @@
     "party:browser": "npm run build:pages && node scripts/party-remodel-browser.mjs --public --ad-free --require-browser",
     "state:matchup": "node scripts/matchup-state.mjs && node scripts/matchup-behavior.mjs",
     "matchup:browser": "npm run build:pages && node scripts/matchup-browser.mjs --public --ad-free --require-browser",
-    "test": "npm run check && npm run build:standalone && npm run html:structure && npm run css:structure && npm run css:cascade && npm run js:structure && npm run ui:dropdowns && npm run spa:hosting && npm run build:public && npm run public:ready && npm run build:pages && npm run pages:ready && npm run data:validate && npm run coverage:check && npm run dex:smoke && npm run damage:golden && npm run power:golden && npm run calculator:golden && npm run reverse:golden && npm run reverse:policy && npm run state:entry && npm run state:finetune && npm run state:party && npm run state:matchup",
+    "test": "npm run check && npm run build:standalone && npm run html:structure && npm run css:structure && npm run css:cascade && npm run js:structure && npm run ui:dropdowns && npm run spa:hosting && npm run build:public && npm run public:ready && npm run build:pages && npm run pages:ready && npm run data:validate && npm run coverage:check && npm run dex:smoke && npm run damage:golden && npm run power:golden && npm run calculator:golden && npm run client:golden && npm run reverse:golden && npm run reverse:policy && npm run state:entry && npm run state:finetune && npm run state:party && npm run state:matchup && npm run modules:golden",
     "sync-data": "node scripts/sync-ps-data.mjs",
     "sync-data:dry": "node scripts/sync-ps-data.mjs --dry-run",
     "fetch-ko": "node scripts/fetch-ko.mjs",
@@ -52,10 +52,15 @@
     "reverse:browser": "npm run build:pages && node scripts/reverse-exchange-browser.mjs --public --ad-free --require-browser",
     "power:audit": "node scripts/power-mechanics-audit.mjs",
     "calculator:golden": "node scripts/calculator-completion-golden.mjs && node scripts/move-power-golden.mjs",
-    "calculator:browser": "npm run build:pages && node scripts/calculator-remodel-browser.mjs --public --ad-free --require-browser"
+    "calculator:browser": "npm run build:pages && node scripts/calculator-remodel-browser.mjs --public --ad-free --require-browser",
+    "client:golden": "node scripts/client-performance-golden.mjs",
+    "modules:golden": "node scripts/modules-golden.mjs",
+    "modules:browser": "npm run build:pages && node scripts/modules-browser.mjs --public"
   },
   "devDependencies": {
     "axe-core": "^4.12.1",
-    "ws": "^8.21.1"
+    "ws": "^8.21.1",
+    "esbuild": "0.28.2",
+    "acorn": "8.18.0"
   }
 }

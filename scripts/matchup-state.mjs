@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readSourceFileSync as readFileSync } from './source-utils.mjs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';

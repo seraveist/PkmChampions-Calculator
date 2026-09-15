@@ -1,3 +1,10 @@
+import { RotomUI } from './01-10-rotom-ui.js';
+import { AbilityById, BATTLE_TYPES, MoveById, POKEMON, TYPE_KO, calcStats, mvName, pkName, renderTrustedHTML } from './01-core.js';
+import { battleMaxFallenAllies } from './02-engine.js';
+import { canEditMovePower, state } from './03-10-calc-state.js';
+import { powerUiMoveSlot, setPowerUiMoveSlot } from './03-32-calc-ui.js';
+import { powerUiRefresh } from './03-33-calc-ui-events.js';
+
 const powerUiEl=id=>document.getElementById(id);
 
 function powerUiMoveSettingsMarkup(slot) {
@@ -31,7 +38,7 @@ function powerUiMoveSettingsMarkup(slot) {
 function powerUiOpenMoveSettings(slot) {
   const html=powerUiMoveSettingsMarkup(slot);
   if(!html) return;
-  powerUiMoveSlot=slot;
+  setPowerUiMoveSlot(slot);
   powerUiEl('calc-move-settings-title').textContent=`${mvName(MoveById[state.atk.moves[slot]])} · 조건`;
   renderTrustedHTML(powerUiEl('calc-move-settings-body'),html);
   powerUiEl('calc-move-settings').showModal();
@@ -51,7 +58,17 @@ function powerUiApplyMoveSetting(target) {
   else return;
   powerUiRefresh();
 }
-document.getElementById('calc-move-settings')?.addEventListener('change',event=>powerUiApplyMoveSetting(event.target));
-document.getElementById('calc-move-settings')?.addEventListener('input',event=>{
-  if(event.target.type==='number') powerUiApplyMoveSetting(event.target);
-});
+
+
+
+let bind0334CalcMoveDialogBound = false;
+function bind0334CalcMoveDialog() {
+  if (bind0334CalcMoveDialogBound) return;
+  bind0334CalcMoveDialogBound = true;
+  document.getElementById('calc-move-settings')?.addEventListener('change',event=>powerUiApplyMoveSetting(event.target));
+  document.getElementById('calc-move-settings')?.addEventListener('input',event=>{
+    if(event.target.type==='number') powerUiApplyMoveSetting(event.target);
+  });
+}
+
+export { powerUiEl, powerUiMoveSettingsMarkup, powerUiOpenMoveSettings, powerUiApplyMoveSetting, bind0334CalcMoveDialogBound, bind0334CalcMoveDialog };

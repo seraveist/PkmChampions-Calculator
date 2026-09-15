@@ -1,3 +1,10 @@
+import { uiSetPickerLabel } from './01-10-rotom-ui.js';
+import { ABILITIES, AbilityById, BATTLE_TYPES, ITEMS, ItemById, MOVES, MoveById, NATURES, POKEMON, PokemonById, TYPE_KO, abName, calcStats, itName, mvName, pkName, toId } from './01-core.js';
+import { specialMoveInputIssue } from './02-engine.js';
+import { renderSide } from './03-30-calc-side-render.js';
+import { applyEntryFieldsFromSide, emptyEntryMeta, manualAutoFieldOverrides, resetAutoEntryFieldState, resetManualAutoFieldOverrides, setLastAutoEntry, syncFieldControls } from './03-40-calc-entry-effects.js';
+import { triggerCalc } from './03-50-calc-results.js';
+
 /* Damage calculator state, options, and shared helpers. */
 function makeSideState(defaultIdx = '') {
   const p = PokemonById[defaultIdx];
@@ -77,10 +84,6 @@ const state = {
    ════════════════════════════════════════════════════════════ */
 
 // 한국어 이름 헬퍼
-function pkName(p) { return p.koName || p.name; }
-function mvName(m) { return m.koName || m.name; }
-function abName(a) { return a ? (a.koName || a.name) : '없음'; }
-function itName(i) { return i ? (i.koName || i.name) : '없음'; }
 
 function calcPokemonAbilityLabels(pokemon) {
   const ab = pokemon?.ab || {};
@@ -696,7 +699,7 @@ function resetCalcManualValues() {
   resetSideManualValues('def');
   resetFieldManualValues();
   resetAutoEntryFieldState();
-  lastAutoEntry = emptyEntryMeta();
+  setLastAutoEntry(emptyEntryMeta());
   renderSide('atk');
   renderSide('def');
   syncFieldControls(state.field);
@@ -747,3 +750,8 @@ let autoEntryEffects = true;
 /* ════════════════════════════════════════════════════════════
    특성별 진입 효과 정의는 data/overrides/entry-effects.json 에서 빌드된다.
    ════════════════════════════════════════════════════════════ */
+
+// Assignment stays in the module that owns the live binding.
+function setAutoEntryEffects(value) { autoEntryEffects = value; return value; }
+
+export { makeSideState, makeFieldState, cloneCalcValue, state, calcPokemonAbilityLabels, calcPokemonBst, calcPokemonOptionMetaLabel, CALC_MOVE_CATEGORY_LABEL, CALC_STATUS_OPTIONS, CALC_STATUS_BY_ID, CALC_WEATHER_OPTIONS, CALC_TERRAIN_OPTIONS, CALC_GAME_TYPE_OPTIONS, CALC_SPIKES_LAYER_OPTIONS, CALC_FIELD_OPTION_SETS, CALC_FIELD_OPTION_BY_TYPE, CALC_TYPE_OPTIONS, CALC_SECOND_TYPE_OPTIONS, CALC_FORM_LABEL_KO, calcSearchText, calcMatches, calcMoveCategoryLabel, calcNatureLabel, calcAbilityDisplayLabel, calcStatusDisplayLabel, calcFieldOptionLabel, setComboboxValue, calcItemCategoryLabel, calcItemCategoryRank, sortMovesForCalcSelect, sortItemsForCalcSelect, sortPokemonForCalcSelect, defaultPokemonTypes, sameTypeList, calcPokemonFormLabel, calcFormGroupForPokemon, calcFormGroupForSide, calcFormOptionDataForPokemon, normalizeSideTypes, sideTypeId, setSideType, resetSideTypes, applyPokemonFormToSideState, applyPokemonFormToCalcSide, calcPokemonAbilityTerms, calcDatasetForCombobox, defaultPokemonAbilityId, defaultPokemonItemId, applyPokemonToCalcSide, normalizeManualBp, manualBpForSlot, normalizeMoveType, manualTypeForSlot, moveWithManualBp, normalizeHpPct, calcMoveWithConditions, calcMoveConditionIssue, hpPercentInputValue, currentHpValue, deriveHpFlags, calcPokemonMatchesBlock, sideManualDamageBlock, fractionHpLoss, consumedDamageBlockHpPct, setSideDamageBlockActive, setSideHpPct, setSideCurrentHp, selectedAttackMoves, selectedMoveHasVariableKind, attackerAbilityData, sideAbilityData, attackerNeedsFlashFireToggle, normalizeBoosterEnergyState, maxFallenAllies, clampFallenAllies, normalizeBattleConditionState, resetSideManualValues, resetFieldManualValues, resetCalcManualValues, applyMoveBpInput, isFixedPowerMove, canEditMovePower, calcPowerModeText, applyMoveTypeOverride, autoEntryEffects, setAutoEntryEffects };

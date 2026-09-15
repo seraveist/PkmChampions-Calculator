@@ -1,3 +1,6 @@
+import { AbilityById, ItemById, NATURE_BY_ID, PokemonById, STATS } from './01-core.js';
+import { renderPartyPresetModal } from './04-03-party-presets-ui.js';
+
 /* Party presets: state and persistence. */
 const PARTY_PRESET_STORAGE_KEY = 'pkmChampions.partyPresets.v1';
 const PARTY_PRESET_MAX_PARTIES = 10;
@@ -281,3 +284,26 @@ function partyPresetFilenamePart(text, fallback = 'party') {
     .slice(0, 48);
   return safe || fallback;
 }
+
+// Assignment stays in the module that owns the live binding.
+function setPartyPresetData(value) { partyPresetData = value; return value; }
+
+// Assignment stays in the module that owns the live binding.
+function setPartyPresetModalReturnFocus(value) { partyPresetModalReturnFocus = value; return value; }
+
+// Assignment stays in the module that owns the live binding.
+function setPartyPresetPickerReturnFocus(value) { partyPresetPickerReturnFocus = value; return value; }
+
+// Assignment stays in the module that owns the live binding.
+function setPartyPresetPickerTarget(value) { partyPresetPickerTarget = value; return value; }
+
+// Assignment stays in the module that owns the live binding.
+function setPartyPresetTextReturnFocus(value) { partyPresetTextReturnFocus = value; return value; }
+
+// Assignment stays in the module that owns the live binding.
+function setPartyPresetTextState(value) { partyPresetTextState = value; return value; }
+
+// Assignment stays in the module that owns the live binding.
+function setPartyPresetModalReady(value) { partyPresetModalReady = value; return value; }
+
+export { PARTY_PRESET_STORAGE_KEY, PARTY_PRESET_MAX_PARTIES, PARTY_PRESET_MAX_MEMBERS, PARTY_PRESET_STAT_LABEL, PARTY_PRESET_SHOWDOWN_STAT_LABEL, PARTY_PRESET_MAX_NAME_LENGTH, PARTY_PRESET_IMAGE_WIDTH, PARTY_PRESET_IMAGE_HEIGHT, PARTY_PRESET_IMAGE_OUTPUT_SCALE, PARTY_PRESET_IMAGE_CARD_COLUMNS, PARTY_PRESET_IMAGE_CARD_ROWS, PARTY_PRESET_LABELS, PARTY_PRESET_TYPE_PALETTE_CACHE, partyPresetMoveTypePalette, PARTY_PRESET_SHOWDOWN_STAT_ALIAS, partyPresetData, partyPresetModalReady, partyPresetTextState, partyPresetPickerTarget, partyPresetModalReturnFocus, partyPresetPickerReturnFocus, partyPresetTextReturnFocus, partyPresetCollapsedParties, partyPresetExpandedSlots, partyPresetSlotCollapseKey, partyPresetFocusableElements, partyPresetFocusLayer, partyPresetRestoreFocus, partyPresetTrapFocus, partyPresetDefaultName, normalizePartyPresetName, blankPartyPresetMember, blankPartyPresetData, normalizePartyPresetEvs, normalizePartyPresetMember, normalizePartyPresetData, loadPartyPresetData, savePartyPresetData, setPartyPresetStatus, partyPresetExportPayload, partyPresetDownloadText, partyPresetDownloadBlob, exportPartyPresetJson, importPartyPresetJsonFile, partyPresetCopyOrDownload, partyPresetMember, partyPresetMemberClone, partyPresetFilledMembers, partyPresetFilenamePart, setPartyPresetData, setPartyPresetModalReturnFocus, setPartyPresetPickerReturnFocus, setPartyPresetPickerTarget, setPartyPresetTextReturnFocus, setPartyPresetTextState, setPartyPresetModalReady };

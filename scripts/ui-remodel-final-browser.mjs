@@ -1,3 +1,5 @@
+import { clickStableTarget } from './browser-interaction.mjs';
+import { prepareModuleBrowserFixture, installModuleTestBridge } from './browser-module-fixture.mjs';
 // Final cross-menu markup, shared-control, keyboard and first-visit handoff audit.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -14,10 +16,7 @@ const PUBLIC_MODE = process.argv.includes('--public');
 const AD_FREE = process.argv.includes('--ad-free');
 const REQUIRE_BROWSER = process.argv.includes('--require-browser') || process.env.CI === 'true';
 const DISABLE_BROWSER_SANDBOX = process.argv.includes('--disable-browser-sandbox') || process.env.UI_SMOKE_DISABLE_SANDBOX === '1';
-const PUBLIC_ROOT = path.join(ROOT, 'dist');
-const HTML_PATH = PUBLIC_MODE
-  ? path.join(PUBLIC_ROOT, 'index.html')
-  : path.join(ROOT, 'pokemon-champions-calculator-v3.html');
+const {publicRoot:PUBLIC_ROOT,htmlPath:HTML_PATH} = await prepareModuleBrowserFixture({publicMode:PUBLIC_MODE,adFree:AD_FREE});
 const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 
 function contentType(file) {
@@ -342,6 +341,7 @@ async function main() {
     await client.send('Runtime.enable');
     await client.send('Page.enable');
     await client.send('Log.enable');
+    await installModuleTestBridge(client);
     await client.send('Page.navigate', { url });
     await sleep(200);
     await waitFor(() => client.evaluate(`document.readyState === 'complete'`));
@@ -401,6 +401,13 @@ async function main() {
       check(choice.left>=0 && choice.right<=choice.width && choice.top>=0 && choice.bottom<=choice.height && choice.rows.every(r=>r.align==='center'&&r.height>=40),`status options are centered and stay within the ${width}px viewport`,JSON.stringify(choice));
       await checkAxe(client,`status choice ${width}px`);
       await captureScreenshot(client,`status-choice-${width}`);
+      // Accessibility/screenshot tooling may cause document scrolling; anchored
+      // choices intentionally dismiss on outside scrolling. Start the keyboard
+      // check from an explicitly open and focused menu, not that incidental state.
+      const settledChoice=await client.evaluate("({open:!!document.querySelector('.ui-choice-menu:popover-open'),focus:document.activeElement.className})");
+      console.log('CHOICE_AFTER_AUDIT '+JSON.stringify(settledChoice));
+      if(!settledChoice.open) await client.evaluate("document.querySelector('#atk-body .ui-choice-trigger').click()");
+      await waitFor(()=>client.evaluate("document.activeElement.classList.contains('ui-choice-option') && !!document.querySelector('.ui-choice-menu:popover-open')"),1500);
       await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Home',code:'Home',windowsVirtualKeyCode:36});
       await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowDown',code:'ArrowDown',windowsVirtualKeyCode:40});
       await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r',unmodifiedText:'\r'});
@@ -416,13 +423,21 @@ async function main() {
       await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
       await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
       check(await client.evaluate("!document.querySelector('.ui-choice-menu') && !document.activeElement.classList.contains('ui-choice-trigger')"),'status Tab closes the list and advances to the next control',JSON.stringify(await client.evaluate("({menu:!!document.querySelector('.ui-choice-menu'),focus:document.activeElement.outerHTML.slice(0,300)})")));
-      const point=await client.evaluate("(() => {const e=document.querySelector('#atk-body .ui-choice-trigger');e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()");
-      await sleep(100);
-      for (let i=0;i<2;i++) {
-        await client.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...point});
-        await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...point});
-        await sleep(60);
-        check(await client.evaluate("!!document.querySelector('.ui-choice-menu:popover-open')") === (i===0),'status pointer toggle '+i+' has the expected open state');
+      // Retain real CDP pointer actions. Wait for layout/hit testing before
+      // clicking and for native toggle/focus completion afterward; never retry
+      // a failed click or reopen the menu to make an assertion pass.
+      for (let i=0;i<10;i++) {
+        const expectedOpen=i%2===0;
+        await clickStableTarget(client,'#atk-body .ui-choice-trigger',{scroll:i===0});
+        const matches=()=>client.evaluate(`(() => {
+          const trigger=document.querySelector('#atk-body .ui-choice-trigger');
+          const menu=document.querySelector('.ui-choice-menu');
+          return !!menu?.matches(':popover-open')===${expectedOpen}
+            && trigger.getAttribute('aria-expanded')===String(${expectedOpen})
+            && (${expectedOpen} ? menu?.contains(document.activeElement) : !menu);
+        })()`);
+        const settled=await waitFor(matches,1500).then(()=>true).catch(()=>false);
+        check(settled,'status pointer toggle '+i+' has the expected open state',JSON.stringify(await client.evaluate("({open:!!document.querySelector('.ui-choice-menu:popover-open'),focus:document.activeElement.outerHTML.slice(0,300),scrollY})")));
       }
       check(await client.evaluate("!document.querySelector('.ui-choice-menu')"),'clicking the status trigger again closes its list');
     }
@@ -452,8 +467,10 @@ async function main() {
       await checkAxe(client,`final ${kind} picker`);
       await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
       await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
-      await sleep(80);
-      check(await client.evaluate("!document.querySelector('.picker-dialog[open]') && document.activeElement.dataset.cbType==='"+kind+"'"),`${kind} Escape closes only its dialog and restores focus`);
+      // Native cancel/close and requestAnimationFrame focus restoration settle
+      // asynchronously. Assert the final contract, not a fixed 80 ms delay.
+      const pickerClosed=await waitFor(()=>client.evaluate("!document.querySelector('.picker-dialog[open]') && document.activeElement.dataset.cbType==='"+kind+"'"),1500).catch(()=>false);
+      check(pickerClosed,`${kind} Escape closes only its dialog and restores focus`,JSON.stringify(await client.evaluate("({open:document.querySelector('.picker-dialog[open]')?.dataset.kind,focus:document.activeElement.outerHTML.slice(0,300)})")));
     }
     check(await client.evaluate('navigationMessages.length===0'),'normal page navigation does not display a loading banner');
     const exceptions=browserErrors.filter(e=>!/(net::ERR|Failed to load resource|favicon|pokeapi|pokemonshowdown)/i.test(e));

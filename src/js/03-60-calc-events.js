@@ -1,8 +1,18 @@
-/* Damage calculator field controls and page-level events. */
-powerUiRenderField();
+import { featureApis } from '../runtime/features.js';
+import { activateMainPage } from './01-20-html-structure.js';
+import { clampFallenAllies, resetCalcManualValues, setComboboxValue, state } from './03-10-calc-state.js';
+import { makeCombobox } from './03-20-calc-combobox.js';
+import { wireCalcCombobox } from './03-22-calc-combobox-events.js';
+import { renderSide } from './03-30-calc-side-render.js';
+import { powerUiRenderField } from './03-33-calc-ui-events.js';
+import { emptyEntryMeta, markManualAutoFieldOverride, setAutoEntryEffectsEnabled, setLastAutoEntry, setManualCalcField, swapAutoEntryFieldOwners, syncFieldControls } from './03-40-calc-entry-effects.js';
+import { runCalc, triggerCalc } from './03-50-calc-results.js';
 
-document.getElementById('btnCalculate')?.addEventListener('click', runCalc);
-document.getElementById('btnResetManual')?.addEventListener('click', resetCalcManualValues);
+/* Damage calculator field controls and page-level events. */
+
+
+
+
 
 /* ════════════════════════════════════════════════════════════
    필드 이벤트
@@ -40,19 +50,9 @@ function wireFieldComboboxes() {
   });
 }
 
-wireFieldComboboxes();
-document.querySelectorAll('[data-power-field]').forEach(input => {
-  input.addEventListener('change', () => {
-    state.field[input.dataset.powerField] = input.checked;
-    triggerCalc();
-  });
-});
-document.querySelectorAll('[data-power-choice]').forEach(input => {
-  input.addEventListener('change', () => {
-    state.field[input.dataset.powerChoice] = input.value;
-    triggerCalc();
-  });
-});
+
+
+
 
 function syncSpikesLayerControl(enabled = false) {
   const input = document.getElementById('defSpikesLayers');
@@ -65,32 +65,22 @@ function syncSpikesLayerControl(enabled = false) {
   }
 }
 
-document.getElementById('defReflect').addEventListener('change', e => { state.field.defReflect = e.target.checked; triggerCalc(); });
-document.getElementById('defLightScreen').addEventListener('change', e => { state.field.defLightScreen = e.target.checked; triggerCalc(); });
-document.getElementById('atkHelpingHand').addEventListener('change', e => { state.field.atkHelpingHand = e.target.checked; triggerCalc(); });
+
+
+
 // 재앙 토글
-document.getElementById('ruinSword').addEventListener('change', e => { markManualAutoFieldOverride('ruinSword'); state.field.ruinSword = e.target.checked; triggerCalc(); });
-document.getElementById('ruinTablet').addEventListener('change', e => { markManualAutoFieldOverride('ruinTablet'); state.field.ruinTablet = e.target.checked; triggerCalc(); });
-document.getElementById('ruinBeads').addEventListener('change', e => { markManualAutoFieldOverride('ruinBeads'); state.field.ruinBeads = e.target.checked; triggerCalc(); });
-document.getElementById('ruinVessel').addEventListener('change', e => { markManualAutoFieldOverride('ruinVessel'); state.field.ruinVessel = e.target.checked; triggerCalc(); });
+
+
+
+
 // 진입 위험 (스텔스록 / 압정뿌리기)
-document.getElementById('defStealthRock')?.addEventListener('change', e => { state.field.defStealthRock = e.target.checked; triggerCalc(); });
-document.getElementById('defSpikes')?.addEventListener('change', e => {
-  const layerInput = document.getElementById('defSpikesLayers');
-  const layers = parseInt(layerInput?.dataset.value || layerInput?.value, 10) || 1;
-  syncSpikesLayerControl(e.target.checked);
-  state.field.defSpikesLayers = e.target.checked ? layers : 0;
-  triggerCalc();
-});
+
+
 // 중력장
-document.getElementById('gravity').addEventListener('change', e => { state.field.isGravity = e.target.checked; triggerCalc(); });
+
 // 자동 진입 효과 토글
-document.getElementById('autoEntry').addEventListener('change', e => {
-  setAutoEntryEffectsEnabled(e.target.checked);
-  syncFieldControls(state.field);
-  triggerCalc();
-});
-syncSpikesLayerControl(document.getElementById('defSpikes')?.checked);
+
+
 
 // 재앙 체크박스 동기화 (자동 진입 효과로 변경됐을 때)
 function updateRuinCheckboxes(fieldState = null) {
@@ -102,18 +92,7 @@ function updateRuinCheckboxes(fieldState = null) {
 }
 // 공격측 ↔ 방어측 교대 (사이드 객체 전체를 통째로 교환)
 // 사이드 패널 점프 버튼 위임 — fine-tune/reverse view modules의 sync 함수 호출
-document.addEventListener('click', async e => {
-  const ftBtn = e.target.closest('.calc-page-jump-button[data-ft-from-side]');
-  if (ftBtn) {
-    if (await activateMainPage('finetune', { updateHash:true })) loadSideToFineTune(ftBtn.dataset.ftFromSide);
-    return;
-  }
-  const rcBtn = e.target.closest('.calc-page-jump-button[data-rc-from-side]');
-  if (rcBtn) {
-    if (await activateMainPage('revcalc', { updateHash:true })) loadSideToRevCalc(rcBtn.dataset.rcFromSide);
-    return;
-  }
-});
+
 
 function swapCalcSides() {
   const tmp = state.atk;
@@ -121,14 +100,74 @@ function swapCalcSides() {
   state.def = tmp;
   swapAutoEntryFieldOwners();
   document.getElementById('page-calc')?.classList.toggle('sides-swapped');
-  lastAutoEntry = emptyEntryMeta();
+  setLastAutoEntry(emptyEntryMeta());
   renderSide('atk');
   renderSide('def');
   triggerCalc();
 }
 
-document.getElementById('btnSwapSides')?.addEventListener('click', swapCalcSides);
-document.getElementById('btnSwapSidesResult')?.addEventListener('click', swapCalcSides);
+
+
 /* ════════════════════════════════════════════════════════════
    ⬆️ 원본 로직 끝 ⬆️
    ════════════════════════════════════════════════════════════ */
+
+let bind0360CalcEventsBound = false;
+function bind0360CalcEvents() {
+  if (bind0360CalcEventsBound) return;
+  bind0360CalcEventsBound = true;
+  powerUiRenderField();
+  document.getElementById('btnCalculate')?.addEventListener('click', runCalc);
+  document.getElementById('btnResetManual')?.addEventListener('click', resetCalcManualValues);
+  wireFieldComboboxes();
+  document.querySelectorAll('[data-power-field]').forEach(input => {
+    input.addEventListener('change', () => {
+      state.field[input.dataset.powerField] = input.checked;
+      triggerCalc();
+    });
+  });
+  document.querySelectorAll('[data-power-choice]').forEach(input => {
+    input.addEventListener('change', () => {
+      state.field[input.dataset.powerChoice] = input.value;
+      triggerCalc();
+    });
+  });
+  document.getElementById('defReflect').addEventListener('change', e => { state.field.defReflect = e.target.checked; triggerCalc(); });
+  document.getElementById('defLightScreen').addEventListener('change', e => { state.field.defLightScreen = e.target.checked; triggerCalc(); });
+  document.getElementById('atkHelpingHand').addEventListener('change', e => { state.field.atkHelpingHand = e.target.checked; triggerCalc(); });
+  document.getElementById('ruinSword').addEventListener('change', e => { markManualAutoFieldOverride('ruinSword'); state.field.ruinSword = e.target.checked; triggerCalc(); });
+  document.getElementById('ruinTablet').addEventListener('change', e => { markManualAutoFieldOverride('ruinTablet'); state.field.ruinTablet = e.target.checked; triggerCalc(); });
+  document.getElementById('ruinBeads').addEventListener('change', e => { markManualAutoFieldOverride('ruinBeads'); state.field.ruinBeads = e.target.checked; triggerCalc(); });
+  document.getElementById('ruinVessel').addEventListener('change', e => { markManualAutoFieldOverride('ruinVessel'); state.field.ruinVessel = e.target.checked; triggerCalc(); });
+  document.getElementById('defStealthRock')?.addEventListener('change', e => { state.field.defStealthRock = e.target.checked; triggerCalc(); });
+  document.getElementById('defSpikes')?.addEventListener('change', e => {
+    const layerInput = document.getElementById('defSpikesLayers');
+    const layers = parseInt(layerInput?.dataset.value || layerInput?.value, 10) || 1;
+    syncSpikesLayerControl(e.target.checked);
+    state.field.defSpikesLayers = e.target.checked ? layers : 0;
+    triggerCalc();
+  });
+  document.getElementById('gravity').addEventListener('change', e => { state.field.isGravity = e.target.checked; triggerCalc(); });
+  document.getElementById('autoEntry').addEventListener('change', e => {
+    setAutoEntryEffectsEnabled(e.target.checked);
+    syncFieldControls(state.field);
+    triggerCalc();
+  });
+  syncSpikesLayerControl(document.getElementById('defSpikes')?.checked);
+  document.addEventListener('click', async e => {
+    const ftBtn = e.target.closest('.calc-page-jump-button[data-ft-from-side]');
+    if (ftBtn) {
+      if (await activateMainPage('finetune', { updateHash:true })) featureApis.finetune.loadSideToFineTune(ftBtn.dataset.ftFromSide);
+      return;
+    }
+    const rcBtn = e.target.closest('.calc-page-jump-button[data-rc-from-side]');
+    if (rcBtn) {
+      if (await activateMainPage('revcalc', { updateHash:true })) featureApis.revcalc.loadSideToRevCalc(rcBtn.dataset.rcFromSide);
+      return;
+    }
+  });
+  document.getElementById('btnSwapSides')?.addEventListener('click', swapCalcSides);
+  document.getElementById('btnSwapSidesResult')?.addEventListener('click', swapCalcSides);
+}
+
+export { wireFieldComboboxes, syncSpikesLayerControl, updateRuinCheckboxes, swapCalcSides, bind0360CalcEventsBound, bind0360CalcEvents };

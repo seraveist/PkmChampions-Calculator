@@ -1,3 +1,14 @@
+import { toolStatApplyPointValue, toolStatApplyRankDelta, toolStatNormalizePointInputValue, toolStatShouldCommitPointInput } from './01-20-html-structure.js';
+import { AbilityById, ItemById, MoveById, NATURE_BY_ID, PokemonById, abName, itName } from './01-core.js';
+import { calcNatureLabel, cloneCalcValue, makeSideState, setSideCurrentHp, state } from './03-10-calc-state.js';
+import { calcAbilityOptionDataForPokemon, calcItemOptionData, calcNatureOptionData } from './03-20-calc-combobox.js';
+import { renderSide } from './03-30-calc-side-render.js';
+import { triggerCalc } from './03-50-calc-results.js';
+import { RC_MOVESET_SIZE, rcDefaultField, rcEnsureMoveInSet, rcForecastKey, rcItemCandidateCountLabel, rcMoveSet, rcNextMyRanks, rcNextOpponentRanks, rcResetItemCandidatesForOpponent, revCalcState } from './04-40-revcalc-state.js';
+import { rcAnalysisCache, rcAnalysisCacheKey, rcAnalyzeCachedAsync, rcCancelAnalysis } from './04-42-revcalc-candidates.js';
+import { renderRevCalcAll, renderRevCalcInputs, renderRevCalcMy, renderRevCalcOpp, renderRevCalcResults } from './04-43-revcalc-render.js';
+import { rcDefaultKnownOpponentItemForPokemon, rcFieldInputValue, rcSyncInputsFromDom } from './04-44-revcalc-events.js';
+
 /* Reverse calculator input actions, analysis trigger, and calculator handoff. */
 function rcInvalidateChangedObservation() {
   const previousKey = revCalcState.results?.inputKey || revCalcState.pendingInputKey;
@@ -41,15 +52,8 @@ function rcScheduleForecastRefresh() {
     renderRevCalcResults();
   }).catch(() => { if (revCalcState.results === result) { result.pendingForecastKey = ''; result.forecastError = true; renderRevCalcResults(); } });
 }
-for (const type of ['input', 'change', 'click']) document.getElementById('page-revcalc')?.addEventListener(type, e => {
-  if (type !== 'click') rcReadExtraObservationInput(e.target);
-  clearTimeout(rcInputRefreshTimer);
-  rcInputRefreshTimer = setTimeout(() => { if (rcInvalidateChangedObservation()) renderRevCalcResults(); }, 0);
-});
-document.getElementById('page-revcalc')?.addEventListener('keydown', e => {
-  if (!['Enter', ' '].includes(e.key) || e.target.dataset?.rcToggleResult === undefined) return;
-  e.preventDefault(); e.target.click();
-});
+
+
 
 function rcComboKind(target) {
   if (target === 'mynature') return 'nature';
@@ -95,223 +99,14 @@ function rcComboSearchMatches(query, option) {
 }
 
 // 위임 이벤트 핸들러
-document.getElementById('page-revcalc')?.addEventListener('change', e => {
-  const t = e.target;
-  if (t.dataset.rcRankSelect || t.dataset.rcOppRankSelect) {
-    const role = t.dataset.rcRankSelect ? 'my' : 'opp';
-    revCalcState[role].ranks[t.dataset.rcRankSelect || t.dataset.rcOppRankSelect] = Math.max(-6,Math.min(6,Number(t.value) || 0));
-    renderRevCalcResults(); return;
-  }
-  const pointInputStat = t.dataset.toolStatPointInput || t.dataset.rcEv;
-  if (pointInputStat) {
-    const stat = pointInputStat;
-    const normalized = toolStatNormalizePointInputValue(t.value);
-    if (normalized !== t.value) t.value = normalized;
-    const finalVal = toolStatApplyPointValue(revCalcState.my, stat, t.value);
-    if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
-    if (String(finalVal) !== String(t.value)) t.value = finalVal;
-    renderRevCalcMy();
-    renderRevCalcInputs();
-    return;
-  }
-  if (t.dataset.rcAction === 'myNature') { revCalcState.my.nature = t.value; renderRevCalcMy(); renderRevCalcInputs(); return; }
-  if (t.dataset.rcAction === 'myAbility') { revCalcState.my.ability = t.value; return; }
-  if (t.dataset.rcAction === 'oppItemKnown') {
-    revCalcState.oppItemKnown = t.value;
-    rcResetItemCandidatesForOpponent();
-    renderRevCalcInputs();
-    return;
-  }
-  if (t.dataset.rcAction === 'oppStatus') { revCalcState.opp.status = t.value; return; }
-  if (t.dataset.rcAction === 'myMove') {
-    revCalcState.myMove = t.value;
-    rcEnsureMoveInSet(t.value);
-    revCalcState.myMoveBp = '';   // 자동 채움
-    renderRevCalcInputs();
-    renderRevCalcResults();
-    return;
-  }
-  if (t.dataset.rcAction === 'oppMove') {
-    revCalcState.oppMove = t.value;
-    revCalcState.oppMoveBp = '';
-    if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = t.value;
-    renderRevCalcInputs();
-    return;
-  }
-  if (t.dataset.rcAction === 'predictedOppMove') {
-    revCalcState.predictedOppMove = t.value;
-    renderRevCalcResults();
-    return;
-  }
-  if (t.dataset.rcMoveslot !== undefined) {
-    const idx = parseInt(t.dataset.rcMoveslot, 10);
-    if (Number.isInteger(idx) && idx >= 0 && idx < RC_MOVESET_SIZE) {
-      rcMoveSet()[idx] = t.value;
-      if (!revCalcState.myMove && t.value) revCalcState.myMove = t.value;
-      renderRevCalcInputs();
-      renderRevCalcResults();
-    }
-    return;
-  }
-  if (t.dataset.rcAction === 'myMoveBp') { revCalcState.myMoveBp = t.value; return; }
-  if (t.dataset.rcAction === 'oppMoveBp') { revCalcState.oppMoveBp = t.value; return; }
-  if (t.dataset.rcAction === 'observedTheirPct') { revCalcState.observedTheirPct = t.value; return; }
-  if (t.dataset.rcAction === 'observedMyHp') { revCalcState.observedMyHp = t.value; return; }
-  if (t.dataset.rcAction === 'turnOrder') { revCalcState.turnOrder = t.value; renderRevCalcInputs(); return; }
-  if (t.dataset.rcField) {
-    const k = t.dataset.rcField;
-    revCalcState.field[k] = rcFieldInputValue(t);
-    return;
-  }
-  if (t.dataset.rcObservedField) {
-    const side = t.dataset.rcObservedField;
-    const key = t.dataset.rcFieldKey;
-    if (!revCalcState.observedFields[side]) revCalcState.observedFields[side] = {};
-    revCalcState.observedFields[side][key] = !!t.checked;
-    return;
-  }
-  if (t.dataset.rcItem !== undefined) {
-    const id = t.dataset.rcItem;
-    if (t.checked && !revCalcState.itemCandidates.includes(id)) revCalcState.itemCandidates.push(id);
-    if (!t.checked) revCalcState.itemCandidates = revCalcState.itemCandidates.filter(x => x !== id);
-    const badge = document.querySelector('#page-revcalc .rc-item-candidate-count');
-    if (badge) badge.textContent = rcItemCandidateCountLabel();
-    return;
-  }
-});
 
-document.getElementById('page-revcalc')?.addEventListener('input', e => {
-  const t = e.target;
-  const pointInputStat = t.dataset.toolStatPointInput || t.dataset.rcEv;
-  if (pointInputStat) {
-    const normalized = toolStatNormalizePointInputValue(t.value);
-    if (normalized !== t.value) t.value = normalized;
-    const finalVal = toolStatApplyPointValue(revCalcState.my, pointInputStat, t.value);
-    if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
-    if (String(finalVal) !== String(t.value)) t.value = finalVal;
-    renderRevCalcMy();
-    renderRevCalcInputs();
-    return;
-  }
-  if (!t.dataset?.rcAction) return;
-  if (t.dataset.rcAction === 'myMoveBp') revCalcState.myMoveBp = t.value;
-  if (t.dataset.rcAction === 'oppMoveBp') revCalcState.oppMoveBp = t.value;
-  if (t.dataset.rcAction === 'observedTheirPct') revCalcState.observedTheirPct = t.value;
-  if (t.dataset.rcAction === 'observedMyHp') revCalcState.observedMyHp = t.value;
-});
 
-document.getElementById('page-revcalc')?.addEventListener('click', e => {
-  const t = e.target;
-  const itemToggle = t.closest?.('[data-rc-toggle-item-candidates]');
-  if (itemToggle) {
-    e.preventDefault();
-    revCalcState.itemCandidatesOpen = !revCalcState.itemCandidatesOpen;
-    renderRevCalcInputs();
-    return;
-  }
-  const nextRankToggle = t.closest?.('[data-rc-toggle-next-ranks]');
-  if (nextRankToggle) {
-    e.preventDefault();
-    revCalcState.nextRankOpen = !revCalcState.nextRankOpen;
-    renderRevCalcResults();
-    return;
-  }
-  const toggledRow = t.closest?.('[data-rc-toggle-result]');
-  if (toggledRow) {
-    const idx = parseInt(toggledRow.dataset.rcToggleResult, 10);
-    const opened = new Set(Array.isArray(revCalcState.openResultIndexes) ? revCalcState.openResultIndexes : []);
-    if (opened.has(idx)) opened.delete(idx);
-    else opened.add(idx);
-    revCalcState.openResultIndexes = [...opened].sort((a, b) => a - b);
-    if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
-    renderRevCalcResults();
-    document.querySelector('button[data-rc-toggle-result="' + idx + '"]')?.focus({preventScroll:true});
-    return;
-  }
-  const pointSetStat = t.dataset.toolStatPointSet || t.dataset.rcEvset;
-  if (pointSetStat !== undefined) {
-    const stat = pointSetStat;
-    toolStatApplyPointValue(revCalcState.my, stat, t.dataset.toolStatPointValue ?? t.dataset.rcEvval);
-    renderRevCalcMy();
-    renderRevCalcInputs();
-    return;
-  }
-  const myRankStat = t.dataset.rcRank || (t.dataset.rcOpprank ? '' : t.dataset.toolStatRank);
-  if (myRankStat) {
-    const stat = myRankStat;
-    const dir = t.dataset.toolStatRankDir || t.dataset.rcDir;
-    toolStatApplyRankDelta(revCalcState.my, stat, dir);
-    revCalcState.nextMyRanks[stat] = revCalcState.my.ranks[stat];
-    renderRevCalcMy();
-    renderRevCalcInputs();
-    return;
-  }
-  const oppRankStat = t.dataset.rcOpprank;
-  if (oppRankStat) {
-    const stat = oppRankStat;
-    const dir = t.dataset.toolStatRankDir || t.dataset.rcDir;
-    toolStatApplyRankDelta(revCalcState.opp, stat, dir);
-    revCalcState.nextOppRanks[stat] = revCalcState.opp.ranks[stat];
-    renderRevCalcOpp();
-    return;
-  }
-  if (t.dataset.rcNextrank) {
-    const stat = t.dataset.rcNextrank;
-    const dir = parseInt(t.dataset.rcDir, 10);
-    const ranks = rcNextOpponentRanks();
-    ranks[stat] = Math.max(-6, Math.min(6, (ranks[stat] || 0) + dir));
-    renderRevCalcResults();
-    return;
-  }
-  if (t.dataset.rcNextmyrank) {
-    const stat = t.dataset.rcNextmyrank;
-    const dir = parseInt(t.dataset.rcDir, 10);
-    const ranks = rcNextMyRanks();
-    ranks[stat] = Math.max(-6, Math.min(6, (ranks[stat] || 0) + dir));
-    renderRevCalcResults();
-    return;
-  }
-  if (t.dataset.rcApplyresult !== undefined) {
-    rcApplyResultToCalc(parseInt(t.dataset.rcApplyresult, 10));
-    return;
-  }
-});
+
+
+
 
 // 분석 시작
-document.getElementById('rcAnalyze')?.addEventListener('click', async () => {
-  if (revCalcState.analyzing) {
-    revCalcState.analysisRunId++;
-    rcCancelAnalysis();
-    revCalcState.analyzing = false;
-    renderRevCalcResults();
-    return;
-  }
 
-  rcSyncInputsFromDom();
-  const runId = ++revCalcState.analysisRunId;
-  revCalcState.results = null;
-  revCalcState.pendingInputKey = rcAnalysisCacheKey();
-  revCalcState.resultsStale = false;
-  revCalcState.analyzing = true;
-  renderRevCalcResults();
-  try {
-    const result = await rcAnalyzeCachedAsync();
-    if (runId !== revCalcState.analysisRunId) return;
-    if (revCalcState.pendingInputKey !== rcAnalysisCacheKey()) { rcInvalidateChangedObservation(); return; }
-    revCalcState.results = result;
-    revCalcState.pendingInputKey = '';
-    revCalcState.selectedResultIndex = 0;
-    revCalcState.openResultIndexes = [0];
-    if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
-  } catch (e) {
-    if (runId !== revCalcState.analysisRunId || e?.message === 'RC_ANALYSIS_CANCELLED') return;
-    revCalcState.results = { error: '분석 실패: ' + e.message };
-  } finally {
-    if (runId !== revCalcState.analysisRunId) return;
-    revCalcState.analyzing = false;
-    renderRevCalcResults();
-  }
-});
 
 // 결과 spread 를 계산기 방어측에 적용
 function rcApplyResultToCalc(idx) {
@@ -370,7 +165,6 @@ function loadSideToRevCalc(sideKey) {
   if (navBtn) navBtn.click();
   renderRevCalcAll();
 }
-window.loadSideToRevCalc = loadSideToRevCalc;
 
 function rcNewObservation({ opponentId = '', keepField = false, render = true } = {}) {
   revCalcState.analysisRunId++;
@@ -395,4 +189,235 @@ function rcNewObservation({ opponentId = '', keepField = false, render = true } 
   });
   if (render) renderRevCalcAll();
 }
-document.getElementById('rcNewObservation')?.addEventListener('click', () => rcNewObservation());
+
+
+let bind0445RevcalcActionsBound = false;
+function bind0445RevcalcActions() {
+  if (bind0445RevcalcActionsBound) return;
+  bind0445RevcalcActionsBound = true;
+  for (const type of ['input', 'change', 'click']) document.getElementById('page-revcalc')?.addEventListener(type, e => {
+    if (type !== 'click') rcReadExtraObservationInput(e.target);
+    clearTimeout(rcInputRefreshTimer);
+    rcInputRefreshTimer = setTimeout(() => { if (rcInvalidateChangedObservation()) renderRevCalcResults(); }, 0);
+  });
+  document.getElementById('page-revcalc')?.addEventListener('keydown', e => {
+    if (!['Enter', ' '].includes(e.key) || e.target.dataset?.rcToggleResult === undefined) return;
+    e.preventDefault(); e.target.click();
+  });
+  document.getElementById('page-revcalc')?.addEventListener('change', e => {
+    const t = e.target;
+    if (t.dataset.rcRankSelect || t.dataset.rcOppRankSelect) {
+      const role = t.dataset.rcRankSelect ? 'my' : 'opp';
+      revCalcState[role].ranks[t.dataset.rcRankSelect || t.dataset.rcOppRankSelect] = Math.max(-6,Math.min(6,Number(t.value) || 0));
+      renderRevCalcResults(); return;
+    }
+    const pointInputStat = t.dataset.toolStatPointInput || t.dataset.rcEv;
+    if (pointInputStat) {
+      const stat = pointInputStat;
+      const normalized = toolStatNormalizePointInputValue(t.value);
+      if (normalized !== t.value) t.value = normalized;
+      const finalVal = toolStatApplyPointValue(revCalcState.my, stat, t.value);
+      if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
+      if (String(finalVal) !== String(t.value)) t.value = finalVal;
+      renderRevCalcMy();
+      renderRevCalcInputs();
+      return;
+    }
+    if (t.dataset.rcAction === 'myNature') { revCalcState.my.nature = t.value; renderRevCalcMy(); renderRevCalcInputs(); return; }
+    if (t.dataset.rcAction === 'myAbility') { revCalcState.my.ability = t.value; return; }
+    if (t.dataset.rcAction === 'oppItemKnown') {
+      revCalcState.oppItemKnown = t.value;
+      rcResetItemCandidatesForOpponent();
+      renderRevCalcInputs();
+      return;
+    }
+    if (t.dataset.rcAction === 'oppStatus') { revCalcState.opp.status = t.value; return; }
+    if (t.dataset.rcAction === 'myMove') {
+      revCalcState.myMove = t.value;
+      rcEnsureMoveInSet(t.value);
+      revCalcState.myMoveBp = '';   // 자동 채움
+      renderRevCalcInputs();
+      renderRevCalcResults();
+      return;
+    }
+    if (t.dataset.rcAction === 'oppMove') {
+      revCalcState.oppMove = t.value;
+      revCalcState.oppMoveBp = '';
+      if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = t.value;
+      renderRevCalcInputs();
+      return;
+    }
+    if (t.dataset.rcAction === 'predictedOppMove') {
+      revCalcState.predictedOppMove = t.value;
+      renderRevCalcResults();
+      return;
+    }
+    if (t.dataset.rcMoveslot !== undefined) {
+      const idx = parseInt(t.dataset.rcMoveslot, 10);
+      if (Number.isInteger(idx) && idx >= 0 && idx < RC_MOVESET_SIZE) {
+        rcMoveSet()[idx] = t.value;
+        if (!revCalcState.myMove && t.value) revCalcState.myMove = t.value;
+        renderRevCalcInputs();
+        renderRevCalcResults();
+      }
+      return;
+    }
+    if (t.dataset.rcAction === 'myMoveBp') { revCalcState.myMoveBp = t.value; return; }
+    if (t.dataset.rcAction === 'oppMoveBp') { revCalcState.oppMoveBp = t.value; return; }
+    if (t.dataset.rcAction === 'observedTheirPct') { revCalcState.observedTheirPct = t.value; return; }
+    if (t.dataset.rcAction === 'observedMyHp') { revCalcState.observedMyHp = t.value; return; }
+    if (t.dataset.rcAction === 'turnOrder') { revCalcState.turnOrder = t.value; renderRevCalcInputs(); return; }
+    if (t.dataset.rcField) {
+      const k = t.dataset.rcField;
+      revCalcState.field[k] = rcFieldInputValue(t);
+      return;
+    }
+    if (t.dataset.rcObservedField) {
+      const side = t.dataset.rcObservedField;
+      const key = t.dataset.rcFieldKey;
+      if (!revCalcState.observedFields[side]) revCalcState.observedFields[side] = {};
+      revCalcState.observedFields[side][key] = !!t.checked;
+      return;
+    }
+    if (t.dataset.rcItem !== undefined) {
+      const id = t.dataset.rcItem;
+      if (t.checked && !revCalcState.itemCandidates.includes(id)) revCalcState.itemCandidates.push(id);
+      if (!t.checked) revCalcState.itemCandidates = revCalcState.itemCandidates.filter(x => x !== id);
+      const badge = document.querySelector('#page-revcalc .rc-item-candidate-count');
+      if (badge) badge.textContent = rcItemCandidateCountLabel();
+      return;
+    }
+  });
+  document.getElementById('page-revcalc')?.addEventListener('input', e => {
+    const t = e.target;
+    const pointInputStat = t.dataset.toolStatPointInput || t.dataset.rcEv;
+    if (pointInputStat) {
+      const normalized = toolStatNormalizePointInputValue(t.value);
+      if (normalized !== t.value) t.value = normalized;
+      const finalVal = toolStatApplyPointValue(revCalcState.my, pointInputStat, t.value);
+      if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
+      if (String(finalVal) !== String(t.value)) t.value = finalVal;
+      renderRevCalcMy();
+      renderRevCalcInputs();
+      return;
+    }
+    if (!t.dataset?.rcAction) return;
+    if (t.dataset.rcAction === 'myMoveBp') revCalcState.myMoveBp = t.value;
+    if (t.dataset.rcAction === 'oppMoveBp') revCalcState.oppMoveBp = t.value;
+    if (t.dataset.rcAction === 'observedTheirPct') revCalcState.observedTheirPct = t.value;
+    if (t.dataset.rcAction === 'observedMyHp') revCalcState.observedMyHp = t.value;
+  });
+  document.getElementById('page-revcalc')?.addEventListener('click', e => {
+    const t = e.target;
+    const itemToggle = t.closest?.('[data-rc-toggle-item-candidates]');
+    if (itemToggle) {
+      e.preventDefault();
+      revCalcState.itemCandidatesOpen = !revCalcState.itemCandidatesOpen;
+      renderRevCalcInputs();
+      return;
+    }
+    const nextRankToggle = t.closest?.('[data-rc-toggle-next-ranks]');
+    if (nextRankToggle) {
+      e.preventDefault();
+      revCalcState.nextRankOpen = !revCalcState.nextRankOpen;
+      renderRevCalcResults();
+      return;
+    }
+    const toggledRow = t.closest?.('[data-rc-toggle-result]');
+    if (toggledRow) {
+      const idx = parseInt(toggledRow.dataset.rcToggleResult, 10);
+      const opened = new Set(Array.isArray(revCalcState.openResultIndexes) ? revCalcState.openResultIndexes : []);
+      if (opened.has(idx)) opened.delete(idx);
+      else opened.add(idx);
+      revCalcState.openResultIndexes = [...opened].sort((a, b) => a - b);
+      if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
+      renderRevCalcResults();
+      document.querySelector('button[data-rc-toggle-result="' + idx + '"]')?.focus({preventScroll:true});
+      return;
+    }
+    const pointSetStat = t.dataset.toolStatPointSet || t.dataset.rcEvset;
+    if (pointSetStat !== undefined) {
+      const stat = pointSetStat;
+      toolStatApplyPointValue(revCalcState.my, stat, t.dataset.toolStatPointValue ?? t.dataset.rcEvval);
+      renderRevCalcMy();
+      renderRevCalcInputs();
+      return;
+    }
+    const myRankStat = t.dataset.rcRank || (t.dataset.rcOpprank ? '' : t.dataset.toolStatRank);
+    if (myRankStat) {
+      const stat = myRankStat;
+      const dir = t.dataset.toolStatRankDir || t.dataset.rcDir;
+      toolStatApplyRankDelta(revCalcState.my, stat, dir);
+      revCalcState.nextMyRanks[stat] = revCalcState.my.ranks[stat];
+      renderRevCalcMy();
+      renderRevCalcInputs();
+      return;
+    }
+    const oppRankStat = t.dataset.rcOpprank;
+    if (oppRankStat) {
+      const stat = oppRankStat;
+      const dir = t.dataset.toolStatRankDir || t.dataset.rcDir;
+      toolStatApplyRankDelta(revCalcState.opp, stat, dir);
+      revCalcState.nextOppRanks[stat] = revCalcState.opp.ranks[stat];
+      renderRevCalcOpp();
+      return;
+    }
+    if (t.dataset.rcNextrank) {
+      const stat = t.dataset.rcNextrank;
+      const dir = parseInt(t.dataset.rcDir, 10);
+      const ranks = rcNextOpponentRanks();
+      ranks[stat] = Math.max(-6, Math.min(6, (ranks[stat] || 0) + dir));
+      renderRevCalcResults();
+      return;
+    }
+    if (t.dataset.rcNextmyrank) {
+      const stat = t.dataset.rcNextmyrank;
+      const dir = parseInt(t.dataset.rcDir, 10);
+      const ranks = rcNextMyRanks();
+      ranks[stat] = Math.max(-6, Math.min(6, (ranks[stat] || 0) + dir));
+      renderRevCalcResults();
+      return;
+    }
+    if (t.dataset.rcApplyresult !== undefined) {
+      rcApplyResultToCalc(parseInt(t.dataset.rcApplyresult, 10));
+      return;
+    }
+  });
+  document.getElementById('rcAnalyze')?.addEventListener('click', async () => {
+    if (revCalcState.analyzing) {
+      revCalcState.analysisRunId++;
+      rcCancelAnalysis();
+      revCalcState.analyzing = false;
+      renderRevCalcResults();
+      return;
+    }
+
+    rcSyncInputsFromDom();
+    const runId = ++revCalcState.analysisRunId;
+    revCalcState.results = null;
+    revCalcState.pendingInputKey = rcAnalysisCacheKey();
+    revCalcState.resultsStale = false;
+    revCalcState.analyzing = true;
+    renderRevCalcResults();
+    try {
+      const result = await rcAnalyzeCachedAsync();
+      if (runId !== revCalcState.analysisRunId) return;
+      if (revCalcState.pendingInputKey !== rcAnalysisCacheKey()) { rcInvalidateChangedObservation(); return; }
+      revCalcState.results = result;
+      revCalcState.pendingInputKey = '';
+      revCalcState.selectedResultIndex = 0;
+      revCalcState.openResultIndexes = [0];
+      if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = revCalcState.oppMove || '';
+    } catch (e) {
+      if (runId !== revCalcState.analysisRunId || e?.message === 'RC_ANALYSIS_CANCELLED') return;
+      revCalcState.results = { error: '분석 실패: ' + e.message };
+    } finally {
+      if (runId !== revCalcState.analysisRunId) return;
+      revCalcState.analyzing = false;
+      renderRevCalcResults();
+    }
+  });
+  document.getElementById('rcNewObservation')?.addEventListener('click', () => rcNewObservation());
+}
+
+export { rcInvalidateChangedObservation, rcReadExtraObservationInput, rcInputRefreshTimer, rcForecastRefreshId, rcScheduleForecastRefresh, rcComboKind, rcAbilityOptionsForCurrentPokemon, rcComboData, rcCurrentComboId, rcComboLabel, rcComboSearchMatches, rcApplyResultToCalc, loadSideToRevCalc, rcNewObservation, bind0445RevcalcActionsBound, bind0445RevcalcActions };

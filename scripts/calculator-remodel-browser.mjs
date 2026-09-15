@@ -1,3 +1,4 @@
+import { prepareModuleBrowserFixture, installModuleTestBridge } from './browser-module-fixture.mjs';
 // Fine-tune planner checks against the actual public or standalone browser build.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -7,6 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import WebSocket from 'ws';
+import { runClientPerformanceBrowserChecks, runSlotCacheBrowserChecks } from './client-performance-browser-checks.mjs';
 
 const require = createRequire(import.meta.url);
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -14,10 +16,7 @@ const PUBLIC_MODE = process.argv.includes('--public');
 const AD_FREE = process.argv.includes('--ad-free');
 const REQUIRE_BROWSER = process.argv.includes('--require-browser') || process.env.CI === 'true';
 const DISABLE_BROWSER_SANDBOX = process.argv.includes('--disable-browser-sandbox') || process.env.UI_SMOKE_DISABLE_SANDBOX === '1';
-const PUBLIC_ROOT = path.join(ROOT, 'dist');
-const HTML_PATH = PUBLIC_MODE
-  ? path.join(PUBLIC_ROOT, 'index.html')
-  : path.join(ROOT, 'pokemon-champions-calculator-v3.html');
+const {publicRoot:PUBLIC_ROOT,htmlPath:HTML_PATH} = await prepareModuleBrowserFixture({publicMode:PUBLIC_MODE,adFree:AD_FREE});
 const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 
 function contentType(file) {
@@ -342,6 +341,7 @@ async function main() {
     await client.send('Runtime.enable');
     await client.send('Page.enable');
     await client.send('Log.enable');
+    await installModuleTestBridge(client);
     await client.send('Page.navigate', { url });
     await sleep(200);
     await waitFor(() => client.evaluate(`document.readyState === 'complete'`));
@@ -360,6 +360,8 @@ async function main() {
     const report=[];
     await client.evaluate("state.atk=makeSideState('garchomp');state.def=makeSideState('dragonite');state.atk.moves=['earthquake','dragonclaw','rockslide','firefang'];state.atk.item='lifeorb';state.def.evs.hp=32;renderSide('atk');renderSide('def');runCalc();");
     check(await client.evaluate("document.querySelectorAll('#calc-results-body .move-row').length===4"),'four moves render in the shared result grid');
+    await runClientPerformanceBrowserChecks(client,check,{publicMode:PUBLIC_MODE});
+    await runSlotCacheBrowserChecks(client,check);
     await client.evaluate("var point=document.querySelector('[data-calc-ev=hp]');point.focus();point.value='20';point.dispatchEvent(new Event('input',{bubbles:true}));");
     check(await client.evaluate("state.atk.evs.hp===20 && document.activeElement.dataset.calcEv==='hp'"),'live effort input preserves focus');
     await client.evaluate("document.querySelector('[data-calc-side-settings=atk]').click()");

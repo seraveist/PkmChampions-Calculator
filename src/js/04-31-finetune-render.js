@@ -1,3 +1,14 @@
+import { RotomUI, uiStatTable } from './01-10-rotom-ui.js';
+import { toolStatApplyPointValue, toolStatApplyRankDelta, toolStatNormalizePointInputValue, toolStatShouldCommitPointInput } from './01-20-html-structure.js';
+import { NATURE_BY_ID, PokemonById, escapeHTML, pkName, renderTrustedHTML } from './01-core.js';
+import { cloneCalcValue, state } from './03-10-calc-state.js';
+import { renderToolFormCombobox, renderToolPokemonSelectSubframe } from './03-11-calc-shared-render.js';
+import { renderSide } from './03-30-calc-side-render.js';
+import { setManualCalcField, syncFieldControls } from './03-40-calc-entry-effects.js';
+import { triggerCalc } from './03-50-calc-results.js';
+import { fineTuneState, ftBuildHpTargets, ftBuildSpeedTable, ftBulkMetrics, ftClampInt, ftComboLabel, ftEvSummary, ftFormatBreakpointDescriptions, ftMySpeed, ftOpponentBaseSpeed, ftRenderMagicCell, ftRenderOppSpeedChipsHtml, ftSetEv, ftStatKeys, ftWireMyComboboxes, ftWireOppComboboxes } from './04-30-finetune.js';
+import { ftApplyTarget, ftClearConditions, ftFieldHtml, ftHandlePlannerChange, ftHpTargetHtml, ftPickerHtml, ftSideConditionsHtml, ftSpeedTargetHtml } from './04-32-finetune-planner.js';
+
 /* Fine-tune rendering, DOM events, and calculator handoff. */
 function renderFineTuneHp() {
   const container = document.getElementById('ft-hp-body');
@@ -86,75 +97,11 @@ function renderFineTuneAll() {
 }
 
 
-document.getElementById('page-finetune')?.addEventListener('change', e => {
-  const t = e.target;
-  if (t.dataset.ftRankSelect) { fineTuneState.my.ranks[t.dataset.ftRankSelect] = ftClampInt(t.value,-6,6); renderFineTuneAll(); return; }
-  if (ftHandlePlannerChange(t)) { renderFineTuneAll(); return; }
-  if (t.id === 'ftMargin') { fineTuneState.margin = t.value; renderFineTuneSpeed(); return; }
-  if (t.id === 'ftTargetSpeed') { fineTuneState.targetSpeed = t.value; renderFineTuneSpeed(); return; }
-  if (t.id === 'ftOppPoints') { toolStatApplyPointValue(fineTuneState.opp, 'spe', t.value, { stats: ftStatKeys(), maxTotal: 66 }); renderFineTuneAll(); return; }
-  if (t.id === 'ftOppRank') { fineTuneState.opp.ranks.spe = ftClampInt(t.value, -6, 6); renderFineTuneAll(); return; }
-  const pointInputStat = t.dataset.toolStatPointInput || t.dataset.ftEv;
-  if (pointInputStat) {
-    const stat = pointInputStat;
-    const normalized = toolStatNormalizePointInputValue(t.value);
-    if (normalized !== t.value) t.value = normalized;
-    ftSetEv(stat, t.value);
-    if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
-    renderFineTuneAll();
-    return;
-  }
-});
 
-document.getElementById('page-finetune')?.addEventListener('input', e => {
-  const t = e.target;
-  const pointInputStat = t.dataset.toolStatPointInput || t.dataset.ftEv;
-  if (pointInputStat) {
-    const normalized = toolStatNormalizePointInputValue(t.value);
-    if (normalized !== t.value) t.value = normalized;
-    ftSetEv(pointInputStat, t.value);
-    if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
-    renderFineTuneAll();
-    return;
-  }
-  if (t.id === 'ftMargin') { fineTuneState.margin = t.value; renderFineTuneSpeed(); return; }
-  if (t.id === 'ftTargetSpeed') { fineTuneState.targetSpeed = t.value; renderFineTuneSpeed(); return; }
-});
 
-document.getElementById('page-finetune')?.addEventListener('click', e => {
-  const t = e.target;
-  const targetButton = t.closest?.('[data-ft-target]');
-  if (targetButton) { ftApplyTarget(targetButton.dataset.ftTarget, targetButton.dataset.ftPoint); renderFineTuneAll(); return; }
-  const clearButton = t.closest?.('[data-ft-clear-conditions]');
-  if (clearButton) { ftClearConditions(clearButton.dataset.ftClearConditions); renderFineTuneAll(); return; }
-  const applySideButton = t.closest?.('[data-ft-apply-side]');
-  if (applySideButton) {
-    ftApplyToCalc(applySideButton.dataset.ftApplySide);
-    return;
-  }
-  // EV quick set 버튼 (0/32) — 66 캡 적용
-  const pointSetStat = t.dataset.toolStatPointSet || t.dataset.ftEvset;
-  if (pointSetStat !== undefined) {
-    const stat = pointSetStat;
-    ftSetEv(stat, t.dataset.toolStatPointValue ?? t.dataset.ftEvval);
-    renderFineTuneAll();
-    return;
-  }
-  // 내 측 랭크
-  const rankStat = t.dataset.toolStatRank || t.dataset.ftRank;
-  if (rankStat) {
-    const stat = rankStat;
-    const dir = t.dataset.toolStatRankDir || t.dataset.ftDir;
-    if (typeof toolStatApplyRankDelta === 'function') {
-      toolStatApplyRankDelta(fineTuneState.my, stat, dir);
-    } else {
-      const cur = fineTuneState.my.ranks[stat] || 0;
-      fineTuneState.my.ranks[stat] = Math.max(-6, Math.min(6, cur + (parseInt(dir, 10) || 0)));
-    }
-    renderFineTuneAll();
-    return;
-  }
-});
+
+
+
 
 // 양방향 sync — 세부조정 → 계산기
 function ftApplyToCalc(targetSide) {
@@ -193,4 +140,78 @@ function loadSideToFineTune(sideKey) {
   if (ftNav) ftNav.click();
   renderFineTuneAll();
 }
-window.loadSideToFineTune = loadSideToFineTune; // 다른 모듈에서 호출 가능
+
+let bind0431FinetuneRenderBound = false;
+function bind0431FinetuneRender() {
+  if (bind0431FinetuneRenderBound) return;
+  bind0431FinetuneRenderBound = true;
+  document.getElementById('page-finetune')?.addEventListener('change', e => {
+    const t = e.target;
+    if (t.dataset.ftRankSelect) { fineTuneState.my.ranks[t.dataset.ftRankSelect] = ftClampInt(t.value,-6,6); renderFineTuneAll(); return; }
+    if (ftHandlePlannerChange(t)) { renderFineTuneAll(); return; }
+    if (t.id === 'ftMargin') { fineTuneState.margin = t.value; renderFineTuneSpeed(); return; }
+    if (t.id === 'ftTargetSpeed') { fineTuneState.targetSpeed = t.value; renderFineTuneSpeed(); return; }
+    if (t.id === 'ftOppPoints') { toolStatApplyPointValue(fineTuneState.opp, 'spe', t.value, { stats: ftStatKeys(), maxTotal: 66 }); renderFineTuneAll(); return; }
+    if (t.id === 'ftOppRank') { fineTuneState.opp.ranks.spe = ftClampInt(t.value, -6, 6); renderFineTuneAll(); return; }
+    const pointInputStat = t.dataset.toolStatPointInput || t.dataset.ftEv;
+    if (pointInputStat) {
+      const stat = pointInputStat;
+      const normalized = toolStatNormalizePointInputValue(t.value);
+      if (normalized !== t.value) t.value = normalized;
+      ftSetEv(stat, t.value);
+      if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
+      renderFineTuneAll();
+      return;
+    }
+  });
+  document.getElementById('page-finetune')?.addEventListener('input', e => {
+    const t = e.target;
+    const pointInputStat = t.dataset.toolStatPointInput || t.dataset.ftEv;
+    if (pointInputStat) {
+      const normalized = toolStatNormalizePointInputValue(t.value);
+      if (normalized !== t.value) t.value = normalized;
+      ftSetEv(pointInputStat, t.value);
+      if (!toolStatShouldCommitPointInput(t.value, e.type)) return;
+      renderFineTuneAll();
+      return;
+    }
+    if (t.id === 'ftMargin') { fineTuneState.margin = t.value; renderFineTuneSpeed(); return; }
+    if (t.id === 'ftTargetSpeed') { fineTuneState.targetSpeed = t.value; renderFineTuneSpeed(); return; }
+  });
+  document.getElementById('page-finetune')?.addEventListener('click', e => {
+    const t = e.target;
+    const targetButton = t.closest?.('[data-ft-target]');
+    if (targetButton) { ftApplyTarget(targetButton.dataset.ftTarget, targetButton.dataset.ftPoint); renderFineTuneAll(); return; }
+    const clearButton = t.closest?.('[data-ft-clear-conditions]');
+    if (clearButton) { ftClearConditions(clearButton.dataset.ftClearConditions); renderFineTuneAll(); return; }
+    const applySideButton = t.closest?.('[data-ft-apply-side]');
+    if (applySideButton) {
+      ftApplyToCalc(applySideButton.dataset.ftApplySide);
+      return;
+    }
+    // EV quick set 버튼 (0/32) — 66 캡 적용
+    const pointSetStat = t.dataset.toolStatPointSet || t.dataset.ftEvset;
+    if (pointSetStat !== undefined) {
+      const stat = pointSetStat;
+      ftSetEv(stat, t.dataset.toolStatPointValue ?? t.dataset.ftEvval);
+      renderFineTuneAll();
+      return;
+    }
+    // 내 측 랭크
+    const rankStat = t.dataset.toolStatRank || t.dataset.ftRank;
+    if (rankStat) {
+      const stat = rankStat;
+      const dir = t.dataset.toolStatRankDir || t.dataset.ftDir;
+      if (typeof toolStatApplyRankDelta === 'function') {
+        toolStatApplyRankDelta(fineTuneState.my, stat, dir);
+      } else {
+        const cur = fineTuneState.my.ranks[stat] || 0;
+        fineTuneState.my.ranks[stat] = Math.max(-6, Math.min(6, cur + (parseInt(dir, 10) || 0)));
+      }
+      renderFineTuneAll();
+      return;
+    }
+  });
+}
+
+export { renderFineTuneHp, renderFineTuneMy, renderFineTuneOpp, renderFineTuneSpeed, renderFineTuneAll, ftApplyToCalc, loadSideToFineTune, bind0431FinetuneRenderBound, bind0431FinetuneRender };

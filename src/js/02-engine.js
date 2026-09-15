@@ -1,6 +1,8 @@
+import { AbilityById, ItemById, MOD, MOLD_BREAKER_IGNORED_ABILITIES, OF16, OF32, PokemonById, RULES, STAT_LABEL, TYPE_KO, applyBoost, battleAbilityContext, calcStats, chainMods, effectiveAbility, effectiveBattleItem, effectiveItem, effectiveTypes, effectiveWeather, effectiveWeight, getMoveEffectiveness, getStabMod, isGrounded, isTeraActive, pokeRound, sideHpPct, sideIsFullHp, toId, typeEff } from './01-core.js';
+
 /* ════════════════════════════════════════════════════════════
  * 02-engine.js — 계산 엔진: 가변 BP, calculateDamage, 진입 위험, simulateKO/hkoLabel, 속도
- * (build.mjs 가 src/js/*.js 를 알파벳순 concat 후 calc-template.html 에 주입)
+ * ES module; build entrypoints own composition and initialization.
  * ════════════════════════════════════════════════════════════ */
 /* ════════════════════════════════════════════════════════════
    가변 위력 기술 (basePowerCallback)
@@ -146,21 +148,11 @@ function statusMatches(rule, status) {
   return false;
 }
 
-function sideHpPct(side) {
-  const n = Number(side?.hpPct);
-  if (!Number.isFinite(n)) return 1;
-  const raw = n > 1 ? n / 100 : n;
-  return Math.max(0, Math.min(1, raw));
-}
 
 function sideCurrentHp(maxHp, side) {
   return Math.max(1, Math.floor(maxHp * sideHpPct(side) + 1e-9));
 }
 
-function sideIsFullHp(side) {
-  if (side?.fullHP !== undefined) return !!side.fullHP;
-  return sideHpPct(side) >= 1;
-}
 
 function sideIsPinch(side) {
   if (side?.pinch !== undefined) return !!side.pinch;
@@ -1831,3 +1823,5 @@ function firstMover(movePri, atkSpe, defSpe) {
   if (atkSpe < defSpe) return "def";
   return "tie";
 }
+
+export { BERRY_BLOCKING_ABILITIES, MECHANIC_MODS, mechanicMod, formatCalcMultiplier, formatModLabel, displayName, displayType, normalizeParadoxItemState, sideParadoxItemActive, asArray, fieldMechanics, moveHasRuleFlag, fieldRuleApplies, applyFieldRuleMods, firstMatchingFieldRule, conditionListIncludes, pokemonMatchesCondition, statBoostApplies, fractionValue, categoryMatches, statusMatches, sideCurrentHp, sideIsPinch, battleMaxFallenAllies, battleFallenAllies, abilityRuleApplies, applyAbilityRuleMods, damageBlockApplies, normalizedStatus, isBurnStatus, isPoisonStatus, isToxicStatus, attackerBlocksBerries, canRemovePowerItem, fixedDamageAmount, flingItemForMove, specialMoveInputIssue, fixedDamageResult, computeVariableBp, finishDamageStage, makeDamageContext, resolveDamagePreludeStage, calculateBasePowerStage, calculateAttackStage, activeParadoxBoost, highestBattleStat, calculateDefenseStage, calculateBaseDamageStage, calculateFinalDamageStage, resolveMultiHitVariants, sampleMultiHitCounts, calculateDamage, isSpreadDamage, powerMoveField, calculatePowerDamage, koRecoveryOptions, recoverPowerHit, recoverFlungBerry, beatUpParticipants, powerAttackProfile, makePowerAttackModel, resolvePowerMoveUse, simulatePowerKo, attachKoContext, calcHazardDamage, simulateKO, koRollWeights, simulateMoveKoDistribution, simulateOneMoveKoChance, withKoMetric, hkoLabel, effectiveSpeed, firstMover };

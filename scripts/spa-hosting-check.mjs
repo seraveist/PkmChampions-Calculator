@@ -58,7 +58,7 @@ check(generated.includes('<meta charset="UTF-8">'), 'generated file declares cha
 check(generated.includes('name="viewport"'), 'generated file declares viewport');
 check(generated.includes('<style>') && !generated.includes('/* __INLINE_CSS__ */'), 'CSS is inlined into generated HTML');
 check(generated.includes('"use strict";') && !generated.includes('// __INLINE_JS__'), 'JS is inlined into generated HTML');
-check(!/__[A-Z0-9_]+__/.test(generated), 'generated HTML has no unresolved build placeholders');
+check(!/__(?!PURE__)[A-Z0-9_]+__/.test(generated), 'generated HTML has no unresolved build placeholders');
 check(generatedSizeKb > 100, `generated HTML is non-trivial (${generatedSizeKb.toFixed(1)} KB)`);
 
 const scriptSrcs = attrValues(generated, 'src');
@@ -104,7 +104,7 @@ const singleAppSourceContracts = [
 ];
 
 for (const [needle, label] of singleAppSourceContracts) {
-  check(generated.includes(needle), label);
+  check(generated.replace(/\s+/g,'').replace(/"/g,"'").includes(needle.replace(/\s+/g,'').replace(/"/g,"'")), label);
 }
 
 if (failed) process.exit(1);

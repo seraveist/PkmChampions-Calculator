@@ -1,3 +1,10 @@
+import { syncUiPanels, uiButton } from './01-20-html-structure.js';
+import { AbilityById, BATTLE_TYPES, ItemById, MoveById, POKEMON, PokemonById, TYPE_KO, abName, escapeHTML, itName, mvName, pkName, pokemonSpriteSlot, renderTrustedHTML, toId, typeEff } from './01-core.js';
+import { applyPokemonToCalcSide, state } from './03-10-calc-state.js';
+import { applyMoveToCalcSlot, renderSide } from './03-30-calc-side-render.js';
+import { triggerCalc } from './03-50-calc-results.js';
+import { MOVE_CATEGORY_LABEL, currentDex, dexDescriptionBlock, dexEmptyText, dexMoveCategoryBadge, dexPokemonByLooseName, dexTypePill, itemCategoryOf, moveAccuracyLabel, moveCategoryLabel, movePowerLabel, movePowerNote, pokemonFormLabel, pokemonListName, restoreDexScroll, saveDexViewState, setDexFullPageMode } from './04-10-dex.js';
+
 /* Dex detail views, related data, and calculator handoff. */
 const PokemonByAbility = (() => {
   const idx = {};
@@ -583,18 +590,7 @@ function switchToCalcTab() {
 }
 
 // 도감 행 클릭 — 포켓몬/기술/특성은 풀페이지, 도구는 모달
-document.querySelectorAll('.dex-content tbody').forEach(tbody => {
-  tbody.addEventListener('click', e => {
-    const tr = e.target.closest('tr[data-dex-id]');
-    if (!tr) return;
-    saveDexViewState(currentDex);
-    const id = tr.dataset.dexId;
-    const typeMap = { pokemon: 'pokemon', moves: 'move', abilities: 'ability', items: 'item' };
-    const t = typeMap[currentDex];
-    if (currentDex === 'items') openDexDetail(t, id);
-    else openDexDetailPage(t, id);
-  });
-});
+
 
 // 학습기 타입 필터 — 풀페이지/모달 어느 쪽이든 처리 (학습기 영역만 다시 그림)
 function handleLearnsetFilterClick(e, scopeRoot, ctx) {
@@ -620,36 +616,61 @@ function handleLearnsetFilterClick(e, scopeRoot, ctx) {
 }
 
 // 모달 내부 — cross-link / 학습기 필터 / 적용 버튼
-document.getElementById('dexDetailBody')?.addEventListener('click', e => {
-  if (handleLearnsetFilterClick(e, document.getElementById('dexDetailBody'), dexModalCtx)) return;
-  const link = e.target.closest('[data-dex-link]');
-  if (!link) return;
-  // 모달의 cross-reference 클릭 → 모달을 닫고 풀페이지 상세로 이동
-  // (사용자 요청: 모달→모달이 아닌 모달→풀페이지)
-  navigateToDexDetailPage(link.dataset.dexLink, link.dataset.id);
-});
-document.getElementById('dexDetailActions')?.addEventListener('click', e => {
-  const btn = e.target.closest('[data-dex-apply]');
-  if (!btn || btn.disabled) return;
-  applyDexAction(btn.dataset.dexApply, dexModalCtx);
-});
-document.getElementById('dexDetailClose')?.addEventListener('click', closeDexDetail);
-document.getElementById('dexDetailModal')?.addEventListener('click', e => {
-  if (e.target.id === 'dexDetailModal') closeDexDetail();
-});
+
+
+
+
 
 // 풀페이지 — 뒤로 가기 / cross-link / 학습기 필터 / 적용 버튼 (이벤트 위임)
-document.getElementById('dexFullPageDetail')?.addEventListener('click', e => {
-  if (e.target.closest('#dexFullPageBack')) { closeDexFullPage(); return; }
-  if (handleLearnsetFilterClick(e, document.getElementById('dexFullPageDetail'), dexFullPageCtx)) return;
-  const link = e.target.closest('[data-dex-link]');
-  if (link) {
-    // 풀페이지 내부 cross-reference 는 모달로 띄움 + 부모(풀페이지) 컨텍스트 전달
-    openDexDetail(link.dataset.dexLink, link.dataset.id, { ...dexFullPageCtx });
-    return;
-  }
-  const btn = e.target.closest('[data-dex-apply]');
-  if (btn && !btn.disabled) {
-    applyDexAction(btn.dataset.dexApply, dexFullPageCtx);
-  }
-});
+
+
+let bind0411DexDetailBound = false;
+function bind0411DexDetail() {
+  if (bind0411DexDetailBound) return;
+  bind0411DexDetailBound = true;
+  document.querySelectorAll('.dex-content tbody').forEach(tbody => {
+    tbody.addEventListener('click', e => {
+      const tr = e.target.closest('tr[data-dex-id]');
+      if (!tr) return;
+      saveDexViewState(currentDex);
+      const id = tr.dataset.dexId;
+      const typeMap = { pokemon: 'pokemon', moves: 'move', abilities: 'ability', items: 'item' };
+      const t = typeMap[currentDex];
+      if (currentDex === 'items') openDexDetail(t, id);
+      else openDexDetailPage(t, id);
+    });
+  });
+  document.getElementById('dexDetailBody')?.addEventListener('click', e => {
+    if (handleLearnsetFilterClick(e, document.getElementById('dexDetailBody'), dexModalCtx)) return;
+    const link = e.target.closest('[data-dex-link]');
+    if (!link) return;
+    // 모달의 cross-reference 클릭 → 모달을 닫고 풀페이지 상세로 이동
+    // (사용자 요청: 모달→모달이 아닌 모달→풀페이지)
+    navigateToDexDetailPage(link.dataset.dexLink, link.dataset.id);
+  });
+  document.getElementById('dexDetailActions')?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-dex-apply]');
+    if (!btn || btn.disabled) return;
+    applyDexAction(btn.dataset.dexApply, dexModalCtx);
+  });
+  document.getElementById('dexDetailClose')?.addEventListener('click', closeDexDetail);
+  document.getElementById('dexDetailModal')?.addEventListener('click', e => {
+    if (e.target.id === 'dexDetailModal') closeDexDetail();
+  });
+  document.getElementById('dexFullPageDetail')?.addEventListener('click', e => {
+    if (e.target.closest('#dexFullPageBack')) { closeDexFullPage(); return; }
+    if (handleLearnsetFilterClick(e, document.getElementById('dexFullPageDetail'), dexFullPageCtx)) return;
+    const link = e.target.closest('[data-dex-link]');
+    if (link) {
+      // 풀페이지 내부 cross-reference 는 모달로 띄움 + 부모(풀페이지) 컨텍스트 전달
+      openDexDetail(link.dataset.dexLink, link.dataset.id, { ...dexFullPageCtx });
+      return;
+    }
+    const btn = e.target.closest('[data-dex-apply]');
+    if (btn && !btn.disabled) {
+      applyDexAction(btn.dataset.dexApply, dexFullPageCtx);
+    }
+  });
+}
+
+export { PokemonByAbility, PokemonByMove, PokemonFormsByBase, relatedPokemonForms, dexFullPageCtx, dexModalCtx, buildDexContent, openDexDetail, openDexDetailPage, closeDexFullPage, navigateToDexDetailPage, applyDexDynamicStyles, renderPokemonDetail, renderDefensiveMatchup, renderLearnsetByType, dexMoveTraits, renderMoveDetail, renderAbilityDetail, renderItemDetail, applyPokemonToSide, applyDexAction, closeDexDetail, switchToCalcTab, handleLearnsetFilterClick, bind0411DexDetailBound, bind0411DexDetail };

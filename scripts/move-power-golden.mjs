@@ -1,3 +1,4 @@
+import { readSourceFileSync as readFileSync } from './source-utils.mjs';
 // Regression cases for the separate offensive index and HP/KO policy.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -5,7 +6,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const html = fs.readFileSync(path.join(root, 'pokemon-champions-calculator-v3.html'), 'utf8');
+const html = readFileSync(path.join(root, 'pokemon-champions-calculator-v3.html'), 'utf8');
 const data = Object.fromEntries([...html.matchAll(/<script id="(data-[^"]+)" type="application\/json">([\s\S]*?)<\/script>/g)].map(m => [m[1],m[2]]));
 const elements = new Map();
 function element(id = '') { return { id, textContent:data[id] || '', innerHTML:'', value:'', checked:false, dataset:{}, style:{},
@@ -14,7 +15,7 @@ function element(id = '') { return { id, textContent:data[id] || '', innerHTML:'
 const document = {getElementById(id){if(!elements.has(id)) elements.set(id,element(id));return elements.get(id);},querySelectorAll(){return [];},querySelector(){return null;},createElement:element,addEventListener(){}};
 const ctx = vm.createContext({console,assert,document,setTimeout,clearTimeout,window:{innerWidth:1280,addEventListener(){}},requestAnimationFrame(fn){fn();}});
 const dir = path.join(root,'src/js');
-vm.runInContext(fs.readdirSync(dir).filter(n=>n.endsWith('.js')&&!n.startsWith('05')&&!n.includes('theme')).sort().map(n=>fs.readFileSync(path.join(dir,n),'utf8')).join('\n'),ctx);
+vm.runInContext(fs.readdirSync(dir).filter(n=>n.endsWith('.js')&&!n.startsWith('05')&&!n.includes('theme')).sort().map(n=>readFileSync(path.join(dir,n),'utf8')).join('\n'),ctx);
 vm.runInContext(`
 function side(id) { assert(PokemonById[id]);const s=makeSideState(id);s.ability='';s.item='';return s; }
 function index(a,d,id,f=makeFieldState()) {const m=typeof id==='string'?MoveById[id]:id;assert(m);return estimateMovePower(a,m,d,f).eff;}

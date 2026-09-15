@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - refactor/client-data-performance
   pull_request:
     branches:
       - main
@@ -15,6 +16,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,32 +29,44 @@ jobs:
           node-version: '20'
           cache: npm
 
+      - name: Install Korean fonts for browser layout checks
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+          fc-cache -f
+          mkdir -p artifacts/ui-smoke
+          fc-match ':lang=ko' | tee artifacts/ui-smoke/font-environment.txt
+
       - name: Install dependencies
         run: npm ci
 
       - name: Run regression suite
-        run: npm test
+        run: npm test 2>&1 | tee artifacts/ui-smoke/npm-test.log
 
       - name: Verify generated artifacts are committed
         run: git diff --exit-code -- pokemon-champions-calculator-v3.html docs/damage-calculator-coverage-matrix.md
 
+      - name: Verify uninstrumented module and offline output
+        run: |
+          node scripts/modules-browser.mjs --public --disable-browser-sandbox 2>&1 | tee artifacts/ui-smoke/production-public.log
+          node scripts/modules-browser.mjs --disable-browser-sandbox 2>&1 | tee artifacts/ui-smoke/production-offline.log
+
+      - name: Verify slot-level calculation and retained controls
+        run: |
+          node scripts/calculator-remodel-browser.mjs --public --ad-free --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/ui-smoke/calculator-pages.log
+          node scripts/calculator-remodel-browser.mjs --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/ui-smoke/calculator-offline.log
+        env:
+          UI_SMOKE_SCREENSHOT_DIR: artifacts/ui-smoke/calculator
+
       - name: Run standalone browser smoke
-        run: npm run ui:browser -- --require-browser --disable-browser-sandbox
+        run: npm run ui:browser -- --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/ui-smoke/ui-offline.log
         env:
           UI_SMOKE_SCREENSHOT_DIR: artifacts/ui-smoke/standalone
 
       - name: Run public browser smoke
-        run: npm run ui:browser:public -- --require-browser --disable-browser-sandbox
+        run: npm run ui:browser:public -- --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/ui-smoke/ui-public.log
         env:
           UI_SMOKE_SCREENSHOT_DIR: artifacts/ui-smoke/public
-
-      - name: Upload browser smoke screenshots on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ui-smoke-screenshots
-          path: artifacts/ui-smoke
-          if-no-files-found: ignore
 
       - name: Build Cloudflare Pages output
         run: npm run build:pages
@@ -59,6 +75,15 @@ jobs:
         run: npm run pages:ready
 
       - name: Run Cloudflare Pages browser smoke
-        run: node scripts/ui-remodel-final-browser.mjs --public --ad-free --require-browser --disable-browser-sandbox
+        run: node scripts/ui-remodel-final-browser.mjs --public --ad-free --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/ui-smoke/ui-pages.log
         env:
           UI_SMOKE_SCREENSHOT_DIR: artifacts/ui-smoke/pages
+
+      - name: Upload browser validation logs and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-smoke-screenshots
+          path: artifacts/ui-smoke
+          retention-days: 7
+          if-no-files-found: warn

@@ -1,3 +1,9 @@
+import { AbilityById, ItemById, MoveById, PokemonById, abName, battleAbilityContext, calcMaxHp, calcStats, effectiveBattleItem, effectiveWeather, isGrounded, itName, mvName, sideHpPct, sideIsFullHp } from './01-core.js';
+import { calculateDamage, damageBlockApplies, effectiveSpeed, fractionValue, isPoisonStatus, koRecoveryOptions, koRollWeights, makePowerAttackModel, recoverFlungBerry, recoverPowerHit } from './02-engine.js';
+import { RC_NATURE_IDS, rcActiveItemCandidates, rcAnalysisField, rcObservedField, rcPokemonAbilityIds, rcSpeedCandidateInfo, revCalcState } from './04-40-revcalc-state.js';
+import { rcCandidateCompletionInfo, rcGroupCandidates, rcMoveDefenseStat, rcMoveOffenseStat } from './04-41-revcalc-scoring.js';
+import { rcAnalysisCacheKey, rcBuildOpponentState } from './04-42-revcalc-candidates.js';
+
 /* One observed singles exchange. Pure transitions are shared with the next-action forecast. */
 function rcSetHp(side, hp) {
   const max = calcMaxHp(side);
@@ -405,3 +411,5 @@ function rcCompactPaths(paths) {
   }
   return [...result.values()];
 }
+
+export { rcSetHp, rcHp, rcMoveForObservation, rcObservationSide, rcStateEvent, rcObservedBoost, rcMovePriority, rcBattleOrder, rcDamageCacheKey, rcHitOutcomes, rcAdvanceAttack, rcEndOfExchange, rcObservedHpMatches, rcActionChangesOwnHp, rcProjectedEndHpMatches, rcFirstHitCanMatch, rcExchangePaths, rcHpFirstSpreads, rcCachedExchangePaths, rcValidateExchangeInput, rcAnalyzeExchange, rcCompactPaths };

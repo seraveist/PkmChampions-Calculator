@@ -1,3 +1,11 @@
+import { uiSetPickerLabel } from './01-10-rotom-ui.js';
+import { AbilityById, ITEMS, NATURES, POKEMON, PokemonById, RULES, STAT_LABEL, TYPE_KO, abName, battleAbilityContext, calcStats, chainMods, effectiveBattleItem, getStabMod, itName, pkName, renderTrustedHTML, toId } from './01-core.js';
+import { applyAbilityRuleMods, calculateAttackStage, calculateBasePowerStage, fieldMechanics, firstMatchingFieldRule, fixedDamageAmount, isSpreadDamage, makeDamageContext, mechanicMod, powerAttackProfile, resolveDamagePreludeStage, specialMoveInputIssue } from './02-engine.js';
+import { CALC_FIELD_OPTION_SETS, autoEntryEffects, calcDatasetForCombobox, calcItemCategoryLabel, calcMatches, calcMoveCategoryLabel, calcNatureLabel, calcSearchText, clampFallenAllies, makeSideState, sortItemsForCalcSelect, sortPokemonForCalcSelect, state } from './03-10-calc-state.js';
+import { uiWirePickerDialog } from './03-19-picker-dialog.js';
+import { calcPokemonOptionHeaderHtml, calcRenderPokemonOption } from './03-21-calc-combobox-options.js';
+import { AUTO_ENTRY_FIELD_KEYS, autoEntryFieldState, clampRank, cloneSideForCalc, entryFieldEffectForSide } from './03-40-calc-entry-effects.js';
+
 /* Calculator move estimation and shared combobox behavior. */
 /* Damage calculator move estimation and combobox helpers. */
 const ENTRY_EFFECTS = RULES.entryEffects || {};
@@ -125,19 +133,28 @@ function calcAbilityOptionDataForPokemon(pokemonId, currentAbility = '', { inclu
   return includeEmpty ? [{ id: '', label: '없음', sub: emptySub }, ...options] : options;
 }
 
+// Display data is fixed for one build; callers receive their own array.
+let calcItemOptionsCache = null;
+let calcNatureOptionsCache = null;
 function calcItemOptionData({ includeEmpty = true } = {}) {
-  const options = sortItemsForCalcSelect(ITEMS).map(i => ({ id: i.id, label: itName(i), sub: i.name || i.id, raw: i }));
-  return includeEmpty ? [{ id: '', label: '없음', sub: '' }, ...options] : options;
+  const options = calcItemOptionsCache ||= sortItemsForCalcSelect(ITEMS).map(i => ({ id: i.id, label: itName(i), sub: i.name || i.id, raw: i }));
+  return includeEmpty ? [{ id: '', label: '없음', sub: '' }, ...options] : options.slice();
 }
 
 function calcNatureOptionData() {
-  return calcSortNatureOptions(NATURES).map(n => ({ id: n.id, label: calcNatureLabel(n), sub: n.up ? `${n.up}+ / ${n.down}-` : '보정 없음', raw: n }));
+  const options = calcNatureOptionsCache ||= calcSortNatureOptions(NATURES).map(n => ({ id: n.id, label: calcNatureLabel(n), sub: n.up ? `${n.up}+ / ${n.down}-` : '보정 없음', raw: n }));
+  return options.slice();
 }
 
 function makeCombobox(sideKey, type) {
-  const dataset = calcDatasetForCombobox(sideKey, type);
-  // 필터링 함수
+  // Retained controls must follow Pokemon/form changes, without sorting on every keystroke.
+  let dataset = null, datasetPokemonId;
   return (searchText) => {
+    const pokemonId = state[sideKey]?.pokemonIdx;
+    if (!dataset || datasetPokemonId !== pokemonId) {
+      dataset = calcDatasetForCombobox(sideKey, type);
+      datasetPokemonId = pokemonId;
+    }
     const s = calcSearchText(searchText).trim();
     const matches = dataset.filter(d => {
       if (type === 'pokemon') {
@@ -221,3 +238,8 @@ function wirePokemonSelectCombobox(input, {
   });
   return combo;
 }
+
+// Assignment stays in the module that owns the live binding.
+function setCalcSharedComboboxUid(value) { calcSharedComboboxUid = value; return value; }
+
+export { ENTRY_EFFECTS, INTIMIDATE_BLOCKERS, TARGET_DEPENDENT_POWER_KINDS, movePowerNeedsTarget, makeMovePowerState, estimateMovePower, CALC_NATURE_SORT_STATS, calcNatureSortRank, calcSortNatureOptions, calcAbilityOptionDataForPokemon, calcItemOptionsCache, calcNatureOptionsCache, calcItemOptionData, calcNatureOptionData, makeCombobox, calcSharedComboboxUid, wireSharedComboboxKeyboard, calcPokemonComboboxMatches, wirePokemonSelectCombobox, setCalcSharedComboboxUid };

@@ -1,3 +1,12 @@
+import { renderToolStatMagicCell, renderToolStatNatureMark, toolStatApplyPointValue } from './01-20-html-structure.js';
+import { AbilityById, ItemById, NATURE_BY_ID, POKEMON, PokemonById, STATS, TYPE_KO, abName, battleAbilityContext, calcStats, effectiveBattleItem, effectiveTypes, escapeHTML, isGrounded, itName, pkName, renderTrustedHTML, typeEff } from './01-core.js';
+import { effectiveSpeed, fractionValue } from './02-engine.js';
+import { applyPokemonFormToSideState, calcFormOptionDataForPokemon, calcNatureLabel, calcPokemonFormLabel, cloneCalcValue, defaultPokemonItemId, deriveHpFlags, makeFieldState, makeSideState } from './03-10-calc-state.js';
+import { uiWirePickerDialog } from './03-19-picker-dialog.js';
+import { calcAbilityOptionDataForPokemon, calcItemOptionData, calcNatureOptionData } from './03-20-calc-combobox.js';
+import { calcComboboxHeaderHtml, calcRenderComboboxOption } from './03-21-calc-combobox-options.js';
+import { renderFineTuneAll } from './04-31-finetune-render.js';
+
 /* Fine-tune EV planner.
  * Loaded before 05-init.js by build.mjs alphabetical concatenation.
  */
@@ -490,3 +499,5 @@ function ftBuildHpTargets(side) {
     reference:goals.filter(goal => goal.delta > 0 && goal.priority === 2),
   };
 }
+
+export { fineTuneState, ftStatKeys, ftClampInt, ftClampEvValue, ftSetEv, ftDefaultField, ftSpeedFieldFor, ftSpeedSideFor, ftMySpeed, ftOpponentBaseSpeed, ftNatureForSpeedCase, ftOppSpeedCase, ftOppSpeedRefCases, ftRenderOppSpeedChipsHtml, ftRefreshOppSpeedChips, ftFindMinSpeedEv, ftSpeedCases, ftBuildSpeedTable, ftSpeedRequirement, ftAbilityOptionsForCurrentPokemon, sortPokemonForFineTuneSelect, ftComboData, ftComboLabel, ftSearchMatches, ftRenderOpponentPokemonOption, ftApplyPokemonToFineTune, ftSelectCombo, ftCurrentComboId, ftWireComboboxes, ftWireMyComboboxes, ftWireOppComboboxes, ftHpAtEv, ftMultiplierLabel, ftHpBreakpointRules, ftHpBreakpointDeltas, ftHpBreakpoints, ftMagicNumbers, ftEvSummary, ftNatureMark, ftRenderMagicCell, ftBulkMetrics, ftUniqueJoin, ftHpRulePriority, ftFormatBreakpointDescriptions, ftBuildHpTargets };

@@ -1,3 +1,9 @@
+import { AbilityById, ItemById, MoveById, NATURE_BY_ID, PokemonById, abName, calcStats } from './01-core.js';
+import { calculateDamage } from './02-engine.js';
+import { RC_MOVE_COLLATOR, RC_NATURE_IDS, rcAnalysisField, rcBuildMyNextState, rcKnownOpponentItem, rcNextMyRanks, rcNextOpponentRanks, rcObservedField, revCalcState } from './04-40-revcalc-state.js';
+import { rcBuildOpponentState } from './04-42-revcalc-candidates.js';
+import { rcCompareHpFirst, rcForecastDirect } from './04-42-revcalc-forecast.js';
+
 /* Reverse calculator scoring, grouping, completion, and follow-up helpers. */
 function rcNatureCandidatesForMove(move) {
   return RC_NATURE_IDS;
@@ -829,3 +835,5 @@ function rcGroupCandidates(candidates) {
     return (b.groupCount || 0) - (a.groupCount || 0);
   });
 }
+
+export { rcNatureCandidatesForMove, rcMagicEvsForStat, rcSecondMagicEv, rcCandidateObservedEvs, rcCandidatePointSum, rcCandidateKnownPointSum, rcItemAssumptionScore, rcOppAttackProfile, rcNatureFitScore, rcEvRangeForStat, rcCandidateRangeSum, rcRolePriority, rcRoleCompletionInfo, rcRolePresetScore, rcPracticalScoreCache, rcPracticalProfileScore, rcCompareCandidates, rcRangeLabel, rcCandidateEvParts, rcPointRangeLabel, rcSpeedPlanLabel, rcBriefInvestmentParts, rcMoveDefenseStat, rcMoveOffenseStat, rcCandidateEvRange, rcForEachEvInRange, rcObservedOpponentRemainingValues, rcUpdateDamageBounds, rcFinalizeDamageBounds, rcDamageBounds, rcSpeedUnconfirmed, rcAnalyzeMyFollowupMove, rcAnalyzeOpponentFollowupMove, rcRenderNextRankCells, rcRenderNextRankPanel, rcObservedEvStats, rcCandidateCompletionInfo, rcMaxAllocatableEvForStat, rcMaxPossibleBulk, rcApplyNatureInvestmentPreset, rcIsBetterGroupRepresentative, rcBulkPriorityGroup, rcCandidateGroupKey, rcCandidateAbilityIds, rcAddCandidateAbilityToGroup, rcGroupCandidates };

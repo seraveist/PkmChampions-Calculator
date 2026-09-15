@@ -1,15 +1,34 @@
+import { PKM_DATA } from '../runtime/game-data.js';
+
 /* ════════════════════════════════════════════════════════════
  * 01-core.js — 데이터 로드, helper, 타입 상성, 스탯, effective-*, STAB, 타입 효과
- * (build.mjs 가 src/js/*.js 를 알파벳순 concat 후 calc-template.html 에 주입)
+ * ES module; build entrypoints own composition and initialization.
  * ════════════════════════════════════════════════════════════ */
 
-const POKEMON   = JSON.parse(document.getElementById('data-pokemon').textContent);
-const MOVES     = JSON.parse(document.getElementById('data-moves').textContent);
-const ABILITIES = JSON.parse(document.getElementById('data-abilities').textContent);
-const ITEMS     = JSON.parse(document.getElementById('data-items').textContent);
-const NATURE_DATA = JSON.parse(document.getElementById('data-natures')?.textContent || '[]');
-const TYPE_CHART_DATA = JSON.parse(document.getElementById('data-typechart')?.textContent || '{}');
-const RULES     = JSON.parse(document.getElementById('data-rules')?.textContent || '{}');
+// Public builds and workers supply the same plain object. Only the offline
+// standalone adapter reads JSON script elements; the engine never needs a DOM.
+function readEmbeddedGameData() {
+  const read = (id, fallback) => {
+    const raw = document.getElementById(`data-${id}`)?.textContent;
+    if (raw) return JSON.parse(raw);
+    if (fallback !== undefined) return fallback;
+    throw new Error(`Missing game data: ${id}`);
+  };
+  return {
+    pokemon: read('pokemon'), moves: read('moves'),
+    abilities: read('abilities'), items: read('items'),
+    natures: read('natures', []), typechart: read('typechart', {}),
+    rules: read('rules', {}),
+  };
+}
+const GAME_DATA = typeof PKM_DATA !== 'undefined' ? PKM_DATA : readEmbeddedGameData();
+const POKEMON = GAME_DATA.pokemon;
+const MOVES = GAME_DATA.moves;
+const ABILITIES = GAME_DATA.abilities;
+const ITEMS = GAME_DATA.items;
+const NATURE_DATA = GAME_DATA.natures;
+const TYPE_CHART_DATA = GAME_DATA.typechart;
+const RULES = GAME_DATA.rules;
 
 const PokemonById   = Object.fromEntries(POKEMON.map(p => [p.id, p]));
 const MoveById      = Object.fromEntries(MOVES.map(m => [m.id, m]));
@@ -150,14 +169,7 @@ function handlePokemonSpriteError(img) {
   img.closest?.('.pokemon-sprite-slot')?.classList.add('is-empty');
 }
 
-if (typeof document.addEventListener === 'function') {
-  document.addEventListener('error', (event) => {
-    const image = event.target;
-    if (image instanceof HTMLImageElement && image.closest('.pokemon-sprite-slot')) {
-      handlePokemonSpriteError(image);
-    }
-  }, true);
-}
+
 
 function pokemonSpriteSlot(pokemon, { size = 'lg', className = '', alt = '', decorative = true } = {}) {
   const p = typeof pokemon === 'string' ? PokemonById[pokemon] : pokemon;
@@ -496,3 +508,38 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCt
   
   return eff;
 }
+
+// Shared names and HP primitives; kept below the calculation/UI dependency boundary.
+function pkName(p) { return p.koName || p.name; }
+function mvName(m) { return m.koName || m.name; }
+function abName(a) { return a ? (a.koName || a.name) : '없음'; }
+function itName(i) { return i ? (i.koName || i.name) : '없음'; }
+
+function sideHpPct(side) {
+  const n = Number(side?.hpPct);
+  if (!Number.isFinite(n)) return 1;
+  const raw = n > 1 ? n / 100 : n;
+  return Math.max(0, Math.min(1, raw));
+}
+
+function sideIsFullHp(side) {
+  if (side?.fullHP !== undefined) return !!side.fullHP;
+  return sideHpPct(side) >= 1;
+}
+
+
+let bind01CoreBound = false;
+function bind01Core() {
+  if (bind01CoreBound) return;
+  bind01CoreBound = true;
+  if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    document.addEventListener('error', (event) => {
+      const image = event.target;
+      if (image instanceof HTMLImageElement && image.closest('.pokemon-sprite-slot')) {
+        handlePokemonSpriteError(image);
+      }
+    }, true);
+  }
+}
+
+export { readEmbeddedGameData, GAME_DATA, POKEMON, MOVES, ABILITIES, ITEMS, NATURE_DATA, TYPE_CHART_DATA, RULES, PokemonById, MoveById, AbilityById, ItemById, escapeHTML, renderTrustedHTML, debounce, pokeRound, MOD, chainMods, OF16, OF32, FALLBACK_TYPE_CHART, TYPE_CHART, typeEff, toId, POKEMON_SPRITE_BASE_URL, pokemonSpriteUrlById, pokemonSpriteUrl, pokemonSpriteFallbackUrl, handlePokemonSpriteError, pokemonSpriteSlot, TYPE_KO, BATTLE_TYPES, STATS, STAT_LABEL, RANK_STATS, FALLBACK_NATURES, NATURE_KO, NATURES, NATURE_BY_ID, calcMaxHp, calcStats, applyBoost, isTeraEnabled, isTeraActive, selectedTypes, effectiveTypes, originalTypes, effectiveAbility, effectiveItem, NEUTRALIZING_GAS_EXEMPT_ABILITIES, MOLD_BREAKER_IGNORED_ABILITIES, abilityData, hasNeutralizingGas, suppressAbilityForGas, battleAbilityContext, effectiveBattleItem, effectiveWeather, effectiveWeight, isGrounded, getStabMod, getMoveEffectiveness, pkName, mvName, abName, itName, sideHpPct, sideIsFullHp, bind01CoreBound, bind01Core };

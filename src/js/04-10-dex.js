@@ -1,3 +1,7 @@
+import { bindUiTabKeyboard, syncUiPanels, syncUiTabs, uiButton } from './01-20-html-structure.js';
+import { ABILITIES, AbilityById, BATTLE_TYPES, ITEMS, MOVES, POKEMON, PokemonById, TYPE_KO, abName, debounce, escapeHTML, itName, mvName, pkName, pokemonSpriteSlot, renderTrustedHTML, toId } from './01-core.js';
+import { PokemonByAbility, PokemonByMove, closeDexDetail, closeDexFullPage, dexMoveTraits } from './04-11-dex-detail.js';
+
 /* Dex navigation, filtering, sorting, pagination, and list rendering. */
 /* Dex navigation, lists, details, and calculator handoff.
  * Loaded before 05-init.js by build.mjs alphabetical concatenation.
@@ -397,131 +401,25 @@ function renderDexPagination(tab, pageData) {
   `);
 }
 
-document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
-  const typeBtn = e.target.closest('[data-filter-type]');
-  if (typeBtn) {
-    closeDexDetail();
-    closeDexFullPage();
-    const t = typeBtn.dataset.filterType;
-    if (t === '') dexTypeFilter = [];   // 전체 클릭 → 모두 해제
-    else toggleTypeFilter(t);
-    resetDexPage();
-    renderTypeFilter();
-    renderDexContent(dexSearchEl?.value || '');
-    return;
-  }
-  const catBtn = e.target.closest('[data-filter-itemcat]');
-  if (catBtn) {
-    const c = catBtn.dataset.filterItemcat;
-    // 같은 카테고리를 다시 누르면 해제 (전체로 자동 복귀)
-    if (c === '' || dexItemCategory === c) dexItemCategory = null;
-    else dexItemCategory = c;
-    resetDexPage();
-    renderTypeFilter();
-    renderDexContent(dexSearchEl?.value || '');
-    return;
-  }
-});
+
 
 const dexSearchEl = document.getElementById('dexSearch');
-if (dexSearchEl) {
-  const handleDexSearch = debounce((query) => {
-    resetDexPage();
-    renderDexContent(query);
-  }, 200);
-  dexSearchEl.addEventListener('input', e => handleDexSearch(e.target.value));
-}
 
-document.getElementById('dexResetFilters')?.addEventListener('click', () => {
-  closeDexDetail();
-  closeDexFullPage();
-  dexTypeFilter = [];
-  dexItemCategory = null;
-  if (dexSortState[currentDex]) dexSortState[currentDex] = { key: null, dir: 'asc' };
-  if (dexViewState[currentDex]) {
-    dexViewState[currentDex].query = '';
-    dexViewState[currentDex].typeFilter = [];
-    dexViewState[currentDex].itemCategory = null;
-    dexViewState[currentDex].scope = 'current';
-    dexViewState[currentDex].page = 1;
-    dexViewState[currentDex].scrollTop = 0;
-    dexViewState[currentDex].scrollLeft = 0;
-  }
-  if (dexSearchEl) dexSearchEl.value = '';
-  const wrap = dexTableWrap(currentDex);
-  if (wrap) {
-    wrap.scrollTop = 0;
-    wrap.scrollLeft = 0;
-  }
-  renderTypeFilter();
-  renderDexContent('');
-});
 
-document.getElementById('dexScopeFilter')?.addEventListener('click', e => {
-  const button = e.target.closest('[data-dex-scope]');
-  if (!button || !['current', 'all'].includes(button.dataset.dexScope)) return;
-  dexViewState[currentDex].scope = button.dataset.dexScope;
-  resetDexPage();
-  renderDexScopeFilter();
-  renderDexContent(dexSearchEl?.value || '');
-  document.querySelector(`#dexScopeFilter [data-dex-scope="${button.dataset.dexScope}"]`)?.focus();
-});
 
-document.querySelectorAll('.dex-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    saveDexViewState(currentDex);
-    const dexTabs = document.querySelectorAll('.dex-tab');
-    const dexPanels = document.querySelectorAll('.dex-content');
-    const activePanel = document.getElementById('dex-' + tab.dataset.dex);
-    syncUiTabs(dexTabs, tab);
-    syncUiPanels(dexPanels, activePanel);
-    currentDex = tab.dataset.dex;
-    closeDexFullPage();           // 탭 전환 시 풀페이지 상세 닫기
-    restoreDexViewState(currentDex);
-  });
-});
+
+
+
+
 
 const dexNav = document.querySelector('.dex-nav');
-if (dexNav) {
-  const dexTabs = document.querySelectorAll('.dex-tab');
-  syncUiTabs(dexTabs, document.querySelector('.dex-tab.active'));
-  bindUiTabKeyboard(dexNav);
-}
 
-document.querySelectorAll('.dex-content .dex-table-wrap').forEach(wrap => {
-  wrap.addEventListener('scroll', () => {
-    const tab = wrap.closest('.dex-content')?.id?.replace('dex-', '');
-    if (!tab || !dexViewState[tab]) return;
-    dexViewState[tab].scrollTop = wrap.scrollTop;
-    dexViewState[tab].scrollLeft = wrap.scrollLeft;
-  });
-});
 
-document.querySelectorAll('.dex-table th.sortable').forEach(th => {
-  th.addEventListener('click', () => {
-    const tab = th.closest('.dex-content')?.id?.replace('dex-', '');
-    if (!tab || !dexSortState[tab]) return;
-    saveDexViewState(tab);
-    const sort = dexSortState[tab];
-    if (sort.key === th.dataset.sort) sort.dir = sort.dir === 'asc' ? 'desc' : 'asc';
-    else {
-      sort.key = th.dataset.sort;
-      sort.dir = th.classList.contains('num') ? 'desc' : 'asc';
-    }
-    resetDexPage(tab);
-    renderDexContent(dexSearchEl?.value || '');
-  });
-});
 
-document.getElementById('page-dex')?.addEventListener('click', e => {
-  const button = e.target.closest('[data-dex-page]');
-  if (!button || button.disabled) return;
-  const tab = button.closest('.dex-content')?.id?.replace('dex-', '');
-  if (!tab || tab !== currentDex || !dexViewState[tab]) return;
-  dexViewState[tab].page = Number(button.dataset.dexPage) || 1;
-  renderDexContent(dexSearchEl?.value || '');
-  resetDexListPosition(tab, { reveal: true });
-});
+
+
+
+
 
 // 도감 렌더링 함수들
 function renderDexContent(query = '') {
@@ -620,3 +518,126 @@ function renderItemsDex(query) {
   renderTrustedHTML(tbody, rows.join(''));
   renderDexPagination('items', pageData);
 }
+
+let bind0410DexBound = false;
+function bind0410Dex() {
+  if (bind0410DexBound) return;
+  bind0410DexBound = true;
+  document.getElementById('dexTypeFilter')?.addEventListener('click', e => {
+    const typeBtn = e.target.closest('[data-filter-type]');
+    if (typeBtn) {
+      closeDexDetail();
+      closeDexFullPage();
+      const t = typeBtn.dataset.filterType;
+      if (t === '') dexTypeFilter = [];   // 전체 클릭 → 모두 해제
+      else toggleTypeFilter(t);
+      resetDexPage();
+      renderTypeFilter();
+      renderDexContent(dexSearchEl?.value || '');
+      return;
+    }
+    const catBtn = e.target.closest('[data-filter-itemcat]');
+    if (catBtn) {
+      const c = catBtn.dataset.filterItemcat;
+      // 같은 카테고리를 다시 누르면 해제 (전체로 자동 복귀)
+      if (c === '' || dexItemCategory === c) dexItemCategory = null;
+      else dexItemCategory = c;
+      resetDexPage();
+      renderTypeFilter();
+      renderDexContent(dexSearchEl?.value || '');
+      return;
+    }
+  });
+  if (dexSearchEl) {
+    const handleDexSearch = debounce((query) => {
+      resetDexPage();
+      renderDexContent(query);
+    }, 200);
+    dexSearchEl.addEventListener('input', e => handleDexSearch(e.target.value));
+  }
+  document.getElementById('dexResetFilters')?.addEventListener('click', () => {
+    closeDexDetail();
+    closeDexFullPage();
+    dexTypeFilter = [];
+    dexItemCategory = null;
+    if (dexSortState[currentDex]) dexSortState[currentDex] = { key: null, dir: 'asc' };
+    if (dexViewState[currentDex]) {
+      dexViewState[currentDex].query = '';
+      dexViewState[currentDex].typeFilter = [];
+      dexViewState[currentDex].itemCategory = null;
+      dexViewState[currentDex].scope = 'current';
+      dexViewState[currentDex].page = 1;
+      dexViewState[currentDex].scrollTop = 0;
+      dexViewState[currentDex].scrollLeft = 0;
+    }
+    if (dexSearchEl) dexSearchEl.value = '';
+    const wrap = dexTableWrap(currentDex);
+    if (wrap) {
+      wrap.scrollTop = 0;
+      wrap.scrollLeft = 0;
+    }
+    renderTypeFilter();
+    renderDexContent('');
+  });
+  document.getElementById('dexScopeFilter')?.addEventListener('click', e => {
+    const button = e.target.closest('[data-dex-scope]');
+    if (!button || !['current', 'all'].includes(button.dataset.dexScope)) return;
+    dexViewState[currentDex].scope = button.dataset.dexScope;
+    resetDexPage();
+    renderDexScopeFilter();
+    renderDexContent(dexSearchEl?.value || '');
+    document.querySelector(`#dexScopeFilter [data-dex-scope="${button.dataset.dexScope}"]`)?.focus();
+  });
+  document.querySelectorAll('.dex-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      saveDexViewState(currentDex);
+      const dexTabs = document.querySelectorAll('.dex-tab');
+      const dexPanels = document.querySelectorAll('.dex-content');
+      const activePanel = document.getElementById('dex-' + tab.dataset.dex);
+      syncUiTabs(dexTabs, tab);
+      syncUiPanels(dexPanels, activePanel);
+      currentDex = tab.dataset.dex;
+      closeDexFullPage();           // 탭 전환 시 풀페이지 상세 닫기
+      restoreDexViewState(currentDex);
+    });
+  });
+  if (dexNav) {
+    const dexTabs = document.querySelectorAll('.dex-tab');
+    syncUiTabs(dexTabs, document.querySelector('.dex-tab.active'));
+    bindUiTabKeyboard(dexNav);
+  }
+  document.querySelectorAll('.dex-content .dex-table-wrap').forEach(wrap => {
+    wrap.addEventListener('scroll', () => {
+      const tab = wrap.closest('.dex-content')?.id?.replace('dex-', '');
+      if (!tab || !dexViewState[tab]) return;
+      dexViewState[tab].scrollTop = wrap.scrollTop;
+      dexViewState[tab].scrollLeft = wrap.scrollLeft;
+    });
+  });
+  document.querySelectorAll('.dex-table th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const tab = th.closest('.dex-content')?.id?.replace('dex-', '');
+      if (!tab || !dexSortState[tab]) return;
+      saveDexViewState(tab);
+      const sort = dexSortState[tab];
+      if (sort.key === th.dataset.sort) sort.dir = sort.dir === 'asc' ? 'desc' : 'asc';
+      else {
+        sort.key = th.dataset.sort;
+        sort.dir = th.classList.contains('num') ? 'desc' : 'asc';
+      }
+      resetDexPage(tab);
+      renderDexContent(dexSearchEl?.value || '');
+    });
+  });
+  document.getElementById('page-dex')?.addEventListener('click', e => {
+    const button = e.target.closest('[data-dex-page]');
+    if (!button || button.disabled) return;
+    const tab = button.closest('.dex-content')?.id?.replace('dex-', '');
+    if (!tab || tab !== currentDex || !dexViewState[tab]) return;
+    dexViewState[tab].page = Number(button.dataset.dexPage) || 1;
+    renderDexContent(dexSearchEl?.value || '');
+    resetDexListPosition(tab, { reveal: true });
+  });
+}
+
+export { currentDex, dexTypeFilter, dexItemCategory, DEX_TABS, DEX_PAGE_SIZE, dexViewState, dexSortState, MOVE_CATEGORY_LABEL, FORM_LABEL_KO, DEX_POWER_NOTES, movePowerNote, dexSearchText, dexMatches, dexTypeTerms, moveCategoryLabel, moveAccuracyLabel, movePowerLabel, dexMoveIsVariable, dexEntryIsCurrent, dexScopeEntries, dexReferenceLabel, renderDexScopeFilter, dexTypePill, dexMoveCategoryBadge, dexTag, dexAttr, dexEmptyText, dexDescriptionBlock, pokemonFormLabel, pokemonListName, dexAbilityLabel, itemCategoryOf, ITEM_CATEGORY_ORDER, ITEM_CATEGORY_LABEL, dexPokemonByLooseName, dexItemUserTerms, toggleTypeFilter, renderTypeFilter, dexTableWrap, setDexFullPageMode, saveDexViewState, restoreDexViewState, restoreDexScroll, resetDexListPosition, updateDexSortIndicators, dexRowOpenButton, compareDexValues, dexSortValue, applyDexSort, resetDexPage, paginateDex, renderDexPagination, dexSearchEl, dexNav, renderDexContent, renderPokemonDex, renderMovesDex, renderAbilitiesDex, renderItemsDex, bind0410DexBound, bind0410Dex };

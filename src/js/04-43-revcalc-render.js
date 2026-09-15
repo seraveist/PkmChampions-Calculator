@@ -1,3 +1,14 @@
+import { RotomUI, uiStatTable } from './01-10-rotom-ui.js';
+import { AbilityById, ItemById, MoveById, NATURE_BY_ID, PokemonById, abName, calcStats, escapeHTML, itName, mvName, pkName, renderTrustedHTML } from './01-core.js';
+import { CALC_TERRAIN_OPTIONS, CALC_WEATHER_OPTIONS, calcMoveCategoryLabel } from './03-10-calc-state.js';
+import { renderToolFormCombobox, renderToolPokemonSelectSubframe, renderToolTypePills } from './03-11-calc-shared-render.js';
+import { RC_MOVESET_SIZE, rcForecastKey, rcKnownOpponentItem, rcMoveSet, rcNormalizeObservedMyMove, rcPokemonAbilityIds, rcRenderMoveCombobox, revCalcState } from './04-40-revcalc-state.js';
+import { rcCandidateAbilityIds, rcCandidateEvParts, rcRoleCompletionInfo } from './04-41-revcalc-scoring.js';
+import { rcHp } from './04-42-revcalc-exchange.js';
+import { rcRenderExchangeSummary } from './04-42-revcalc-forecast.js';
+import { rcRenderOppItemCombobox, rcStatusOptions, rcTurnOrderOptions, rcWireMoveComboboxes, rcWireMyComboboxes, rcWireOppComboboxes, rcWireOppItemComboboxes } from './04-44-revcalc-events.js';
+import { rcComboLabel, rcInvalidateChangedObservation, rcScheduleForecastRefresh } from './04-45-revcalc-actions.js';
+
 /* Reverse calculator rendering. */
 function rcRenderStartConditions(role) {
   const own = role==='my', side = revCalcState[role], max = own ? calcStats(side).hp : 100;
@@ -241,3 +252,5 @@ function renderRevCalcAll() {
 }
 
 // === 콤보박스 / 이벤트 ===
+
+export { rcRenderStartConditions, rcSetStagePanelState, renderRevCalcMy, renderRevCalcOpp, rcRenderObservationMoveOptions, renderRevCalcInputs, rcResultRange, rcRenderFollowupMoveChip, rcRenderNextStateSummary, rcRenderCandidateHeader, renderRevCalcResults, renderRevCalcAll };
