@@ -1,0 +1,31 @@
+name: Module refactor validation
+on:
+  push:
+    branches: [refactor/client-data-performance]
+    paths: [.github/workflows/module-refactor-validation.yml, .module-transfer/**]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare reproducible development snapshot
+        run: |
+          set -euo pipefail
+          git archive HEAD -o "$RUNNER_TEMP/module-source.tar"
+          mkdir -p "$RUNNER_TEMP/module-tools"
+          cd "$RUNNER_TEMP/module-tools"
+          npm init -y
+          npm install --save-exact esbuild acorn acorn-walk eslint-scope ws axe-core
+          tar -czf "$RUNNER_TEMP/module-tools.tar.gz" node_modules package.json package-lock.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: module-refactor-workspace
+          path: |
+            ${{ runner.temp }}/module-source.tar
+            ${{ runner.temp }}/module-tools.tar.gz
+          retention-days: 1
