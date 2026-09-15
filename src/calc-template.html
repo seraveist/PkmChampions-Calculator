@@ -63,7 +63,6 @@
   </aside>
 
   <main id="appContent" class="app-content" tabindex="-1">
-    <!-- 대미지 계산기 -->
     <section id="page-calc" class="page page-frame active" role="tabpanel" aria-labelledby="nav-calc" aria-hidden="false">
       <div class="page-heading"><h2>대미지 계산기</h2></div>
       <div class="battle-grid">
@@ -83,7 +82,6 @@
       <p id="calculation-status" class="sr-only" role="status" aria-live="polite"></p>
     </section>
 
-    <!-- 형태 역계산 -->
     <section id="page-revcalc" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-revcalc" aria-hidden="true" hidden>
       <div class="page-heading"><h2>형태 역계산</h2><button type="button" class="btn-secondary ui-btn ui-btn-secondary" id="rcNewObservation">새 관측</button></div>
       <div class="rc-grid">
@@ -123,7 +121,6 @@
       </section>
     </section>
 
-    <!-- 세부조정 -->
     <section id="page-finetune" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-finetune" aria-hidden="true" hidden>
       <div class="page-heading"><h2>세부조정</h2></div>
       <div class="ft-layout" id="ft-layout">
@@ -139,7 +136,6 @@
       </div>
     </section>
 
-    <!-- 상성표 -->
     <section id="page-matchup" class="page page-frame tool-page" role="tabpanel" aria-labelledby="nav-matchup" aria-hidden="true" hidden>
       <div class="page-heading"><h2>상성표</h2><button type="button" class="ui-label-action" data-party-import-target="matchup">파티 불러오기</button></div>
       <div class="matchup-mode-tabs" id="matchupModeTabs" aria-label="상성표 모드" role="tablist">
@@ -158,7 +154,6 @@
       </section>
     </section>
 
-    <!-- 도감 -->
     <section id="page-dex" class="page page-frame dex-surface" role="tabpanel" aria-labelledby="nav-dex" aria-hidden="true" hidden>
       <div class="page-heading"><h2>도감</h2></div>
       <section class="dex-control-panel ui-panel">
@@ -300,7 +295,6 @@
   <div class="noscript-notice" role="status">이 계산기는 JavaScript가 켜져 있어야 동작합니다.</div>
 </noscript>
 
-<!-- 데이터 주입부 (빌드 스크립트가 JSON으로 교체함) -->
 <script id="data-pokemon" type="application/json">__POKEMON_DATA__</script>
 <script id="data-moves" type="application/json">__MOVES_DATA__</script>
 <script id="data-abilities" type="application/json">__ABILITIES_DATA__</script>
