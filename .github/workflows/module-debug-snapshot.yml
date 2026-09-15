@@ -29,7 +29,7 @@ jobs:
       - run: npm ci
       - name: Archive source and locked build dependencies
         run: |
-          tar -czf "$RUNNER_TEMP/module-debug-source.tar.gz" src data text scripts docs build.mjs package.json package-lock.json README.md LICENSE node_modules .github/workflows/module-refactor-validation.yml
+          tar -czf "$RUNNER_TEMP/module-debug-source.tar.gz" src data scripts docs build.mjs package.json package-lock.json README.md LICENSE node_modules .github/workflows/module-refactor-validation.yml
       - uses: actions/upload-artifact@v4
         with:
           name: module-debug-source
