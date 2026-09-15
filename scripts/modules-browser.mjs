@@ -1,6 +1,7 @@
 // Black-box checks of uninstrumented production output, including native ESM
 // loading, real picker interaction, lazy pages and the unchanged Worker API.
 import assert from 'node:assert/strict';
+import { checkPartyStorageBrowser } from './party-storage-browser-checks.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -59,6 +60,7 @@ try {
   const before=await evaluate('document.querySelector("[data-move-row=\\"0\\"] .damage-raw").textContent');
   const after=await evaluate(`(() => {const rows=[...document.querySelectorAll('.move-row')], input=document.querySelector('#atk-body [data-calc-ev="atk"]');input.value='32';input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));return {same:rows.every((row,i)=>row===document.querySelectorAll('.move-row')[i]),text:rows[0].querySelector('.damage-raw').textContent};})()`);
   assert(after.same);assert.notEqual(after.text,before);pass('real production picker/input updates damage and retains result rows');
+  await checkPartyStorageBrowser({evaluate,send,waitFor,pass});
   for(const key of ['dex','matchup','finetune','revcalc']) {
     await evaluate(`document.getElementById('nav-${key}').click()`);
     await waitFor(()=>evaluate(`document.querySelector('.nav-tab.active')?.dataset.page==='${key}'`));

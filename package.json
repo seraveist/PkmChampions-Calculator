@@ -39,7 +39,7 @@
     "state:entry": "node scripts/entry-effects-state.mjs",
     "state:finetune": "node scripts/fine-tune-state.mjs",
     "finetune:browser": "npm run build:pages && node scripts/fine-tune-browser.mjs --public --ad-free --require-browser",
-    "state:party": "node scripts/party-preset-state.mjs",
+    "state:party": "node scripts/party-preset-state.mjs && npm run party:safety",
     "party:browser": "npm run build:pages && node scripts/party-remodel-browser.mjs --public --ad-free --require-browser",
     "state:matchup": "node scripts/matchup-state.mjs && node scripts/matchup-behavior.mjs",
     "matchup:browser": "npm run build:pages && node scripts/matchup-browser.mjs --public --ad-free --require-browser",
@@ -55,7 +55,8 @@
     "calculator:browser": "npm run build:pages && node scripts/calculator-remodel-browser.mjs --public --ad-free --require-browser",
     "client:golden": "node scripts/client-performance-golden.mjs",
     "modules:golden": "node scripts/modules-golden.mjs",
-    "modules:browser": "npm run build:pages && node scripts/modules-browser.mjs --public"
+    "modules:browser": "npm run build:pages && node scripts/modules-browser.mjs --public",
+    "party:safety": "node scripts/party-storage-golden.mjs"
   },
   "devDependencies": {
     "axe-core": "^4.12.1",

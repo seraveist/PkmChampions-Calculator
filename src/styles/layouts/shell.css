@@ -24,6 +24,10 @@ header { background:var(--panel);border-bottom:1px solid var(--line); }
 .ad-rail { min-width:0;padding-top:30px; }
 .ad-slot { width:160px;min-height:600px;position:sticky;top:18px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:var(--text-meta); }
 .ad-slot span { writing-mode:vertical-rl; }
+.site-footer { max-width:1152px;margin:0 auto;padding:16px 24px 24px;border-top:1px solid var(--line);color:var(--muted);font-size:var(--text-meta);line-height:1.7;text-align:center; }
+.site-footer p { margin:0; }
+.site-footer-links { display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:4px; }
+.site-footer-links a { display:inline-flex;align-items:center;min-height:32px;color:var(--ink);text-underline-offset:3px;overflow-wrap:anywhere; }
 @media(max-width:1200px) { .site-shell { grid-template-columns:minmax(0,1152px); }.ad-rail { display:none; } }
 @media(max-width:900px) { .main-nav { padding-inline:20px; } }
 @media(max-width:700px) {

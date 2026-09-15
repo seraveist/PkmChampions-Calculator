@@ -443,7 +443,9 @@ async function activateMainPage(pageKey, options = {}) {
 }
 
 async function activateMainPageFromHash() {
-  const pageKey = decodeURIComponent(location.hash.replace(/^#(?:page-)?/, '')).trim();
+  let pageKey;
+  try { pageKey = decodeURIComponent(location.hash.replace(/^#(?:page-)?/, '')).trim(); }
+  catch { return activateMainPage('calc', { updateHash: false }); }
   if (!pageKey) return false;
   return activateMainPage(pageKey, { updateHash: false });
 }
