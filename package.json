@@ -51,7 +51,7 @@
     "reverse:policy": "node scripts/reverse-policy-golden.mjs",
     "reverse:browser": "npm run build:pages && node scripts/reverse-exchange-browser.mjs --public --ad-free --require-browser",
     "power:audit": "node scripts/power-mechanics-audit.mjs",
-    "calculator:golden": "node scripts/calculator-completion-golden.mjs",
+    "calculator:golden": "node scripts/calculator-completion-golden.mjs && node scripts/move-power-golden.mjs",
     "calculator:browser": "npm run build:pages && node scripts/calculator-remodel-browser.mjs --public --ad-free --require-browser"
   },
   "devDependencies": {

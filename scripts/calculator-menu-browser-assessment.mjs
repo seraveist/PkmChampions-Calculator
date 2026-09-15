@@ -386,7 +386,7 @@ async function main() {
           if(scenario==='mcGem') {state.atk=makeSideState('thievul');state.atk.ability='unburden';state.atk.item='normalgem';state.atk.moves=['hypervoice'];state.def=makeSideState('baxcalibur');}
           if(scenario==='mcSeed') {state.atk=makeSideState('rillaboom');state.atk.item='grassyseed';state.atk.moves=['grassyglide'];state.def=makeSideState('persianalola');state.field.terrain='Grassy';}
           renderSide('atk');renderSide('def');runCalc();
-          if(scenario==='mcAura' && !document.body.textContent.includes('파동의 방호')) throw new Error('M-C Aura Guard Korean name not rendered');
+          if(scenario==='mcAura' && !document.body.textContent.includes('파동의방호')) throw new Error('M-C Aura Guard Korean name not rendered');
           if(scenario==='mcGem' && !document.body.textContent.includes('이후 소비 상태')) throw new Error('M-C Normal Gem consumption condition not rendered');
           if(scenario==='mcSeed' && !document.body.textContent.includes('시드 발동은 자동 적용하지 않습니다')) throw new Error('M-C seed input guidance not rendered');
           const card=document.querySelector('.calc-result-card');card.scrollIntoView({block:'center'});

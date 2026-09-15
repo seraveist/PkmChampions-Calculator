@@ -210,7 +210,7 @@ test('Recommendation prefers 99.6% over 12.1% random two-use KO despite lower mi
 test('Relevant conditions and failed move reasons are retained in result cards', `
   state.atk=makeSideState('garchomp');state.def=makeSideState('snorlax');state.atk.moves=['payback','tripleaxel','stompingtantrum','beatup'];
   const ui=renderCalcMoveConditions('atk',state.atk);assert(ui.includes('moveOrder'));assert(ui.includes('hitCount'));assert(ui.includes('lastMoveFailed'));assert(ui.includes('beatUpMember'));
-  state.atk.moves=['poltergeist'];runCalc();const card=document.getElementById('calc-results-body').innerHTML;assert(card.includes('폴터가이스트'));assert(card.includes('상대 도구 필요'));assert(!card.includes('기술 미설정'));
+  state.def=makeSideState('gengar');state.def.ability='';state.atk.moves=['poltergeist'];runCalc();const card=document.getElementById('calc-results-body').innerHTML;assert(card.includes('폴터가이스트'));assert(card.includes('상대 도구 필요'));assert(!card.includes('기술 미설정'));
 `);
 
 test('Legal Machamp Knock Off removes Sitrus before healing: HP 150 -> 73-85 and guaranteed 3 uses', `
@@ -232,9 +232,9 @@ test('Knock Off preserves damage-time resist berry and Cheek Pouch consumption (
   equal(resolvePowerMoveUse(m,20,false).map(o=>[o.hp,o.used]),[[-10,true]]);
 `);
 test('Fixed damage index states actual damage including Parental Bond', `
-  const a=makeSideState('machamp'),d=makeSideState('snorlax');assert.equal(estimateMovePower(a,MoveById.seismictoss,d).eff,'고정 50');
-  assert.equal(estimateMovePower(a,MoveById.nightshade,d).eff,'고정 50');
-  const parent=makeSideState('kangaskhanmega');parent.ability='parentalbond';assert.equal(estimateMovePower(parent,MoveById.seismictoss,d).eff,'고정 100');
+  const a=makeSideState('machamp'),d=makeSideState('snorlax');assert.equal(estimateMovePower(a,MoveById.seismictoss,d).eff,50);
+  assert.equal(estimateMovePower(a,MoveById.nightshade,d).eff,50);
+  const parent=makeSideState('kangaskhanmega');parent.ability='parentalbond';assert.equal(estimateMovePower(parent,MoveById.seismictoss,d).eff,100);
 `);
 test('Mega Beat Up metadata uses base species Attack; Triple Axel reports per-hit power', `
   const p=POKEMON.find(p=>p.mega&&p.ls.includes('beatup'));assert(p);
@@ -259,9 +259,9 @@ test('Power editing explicitly switches modes even at base BP; empty input resto
 `);
 test('Result cards show exact random KO chance, immunity and healing without the removed summary button', `
   state.atk=makeSideState('pikachu');state.atk.moves=['thunderbolt'];state.def=makeSideState('garchomp');state.def.item='sitrusberry';state.field=makeFieldState();autoEntryEffects=false;
-  runCalc();const summary=document.getElementById('calc-results-body').innerHTML;assert(summary.includes('무효'));assert(summary.includes('회복'));assert.equal(document.getElementById('calcMobileSummary').innerHTML,'');
+  runCalc();const summary=document.getElementById('calc-results-body').innerHTML;assert(summary.includes('무효'));assert(!summary.includes('회복'));assert(summary.includes('>무효<'));assert.equal(document.getElementById('calcMobileSummary').innerHTML,'');
   const derived=makeCalcState(),r=power(derived.atk,derived.def,'thunderbolt',derived.field),label=ko(r,derived.def);
-  setSideCurrentHp(state.def,20);runCalc();const random=ko(power(state.atk,state.def,'thunderbolt'),state.def);assert(random.pct);assert(document.getElementById('calc-results-body').innerHTML.includes(random.pct));
+  state.def=makeSideState('snorlax');state.def.ability='';setSideCurrentHp(state.def,power(state.atk,state.def,'thunderbolt').damages[0]+1);runCalc();const random=ko(power(state.atk,state.def,'thunderbolt'),state.def);assert(random.pct);assert(document.getElementById('calc-results-body').innerHTML.includes(random.pct));
   state.field.weather='Rain';state.atk.tailwind=true;runCalc();assert(document.getElementById('calc-field-summary').textContent.includes('비'));assert(makeCalcState().atk.tailwind);
 `);
 
@@ -288,11 +288,11 @@ test('Counter family uses received HP damage, category gating, zero and integer 
   if(id==='counter'||id==='mirrorcoat'){a.receivedDamageCategory=category==='Physical'?'Special':'Physical';assert.equal(power(a,d,{...MoveById[id],bp:100,manualBp:true}),null);}
  }
 `);
-test('Counter fixed damage ignores type immunity for power cards and cannot accept manual BP', `
+test('Counter index stays numeric while HP damage respects type immunity and cannot accept manual BP', `
  state.atk=makeSideState('charizard');state.atk.moves=['counter'];state.def=makeSideState('gengar');state.field=makeFieldState();autoEntryEffects=false;state.atk.receivedDamage=50;state.atk.receivedDamageCategory='Physical';
  applyMoveBpInput({dataset:{side:'atk',slot:'0'},value:'100'});assert.equal(state.atk.moveBpOverrides[0],null);
- const r=power(state.atk,state.def,'counter');equal(range(r),[100,100]);assert(r.immunityNotes.length);assert.equal(estimateMovePower(state.atk,MoveById.counter,state.def).eff,'고정 100');
- assert(document.getElementById('calc-results-body').innerHTML.includes('100–100 HP'));
+ const r=power(state.atk,state.def,'counter');equal(range(r),[0,0]);assert.equal(ko(r,state.def).label,'무효');assert(r.immunityNotes.length);assert.equal(estimateMovePower(state.atk,MoveById.counter,state.def).eff,100);
+ assert(document.getElementById('calc-results-body').innerHTML.includes('0 HP'));
 `);
 test('Fling derives item power and rejects missing, suppressed and matching Mega items', `
  const a=makeSideState('charizard'),d=makeSideState('snorlax');assert(PokemonById.charizard.ls.includes('fling'));

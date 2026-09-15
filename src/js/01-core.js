@@ -431,7 +431,7 @@ function getStabMod(side, moveType, ab = effectiveAbility(side)) {
    타입 효과 계산 (특성·도구 포함)
    ════════════════════════════════════════════════════════════ */
 function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCtx = null, itemCtx = null, immunityNotes = null) {
-  const defTypes = effectiveTypes(defSide);
+  const defTypes = field.offensivePowerOnly ? field.powerTargetTypes : effectiveTypes(defSide);
   const ctx = abilityCtx || battleAbilityContext(atkSide, defSide);
   const atkAb = ctx.atkAb;
   const defAb = ctx.defAb;
@@ -448,14 +448,15 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCt
       let factor = TYPE_CHART[attackType]?.[type] ?? 1;
       if (move.effectivenessKind === 'freezeDry' && type === 'Water') factor = 2;
       if (type === 'Ghost' && ['Normal', 'Fighting'].includes(attackType) && abilityData(atkAb).ignoreGhostImmunity) factor = 1;
-      if (type === 'Flying' && attackType === 'Ground' && isGrounded(defSide, field, defAb, defItem)) factor = 1;
+      if (!field.offensivePowerOnly && type === 'Flying' && attackType === 'Ground' && isGrounded(defSide, field, defAb, defItem)) factor = 1;
       if (factor === 0 && powerMode) {
         immunityNotes.push(`${TYPE_KO[type] || type} 타입: ${TYPE_KO[attackType] || attackType} 무효`);
-        factor = 1;
       }
       eff *= factor;
     }
   }
+  // 결정력은 기본 타입으로 공격측 조건부 보정만 판정한다. 상성 자체는 곱하지 않는다.
+  if (field.offensivePowerOnly) return eff;
   const block = label => {
     if (powerMode) immunityNotes.push(label);
     else eff = 0;

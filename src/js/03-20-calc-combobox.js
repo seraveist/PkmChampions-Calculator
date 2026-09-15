@@ -3,41 +3,78 @@
 const ENTRY_EFFECTS = RULES.entryEffects || {};
 const INTIMIDATE_BLOCKERS = RULES.entryEffectBlockers?.intimidate || [];
 
-// 결정력: 현재 조건의 공격 능력치 × 보정 위력 × 자속·공격 보정.
-// 피해 공식과 능력치/위력 단계를 공유하며 방어 실수치·타입 상성 배율은 곱하지 않는다.
-function estimateMovePower(side, move, targetSide = state.def, suppliedField = null) {
-  if (!move || move.cat === 'Status') return { bp: '—', eff: '—' };
-  let field = suppliedField || state.field;
-  if (!suppliedField && (side === state.atk || side === state.def)) {
-    const derived = makeCalcState();
-    const key = side === state.atk ? 'atk' : 'def';
-    side = derived[key];
-    targetSide = derived[key === 'atk' ? 'def' : 'atk'];
-    field = derived.field;
+// 결정력은 공격측 입력만 사용한다. 상대 기본 타입은 색안경·달인의띠 등의 조건 판정용이다.
+const TARGET_DEPENDENT_POWER_KINDS = new Set([
+  'gyroBall', 'electroBall', 'weightRatio', 'targetWeight', 'targetHp100',
+  'targetStatusDouble', 'targetPoisonDouble', 'knockOff', 'targetWasHitDouble',
+  'electricTerrainTargetGroundedDouble', 'requiresTargetItem',
+]);
+
+function movePowerNeedsTarget(move, side, field, ability) {
+  if (move.ohko || move.overrideOffensivePokemon === 'target') return true;
+  if (['targetHalfHp', 'targetMinusSourceHp'].includes(move.fixedDamageKind)) return true;
+  if (!move.manualBp && TARGET_DEPENDENT_POWER_KINDS.has(move.variableBpKind)) return true;
+  const needsOrder = (!move.manualBp && ['userMovesFirstDouble', 'userMovesSecondDouble'].includes(move.variableBpKind))
+    || ability?.bpBoosts?.some(rule => rule.movesSecond);
+  if (needsOrder && (!side.moveOrder || side.moveOrder === 'auto')) return true;
+  if (ability?.criticalOnTargetStatus && !move.willCrit && !field.isCritical) return true;
+  if (ability?.id === 'rivalry' || (autoEntryEffects && ENTRY_EFFECTS[ability?.id]?.download)) return true;
+  return false;
+}
+
+function makeMovePowerState(source, target, suppliedField) {
+  const sideKey = source === state.atk ? 'atk' : source === state.def ? 'def' : null;
+  const side = cloneSideForCalc(source);
+  // A neutral placeholder supplies the shared stages' required shape; no target stats enter the index.
+  const defender = makeSideState(source.pokemonIdx);
+  defender.ability = '';
+  defender.item = '';
+  const field = { ...(suppliedField || state.field), damagePurpose: 'power', offensivePowerOnly: true,
+    singleHitCalculation: true, powerHitIndex: 0,
+    powerTargetTypes: [...(PokemonById[target?.pokemonIdx]?.types || [])],
+    ruinTablet: false, ruinVessel: false,
+    atkMovesFirst: side.moveOrder === 'first', atkMovesSecond: side.moveOrder === 'second' };
+  const ability = AbilityById[battleAbilityContext(side, defender).atkAb];
+  if (autoEntryEffects) {
+    const entry = ENTRY_EFFECTS[ability?.id];
+    for (const [stat, delta] of Object.entries(entry?.selfBoost || {})) side.ranks[stat] = clampRank((side.ranks[stat] || 0) + delta);
+    if (sideKey) for (const key of AUTO_ENTRY_FIELD_KEYS) {
+      const tracked = autoEntryFieldState[key];
+      if (tracked.owner && tracked.owner !== sideKey && field[key] === entryFieldEffectForSide(tracked.owner, key)?.value) {
+        field[key] = entry?.[key] || tracked.base;
+      }
+    }
   }
-  if (!PokemonById[side.pokemonIdx]) return { bp: '—', eff: '—' };
-  if (!PokemonById[targetSide?.pokemonIdx]) targetSide = side;
-  const moveField = { ...powerMoveField(side, targetSide, move, field), damagePurpose: 'power', singleHitCalculation: true };
-  const first = calculateDamage(side, targetSide, move, moveField);
-  if (!first) return { bp: '—', eff: '—' };
-  if (isFixedPowerMove(move)) {
-    const fixed = calculatePowerDamage(side, targetSide, move, moveField);
-    const min = fixed.damages[0], max = fixed.damages.at(-1);
-    return { bp: '—', eff: move.ohko ? '일격' : `고정 ${min === max ? min : `${min}~${max}`}`, atkStat: 0 };
+  side.fallenAllies = clampFallenAllies(side.fallenAllies, field.gameType);
+  return { side, defender, field, ability };
+}
+
+function estimateMovePower(source, move, target = state.def, suppliedField = null) {
+  const empty = { bp: '—', eff: '—' };
+  if (!move || move.cat === 'Status' || !PokemonById[source?.pokemonIdx]) return empty;
+  const { side, defender, field, ability } = makeMovePowerState(source, target, suppliedField);
+  if (movePowerNeedsTarget(move, side, field, ability) || specialMoveInputIssue(move, side, defender)) return empty;
+  const profile = powerAttackProfile(side, move, field, { atkAbility: ability?.id || '', atkItem: effectiveBattleItem(side, ability?.id || '') });
+  const totalWeight = profile.variants.reduce((sum, v) => sum + v.weight, 0);
+  const fixed = fixedDamageAmount(move, side, defender, calcStats(side), calcStats(defender), null);
+  if (fixed !== null) {
+    const hits = profile.variants.reduce((sum, v) => sum + v.hits * v.weight, 0) / totalWeight;
+    return { bp: '—', eff: Math.round(fixed * hits), atkStat: 0 };
   }
-  const model = makePowerAttackModel(side, targetSide, move, moveField, first);
-  let eff = 0, atkStat = 0;
-  const totalWeight = model.variants.reduce((sum, v) => sum + v.weight, 0);
-  model.variants.forEach(variant => {
-    const variantSide = variant.fickleBeamMode ? { ...side, fickleBeamMode: variant.fickleBeamMode } : side;
+  let eff = 0, atkStat = 0, firstBp = null;
+  for (const variant of profile.variants) {
     let sum = 0;
     for (let index = 0; index < variant.hits; index++) {
-      const hitField = { ...moveField, powerHitIndex: index, beatUpBaseAttack: beatUpParticipants(side, field)[index]?.bs.atk };
-      const ctx = makeDamageContext(variantSide, targetSide, move, hitField);
-      if (resolveDamagePreludeStage(ctx)?.done || calculateBasePowerStage(ctx)?.done) continue;
+      const hitSide = cloneSideForCalc(side);
+      if (variant.fickleBeamMode) hitSide.fickleBeamMode = variant.fickleBeamMode;
+      if (index && move.id === 'poweruppunch') hitSide.ranks.atk = clampRank((side.ranks.atk || 0) + index * (ability?.id === 'contrary' ? -1 : ability?.id === 'simple' ? 2 : 1));
+      const hitField = { ...field, powerHitIndex: index, beatUpBaseAttack: profile.participants[index]?.bs.atk };
+      const ctx = makeDamageContext(hitSide, defender, move, hitField);
+      if (resolveDamagePreludeStage(ctx)?.done || calculateBasePowerStage(ctx)?.done) return empty;
       calculateAttackStage(ctx);
+      firstBp ??= ctx.bp;
       atkStat = ctx.atkStat;
-      let power = ctx.atkStat * ctx.bp * getStabMod(side, ctx.moveType, ctx.atkAb) / 4096;
+      let power = ctx.atkStat * ctx.bp * getStabMod(hitSide, ctx.moveType, ctx.atkAb) / 4096;
       const mods = [];
       applyAbilityRuleMods(ctx.atkAbilityData?.finalDamageBoosts, ctx, mods, '');
       const boost = ctx.atkItemData?.finalDamageBoost;
@@ -47,15 +84,16 @@ function estimateMovePower(side, move, targetSide = state.def, suppliedField = n
         ...ctx, damageWeather: ctx.atkAbilityData?.weatherDamageOverride || ctx.weather,
         ignoresWeatherDamagePenalty: !!ctx.atkAbilityData?.ignoreWeatherDamagePenalty,
       });
-      if (weatherRule && !weatherRule.nullDamage && !ctx.atkItemData?.ignoresWeatherDamageModifiers && !ctx.defItemData?.ignoresWeatherDamageModifiers) power *= mechanicMod(weatherRule.mod) / 4096;
+      if (weatherRule && !weatherRule.nullDamage && !ctx.atkItemData?.ignoresWeatherDamageModifiers) power *= mechanicMod(weatherRule.mod) / 4096;
+      if (ctx.isCritical) power *= 1.5;
       if (ctx.applyBurn) power *= 0.5;
-      if (isSpreadDamage(move, field, side)) power *= 0.75;
-      if (model.kind === 'parentalBond' && index) power *= 0.25;
+      if (isSpreadDamage(move, field, hitSide)) power *= 0.75;
+      if (profile.parent && index) power *= 0.25;
       sum += power;
     }
     eff += sum * variant.weight / totalWeight;
-  });
-  return { bp: first.bp, eff: Math.round(eff), atkStat };
+  }
+  return { bp: firstBp, eff: Math.round(eff), atkStat };
 }
 
 const CALC_NATURE_SORT_STATS = ['atk', 'def', 'spa', 'spd', 'spe'];

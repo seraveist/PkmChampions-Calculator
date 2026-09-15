@@ -77,6 +77,7 @@ function moveHasRuleFlag(move, flag) {
 
 function fieldRuleApplies(rule, ctx) {
   if (!rule) return false;
+  if (ctx.field?.offensivePowerOnly && rule.defenderGrounded) return false;
   if (rule.gameType && ctx.field?.gameType !== rule.gameType) return false;
   if (rule.field && !ctx.field?.[rule.field]) return false;
   if (rule.weather && !asArray(rule.weather).includes(ctx.damageWeather ?? ctx.weather)) return false;
@@ -204,7 +205,7 @@ function abilityRuleApplies(rule, ctx) {
   if (rule.fullHP && !sideIsFullHp(ctx.defSide)) return false;
   if (rule.critical && !isCritical) return false;
   if (rule.effectiveness === 'superEffective' && !(effectiveness > 1)) return false;
-  if (rule.effectiveness === 'resisted' && !(effectiveness < 1)) return false;
+  if (rule.effectiveness === 'resisted' && !(effectiveness > 0 && effectiveness < 1)) return false;
   return true;
 }
 
@@ -683,7 +684,7 @@ function resolveDamagePreludeStage(ctx) {
     ctx.immunityNotes.push(`${displayName(defAbilityData)}: 첫 공격 차단`);
   }
   const effectiveness = getMoveEffectiveness(move, moveType, atkSide, defSide, field, { ...abilityCtx, atkAb, defAb }, itemCtx, ctx.immunityNotes);
-  if (effectiveness === 0) {
+  if (effectiveness === 0 && !field.offensivePowerOnly) {
     return finishDamageStage({
       damages: new Array(16).fill(0),
       minPct: 0, maxPct: 0,
@@ -691,6 +692,7 @@ function resolveDamagePreludeStage(ctx) {
       moveType, category,
       bp, atk: 0, def: 0,
       defHP: defStats.hp,
+      ...(ctx.immunityNotes ? { typeImmune: true } : {}),
       mods: ['효과 없음']
     });
   }
@@ -733,10 +735,11 @@ function calculateBasePowerStage(ctx) {
   if (ctx.immunityNotes && typeof move.ohko === 'string' && effectiveTypes(defSide).includes(move.ohko)) {
     ctx.immunityNotes.push(`${displayType(move.ohko)} 타입: 일격기 무효`);
   }
-  const fixedMove = ctx.immunityNotes && move.ohko ? { ...move, ohko: true } : move;
-  const fixedDamage = fixedDamageAmount(fixedMove, atkSide, defSide, atkStats, defStats, ctx.immunityNotes ? null : defAbilityData);
+  const fixedDamage = fixedDamageAmount(move, atkSide, defSide, atkStats, defStats, ctx.immunityNotes ? null : defAbilityData);
   if (fixedDamage !== null) {
-    return finishDamageStage(fixedDamageResult(fixedDamage, move, moveType, category, defStats, ['고정 대미지']));
+    const result = fixedDamageResult(fixedDamage, move, moveType, category, defStats, ['고정 대미지']);
+    if (ctx.immunityNotes && fixedDamage === 0 && typeof move.ohko === 'string') result.typeImmune = true;
+    return finishDamageStage(result);
   }
   if (bp === 0) return finishDamageStage(null);
 
@@ -1276,7 +1279,7 @@ function powerMoveField(atkSide, defSide, move, field) {
   return out;
 }
 
-// 계산기 결정력: 무효·생존 효과는 별도 정보로 전달하고 피해 수식은 계속 계산한다.
+// HP바·N타: 타입 무효는 적용하고, 특성·도구의 무효·생존 효과는 별도로 안내한다.
 // 실제 관측을 해석하는 역계산은 calculateDamage()를 그대로 사용한다.
 function calculatePowerDamage(atkSide, defSide, move, field) {
   const powerField = { ...field, damagePurpose: 'power', singleHitCalculation: true, powerHitIndex: 0 };
@@ -1363,8 +1366,7 @@ function beatUpParticipants(attacker, field) {
     (pokemon.mega && PokemonById[toId(pokemon.base)]) || pokemon);
 }
 
-function makePowerAttackModel(attacker, defender, move, field, firstResult) {
-  const context = firstResult.koContext;
+function powerAttackProfile(attacker, move, field, context) {
   const ability = AbilityById[context.atkAbility];
   const item = ItemById[context.atkItem || effectiveBattleItem(attacker, context.atkAbility)];
   const isBeatUp = move.variableBpKind === 'beatUpApprox';
@@ -1382,6 +1384,12 @@ function makePowerAttackModel(attacker, defender, move, field, firstResult) {
   if (move.variableBpKind === 'fickleBeam' && !['normal', 'boosted'].includes(attacker.fickleBeamMode)) {
     variants = variants.flatMap(v => [{ ...v, weight: v.weight * 7, fickleBeamMode: 'normal' }, { ...v, weight: v.weight * 3, fickleBeamMode: 'boosted' }]);
   }
+  return { ability, item, isBeatUp, participants, parent, variants };
+}
+
+function makePowerAttackModel(attacker, defender, move, field, firstResult) {
+  const context = firstResult.koContext;
+  const { ability, item, isBeatUp, participants, parent, variants } = powerAttackProfile(attacker, move, field, context);
   const maxHp = firstResult.defHP;
   const hitCache = new Map();
   const hitChanges = [];
@@ -1544,6 +1552,7 @@ function attachKoContext(result, ctx) {
       ].filter(Boolean),
     } : {}),
     koContext: {
+      ...(result.typeImmune ? { typeImmune: true } : {}),
       defAbility: ctx.defAb || '',
       defItem: ctx.defItem || '',
       atkAbility: ctx.atkAb || '',
@@ -1724,6 +1733,7 @@ function withKoMetric(result, metric = {}) {
 }
 
 function hkoLabel(damages, hp, defSide, field, koContext = null, hitProfile = null) {
+  if (koContext?.typeImmune) return withKoMetric({ label: '무효', turns: '', pct: '', cls: 'no', sub: '' });
   if (!damages?.some(d => d > 0)) return withKoMetric({ label: '대미지', turns: '없음', pct: '', cls: 'no' });
   const defItem = koContext?.defItem ?? effectiveBattleItem(defSide);
   const defAbility = koContext?.defAbility ?? effectiveAbility(defSide);

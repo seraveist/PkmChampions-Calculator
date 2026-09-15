@@ -8,20 +8,28 @@ let powerUiStatusTimer;
 
 function powerUiCalculateSlot(slot, calc = makeCalcState()) {
   const base = MoveById[calc.atk.moves[slot]];
-  if (!base || base.cat === 'Status' || !PokemonById[calc.atk.pokemonIdx] || !PokemonById[calc.def.pokemonIdx]) return { base, calc };
+  const movePower = estimateMovePower(state.atk, base ? calcMoveWithConditions(base,state.atk,slot) : null, state.def,
+    {...state.field, isCritical:!!state.atk.moveCriticalOverrides[slot]});
+  if (!base || base.cat === 'Status' || !PokemonById[calc.atk.pokemonIdx] || !PokemonById[calc.def.pokemonIdx]) return { base, calc, movePower };
   const move = calcMoveWithConditions(base,calc.atk,slot);
   const field = {...powerMoveField(calc.atk,calc.def,move,calc.field), isCritical:!!calc.atk.moveCriticalOverrides[slot]};
   const result = calculatePowerDamage(calc.atk,calc.def,move,field);
-  if (!result) return { base,move,calc,issue:calcMoveConditionIssue(move,calc.atk,calc.def,field) };
+  if (!result) return { base,move,calc,movePower,issue:calcMoveConditionIssue(move,calc.atk,calc.def,field) };
   const ko = hkoLabel(result.damages,result.defHP,calc.def,calc.field,result.koContext,result.hitProfile);
-  return { base,move,result,ko,calc };
+  return { base,move,result,ko,calc,movePower };
 }
 
 // Compact presentation only; the engine's damage and KO metadata stay intact.
 function powerUiResultNote(note) {
   const text = String(note).trim();
   if (/^현재 HP \d+ 기준$/.test(text) || text === '타격별 피해·열매 소비 반영') return '';
-  if (text === '노말주얼 첫 기술에만 적용 · 이후 소비 상태') return '노말주얼 1회';
+  if (text === '이후 회복 없음' || text === '고정 대미지' || text === '효과 없음') return '';
+  if (!text.includes('자속')) {
+    const namedEffect = [...Object.values(AbilityById), ...Object.values(ItemById)]
+      .map(data => displayName(data)).filter(Boolean).sort((a,b) => b.length-a.length)
+      .find(name => text === name || [':', '×', ' '].some(separator => text.startsWith(name+separator)));
+    if (namedEffect) return namedEffect;
+  }
   if (text.startsWith('이번 턴 마지막으로 받은 HP 피해량')) return '마지막 피격량 필요';
   if (text.startsWith('받은 공격의 물리·특수 분류')) return '피격 분류 필요';
   if (text.startsWith('던질 수 있는 도구를 선택')) return '내던지기 도구 필요';
@@ -50,7 +58,8 @@ function powerUiResultNote(note) {
 }
 
 function powerUiMoveMarkup(slot, calc) {
-  const {base,move,result,ko,issue} = powerUiCalculateSlot(slot,calc);
+  const {base,move,result,ko,issue,movePower} = powerUiCalculateSlot(slot,calc);
+  const powerMarkup = `<div class="move-power"><span class="move-power-label">결정력</span><strong class="move-power-value">${typeof movePower.eff === 'number' ? movePower.eff.toLocaleString('ko-KR') : '—'}</strong></div>`;
   const moveButton = `<div class="combobox result-move-picker">${RotomUI.trigger(`<span class="move-name picker-label">${powerUiEscape(base ? mvName(base) : '기술 선택')}</span>${base ? `<span class="move-meta">${powerUiType(result?.moveType || move?.type || base.type)}<span>${powerUiCategoryNames[base.cat]}</span><span>${result?.bp ? `위력 ${result.bp}` : base.cat === 'Status' ? '' : base.bp ? `위력 ${base.bp}` : '조건부'}</span></span>` : ''}`,{'data-cb-type':'move','data-side':'atk','data-field':`moves.${slot}`,value:base ? mvName(base) : '',title:base ? mvName(base) : '기술 선택','aria-label':`기술 ${slot+1}: ${base ? mvName(base) : '선택'}`,disabled:!PokemonById[state.atk.pokemonIdx]},'cb-input cb-trigger move-select')}<div class="combobox-options" role="listbox"></div></div>`;
   let damage = `<span class="empty-damage">${base?.cat === 'Status' ? '변화기' : issue ? '조건 입력 필요' : '—'}</span>`;
   const notes = [];
@@ -60,7 +69,7 @@ function powerUiMoveMarkup(slot, calc) {
   };
   if (result) {
     const min = Math.min(...result.damages), max = Math.max(...result.damages);
-    damage = `<span class="damage-amount">${result.minPct.toFixed(1)}–${result.maxPct.toFixed(1)}<small>%</small></span><span class="damage-raw">${min}–${max} HP</span><div class="ui-meter damage-bar" aria-hidden="true"><span class="ui-meter-fill range" data-damage-width="${Math.min(100,result.maxPct)}"></span><span class="ui-meter-fill" data-damage-width="${Math.min(100,result.minPct)}"></span></div>`;
+    damage = `<div class="damage-text"><span class="damage-amount">${result.minPct.toFixed(1)}–${result.maxPct.toFixed(1)}<small>%</small></span><span class="damage-raw">${min === max ? min : `${min}–${max}`} HP</span></div><div class="ui-meter damage-bar" aria-hidden="true"><span class="ui-meter-fill range" data-damage-width="${Math.min(100,result.maxPct)}"></span><span class="ui-meter-fill" data-damage-width="${Math.min(100,result.minPct)}"></span></div>`;
     for (const note of [...(result.immunityNotes || []),...(result.survivalNotes || [])]) addNote(note,true);
     if (result.hitCounts?.some(count=>count>1)) addNote(`${Math.min(...result.hitCounts)===Math.max(...result.hitCounts) ? result.hitCounts[0] : `${Math.min(...result.hitCounts)}–${Math.max(...result.hitCounts)}`}회 적중`);
     if (!isFixedPowerMove(move)) {
@@ -76,6 +85,6 @@ function powerUiMoveMarkup(slot, calc) {
     for (const mod of result.mods || []) if (!['테라 매칭 STAB×2','다능 STAB×2.25'].includes(mod)) addNote(mod);
     if (ko.sub) for (const note of ko.sub.split(' · ')) addNote(note);
   } else if (issue) addNote(issue);
-  const koMarkup = ko ? `<strong>${powerUiEscape(`${ko.label} ${ko.turns}`)}</strong>${ko.pct ? ` <span class="ko-probability">${powerUiEscape(ko.pct)} 확률</span>` : ''}` : '';
-  return `<article class="move-row" data-move-row="${slot}"><span class="move-number" aria-hidden="true">0${slot+1}</span>${moveButton}<div class="damage-summary">${damage}</div><div class="ko${ko?.label === '난수' ? ' ko--random' : ''}">${koMarkup}</div><button type="button" class="ui-button icon-button move-settings-button" data-move-settings="${slot}" aria-haspopup="dialog" aria-controls="calc-move-settings" aria-label="기술 ${slot+1} 조건 설정" ${base && base.cat !== 'Status' ? '' : 'disabled'}>${RotomUI.icon('settings')}</button><div class="move-notes">${[...new Set(notes)].join('')}</div></article>`;
+  const koMarkup = ko ? `<strong>${powerUiEscape([ko.label,ko.turns].filter(Boolean).join(' '))}</strong>${ko.pct ? ` <span class="ko-probability">${powerUiEscape(ko.pct)} 확률</span>` : ''}` : '';
+  return `<article class="move-row" data-move-row="${slot}"><span class="move-number" aria-hidden="true">0${slot+1}</span>${moveButton}<div class="move-comparison">${powerMarkup}<div class="damage-summary">${damage}</div></div><div class="ko${ko?.label === '난수' ? ' ko--random' : ''}">${koMarkup}</div><button type="button" class="ui-button icon-button move-settings-button" data-move-settings="${slot}" aria-haspopup="dialog" aria-controls="calc-move-settings" aria-label="기술 ${slot+1} 조건 설정" ${base && base.cat !== 'Status' ? '' : 'disabled'}>${RotomUI.icon('settings')}</button><div class="move-notes">${[...new Set(notes)].join('')}</div></article>`;
 }

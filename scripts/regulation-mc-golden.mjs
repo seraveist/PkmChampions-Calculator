@@ -41,7 +41,7 @@ test('Mega identities and abilities match M-C', () => {
   assert.deepEqual(PokemonById.baxcaliburmega.ab, {0:'Thermal Exchange'});
   assert.deepEqual(PokemonById.garchompmegaz.types, ['Dragon']);
   assert.equal(PokemonById.lucariomegaz.bs.spa, 164);
-  assert.equal(AbilityById.auraguard.koName, '파동의 방호');
+  assert.equal(AbilityById.auraguard.koName, '파동의방호');
 });
 test('Aura Guard halves contact damage, with no Fluffy fire penalty; respects contact bypass', () => {
   const a=makeSideState('garchomp'), d=makeSideState('lucariomegaz'); d.ability='';

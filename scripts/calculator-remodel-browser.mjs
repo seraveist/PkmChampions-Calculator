@@ -365,7 +365,7 @@ async function main() {
     await client.evaluate("document.querySelector('[data-calc-side-settings=atk]').click()");
     check(await client.evaluate("document.getElementById('calc-side-settings').open && document.querySelectorAll('[data-calc-preset]').length===7"),'additional settings and effort presets are available');
     await client.evaluate("document.getElementById('calc-side-settings').close()");
-    for(const width of [1440,768,390,320]) {
+    for(const width of [1440,1100,1000,768,390,320]) {
       await setViewport(client,width,1000);
       await client.evaluate("window.scrollTo(0,0)");
       await captureScreenshot(client,'calculator-remodel-'+width);
@@ -373,6 +373,14 @@ async function main() {
       check(layout.overflow<=1 && layout.statInputs===12,'calculator fits and both effort rows stay visible at '+width+'px',JSON.stringify(layout));
       report.push(layout);
       await client.evaluate("document.getElementById('damage-results').scrollIntoView({block:'start'})");
+      const comparison=await client.evaluate(`(() => {
+        const row=document.querySelector('.move-row'), power=row.querySelector('.move-power'), damage=row.querySelector('.damage-summary');
+        const p=power.getBoundingClientRect(),d=damage.getBoundingClientRect();
+        return {count:document.querySelectorAll('.move-power-value').length,sideBySide:p.right<=d.left+1,barWidth:row.querySelector('.damage-bar').getBoundingClientRect().width,
+          textFits:[...row.querySelectorAll('.damage-amount,.move-power-value')].every(el=>el.scrollWidth<=el.clientWidth+1),
+          font:getComputedStyle(power).fontFamily,baseFont:getComputedStyle(document.body).fontFamily};
+      })()`);
+      check(comparison.count===4 && comparison.sideBySide && comparison.barWidth<=229 && comparison.textFits && comparison.font===comparison.baseFont,'power index and compact HP bar fit with the original font at '+width+'px',JSON.stringify(comparison));
       await captureScreenshot(client,'calculator-remodel-results-'+width);
       await client.evaluate("document.querySelector('[data-move-settings=\"0\"]').click()");
       check(await client.evaluate("document.getElementById('calc-move-settings').open"),'move settings open at '+width+'px');
@@ -385,6 +393,8 @@ async function main() {
     await installAxe(client);
     await checkAxe(client,'remodeled calculator');
     await client.evaluate("document.documentElement.dataset.theme='dark'");
+    await client.evaluate("document.getElementById('damage-results').scrollIntoView({block:'start'})");
+    await captureScreenshot(client,'calculator-remodel-results-dark');
     await checkAxe(client,'remodeled calculator dark');
     await client.evaluate("document.querySelector('[data-calc-side-settings=atk]').click()");
     await checkAxe(client,'side settings dialog');

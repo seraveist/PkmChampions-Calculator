@@ -358,6 +358,10 @@ async function main() {
 
 
     const report=[];
+    await client.evaluate(`window.navigationMessages=[];new MutationObserver(() => {
+      const status=document.getElementById('pageLoadStatus');
+      if(status && !status.hidden && status.textContent.trim()) navigationMessages.push(status.textContent);
+    }).observe(document.getElementById('pageLoadStatus'),{childList:true,subtree:true,attributes:true});`);
     const audit=()=>client.evaluate(`(() => {
       const ids=[...document.querySelectorAll('[id]')].map(el=>el.id);
       const duplicates=ids.filter((id,i)=>ids.indexOf(id)!==i),references=[];
@@ -451,6 +455,7 @@ async function main() {
       await sleep(80);
       check(await client.evaluate("!document.querySelector('.picker-dialog[open]') && document.activeElement.dataset.cbType==='"+kind+"'"),`${kind} Escape closes only its dialog and restores focus`);
     }
+    check(await client.evaluate('navigationMessages.length===0'),'normal page navigation does not display a loading banner');
     const exceptions=browserErrors.filter(e=>!/(net::ERR|Failed to load resource|favicon|pokeapi|pokemonshowdown)/i.test(e));
     check(!exceptions.length,'no runtime exceptions',exceptions.join(' | '));
     writeFileSync(path.join(ROOT,'docs/ui-remodel-final-browser.json'),JSON.stringify(report,null,2)+'\n');

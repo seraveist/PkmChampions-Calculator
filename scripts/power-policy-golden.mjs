@@ -269,7 +269,7 @@ const recovery = api.simulateMoveKoDistribution({ variants:[{weight:1,hitDamages
 assertDeepEqual([recovery.cumulative[1], recovery.guaranteedTurn], [0.25,3], 'Leftovers random two-hit chance uses all independent combinations');
 const oneBerry = api.simulateMoveKoDistribution({ variants:[{weight:1,hitDamages:[[40]]}] },100,100,{hpRecovery:{trigger:'halfHp',fraction:[1,4]}});
 assertDeepEqual(oneBerry.guaranteedTurn, 4, 'Sitrus is consumed once across repeated attacks');
-// Exhaust every type-chart immunity and retain the other defensive type factor.
+// Every type-chart immunity blocks HP damage; ability/item immunity remains informational.
 let typeCases = 0;
 for (const attackType of ['Normal','Fire','Water','Electric','Grass','Ice','Fighting','Poison','Ground','Flying','Psychic','Bug','Rock','Ghost','Dragon','Dark','Steel','Fairy']) {
   for (const defenseType of ['Normal','Fire','Water','Electric','Grass','Ice','Fighting','Poison','Ground','Flying','Psychic','Bug','Rock','Ghost','Dragon','Dark','Steel','Fairy']) {
@@ -277,7 +277,7 @@ for (const attackType of ['Normal','Fire','Water','Electric','Grass','Ice','Figh
     const standard = api.calculateDamage(neutral(),d,move(attackType),field());
     if (standard.effectiveness !== 0) continue;
     const r = power(neutral(),d,move(attackType));
-    assertOk(r.damages[0] > 0 && r.immunityNotes.length > 0, attackType+' vs '+defenseType+' immunity annotated, damage computed');
+    assertOk(r.damages.every(damage => damage === 0) && r.immunityNotes.length > 0 && r.koContext.typeImmune, attackType+' vs '+defenseType+' type immunity blocks damage');
     typeCases++;
   }
 }

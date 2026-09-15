@@ -34,6 +34,8 @@ Cloudflare Pages의 Production branch는 `main`, Build command는 `npm run build
 
 ## Validation
 
+결정력 수치와 HP바·N타의 적용 범위, 타입 무효·회복·파동의방호 처리 기준은 [결정력 계산 정책](docs/move-power-policy.md)을 따른다.
+
 전 메뉴에 확정 계산기 샘플의 공통 UI를 적용했다. 메뉴별 개선, HTML 참조·CSS 소유권, 320~1440px 반응형·키보드 검사 결과는 [UI 리모델링 최종 검토](docs/ui-remodel-final-review.md)에 정리했다.
 
 현재 데이터는 M-C(2026-09-09)를 반영한다. [반영 내역과 수동 보완 방법](docs/regulation-mc-update.md)을 참고한다.

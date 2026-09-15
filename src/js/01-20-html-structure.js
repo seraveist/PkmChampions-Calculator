@@ -440,7 +440,7 @@ async function activateMainPage(pageKey, options = {}) {
   const pageLabel = tab.textContent.trim();
 
   setMainPageLoadState(tab);
-  if (requiresLoad) setMainPageLoadState(tab, 'loading', `${pageLabel} 화면을 불러오는 중입니다.`);
+  if (requiresLoad) setMainPageLoadState(tab, 'loading');
 
   try {
     await ensureMainPageFeatureLoaded(pageKey);
