@@ -72,6 +72,14 @@ jobs:
           p.write_text(s.replace(old,new,1))
           PY
           git add scripts/ui-remodel-final-browser.mjs
+          python3 - <<'PYFIX'
+          import base64, gzip, hashlib, os, pathlib
+          patch = gzip.decompress(base64.b64decode(pathlib.Path('.module-transfer/finalize.b64').read_text(), validate=True))
+          assert hashlib.sha256(patch).hexdigest() == '87db31dc55238f732f22e6193c9e7ff86e01cd0bf4662f8d74e44d05931cf1a2'
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'finalize.patch').write_bytes(patch)
+          PYFIX
+          git apply --check "$RUNNER_TEMP/finalize.patch"
+          git apply --index "$RUNNER_TEMP/finalize.patch"
           git diff --cached --check
       - run: npm ci
       - name: Full regression suite
@@ -120,7 +128,7 @@ jobs:
           npm run build:pages
           npm run pages:ready
           git add pokemon-champions-calculator-v3.html docs/damage-calculator-coverage-matrix.md
-          git rm -r .module-transfer .github/workflows/module-refactor-validation.yml
+          git rm -r .module-transfer .github/workflows/module-refactor-validation.yml .github/workflows/module-debug-snapshot.yml
           git diff --cached --check
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'refactor: build native ES modules and cache move slots' -m 'Direct public builds share normalized data with standalone output. Convert source files to explicit module dependencies and preserve lazy features. Cache slot presentations and separate structural markup, with regression and production browser coverage. Preserve reverse inference, forecast and transport behavior.'
           git push origin HEAD:refs/heads/refactor/client-data-performance
