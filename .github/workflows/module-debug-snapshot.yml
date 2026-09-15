@@ -1,0 +1,37 @@
+name: Module debug snapshot
+on:
+  push:
+    branches: [refactor/client-data-performance]
+    paths: [.github/workflows/module-debug-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore the pending source snapshot
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, subprocess, textwrap
+          workflow = pathlib.Path('.github/workflows/module-refactor-validation.yml').read_text()
+          step = workflow.split('      - name: Apply verified module source snapshot\n',1)[1].split('      - run: npm ci\n',1)[0]
+          script = pathlib.Path(os.environ['RUNNER_TEMP'], 'restore-module-snapshot.sh')
+          script.write_text(textwrap.dedent(step.split('        run: |\n',1)[1]))
+          subprocess.run(['bash', '-e', '-o', 'pipefail', str(script)], check=True)
+          PY
+      - run: npm ci
+      - name: Archive source and locked build dependencies
+        run: |
+          tar -czf "$RUNNER_TEMP/module-debug-source.tar.gz" src data text scripts docs build.mjs package.json package-lock.json README.md LICENSE node_modules .github/workflows/module-refactor-validation.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: module-debug-source
+          path: ${{ runner.temp }}/module-debug-source.tar.gz
+          retention-days: 1
