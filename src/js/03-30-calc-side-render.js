@@ -1,3 +1,11 @@
+import { RotomUI, uiStatTable } from './01-10-rotom-ui.js';
+import { ItemById, MoveById, NATURE_BY_ID, PokemonById, itName, pkName, renderTrustedHTML } from './01-core.js';
+import { CALC_STATUS_OPTIONS, applyPokemonToCalcSide, calcAbilityDisplayLabel, calcNatureLabel, hpPercentInputValue, setSideDamageBlockActive, state } from './03-10-calc-state.js';
+import { renderToolPokemonSelectSubframe } from './03-11-calc-shared-render.js';
+import { wireCalcCombobox } from './03-22-calc-combobox-events.js';
+import { applyEntryFieldsFromSide } from './03-40-calc-entry-effects.js';
+import { triggerCalc } from './03-50-calc-results.js';
+
 /* Calculator identity, move-slot state and rendering. */
 function applyMoveToCalcSlot(sideKey, slot, moveId) {
   const side = state[sideKey];
@@ -55,3 +63,5 @@ function applyEvPreset(sideKey, preset) {
   if (!stats) return;
   stats.forEach(s => { side.evs[s] = 32; });
 }
+
+export { applyMoveToCalcSlot, renderSide, wireSide, applyEvPreset };

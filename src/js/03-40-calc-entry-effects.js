@@ -1,3 +1,9 @@
+import { AbilityById, ItemById, STAT_LABEL, battleAbilityContext, calcStats, effectiveBattleItem } from './01-core.js';
+import { displayName } from './02-engine.js';
+import { autoEntryEffects, clampFallenAllies, deriveHpFlags, setAutoEntryEffects, setComboboxValue, state } from './03-10-calc-state.js';
+import { ENTRY_EFFECTS, INTIMIDATE_BLOCKERS } from './03-20-calc-combobox.js';
+import { syncSpikesLayerControl, updateRuinCheckboxes } from './03-60-calc-events.js';
+
 /* Damage calculator derived state and automatic entry effects. */
 let lastAutoEntry = emptyEntryMeta();
 
@@ -118,7 +124,7 @@ function setManualCalcField(fieldKey, value) {
 function setAutoEntryEffectsEnabled(enabled) {
   const nextEnabled = !!enabled;
   let changed = autoEntryEffects !== nextEnabled;
-  autoEntryEffects = nextEnabled;
+  setAutoEntryEffects(nextEnabled);
   for (const fieldKey of AUTO_ENTRY_FIELD_KEYS) {
     const tracked = autoEntryFieldState[fieldKey];
     const effect = tracked.owner ? entryFieldEffectForSide(tracked.owner, fieldKey) : null;
@@ -301,3 +307,8 @@ function formatRankValue(value) {
 /* ════════════════════════════════════════════════════════════
    결과 렌더링
    ════════════════════════════════════════════════════════════ */
+
+// Assignment stays in the module that owns the live binding.
+function setLastAutoEntry(value) { lastAutoEntry = value; return value; }
+
+export { lastAutoEntry, manualAutoFieldOverrides, AUTO_ENTRY_FIELD_KEYS, autoEntryFieldState, defaultAutoFieldValue, emptyEntryMeta, cloneSideForCalc, cloneFieldForCalc, clampRank, addRankDelta, applyRankDelta, sideEntryLabel, otherCalcSideKey, entryFieldEffectForSide, setAppliedEntryField, applyEntryFieldsFromSide, setManualCalcField, setAutoEntryEffectsEnabled, swapAutoEntryFieldOwners, resetAutoEntryFieldState, appendActiveEntryFieldMeta, applyDerivedEntryRankEffects, applyContinuousAbilityEffects, applyEntryEffectsToCalcState, makeCalcState, activeAutoFieldBase, markManualAutoFieldOverride, resetManualAutoFieldOverrides, syncFieldControls, formatRankValue, setLastAutoEntry };

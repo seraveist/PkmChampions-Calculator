@@ -1,3 +1,8 @@
+import { RotomUI } from './01-10-rotom-ui.js';
+import { PokemonById, escapeHTML } from './01-core.js';
+import { CALC_STATUS_OPTIONS, CALC_TERRAIN_OPTIONS, CALC_WEATHER_OPTIONS, cloneCalcValue, makeSideState } from './03-10-calc-state.js';
+import { fineTuneState, ftClampInt, ftComboLabel, ftCurrentComboId, ftFormatBreakpointDescriptions, ftSetEv, ftStatKeys, ftUniqueJoin } from './04-30-finetune.js';
+
 /* Fine-tune conditions and actionable HP/speed targets. */
 function ftApplyTarget(stat, point) {
   if (!['hp', 'spe'].includes(stat) || !PokemonById[fineTuneState.my.pokemonIdx]) return false;
@@ -84,3 +89,5 @@ function ftClearConditions(role) {
   const side = fineTuneState[role], defaults = makeSideState(side.pokemonIdx);
   for (const key of ['ranks', 'status', 'tailwind', 'unburdenActive', 'slowStartActive']) side[key] = cloneCalcValue(defaults[key]);
 }
+
+export { ftApplyTarget, ftSelectHtml, ftPickerHtml, ftCheckHtml, ftSideConditionsHtml, ftFieldHtml, ftHpTargetHtml, ftSpeedTargetHtml, ftHandlePlannerChange, ftClearConditions };

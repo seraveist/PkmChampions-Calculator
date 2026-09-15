@@ -1,3 +1,6 @@
+import { RotomUI } from './01-10-rotom-ui.js';
+import { renderTrustedHTML } from './01-core.js';
+
 const THEME_STORAGE_KEY = 'pkchamps-theme';
 const THEME_COLORS = {
   light: '#eef2f6',
@@ -44,3 +47,5 @@ function initThemeToggle() {
     storeTheme(nextTheme);
   });
 }
+
+export { THEME_STORAGE_KEY, THEME_COLORS, getStoredTheme, storeTheme, applyTheme, initThemeToggle };

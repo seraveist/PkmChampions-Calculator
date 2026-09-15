@@ -1,3 +1,8 @@
+import { RotomUI } from './01-10-rotom-ui.js';
+import { htmlAttrs } from './01-20-html-structure.js';
+import { POKEMON, PokemonById, TYPE_KO, escapeHTML, pkName, pokemonSpriteSlot } from './01-core.js';
+import { calcFormGroupForPokemon, calcFormGroupForSide, calcPokemonFormLabel, sideTypeId } from './03-10-calc-state.js';
+
 /* UI-only shared participant markup, excluded from the analysis worker. */
 function renderToolFormCombobox({
   pokemonId,
@@ -114,3 +119,5 @@ function renderFormSwitchControls(sideKey, side) {
     </div>
   `;
 }
+
+export { renderToolFormCombobox, toolClassNames, renderToolTypePills, renderToolPokemonTypeStrip, renderToolPokemonSelectSubframe, renderManualDamageBlockToggle, renderTypeControls, renderFormSwitchControls };

@@ -1,3 +1,7 @@
+import { AbilityById, ItemById, MoveById, POKEMON, calcStats, escapeHTML, mvName, pkName } from './01-core.js';
+import { battleMaxFallenAllies, displayName, flingItemForMove } from './02-engine.js';
+import { clampFallenAllies, maxFallenAllies, state } from './03-10-calc-state.js';
+
 /* Only show move-specific inputs when a selected move uses them. */
 function renderCalcMoveConditions(sideKey, side) {
   const moves = side.moves.map(id => MoveById[id]).filter(Boolean);
@@ -54,3 +58,5 @@ function specialCalcConditionLabel(move, side, opponent) {
   if (move.variableBpKind === 'fling') return `${displayName(flingItemForMove(side, opponent))} 내던지기 · 반복 시 매회 같은 도구를 다시 보유한 조건 · 도구의 상태·랭크 부가 효과 제외`;
   return '';
 }
+
+export { renderCalcMoveConditions, specialCalcConditionLabel };

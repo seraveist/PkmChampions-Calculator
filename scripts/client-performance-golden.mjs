@@ -1,6 +1,7 @@
+import { readSourceFileSync as readFileSync } from './source-utils.mjs';
 // Behavioral contracts for plain-object data and retained calculator controls.
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import {  readdirSync } from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
@@ -137,4 +138,41 @@ test('effort input/change deduplicates updates while preserving clamps and blank
     assert.equal(run('return state.atk.evs.atk;'),2); assert.equal(context.refreshCount,3);
   } finally { run('powerUiRefresh = originalRefresh;'); }
 });
+test('slot cache invalidates only a changed slot and remains bounded', () => run(`
+  state.atk=makeSideState('garchomp');state.def=makeSideState('dragonite');state.field=makeFieldState();
+  state.atk.moves=['earthquake','dragonclaw','rockslide','firefang'];autoEntryEffects=false;
+  powerUiSlotViews.clear();
+  const original=powerUiCalculateSlot; const calls=[];
+  powerUiCalculateSlot=(slot,...args)=>{calls.push(slot);return original(slot,...args);};
+  const check=(expected)=>{
+    calls.length=0;const calc=makeCalcState();const views=powerUiCachedMoveViews(calc);
+    assert.deepEqual([...calls],expected);
+    for(let slot=0;slot<4;slot++) assert.deepEqual(views[slot],powerUiMovePresentation(slot,calc,original(slot,calc)));
+    assert.equal(powerUiSlotViews.size,4);
+  };
+  try {
+    check([0,1,2,3]);check([]);
+    state.atk.moveCriticalOverrides[1]=true;check([1]);check([]);
+    state.atk.moveBpOverrides[2]=95;check([2]);
+    state.atk.moveTypeOverrides[3]='Ice';check([3]);
+    state.atk.moveHitCounts[0]=3;check([0]);
+    state.atk.moves[2]='protect';check([2]);
+    state.atk.moves[2]='';check([2]);
+    state.def.evs.hp=10;check([0,1,2,3]);
+    state.atk.nature='jolly';check([0,1,2,3]);
+    state.field.weather='Rain';check([0,1,2,3]);
+    autoEntryEffects=true;check([0,1,2,3]);
+    state.atk=makeSideState('charizard');check([0,1,2,3]);
+  } finally {powerUiCalculateSlot=original;powerUiSlotViews.clear();}
+`));
+test('presentation updates never construct structural picker markup', () => run(`
+  state.atk=makeSideState('garchomp');state.def=makeSideState('dragonite');state.atk.moves=['earthquake'];
+  const original=powerUiMovePickerMarkup;let calls=0;
+  powerUiMovePickerMarkup=(...args)=>{calls++;return original(...args);};
+  try {
+    const calc=makeCalcState(),view=powerUiMovePresentation(0,calc);
+    assert.equal(calls,0);assert(!('moveButton' in view));
+    assert(powerUiMoveMarkup(0,calc,view).includes('move-select'));assert.equal(calls,1);
+  } finally {powerUiMovePickerMarkup=original;}
+`));
 console.log(`Client performance contracts: ${passed} passed.`);

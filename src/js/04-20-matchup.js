@@ -1,3 +1,11 @@
+import { RotomUI } from './01-10-rotom-ui.js';
+import { bindUiTabKeyboard, syncUiTabs } from './01-20-html-structure.js';
+import { AbilityById, BATTLE_TYPES, ItemById, MOD, MoveById, POKEMON, PokemonById, TYPE_KO, abName, abilityData, escapeHTML, mvName, pkName, pokemonSpriteSlot, renderTrustedHTML, toId, typeEff } from './01-core.js';
+import { calcFormGroupForPokemon, calcMatches, calcMoveCategoryLabel, calcSearchText, defaultPokemonAbilityId, sortMovesForCalcSelect, sortPokemonForCalcSelect } from './03-10-calc-state.js';
+import { renderToolTypePills } from './03-11-calc-shared-render.js';
+import { wirePokemonSelectCombobox, wireSharedComboboxKeyboard } from './03-20-calc-combobox.js';
+import { calcRenderMoveOption, calcRenderSimpleMoveOption, calcRenderSimplePokemonOption } from './03-21-calc-combobox-options.js';
+
 /* Team matchup and coverage table.
  * Loaded before 05-init.js by build.mjs alphabetical concatenation.
  */
@@ -463,6 +471,15 @@ function renderCoverageMatchupTable() {
   }).join(''));
 }
 
-if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-  window.addEventListener('resize', updateMatchupScrollHint);
+
+
+let bind0420MatchupBound = false;
+function bind0420Matchup() {
+  if (bind0420MatchupBound) return;
+  bind0420MatchupBound = true;
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('resize', updateMatchupScrollHint);
+  }
 }
+
+export { matchupSlots, matchupAbilities, matchupCoverageMoves, matchupMode, matchupCoverageField, MATCHUP_COL, matchupAbilityIds, matchupDefaultAbilityId, matchupSelectedAbilityId, matchupFormOptions, matchupSameFormFamily, matchupResolveItemForm, matchupSetSlotPokemon, matchupTypeRule, matchupDefenseEffect, defenseTypeProfile, coverageSlotMoves, coverageSlotHasType, coverageMoveType, coverageCountByType, renderMatchupModeTabs, renderMatchupSlots, wireMatchupSlots, coverageMovePool, matchupMoveMatchesQuery, matchupMoveOptionRows, renderMatchupCoverageInputs, wireMatchupCoverageInputs, renderMatchupCoverageField, renderMatchupLegend, renderMatchupTable, updateMatchupScrollHint, wireMatchupScrollHint, replaceMatchupColgroup, selectedMatchupEntries, configureMatchupTable, renderDefenseMatchupTable, renderCoverageMatchupTable, bind0420MatchupBound, bind0420Matchup };

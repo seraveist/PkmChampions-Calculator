@@ -1,3 +1,4 @@
+import { readSourceFileSync as readFileSync } from './source-utils.mjs';
 // Compare exact candidate/path/card output against a pinned pre-optimization revision.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,13 +8,13 @@ import {fileURLToPath} from 'node:url';
 const root=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const baseline=process.argv.find(x=>x.startsWith('--baseline='))?.slice(11) || '9bac1b3';
 const inferenceNatures=['adamant','jolly','impish','careful','modest','timid','bold','calm','naive','brave'];
-const html=fs.readFileSync(path.join(root,'pokemon-champions-calculator-v3.html'),'utf8');
+const html=readFileSync(path.join(root,'pokemon-champions-calculator-v3.html'),'utf8');
 const data=Object.fromEntries([...html.matchAll(/<script id="(data-[^"]+)" type="application\/json">([\s\S]*?)<\/script>/g)].map(m=>[m[1],m[2]]));
 const el=id=>({textContent:data[id]||'',value:'',dataset:{},style:{},classList:{add(){},remove(){},toggle(){},contains(){return false;}},addEventListener(){},querySelectorAll(){return [];},querySelector(){return null;},closest(){return null;},appendChild(){},remove(){},setAttribute(){},getAttribute(){return null;}});
 const document={getElementById:el,querySelectorAll(){return [];},querySelector(){return null;},addEventListener(){},createElement:el};
 function api(ref){
  const files=ref?execFileSync('git',['ls-tree','-r','--name-only',ref,'src/js'],{cwd:root,encoding:'utf8'}).trim().split('\n'):fs.readdirSync(path.join(root,'src/js')).map(n=>'src/js/'+n);
- const source=files.filter(n=>n.endsWith('.js')&&!path.basename(n).startsWith('05')&&!n.includes('theme')).sort().map(n=>ref?execFileSync('git',['show',ref+':'+n],{cwd:root,encoding:'utf8',maxBuffer:4*1024*1024}):fs.readFileSync(path.join(root,n),'utf8')).join('\n');
+ const source=files.filter(n=>n.endsWith('.js')&&!path.basename(n).startsWith('05')&&!n.includes('theme')).sort().map(n=>ref?execFileSync('git',['show',ref+':'+n],{cwd:root,encoding:'utf8',maxBuffer:4*1024*1024}):readFileSync(path.join(root,n),'utf8')).join('\n');
  return new Function('document','window',source+(ref ? '\nRC_NATURE_IDS.splice(0,RC_NATURE_IDS.length,...'+JSON.stringify(inferenceNatures)+');' : '')+`\nconst initial=JSON.stringify(revCalcState);return {run(kind){
  Object.assign(revCalcState,JSON.parse(initial));
  revCalcState.my=makeSideState(kind==='eruption'?'garchomp':'kangaskhanmega');

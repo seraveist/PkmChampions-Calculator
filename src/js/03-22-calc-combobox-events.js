@@ -1,3 +1,9 @@
+import { uiSetPickerLabel } from './01-10-rotom-ui.js';
+import { renderTrustedHTML } from './01-core.js';
+import { calcDatasetForCombobox, calcMatches } from './03-10-calc-state.js';
+import { makeCombobox, wirePokemonSelectCombobox, wireSharedComboboxKeyboard } from './03-20-calc-combobox.js';
+import { calcComboboxCurrentId, calcComboboxDisplayLabel, calcComboboxExtraOptions, calcComboboxHeaderHtml, calcRenderComboboxOption } from './03-21-calc-combobox-options.js';
+
 /* Calculator-specific combobox event wiring. */
 function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
   const list = input.closest('.combobox')?.querySelector('.combobox-options');
@@ -23,3 +29,5 @@ function wireCalcCombobox(input, { filterFn = null, onSelect = null } = {}) {
   });
   return combo;
 }
+
+export { wireCalcCombobox };

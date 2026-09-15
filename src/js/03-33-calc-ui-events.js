@@ -1,3 +1,15 @@
+import { autoEntryFieldState } from './03-40-calc-entry-effects.js';
+import { RotomUI } from './01-10-rotom-ui.js';
+import { toolStatApplyPointValue } from './01-20-html-structure.js';
+import { AbilityById, BATTLE_TYPES, MoveById, NATURE_BY_ID, PokemonById, TYPE_KO, applyBoost, calcStats, escapeHTML, mvName, pkName, renderTrustedHTML } from './01-core.js';
+import { battleMaxFallenAllies, sideCurrentHp } from './02-engine.js';
+import { CALC_TERRAIN_OPTIONS, CALC_WEATHER_OPTIONS, applyPokemonFormToCalcSide, autoEntryEffects, calcFieldOptionLabel, calcFormGroupForPokemon, calcPokemonFormLabel, hpPercentInputValue, resetSideTypes, setSideCurrentHp, setSideHpPct, setSideType, state } from './03-10-calc-state.js';
+import { wireCalcCombobox } from './03-22-calc-combobox-events.js';
+import { applyEvPreset, applyMoveToCalcSlot, renderSide } from './03-30-calc-side-render.js';
+import { powerUiCalculateSlot, powerUiMoveMarkup, powerUiMovePresentation, powerUiStats, powerUiStatusTimer, setPowerUiStatusTimer } from './03-32-calc-ui.js';
+import { powerUiOpenMoveSettings } from './03-34-calc-move-dialog.js';
+import { makeCalcState, setLastAutoEntry, setManualCalcField, syncFieldControls } from './03-40-calc-entry-effects.js';
+
 function powerUiRenderField() {
   const target=document.getElementById('calc-field-controls');
   if(!target) return;
@@ -8,8 +20,38 @@ function powerUiRenderField() {
 // Each entry belongs to a live row, so detached rows do not retain cached views.
 const powerUiRowViews = new WeakMap();
 
+// Bounded to the four visible slots. Only slot-local arrays are excluded from
+// the common signature; all other editable and derived state invalidates all
+// slots. This deliberately favors correctness over overly narrow dependencies.
+const powerUiSlotViews = new Map();
+const POWER_UI_SLOT_FIELDS = ['moves','moveBpOverrides','moveTypeOverrides','moveCriticalOverrides','moveHitCounts'];
+function powerUiCommonSide(side) {
+  return Object.fromEntries(Object.entries(side).filter(([key]) => !POWER_UI_SLOT_FIELDS.includes(key)));
+}
+function powerUiCalculationKeys(calc) {
+  const common = JSON.stringify([
+    autoEntryEffects, autoEntryFieldState,
+    powerUiCommonSide(state.atk), state.def, state.field,
+    powerUiCommonSide(calc.atk), calc.def, calc.field,
+  ]);
+  return [0,1,2,3].map(slot => common + '|' + JSON.stringify(
+    POWER_UI_SLOT_FIELDS.map(key => [state.atk[key]?.[slot] ?? null, calc.atk[key]?.[slot] ?? null])
+  ));
+}
+function powerUiCachedMoveViews(calc) {
+  const keys = powerUiCalculationKeys(calc);
+  return keys.map((key,slot) => {
+    const cached = powerUiSlotViews.get(slot);
+    if (cached?.key === key) return cached.view;
+    const calculated = powerUiCalculateSlot(slot,calc);
+    const view = powerUiMovePresentation(slot,calc,calculated);
+    powerUiSlotViews.set(slot,{key,view});
+    return view;
+  });
+}
+
 function powerUiRenderMoveResults(body, calc) {
-  const views = [0,1,2,3].map(slot => powerUiMovePresentation(slot, calc));
+  const views = powerUiCachedMoveViews(calc);
   let rows = [0,1,2,3].map(slot => body.querySelector(`[data-move-row="${slot}"]`));
   if (rows.some(row => !row)) {
     renderTrustedHTML(body, views.map((view,slot) => powerUiMoveMarkup(slot,calc,view)).join(''));
@@ -48,7 +90,7 @@ function powerUiRenderMoveResults(body, calc) {
 
 function powerUiRefresh() {
   const calc=makeCalcState(),statsBySide={};
-  lastAutoEntry=calc.entryMeta;
+  setLastAutoEntry(calc.entryMeta);
   syncFieldControls(calc.field);
   for(const key of ['atk','def']) {
     const side=state[key],root=document.getElementById(`${key}-body`);
@@ -84,10 +126,10 @@ function powerUiRefresh() {
   if(!body) return;
   powerUiRenderMoveResults(body,calc);
   clearTimeout(powerUiStatusTimer);
-  powerUiStatusTimer=setTimeout(()=>{
+  setPowerUiStatusTimer(setTimeout(()=>{
     const status=document.getElementById('calculation-status');
     if(status) status.textContent='피해 계산을 갱신했습니다.';
-  },250);
+  },250));
 }
 
 function powerUiOpenSideSettings(key) {
@@ -116,65 +158,77 @@ function powerUiOpenSideSettings(key) {
   dialog.showModal();
 }
 
-document.getElementById('page-calc')?.addEventListener('input',event=>{
-  const target=event.target,key=target.closest('[data-calc-side]')?.dataset.calcSide;
-  if(target.dataset.calcEv && key) {
-    const previous=state[key].evs[target.dataset.calcEv] || 0;
-    const value=toolStatApplyPointValue(state[key],target.dataset.calcEv,target.value);
-    if(target.value!=='' && Number(target.value)!==value) target.value=value;
-    if(value!==previous) powerUiRefresh();
-  }
-});
-document.getElementById('page-calc')?.addEventListener('change',event=>{
-  const t=event.target,d=t.dataset,key=t.closest('[data-calc-side]')?.dataset.calcSide;
-  if(d.calcEv && key) {
-    const previous=state[key].evs[d.calcEv] || 0;
-    t.value=toolStatApplyPointValue(state[key],d.calcEv,t.value);
-    // change still normalizes blanks/leading zeros, but does not repeat input work.
-    if(Number(t.value)===previous) return;
-  }
-  else if(d.calcRank && key) state[key].ranks[d.calcRank]=Number(t.value);
-  else if(d.calcHp) { setSideHpPct(state[d.calcHp],Number(t.value)/100);t.value=hpPercentInputValue(state[d.calcHp]); }
-  else if(d.calcStatus) state[d.calcStatus].status=t.value;
-  else if(d.calcTailwind) state[d.calcTailwind].tailwind=t.checked;
-  else if(d.calcField) {
-    if(['weather','terrain'].includes(d.calcField)) setManualCalcField(d.calcField,t.value);
-    else {
-      state.field[d.calcField]=t.value;
-      if(d.calcField==='gameType') for(const side of [state.atk,state.def]) side.fallenAllies=Math.min(side.fallenAllies || 0,battleMaxFallenAllies(state.field));
+
+
+
+
+
+let bind0333CalcUiEventsBound = false;
+function bind0333CalcUiEvents() {
+  if (bind0333CalcUiEventsBound) return;
+  bind0333CalcUiEventsBound = true;
+  document.getElementById('page-calc')?.addEventListener('input',event=>{
+    const target=event.target,key=target.closest('[data-calc-side]')?.dataset.calcSide;
+    if(target.dataset.calcEv && key) {
+      const previous=state[key].evs[target.dataset.calcEv] || 0;
+      const value=toolStatApplyPointValue(state[key],target.dataset.calcEv,target.value);
+      if(target.value!=='' && Number(target.value)!==value) target.value=value;
+      if(value!==previous) powerUiRefresh();
     }
-  } else return;
-  powerUiRefresh();
-});
-document.addEventListener('click',event=>{
-  const button=event.target.closest('button');
-  if(!button) return;
-  if(button.dataset.calcSideSettings) powerUiOpenSideSettings(button.dataset.calcSideSettings);
-  else if(button.hasAttribute('data-move-settings')) powerUiOpenMoveSettings(Number(button.dataset.moveSettings));
-  else if(button.hasAttribute('data-close-calc-dialog')) button.closest('dialog').close();
-  else if(button.hasAttribute('data-reset-types')) {
-    const key=button.dataset.settingSide;
-    resetSideTypes(key);renderSide(key);powerUiRefresh();powerUiOpenSideSettings(key);
-    document.querySelector('#calc-side-settings [data-reset-types]')?.focus({preventScroll:true});
-  }
-  else if(button.dataset.calcPreset) {
-    const key=button.dataset.settingSide;
-    if(button.dataset.calcPreset==='reset') state[key].evs={hp:0,atk:0,def:0,spa:0,spd:0,spe:0};
-    else applyEvPreset(key,button.dataset.calcPreset);
+  });
+  document.getElementById('page-calc')?.addEventListener('change',event=>{
+    const t=event.target,d=t.dataset,key=t.closest('[data-calc-side]')?.dataset.calcSide;
+    if(d.calcEv && key) {
+      const previous=state[key].evs[d.calcEv] || 0;
+      t.value=toolStatApplyPointValue(state[key],d.calcEv,t.value);
+      // change still normalizes blanks/leading zeros, but does not repeat input work.
+      if(Number(t.value)===previous) return;
+    }
+    else if(d.calcRank && key) state[key].ranks[d.calcRank]=Number(t.value);
+    else if(d.calcHp) { setSideHpPct(state[d.calcHp],Number(t.value)/100);t.value=hpPercentInputValue(state[d.calcHp]); }
+    else if(d.calcStatus) state[d.calcStatus].status=t.value;
+    else if(d.calcTailwind) state[d.calcTailwind].tailwind=t.checked;
+    else if(d.calcField) {
+      if(['weather','terrain'].includes(d.calcField)) setManualCalcField(d.calcField,t.value);
+      else {
+        state.field[d.calcField]=t.value;
+        if(d.calcField==='gameType') for(const side of [state.atk,state.def]) side.fallenAllies=Math.min(side.fallenAllies || 0,battleMaxFallenAllies(state.field));
+      }
+    } else return;
+    powerUiRefresh();
+  });
+  document.addEventListener('click',event=>{
+    const button=event.target.closest('button');
+    if(!button) return;
+    if(button.dataset.calcSideSettings) powerUiOpenSideSettings(button.dataset.calcSideSettings);
+    else if(button.hasAttribute('data-move-settings')) powerUiOpenMoveSettings(Number(button.dataset.moveSettings));
+    else if(button.hasAttribute('data-close-calc-dialog')) button.closest('dialog').close();
+    else if(button.hasAttribute('data-reset-types')) {
+      const key=button.dataset.settingSide;
+      resetSideTypes(key);renderSide(key);powerUiRefresh();powerUiOpenSideSettings(key);
+      document.querySelector('#calc-side-settings [data-reset-types]')?.focus({preventScroll:true});
+    }
+    else if(button.dataset.calcPreset) {
+      const key=button.dataset.settingSide;
+      if(button.dataset.calcPreset==='reset') state[key].evs={hp:0,atk:0,def:0,spa:0,spd:0,spe:0};
+      else applyEvPreset(key,button.dataset.calcPreset);
+      renderSide(key);powerUiRefresh();
+    }
+  });
+  document.getElementById('calc-side-settings')?.addEventListener('change',event=>{
+    const t=event.target,d=t.dataset,key=d.settingSide,side=state[key];
+    if(!side) return;
+    if(d.settingField==='form') applyPokemonFormToCalcSide(key,t.value);
+    else if(d.settingField?.startsWith('type')) setSideType(key,Number(d.settingField.slice(-1)),t.value);
+    else if(d.settingField==='currentHp') setSideCurrentHp(side,t.value);
+    else if(d.settingField) side[d.settingField]=t.type==='checkbox' ? t.checked : t.type==='number' ? Number(t.value) : t.value;
     renderSide(key);powerUiRefresh();
-  }
-});
-document.getElementById('calc-side-settings')?.addEventListener('change',event=>{
-  const t=event.target,d=t.dataset,key=d.settingSide,side=state[key];
-  if(!side) return;
-  if(d.settingField==='form') applyPokemonFormToCalcSide(key,t.value);
-  else if(d.settingField?.startsWith('type')) setSideType(key,Number(d.settingField.slice(-1)),t.value);
-  else if(d.settingField==='currentHp') setSideCurrentHp(side,t.value);
-  else if(d.settingField) side[d.settingField]=t.type==='checkbox' ? t.checked : t.type==='number' ? Number(t.value) : t.value;
-  renderSide(key);powerUiRefresh();
-  if(d.settingField==='form' || d.settingField?.startsWith('type')) {
-    const field=d.settingField;
-    powerUiOpenSideSettings(key);
-    document.querySelector(`#calc-side-settings [data-setting-field="${field || 'type0'}"]`)?.focus({preventScroll:true});
-  }
-});
+    if(d.settingField==='form' || d.settingField?.startsWith('type')) {
+      const field=d.settingField;
+      powerUiOpenSideSettings(key);
+      document.querySelector(`#calc-side-settings [data-setting-field="${field || 'type0'}"]`)?.focus({preventScroll:true});
+    }
+  });
+}
+
+export { powerUiRenderField, powerUiRowViews, powerUiSlotViews, POWER_UI_SLOT_FIELDS, powerUiCommonSide, powerUiCalculationKeys, powerUiCachedMoveViews, powerUiRenderMoveResults, powerUiRefresh, powerUiOpenSideSettings, bind0333CalcUiEventsBound, bind0333CalcUiEvents };

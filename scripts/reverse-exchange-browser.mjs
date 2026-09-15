@@ -1,3 +1,4 @@
+import { prepareModuleBrowserFixture, installModuleTestBridge } from './browser-module-fixture.mjs';
 // Calculator regression checks derived from the original read-only assessment.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -14,10 +15,7 @@ const PUBLIC_MODE = process.argv.includes('--public');
 const AD_FREE = process.argv.includes('--ad-free');
 const REQUIRE_BROWSER = process.argv.includes('--require-browser') || process.env.CI === 'true';
 const DISABLE_BROWSER_SANDBOX = process.argv.includes('--disable-browser-sandbox') || process.env.UI_SMOKE_DISABLE_SANDBOX === '1';
-const PUBLIC_ROOT = path.join(ROOT, 'dist');
-const HTML_PATH = PUBLIC_MODE
-  ? path.join(PUBLIC_ROOT, 'index.html')
-  : path.join(ROOT, 'pokemon-champions-calculator-v3.html');
+const {publicRoot:PUBLIC_ROOT,htmlPath:HTML_PATH} = await prepareModuleBrowserFixture({publicMode:PUBLIC_MODE,adFree:AD_FREE});
 const AXE_SOURCE = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 
 function contentType(file) {
@@ -341,6 +339,7 @@ async function main() {
     await client.send('Runtime.enable');
     await client.send('Page.enable');
     await client.send('Log.enable');
+    await installModuleTestBridge(client);
     await client.send('Page.navigate', { url });
     await sleep(200);
     await waitFor(() => client.evaluate(`document.readyState === 'complete'`));

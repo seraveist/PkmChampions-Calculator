@@ -101,3 +101,33 @@ export async function runClientPerformanceBrowserChecks(client, check, {publicMo
   })()`);
   check(picker.retained && picker.freshList && picker.openPreserved,'retained picker follows Pokemon changes and survives result refresh while open',JSON.stringify(picker));
 }
+
+export async function runSlotCacheBrowserChecks(client,check) {
+  const metrics=await client.evaluate(`(() => {
+    const saved={atk:state.atk,def:state.def,field:state.field,auto:autoEntryEffects};
+    const original=powerUiCalculateSlot, structural=powerUiMovePickerMarkup;
+    const calls=[];let markup=0;
+    try {
+      autoEntryEffects=false;state.atk=makeSideState('garchomp');state.def=makeSideState('dragonite');state.field=makeFieldState();
+      state.atk.moves=['earthquake','dragonclaw','rockslide','firefang'];
+      renderSide('atk');renderSide('def');powerUiRefresh();
+      powerUiCalculateSlot=(slot,...args)=>{calls.push(slot);return original(slot,...args);};
+      powerUiMovePickerMarkup=(...args)=>{markup++;return structural(...args);};
+      powerUiOpenMoveSettings(1);
+      const critical=document.querySelector('#calc-move-settings [data-slot="moveCriticalOverrides"]');
+      critical.checked=true;critical.dispatchEvent(new Event('change',{bubbles:true}));
+      const single=calls.splice(0);
+      critical.dispatchEvent(new Event('change',{bubbles:true}));const noop=calls.splice(0);
+      document.getElementById('calc-move-settings').close();
+      const weather=document.getElementById('weather');weather.value='Rain';weather.dispatchEvent(new Event('change',{bubbles:true}));
+      return {single,noop,common:calls,markup};
+    } finally {
+      powerUiCalculateSlot=original;powerUiMovePickerMarkup=structural;
+      Object.assign(state,{atk:saved.atk,def:saved.def,field:saved.field});autoEntryEffects=saved.auto;
+      renderSide('atk');renderSide('def');powerUiRefresh();
+    }
+  })()`);
+  console.log('SLOT_CACHE_METRICS '+JSON.stringify(metrics));
+  check(JSON.stringify(metrics.single)==='[1]' && metrics.noop.length===0 && JSON.stringify(metrics.common)==='[0,1,2,3]' && metrics.markup===0,
+    'real slot setting computes one slot, repeated value computes none, common weather computes four, without structural markup',JSON.stringify(metrics));
+}

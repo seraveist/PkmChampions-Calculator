@@ -1,3 +1,4 @@
+import { readSourceFileSync as readFileSync } from './source-utils.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -6,7 +7,7 @@ import { applyChampionsDataOverrides } from './champions-overrides.mjs';
 import { PS_FILES } from './ps-data-source.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const html = fs.readFileSync(path.join(root, 'pokemon-champions-calculator-v3.html'), 'utf8');
+const html = readFileSync(path.join(root, 'pokemon-champions-calculator-v3.html'), 'utf8');
 const json = Object.fromEntries([...html.matchAll(/<script id="(data-[^"]+)" type="application\/json">([\s\S]*?)<\/script>/g)].map(m => [m[1], m[2]]));
 const element = id => ({ textContent: json[id] || '', value: '', dataset: {}, style: {},
   classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
@@ -15,7 +16,7 @@ const element = id => ({ textContent: json[id] || '', value: '', dataset: {}, st
   setAttribute() {}, getAttribute() { return null; } });
 const document = { getElementById: element, querySelectorAll() { return []; }, querySelector() { return null; }, addEventListener() {}, createElement: element };
 const dir = path.join(root, 'src/js');
-const source = fs.readdirSync(dir).filter(n => n.endsWith('.js') && !n.startsWith('05') && !n.includes('theme')).sort().map(n => fs.readFileSync(path.join(dir, n), 'utf8')).join('\n');
+const source = fs.readdirSync(dir).filter(n => n.endsWith('.js') && !n.startsWith('05') && !n.includes('theme')).sort().map(n => readFileSync(path.join(dir, n), 'utf8')).join('\n');
 let passed = 0;
 const run = new Function('document', 'window', 'assert', 'test', `${source}\n
 function damage(a, d, move, field = makeFieldState()) { return calculatePowerDamage(a, d, MoveById[move], field); }

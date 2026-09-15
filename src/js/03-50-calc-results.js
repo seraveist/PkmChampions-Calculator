@@ -1,3 +1,9 @@
+import { AbilityById, STAT_LABEL, TYPE_KO, battleAbilityContext, effectiveWeather, escapeHTML, mvName } from './01-core.js';
+import { abilityRuleApplies } from './02-engine.js';
+import { calcFieldOptionLabel, isFixedPowerMove } from './03-10-calc-state.js';
+import { powerUiRefresh } from './03-33-calc-ui-events.js';
+import { formatRankValue } from './03-40-calc-entry-effects.js';
+
 /* Damage calculator execution and result rendering. */
 function runCalc() { powerUiRefresh(); }
 
@@ -24,9 +30,7 @@ function compareCalcMoveRecommendations(a, b) {
   return (a.slot || 0) - (b.slot || 0);
 }
 
-document.getElementById('calcMobileSummary')?.addEventListener('click', () => {
-  document.querySelector('#page-calc .calc-results-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-});
+
 
 function resultOffensiveStat(r) {
   return r?.move?.overrideOffensiveStat || (r?.category === 'Physical' ? 'atk' : 'spa');
@@ -263,3 +267,14 @@ function triggerCalc() {
 }
 
 // 접이식 패널
+
+let bind0350CalcResultsBound = false;
+function bind0350CalcResults() {
+  if (bind0350CalcResultsBound) return;
+  bind0350CalcResultsBound = true;
+  document.getElementById('calcMobileSummary')?.addEventListener('click', () => {
+    document.querySelector('#page-calc .calc-results-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+export { runCalc, calcMoveRecommendationRank, compareCalcMoveRecommendations, resultOffensiveStat, prettifyResultModLabel, resultModPriority, renderModsTrace, renderCalcAppliedConditions, calcAppliedPowerLabel, renderEntrySpeedNote, timingPowerConditionLabel, renderMoveCard, triggerCalc, bind0350CalcResultsBound, bind0350CalcResults };

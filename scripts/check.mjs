@@ -16,6 +16,9 @@ const targets = [
   path.join(ROOT, 'build.mjs'),
   ...filesIn('scripts', '.mjs'),
   ...filesIn(path.join('src', 'js'), '.js'),
+  ...filesIn(path.join('src', 'runtime'), '.js'),
+  ...filesIn(path.join('src', 'features'), '.js'),
+  path.join(ROOT, 'src/main.js'),
 ];
 
 let failed = false;

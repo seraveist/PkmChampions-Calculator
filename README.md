@@ -80,3 +80,7 @@ npm run ui:browser:pages -- --require-browser
 ## License
 
 저장소의 [LICENSE](LICENSE)를 따른다.
+
+## Module build and slot-level updates
+
+공개용은 `src/main.js`의 ES 모듈과 정규화 데이터에서 직접 빌드하며, 단일 HTML을 중간 산출물로 사용하지 않는다. 기능별 `import()` 지연 로딩과 오프라인 단일 HTML은 함께 유지한다. 계산기 결과는 슬롯별 입력 키로 재사용한다. [구조와 검증 방법](docs/module-build-optimization.md)을 참고한다.

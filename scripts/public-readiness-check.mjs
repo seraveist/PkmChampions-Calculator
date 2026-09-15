@@ -1,3 +1,5 @@
+import { parse } from 'acorn';
+import { buildGameData } from './build-game-data.mjs';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -54,7 +56,6 @@ function read(file) {
 }
 
 for (const [file, label] of [
-  [STANDALONE, 'standalone artifact'],
   [INDEX, 'public index'],
   [NOT_FOUND, '404 page'],
   [HEADERS, 'hosting headers'],
@@ -64,9 +65,9 @@ for (const [file, label] of [
   check(existsSync(file), `${label} exists`);
 }
 
-if (![STANDALONE, INDEX, NOT_FOUND, HEADERS, ROBOTS, MANIFEST].every(existsSync)) process.exit(1);
+if (![INDEX, NOT_FOUND, HEADERS, ROBOTS, MANIFEST].every(existsSync)) process.exit(1);
 
-const standalone = read(STANDALONE);
+const referenceData = buildGameData();
 const index = read(INDEX);
 const notFound = read(NOT_FOUND);
 const headers = read(HEADERS);
@@ -83,35 +84,31 @@ check(index.includes('<!DOCTYPE html>'), 'public index is a complete HTML docume
 check(index.includes('<meta charset="UTF-8">'), 'public index declares charset');
 check(index.includes('name="viewport"'), 'public index declares viewport');
 check(index.includes('<meta name="robots" content="index,follow">'), 'source index keeps the public robots metadata');
-check(index.length < standalone.length, 'public index is smaller than the standalone artifact');
+check(Buffer.byteLength(index)<32*1024,'public HTML shell stays below 32 KiB');
 check(!index.includes('<style'), 'public index has no inline style blocks');
 check(!/\sstyle=["']/.test(index), 'public index has no inline style attributes');
 check(!/\son[a-z]+=["']/.test(index), 'public index has no inline event handlers');
-check(!/__[A-Z0-9_]+__/.test(index), 'public index has no unresolved build placeholders');
+check(!/__(?!PURE__)[A-Z0-9_]+__/.test(index), 'public index has no unresolved build placeholders');
 check(notFound.includes('<!DOCTYPE html>') && notFound.includes('href="/"'), '404 page is a complete document with a home link');
 check(notFound.includes('<meta name="robots" content="noindex,follow">'), '404 page is excluded from search results');
 check(/<link rel="stylesheet" href="\/assets\/[a-z-]+\.[a-f0-9]{12}\.css">/.test(notFound), '404 page uses a root-relative hashed stylesheet');
 
 const stylesheetHrefs = [...index.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map((match) => match[1]);
-const scriptSrcs = [...index.matchAll(/<script\s+src="([^"]+)"\s*><\/script>/g)].map((match) => match[1]);
-const workerSourceMatch = index.match(/<script id="reverse-worker-source" type="application\/json" data-worker-src="([^"]+)"><\/script>/);
-const workerSource = workerSourceMatch?.[1] || '';
-const featureSourceMatch = index.match(/<script id="page-feature-assets" type="application\/json"([^>]*)><\/script>/);
-const featureSources = Object.fromEntries(
-  [...(featureSourceMatch?.[1] || '').matchAll(/data-(dex|matchup|finetune|revcalc)-src="([^"]+)"/g)]
-    .map(match => [match[1], match[2]]),
-);
+const scriptSrcs = [...index.matchAll(/<script[^>]*\ssrc="([^"]+)"[^>]*><\/script>/g)].map(match=>match[1]);
+const workerSourceMatch=index.match(/<script id="reverse-worker-source" type="application\/json" data-worker-src="([^"]+)"><\/script>/);
+const workerSource=workerSourceMatch?.[1] || '';
+const featureSources=Object.fromEntries(['Dex','Matchup','Finetune','Revcalc'].map(name=>[name.toLowerCase(),manifest?.assets?.['feature'+name]?.path]).filter(([,path])=>path));
 const executableInlineScripts = [...index.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)]
   .filter((match) => !/type="application\/json"/.test(match[1]) && !/\ssrc=/.test(match[1]) && match[2].trim());
 
 check(stylesheetHrefs.length === 1, 'public index loads one external stylesheet');
-check(scriptSrcs.length === 3, 'public index loads theme, data, and app scripts externally');
+check(scriptSrcs.length === 2 && /<script type="module" src=/.test(index), 'public index loads a theme bootstrap and an ES module entry');
 check(Boolean(workerSource), 'public index references a lazy reverse-analysis worker');
-check(Object.keys(featureSources).sort().join(',') === 'dex,finetune,matchup,revcalc', 'public index references all lazy page features');
+check(Object.keys(featureSources).sort().join(',') === 'dex,finetune,matchup,revcalc', 'module manifest records all lazy page features');
 check(executableInlineScripts.length === 0, 'public index has no executable inline scripts');
 
-const referencedAssets = [...stylesheetHrefs, ...scriptSrcs, workerSource, ...Object.values(featureSources)].filter(Boolean);
-check(referencedAssets.every((source) => /^\.\/assets\/[a-z-]+\.[a-f0-9]{12}\.(?:css|js)$/.test(source)), 'public assets use content-hashed filenames');
+const referencedAssets = [...new Set([...stylesheetHrefs,...scriptSrcs,workerSource,...Object.values(manifest?.assets || {}).map(entry=>entry.path)])].filter(Boolean);
+check(referencedAssets.every((source) => /^\.\/assets\/[a-z-]+\.(?:[a-f0-9]{12}|[A-Z0-9]{8})\.(?:css|js)$/.test(source)), 'public assets use content-hashed filenames');
 for (const source of referencedAssets) {
   const assetPath = path.join(DIST, source.replace(/^\.\//, ''));
   check(existsSync(assetPath) && statSync(assetPath).size > 0, `${source} exists and is non-empty`);
@@ -149,24 +146,22 @@ if (manifest) {
   check(manifest.sizeBytes === statSync(INDEX).size, 'deploy manifest records the current index size');
   try {
     const dataSource = read(path.join(DIST, 'assets', manifest.assets.data.file));
+    parse(dataSource,{ecmaVersion:'latest',sourceType:'module'});
     // No document is provided: loading public data must not depend on a DOM.
-    const data = vm.runInNewContext(`${dataSource}\nJSON.stringify(PKM_DATA);`, {}, { timeout: 5000 });
+    const data = vm.runInNewContext(`${dataSource.replace(/^export \{.*?\};?$/gm,'')}\nJSON.stringify(PKM_DATA);`, {}, { timeout: 5000 });
     const payload = JSON.parse(data);
     for (const id of DATA_IDS) {
-      const raw = standalone.match(new RegExp(`<script id="${id}" type="application/json">([\\s\\S]*?)<\\/script>`))?.[1];
-      check(raw !== undefined && JSON.stringify(payload[id.slice(5)]) === JSON.stringify(JSON.parse(raw)), `${id} matches standalone data without DOM bootstrap`);
+      check(JSON.stringify(payload[id.slice(5)]) === JSON.stringify(referenceData[id.slice(5)]), `${id} matches the normalized source data without an HTML intermediate`);
     }
   } catch (error) {
     check(false, `public data object is valid (${error.message})`);
   }
-  check(
-    Object.keys(manifest.assets || {}).sort().join(',')
-      === 'app,data,featureDex,featureFinetune,featureMatchup,featureRevcalc,style,theme,worker',
-    'deploy manifest records all asset roles',
-  );
+  check(manifest.architecture === 'esm-direct' && manifest.source === 'src/calc-template.html','public build uses the source template directly');
+  check(Object.keys(ASSET_BUDGETS).every(role=>manifest.assets?.[role]),'deploy manifest records all required asset roles');
   let totalGzipBytes = 0;
-  for (const [role, budget] of Object.entries(ASSET_BUDGETS)) {
-    const entry = manifest.assets?.[role];
+  for (const [role, entry] of Object.entries(manifest.assets || {})) {
+    const budget=ASSET_BUDGETS[role] || (role.startsWith('shared') ? ASSET_BUDGETS.app : null);
+    if(!budget){check(false,`unknown asset role: ${role}`);continue;}
     if (!entry) continue;
     const assetPath = path.join(DIST, 'assets', entry.file);
     check(entry.sizeBytes === statSync(assetPath).size, `${role} manifest size matches the emitted asset`);
@@ -179,3 +174,26 @@ if (manifest) {
 }
 
 if (failed) process.exit(1);
+
+// Verify native ESM edges from the emitted files, not just declared entry tags.
+function inspect(node,visit) {
+  if(!node || typeof node !== 'object') return;
+  visit(node);
+  for(const value of Object.values(node)) {
+    if(Array.isArray(value)) value.forEach(child=>inspect(child,visit));
+    else if(value && typeof value==='object') inspect(value,visit);
+  }
+}
+for(const entry of Object.values(manifest?.assets || {})) {
+  if(!entry.file.endsWith('.js'))continue;
+  const file=path.join(DIST,'assets',entry.file),source=read(file);
+  check(!source.includes('__PKM_TEST_REGISTER__'),'production '+entry.file+' omits the test bridge');
+  const ast=parse(source,{ecmaVersion:'latest',sourceType:'module'});
+  inspect(ast,node=>{
+    const sourceNode = node.type==='ImportDeclaration' || node.type==='ExportNamedDeclaration' || node.type==='ImportExpression' ? node.source : null;
+    if(!sourceNode)return;
+    const specifier=sourceNode.value;
+    check(typeof specifier==='string' && specifier.startsWith('./') && existsSync(path.resolve(path.dirname(file),specifier)), `${entry.file} resolves module ${specifier}`);
+  });
+}
+if(failed)process.exit(1);

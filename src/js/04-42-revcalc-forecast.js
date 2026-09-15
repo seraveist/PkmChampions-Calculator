@@ -1,3 +1,10 @@
+import { AbilityById, MoveById, PokemonById, calcMaxHp } from './01-core.js';
+import { calculateDamage, damageBlockApplies, makePowerAttackModel, resolvePowerMoveUse } from './02-engine.js';
+import { rcAnalysisField, rcForecastKey, rcKnownOpponentItem, rcKnownOpponentMoves, rcNextMyRanks, rcNextOpponentRanks, rcRenderMoveCombobox, rcVisibleMoveSet, revCalcState } from './04-40-revcalc-state.js';
+import { rcDamageBounds, rcMoveDefenseStat, rcMoveOffenseStat } from './04-41-revcalc-scoring.js';
+import { rcBuildOpponentState } from './04-42-revcalc-candidates.js';
+import { rcAdvanceAttack, rcBattleOrder, rcDamageCacheKey, rcEndOfExchange, rcHitOutcomes, rcHp, rcMoveForObservation } from './04-42-revcalc-exchange.js';
+
 /* Forecasts retain exact members instead of crossing grouped EV ranges. */
 function rcHpPriority(c) {
   if (!c.defStat) return 0;
@@ -199,3 +206,5 @@ function rcNextStateSummary(c) {
   }
   return summary;
 }
+
+export { rcHpPriority, rcCompareHpFirst, rcNextObservedState, rcMemberList, rcCardHitOutcomes, rcForecastStartState, rcForecastSpeedValues, rcForecastHit, rcForecastDirect, rcRenderExchangeSummary, rcComputeExchangeForecast, rcNextStateSummary };

@@ -1,3 +1,11 @@
+import { RotomUI } from './01-10-rotom-ui.js';
+import { AbilityById, ItemById, MoveById, PokemonById, abName, escapeHTML, getStabMod, mvName } from './01-core.js';
+import { calculatePowerDamage, displayName, formatCalcMultiplier, hkoLabel, powerMoveField } from './02-engine.js';
+import { calcMoveConditionIssue, calcMoveWithConditions, isFixedPowerMove, state } from './03-10-calc-state.js';
+import { renderToolTypePills } from './03-11-calc-shared-render.js';
+import { estimateMovePower } from './03-20-calc-combobox.js';
+import { makeCalcState } from './03-40-calc-entry-effects.js';
+
 /* Approved calculator composition, using the shared UI and production damage engine. */
 const powerUiStats=['hp','atk','def','spa','spd','spe'];
 const powerUiCategoryNames={Physical:'물리',Special:'특수',Status:'변화'};
@@ -66,7 +74,7 @@ function powerUiMovePresentation(slot, calc, calculated = powerUiCalculateSlot(s
   const {base,move,result,ko,issue,movePower} = calculated;
   const powerMarkup = `<div class="move-power"><span class="move-power-label">결정력</span><strong class="move-power-value">${typeof movePower.eff === 'number' ? movePower.eff.toLocaleString('ko-KR') : '—'}</strong></div>`;
   const pickerContent = `<span class="move-name picker-label">${powerUiEscape(base ? mvName(base) : '기술 선택')}</span>${base ? `<span class="move-meta">${powerUiType(result?.moveType || move?.type || base.type)}<span>${powerUiCategoryNames[base.cat]}</span><span>${result?.bp ? `위력 ${result.bp}` : base.cat === 'Status' ? '' : base.bp ? `위력 ${base.bp}` : '조건부'}</span></span>` : ''}`;
-  const moveButton = `<div class="combobox result-move-picker">${RotomUI.trigger(pickerContent,{'data-cb-type':'move','data-side':'atk','data-field':`moves.${slot}`,value:base ? mvName(base) : '',title:base ? mvName(base) : '기술 선택','aria-label':`기술 ${slot+1}: ${base ? mvName(base) : '선택'}`,disabled:!PokemonById[state.atk.pokemonIdx]},'cb-input cb-trigger move-select')}<div class="combobox-options" role="listbox"></div></div>`;
+
   let damage = `<span class="empty-damage">${base?.cat === 'Status' ? '변화기' : issue ? '조건 입력 필요' : '—'}</span>`;
   const notes = [];
   const addNote = (text, effect = false) => {
@@ -93,7 +101,7 @@ function powerUiMovePresentation(slot, calc, calculated = powerUiCalculateSlot(s
   } else if (issue) addNote(issue);
   const koMarkup = ko ? `<strong>${powerUiEscape([ko.label,ko.turns].filter(Boolean).join(' '))}</strong>${ko.pct ? ` <span class="ko-probability">${powerUiEscape(ko.pct)} 확률</span>` : ''}` : '';
   return {
-    powerMarkup, moveButton, pickerContent, damage, koMarkup,
+    powerMarkup,  pickerContent, damage, koMarkup,
     koRandom: ko?.label === '난수', notes: [...new Set(notes)].join(''),
     moveName: base ? mvName(base) : '',
     pickerDisabled: !PokemonById[state.atk.pokemonIdx],
@@ -102,5 +110,19 @@ function powerUiMovePresentation(slot, calc, calculated = powerUiCalculateSlot(s
 }
 
 function powerUiMoveMarkup(slot, calc, view = powerUiMovePresentation(slot, calc)) {
-  return `<article class="move-row" data-move-row="${slot}"><span class="move-number" aria-hidden="true">0${slot+1}</span>${view.moveButton}<div class="move-comparison">${view.powerMarkup}<div class="damage-summary">${view.damage}</div></div><div class="ko${view.koRandom ? ' ko--random' : ''}">${view.koMarkup}</div><button type="button" class="ui-button icon-button move-settings-button" data-move-settings="${slot}" aria-haspopup="dialog" aria-controls="calc-move-settings" aria-label="기술 ${slot+1} 조건 설정" ${view.settingsDisabled ? 'disabled' : ''}>${RotomUI.icon('settings')}</button><div class="move-notes">${view.notes}</div></article>`;
+  // Structural controls are only constructed for a new row, never for a refresh.
+  const moveButton = powerUiMovePickerMarkup(slot,view);
+  return `<article class="move-row" data-move-row="${slot}"><span class="move-number" aria-hidden="true">0${slot+1}</span>${moveButton}<div class="move-comparison">${view.powerMarkup}<div class="damage-summary">${view.damage}</div></div><div class="ko${view.koRandom ? ' ko--random' : ''}">${view.koMarkup}</div><button type="button" class="ui-button icon-button move-settings-button" data-move-settings="${slot}" aria-haspopup="dialog" aria-controls="calc-move-settings" aria-label="기술 ${slot+1} 조건 설정" ${view.settingsDisabled ? 'disabled' : ''}>${RotomUI.icon('settings')}</button><div class="move-notes">${view.notes}</div></article>`;
 }
+
+function powerUiMovePickerMarkup(slot, view) {
+  return `<div class="combobox result-move-picker">${RotomUI.trigger(view.pickerContent,{'data-cb-type':'move','data-side':'atk','data-field':`moves.${slot}`,value:view.moveName,title:view.moveName || '기술 선택','aria-label':`기술 ${slot+1}: ${view.moveName || '선택'}`,disabled:view.pickerDisabled},'cb-input cb-trigger move-select')}<div class="combobox-options" role="listbox"></div></div>`;
+}
+
+// Assignment stays in the module that owns the live binding.
+function setPowerUiStatusTimer(value) { powerUiStatusTimer = value; return value; }
+
+// Assignment stays in the module that owns the live binding.
+function setPowerUiMoveSlot(value) { powerUiMoveSlot = value; return value; }
+
+export { powerUiStats, powerUiCategoryNames, powerUiEscape, powerUiType, powerUiMoveSlot, powerUiStatusTimer, powerUiEffectNames, powerUiNamedEffects, powerUiCalculateSlot, powerUiResultNote, powerUiMovePresentation, powerUiMoveMarkup, powerUiMovePickerMarkup, setPowerUiStatusTimer, setPowerUiMoveSlot };

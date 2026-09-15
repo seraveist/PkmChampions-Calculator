@@ -1,3 +1,5 @@
+import { NATURE_BY_ID, PokemonById, calcStats, escapeHTML, renderTrustedHTML } from './01-core.js';
+
 /* Shared UI markup. Callers supply content and state; visual variants live in CSS. */
 const RotomUI = (() => {
   const escape = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -59,3 +61,5 @@ function uiStatTable(side, { evAttr, evAttrs = {}, rankAttr, magic = null, base 
     ${magic ? row('매직', key => magic(key)) : ''}
   </tbody></table>`;
 }
+
+export { RotomUI, mountRotomIcons, uiSetPickerLabel, uiStatTable };

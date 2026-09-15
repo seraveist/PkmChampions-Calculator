@@ -1,3 +1,7 @@
+import { loadPageFeature, pageFeatureNeedsLoad } from '../runtime/features.js';
+import { NATURE_BY_ID, STATS, escapeHTML } from './01-core.js';
+import { ensureMainPageInitialized } from './05-init.js';
+
 /* Shared HTML structure helpers.
  * Keep these helpers presentation-neutral: they describe hierarchy and state,
  * while existing CSS owns the visual treatment.
@@ -401,30 +405,7 @@ function setMainPageLoadState(tab, state = '', message = '') {
 }
 
 function ensureMainPageFeatureLoaded(pageKey) {
-  const sourceHolder = document.getElementById('page-feature-assets');
-  const source = sourceHolder?.getAttribute(`data-${pageKey}-src`) || '';
-  if (!source) return Promise.resolve();
-  if (mainPageFeatureLoads.has(pageKey)) return mainPageFeatureLoads.get(pageKey);
-
-  let script = null;
-  const load = new Promise((resolve, reject) => {
-    script = document.createElement('script');
-    script.src = source;
-    script.async = false;
-    script.dataset.pageFeature = pageKey;
-    script.addEventListener('load', () => {
-      script.dataset.pageFeatureLoaded = 'true';
-      resolve();
-    }, { once: true });
-    script.addEventListener('error', () => reject(new Error(`Failed to load page feature: ${pageKey}`)), { once: true });
-    document.head.appendChild(script);
-  }).catch(error => {
-    script?.remove();
-    mainPageFeatureLoads.delete(pageKey);
-    throw error;
-  });
-  mainPageFeatureLoads.set(pageKey, load);
-  return load;
+  return loadPageFeature(pageKey);
 }
 
 async function activateMainPage(pageKey, options = {}) {
@@ -433,10 +414,7 @@ async function activateMainPage(pageKey, options = {}) {
   if (!tab || !activePage) return false;
 
   const requestId = ++mainPageLoadRequestId;
-  const sourceHolder = document.getElementById('page-feature-assets');
-  const hasFeatureSource = !!sourceHolder?.getAttribute(`data-${pageKey}-src`);
-  const hasLoadedFeature = !!document.querySelector(`script[data-page-feature="${pageKey}"][data-page-feature-loaded="true"]`);
-  const requiresLoad = hasFeatureSource && !hasLoadedFeature;
+  const requiresLoad = pageFeatureNeedsLoad(pageKey);
   const pageLabel = tab.textContent.trim();
 
   setMainPageLoadState(tab);
@@ -492,3 +470,5 @@ function bindMainNavigation() {
 
   window.addEventListener('hashchange', () => { void activateMainPageFromHash(); });
 }
+
+export { htmlAttrValue, htmlAttrs, uiButton, uiClassNames, uiMergeClass, TOOL_STAT_COLUMN_LABELS, toolStatColumnClass, renderToolStatHead, renderToolStatNatureMark, renderToolStatPointControl, renderToolStatRankControl, toolStatClampPointValue, toolStatPointInputDigits, toolStatNormalizePointInputValue, toolStatShouldCommitPointInput, toolStatApplyPointValue, toolStatApplyRankDelta, renderToolStatMagicCell, renderToolStatRow, renderToolStatRows, renderToolStatBulkStrip, TOOL_MOVE_COLUMNS, TOOL_MOVE_COLUMN_LABELS, toolMoveColumnClass, toolMoveColumnCell, renderToolMoveHead, renderToolMoveRow, renderToolMoveList, syncUiTabs, syncUiPanels, bindUiTabKeyboard, mainPageFeatureLoads, mainPageLoadRequestId, setMainPageLoadState, ensureMainPageFeatureLoaded, activateMainPage, activateMainPageFromHash, bindMainNavigation };

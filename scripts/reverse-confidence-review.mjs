@@ -1,10 +1,11 @@
+import { readSourceFileSync as readFileSync } from './source-utils.mjs';
 // Read-only synthetic confidence review of the current inference module.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const html = fs.readFileSync(path.join(root, 'pokemon-champions-calculator-v3.html'), 'utf8');
+const html = readFileSync(path.join(root, 'pokemon-champions-calculator-v3.html'), 'utf8');
 const data = Object.fromEntries([...html.matchAll(/<script id="(data-[^"]+)" type="application\/json">([\s\S]*?)<\/script>/g)].map(m => [m[1], m[2]]));
 const elements = new Map();
 function element(id = '') {
@@ -17,7 +18,7 @@ const document = { getElementById(id) { if (!elements.has(id)) elements.set(id, 
   querySelectorAll() { return []; }, querySelector() { return null; }, createElement() { return element(); }, addEventListener() {} };
 const context = { console, setTimeout, clearTimeout, document, window: { innerWidth: 1280, addEventListener() {} }, requestAnimationFrame(fn) { fn(); } };
 const dir = path.join(root, 'src/js');
-const source=fs.readdirSync(dir).filter(n=>n.endsWith('.js')&&!n.startsWith('05')&&!n.includes('theme')).sort().map(n=>fs.readFileSync(path.join(dir,n),'utf8')).join('\n');
+const source=fs.readdirSync(dir).filter(n=>n.endsWith('.js')&&!n.startsWith('05')&&!n.includes('theme')).sort().map(n=>readFileSync(path.join(dir,n),'utf8')).join('\n');
 const api=new Function(...Object.keys(context), source+'\nreturn {PokemonById,MoveById,ItemById,revCalcState,makeSideState,rcHp,rcSetHp,rcBuildOpponentState,rcAnalyze,rcComputeExchangeForecast,rcExchangePaths,rcBattleOrder,rcForecastHit,rcAnalysisField,rcGroupCandidates,rcDefaultItemCandidatesForOpponent,rcMoveDefenseStat,rcMoveOffenseStat,calcStats,rcRoleCompletionInfo};')(...Object.values(context));
 const initial=JSON.stringify(api.revCalcState);
 

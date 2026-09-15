@@ -1,3 +1,8 @@
+import { uiClassNames } from './01-20-html-structure.js';
+import { AbilityById, ItemById, MoveById, NATURE_BY_ID, PokemonById, STAT_LABEL, TYPE_KO, abName, escapeHTML, itName, mvName, pkName, pokemonSpriteSlot } from './01-core.js';
+import { CALC_FIELD_OPTION_SETS, calcAbilityDisplayLabel, calcFieldOptionLabel, calcMoveCategoryLabel, calcNatureLabel, calcPokemonFormLabel, calcPokemonOptionMetaLabel, calcStatusDisplayLabel, manualTypeForSlot, sideTypeId, state } from './03-10-calc-state.js';
+import { renderToolTypePills } from './03-11-calc-shared-render.js';
+
 /* Calculator combobox option labels, rows, and tooltips. */
 function calcComboboxOptionLabel(type, option) {
   if (option?.label) return option.label;
@@ -164,3 +169,5 @@ function calcComboboxDisplayLabel(input) {
   if (type === 'status') return calcStatusDisplayLabel(id);
   return id || '';
 }
+
+export { calcComboboxOptionLabel, calcComboboxOptionSub, calcComboboxAttr, calcPokemonOptionHeaderHtml, calcMoveOptionHeaderHtml, calcNatureOptionHeaderHtml, calcComboboxHeaderHtml, calcRenderPokemonOption, calcRenderSimplePokemonOption, calcRenderSimpleMoveOption, calcRenderMoveOption, calcRenderAbilityOption, calcRenderItemOption, calcRenderDescriptionOption, calcRenderNatureOption, calcRenderStatusOption, calcRenderGenericOption, calcRenderComboboxOption, calcComboboxExtraOptions, calcComboboxCurrentId, calcComboboxDisplayLabel };

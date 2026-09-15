@@ -1,10 +1,11 @@
+import { readSourceFileSync as readFileSync } from './source-utils.mjs';
 // Regression checks using the generated Champions data and actual menu functions.
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const html = fs.readFileSync(path.join(root, 'pokemon-champions-calculator-v3.html'), 'utf8');
+const html = readFileSync(path.join(root, 'pokemon-champions-calculator-v3.html'), 'utf8');
 const embedded = Object.fromEntries([...html.matchAll(/<script id="(data-[^"]+)" type="application\/json">([\s\S]*?)<\/script>/g)].map(m => [m[1], m[2]]));
 const elements = new Map();
 function element(id = '') {
@@ -18,7 +19,7 @@ function element(id = '') {
 }
 const document = { getElementById: element, querySelectorAll() { return []; }, querySelector() { return null; }, addEventListener() {}, createElement: element };
 const dir = path.join(root, 'src/js');
-const source = fs.readdirSync(dir).filter(n => n.endsWith('.js') && !n.startsWith('05') && !n.includes('theme')).sort().map(n => fs.readFileSync(path.join(dir, n), 'utf8')).join('\n');
+const source = fs.readdirSync(dir).filter(n => n.endsWith('.js') && !n.startsWith('05') && !n.includes('theme')).sort().map(n => readFileSync(path.join(dir, n), 'utf8')).join('\n');
 const api = new Function('document', 'window', `${source}\n
   return { PokemonById, MoveById, matchupSlots, matchupAbilities, matchupCoverageMoves, matchupCoverageField,
     matchupSetSlotPokemon, matchupDefenseEffect, defenseTypeProfile, coverageMoveType, coverageCountByType,

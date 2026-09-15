@@ -1,3 +1,11 @@
+import { AbilityById, GAME_DATA, ItemById, MoveById, PokemonById, calcStats, toId } from './01-core.js';
+import { calculateDamage } from './02-engine.js';
+import { cloneCalcValue } from './03-10-calc-state.js';
+import { RC_NATURE_IDS, rcActiveFieldSummary, rcActiveItemCandidates, rcAnalysisField, rcCurrentHpValue, rcForecastKey, rcKnownOpponentItem, rcMatchingRemainingHp, rcMatchingRemainingPct, rcMySpeedValue, rcObservedField, rcOpponentAbilityCandidates, rcSpeedCandidateInfo, revCalcState } from './04-40-revcalc-state.js';
+import { rcApplyNatureInvestmentPreset, rcCandidateKnownPointSum, rcGroupCandidates, rcMoveDefenseStat, rcMoveOffenseStat, rcNatureCandidatesForMove } from './04-41-revcalc-scoring.js';
+import { rcAnalyzeExchange } from './04-42-revcalc-exchange.js';
+import { rcComputeExchangeForecast } from './04-42-revcalc-forecast.js';
+
 /* Reverse calculator candidate generation and analysis orchestration. */
 function rcRelevantOffenseItems(move) {
   const known = rcKnownOpponentItem();
@@ -568,3 +576,5 @@ function rcAnalyzeIndependent() {
 }
 
 // === UI 렌더링 ===
+
+export { rcRelevantOffenseItems, RC_ANALYSIS_CACHE_LIMIT, rcAnalysisCache, rcAnalysisWorker, rcAnalysisWorkerUrl, rcAnalysisWorkerPending, rcAnalysisRequestId, rcAnalysisCacheKey, rcReadAnalysisCache, rcWriteAnalysisCache, rcAnalyzeCached, rcAnalysisWorkerData, rcTerminateAnalysisWorker, rcCreateAnalysisWorker, rcAnalysisSnapshot, rcAnalyzeInWorker, rcAnalyzeCachedAsync, rcCancelAnalysis, rcBuildOpponentState, rcDefenseItemGroups, rcBuildDefenseMatches, rcBuildOffenseMatches, rcCombineReverseCandidates, rcNatureMapFromCandidates, rcStage1Defense, rcStage3OffenseRefine, rcAnalyze, rcAnalyzeIndependent };

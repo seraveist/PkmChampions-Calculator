@@ -1,3 +1,12 @@
+import { featureApis } from '../runtime/features.js';
+import { ABILITIES, AbilityById, ITEMS, ItemById, MOVES, MoveById, NATURES, NATURE_BY_ID, POKEMON, PokemonById, STATS, toId } from './01-core.js';
+import { applyPokemonToCalcSide, defaultPokemonAbilityId, defaultPokemonItemId, defaultPokemonTypes, makeSideState, setSideDamageBlockActive, state } from './03-10-calc-state.js';
+import { renderSide } from './03-30-calc-side-render.js';
+import { applyEntryFieldsFromSide, syncFieldControls } from './03-40-calc-entry-effects.js';
+import { triggerCalc } from './03-50-calc-results.js';
+import { PARTY_PRESET_MAX_MEMBERS, PARTY_PRESET_SHOWDOWN_STAT_ALIAS, PARTY_PRESET_SHOWDOWN_STAT_LABEL, blankPartyPresetMember, normalizePartyPresetData, normalizePartyPresetMember, partyPresetData, partyPresetMemberClone, savePartyPresetData, setPartyPresetData, setPartyPresetStatus } from './04-00-party-presets-state.js';
+import { renderPartyPresetModal } from './04-03-party-presets-ui.js';
+
 /* Party presets: tool integration and Showdown format. */
 function partyPresetMemberMoves(member) {
   return Array.from({ length: 4 }, (_, index) => {
@@ -52,21 +61,21 @@ function partyPresetApplyMemberToCalc(sideKey, member) {
 
 function partyPresetApplyMemberToFineTune(member) {
   if (!member?.pokemon || !PokemonById[member.pokemon]) return false;
-  fineTuneState.my = makeSideState();
-  ftApplyPokemonToFineTune(member.pokemon);
-  partyPresetApplyMemberToSideState(fineTuneState.my, member);
-  renderFineTuneAll();
+  featureApis.finetune.fineTuneState.my = makeSideState();
+  featureApis.finetune.ftApplyPokemonToFineTune(member.pokemon);
+  partyPresetApplyMemberToSideState(featureApis.finetune.fineTuneState.my, member);
+  featureApis.finetune.renderFineTuneAll();
   return true;
 }
 
 function partyPresetApplyMemberToRevCalc(member) {
   if (!member?.pokemon || !PokemonById[member.pokemon]) return false;
-  rcApplyMyPokemonSelection(member.pokemon);
-  partyPresetApplyMemberToSideState(revCalcState.my, member);
-  revCalcState.myMoveSet = partyPresetMemberMoves(member);
-  revCalcState.myMove = revCalcState.myMoveSet.includes(revCalcState.myMove) ? revCalcState.myMove : '';
-  revCalcState.myMoveBp = '';
-  renderRevCalcAll();
+  featureApis.revcalc.rcApplyMyPokemonSelection(member.pokemon);
+  partyPresetApplyMemberToSideState(featureApis.revcalc.revCalcState.my, member);
+  featureApis.revcalc.revCalcState.myMoveSet = partyPresetMemberMoves(member);
+  featureApis.revcalc.revCalcState.myMove = featureApis.revcalc.revCalcState.myMoveSet.includes(featureApis.revcalc.revCalcState.myMove) ? featureApis.revcalc.revCalcState.myMove : '';
+  featureApis.revcalc.revCalcState.myMoveBp = '';
+  featureApis.revcalc.renderRevCalcAll();
   return true;
 }
 
@@ -75,17 +84,17 @@ function partyPresetApplyPartyToMatchup(partyIndex) {
   if (!party) return false;
   Array.from({ length: PARTY_PRESET_MAX_MEMBERS }).forEach((_, slotIndex) => {
     const member = partyPresetMemberClone(party.members?.[slotIndex]);
-    matchupSetSlotPokemon(slotIndex, member.pokemon, {
+    featureApis.matchup.matchupSetSlotPokemon(slotIndex, member.pokemon, {
       abilityId: member.ability,
       itemId: member.item,
     });
-    matchupCoverageMoves[slotIndex] = matchupSlots[slotIndex]
+    featureApis.matchup.matchupCoverageMoves[slotIndex] = featureApis.matchup.matchupSlots[slotIndex]
       ? partyPresetAttackingMoves(member)
       : [null, null, null, null];
   });
-  renderMatchupSlots();
-  renderMatchupCoverageInputs();
-  renderMatchupTable();
+  featureApis.matchup.renderMatchupSlots();
+  featureApis.matchup.renderMatchupCoverageInputs();
+  featureApis.matchup.renderMatchupTable();
   return true;
 }
 
@@ -256,9 +265,11 @@ function importPartyPresetShowdownText(partyIndex, text) {
   party.members = Array.from({ length: PARTY_PRESET_MAX_MEMBERS }, (_, index) => (
     members[index] || blankPartyPresetMember()
   ));
-  partyPresetData = normalizePartyPresetData(partyPresetData);
+  setPartyPresetData(normalizePartyPresetData(partyPresetData));
   savePartyPresetData();
   renderPartyPresetModal();
   setPartyPresetStatus(`파티 ${partyIndex + 1} Showdown 텍스트 가져오기 완료`, 'success');
   return true;
 }
+
+export { partyPresetMemberMoves, partyPresetAttackingMoves, partyPresetApplyMemberToSideState, partyPresetApplyMemberToCalc, partyPresetApplyMemberToFineTune, partyPresetApplyMemberToRevCalc, partyPresetApplyPartyToMatchup, partyPresetApplyPickerMember, partyPresetDefaultAbility, partyPresetDefaultItem, partyPresetLookupByText, partyPresetPokemonFromShowdownName, partyPresetNatureFromText, partyPresetParseShowdownEvs, partyPresetParseShowdownSet, partyPresetParseShowdownParty, partyPresetNatureShowdownName, partyPresetExportShowdownSet, partyPresetExportShowdownParty, importPartyPresetShowdownText };
