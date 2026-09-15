@@ -27,11 +27,22 @@ jobs:
           subprocess.run(['bash', '-e', '-o', 'pipefail', str(script)], check=True)
           PY
       - run: npm ci
-      - name: Archive source and locked build dependencies
+      - name: Collect pointer diagnostics without changing application behavior
         run: |
-          tar -czf "$RUNNER_TEMP/module-debug-source.tar.gz" src data scripts docs build.mjs package.json package-lock.json README.md LICENSE node_modules .github/workflows/module-refactor-validation.yml
+          python3 .module-transfer/debug-browser.py
+          mkdir -p artifacts/choice-debug
+          for mode in offline pages public; do
+            args=()
+            if [ "$mode" != offline ]; then args+=(--public); fi
+            if [ "$mode" = pages ]; then args+=(--ad-free); fi
+            status=0
+            UI_SMOKE_SCREENSHOT_DIR="artifacts/choice-debug/$mode" node scripts/_debug-choice.mjs "${args[@]}" --require-browser --disable-browser-sandbox > "artifacts/choice-debug/$mode.log" 2>&1 || status=$?
+            echo "$mode diagnostic exit=$status"
+            tail -12 "artifacts/choice-debug/$mode.log"
+          done
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: module-debug-source
-          path: ${{ runner.temp }}/module-debug-source.tar.gz
+          name: choice-debug
+          path: artifacts/choice-debug
           retention-days: 1
