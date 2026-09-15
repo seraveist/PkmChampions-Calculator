@@ -34,6 +34,18 @@ jobs:
       - name: Verify generated artifacts are committed
         run: git diff --exit-code -- pokemon-champions-calculator-v3.html docs/damage-calculator-coverage-matrix.md
 
+      - name: Verify uninstrumented module and offline output
+        run: |
+          node scripts/modules-browser.mjs --public --disable-browser-sandbox
+          node scripts/modules-browser.mjs --disable-browser-sandbox
+
+      - name: Verify slot-level calculation and retained controls
+        run: |
+          node scripts/calculator-remodel-browser.mjs --public --ad-free --require-browser --disable-browser-sandbox
+          node scripts/calculator-remodel-browser.mjs --require-browser --disable-browser-sandbox
+        env:
+          UI_SMOKE_SCREENSHOT_DIR: artifacts/ui-smoke/calculator
+
       - name: Run standalone browser smoke
         run: npm run ui:browser -- --require-browser --disable-browser-sandbox
         env:
