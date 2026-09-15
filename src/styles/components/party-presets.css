@@ -44,6 +44,9 @@
 .party-preset-text-card { display:grid;grid-template-rows:auto minmax(0,1fr) auto;max-height:calc(100dvh - 60px); }
 .party-preset-textarea { width:calc(100% - 40px);margin:0 20px;min-height:min(320px,45dvh);resize:vertical;font-size:var(--text-compact);line-height:1.6; }
 .party-preset-text-actions { display:flex;justify-content:flex-end;gap:8px;padding:16px 20px; }
+.party-preset-storage-warning { margin:0 20px 12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:var(--canvas);font-size:var(--text-label);line-height:1.6; }
+.party-preset-confirm { --dialog-width:min(480px,calc(100% - 32px)); }
+.party-preset-confirm-message { padding:0 20px;line-height:1.7;overflow-wrap:anywhere; }
 body.party-preset-open { overflow:hidden; }
 @media(max-width:900px) { .party-preset-slot-grid { grid-template-columns:1fr; } }
 @media(max-width:700px) {

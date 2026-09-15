@@ -4,7 +4,7 @@ import { applyPokemonToCalcSide, defaultPokemonAbilityId, defaultPokemonItemId, 
 import { renderSide } from './03-30-calc-side-render.js';
 import { applyEntryFieldsFromSide, syncFieldControls } from './03-40-calc-entry-effects.js';
 import { triggerCalc } from './03-50-calc-results.js';
-import { PARTY_PRESET_MAX_MEMBERS, PARTY_PRESET_SHOWDOWN_STAT_ALIAS, PARTY_PRESET_SHOWDOWN_STAT_LABEL, blankPartyPresetMember, normalizePartyPresetData, normalizePartyPresetMember, partyPresetData, partyPresetMemberClone, savePartyPresetData, setPartyPresetData, setPartyPresetStatus } from './04-00-party-presets-state.js';
+import { PARTY_PRESET_MAX_MEMBERS, PARTY_PRESET_SHOWDOWN_STAT_ALIAS, PARTY_PRESET_SHOWDOWN_STAT_LABEL, blankPartyPresetMember, normalizePartyPresetData, normalizePartyPresetMember, partyPresetData, partyPresetMemberClone, runPartyPresetImport, savePartyPresetData, setPartyPresetData, setPartyPresetStatus } from './04-00-party-presets-state.js';
 import { renderPartyPresetModal } from './04-03-party-presets-ui.js';
 
 /* Party presets: tool integration and Showdown format. */
@@ -254,22 +254,17 @@ function partyPresetExportShowdownParty(partyIndex) {
     .join('\n\n');
 }
 
-function importPartyPresetShowdownText(partyIndex, text) {
-  const members = partyPresetParseShowdownParty(text);
-  if (!members.length) {
-    setPartyPresetStatus('Showdown 텍스트에서 포켓몬을 찾지 못했습니다', 'error');
-    return false;
-  }
-  const party = partyPresetData.parties?.[partyIndex];
-  if (!party) return false;
-  party.members = Array.from({ length: PARTY_PRESET_MAX_MEMBERS }, (_, index) => (
-    members[index] || blankPartyPresetMember()
-  ));
-  setPartyPresetData(normalizePartyPresetData(partyPresetData));
-  savePartyPresetData();
-  renderPartyPresetModal();
-  setPartyPresetStatus(`파티 ${partyIndex + 1} Showdown 텍스트 가져오기 완료`, 'success');
-  return true;
+async function importPartyPresetShowdownText(partyIndex, text) {
+  return runPartyPresetImport(() => {
+    const members = partyPresetParseShowdownParty(text);
+    if (!members.length) throw new Error('Showdown 텍스트에서 포켓몬을 찾지 못했습니다.');
+    if (!Number.isInteger(partyIndex) || !partyPresetData.parties[partyIndex]) throw new Error('대상 파티를 확인해 주세요.');
+    const data = normalizePartyPresetData(partyPresetData);
+    data.parties[partyIndex].members = Array.from({ length: PARTY_PRESET_MAX_MEMBERS }, (_, index) => (
+      members[index] || blankPartyPresetMember()
+    ));
+    return { data, summary: `파티 ${partyIndex + 1}의 포켓몬 목록을 ${members.length}마리로 교체합니다. 다른 파티는 유지됩니다.`, success: `파티 ${partyIndex + 1} Showdown 텍스트 가져오기 및 저장 완료` };
+  });
 }
 
 export { partyPresetMemberMoves, partyPresetAttackingMoves, partyPresetApplyMemberToSideState, partyPresetApplyMemberToCalc, partyPresetApplyMemberToFineTune, partyPresetApplyMemberToRevCalc, partyPresetApplyPartyToMatchup, partyPresetApplyPickerMember, partyPresetDefaultAbility, partyPresetDefaultItem, partyPresetLookupByText, partyPresetPokemonFromShowdownName, partyPresetNatureFromText, partyPresetParseShowdownEvs, partyPresetParseShowdownSet, partyPresetParseShowdownParty, partyPresetNatureShowdownName, partyPresetExportShowdownSet, partyPresetExportShowdownParty, importPartyPresetShowdownText };
