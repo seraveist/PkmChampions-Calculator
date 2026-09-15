@@ -1,0 +1,86 @@
+name: Public site finalization
+on:
+  push:
+    branches: [fix/public-site-finalization]
+    paths: [.github/workflows/public-site-finalization.yml, .site-finalization/**]
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Apply verified source patch
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD:src)" = '4423c32ff83c03e15b2aa41ce38ed64c8723e4d9'
+          test "$(git rev-parse HEAD:scripts)" = '6d9fecec891e173d8e24ca89078c2e4b2e743925'
+          test "$(git rev-parse HEAD:data)" = '9f2e76c1ab3801ab1f8c6bab527eed9dcc8a9af2'
+          mkdir -p artifacts/site-finalization
+          python3 - <<'PY'
+          import base64, gzip, hashlib, os, pathlib
+          text = ''.join(p.read_text().strip() for p in sorted(pathlib.Path('.site-finalization').glob('patch-*.b64')))
+          patch = gzip.decompress(base64.b64decode(text, validate=True))
+          assert hashlib.sha256(patch).hexdigest() == 'f3c8c664e44cd87880a7130ac366cd39ccb2a31008f1bfa04ae964c4e7701257', 'Source patch mismatch'
+          assert b'diff --git a/.github/' not in patch
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'site-finalization.patch').write_bytes(patch)
+          PY
+          git apply --check "$RUNNER_TEMP/site-finalization.patch"
+          git apply --index "$RUNNER_TEMP/site-finalization.patch"
+          git diff --cached --check
+      - name: Install Korean fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+          fc-cache -f
+          fc-match ':lang=ko' | tee artifacts/site-finalization/font-environment.txt
+      - run: npm ci
+      - name: Full regression suite including party safety
+        run: npm test 2>&1 | tee artifacts/site-finalization/npm-test.log
+      - name: Production party restore and storage failure browser checks
+        env:
+          UI_SMOKE_SCREENSHOT_DIR: artifacts/site-finalization/screenshots/production
+        run: |
+          node scripts/modules-browser.mjs --public --disable-browser-sandbox 2>&1 | tee artifacts/site-finalization/production-public.log
+          node scripts/modules-browser.mjs --disable-browser-sandbox 2>&1 | tee artifacts/site-finalization/production-offline.log
+      - name: Existing party browser behavior
+        env:
+          UI_SMOKE_SCREENSHOT_DIR: artifacts/site-finalization/screenshots/party
+        run: |
+          node scripts/party-remodel-browser.mjs --public --ad-free --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/site-finalization/party-pages.log
+          node scripts/party-remodel-browser.mjs --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/site-finalization/party-offline.log
+      - name: All menus in three deployment modes
+        env:
+          UI_SMOKE_SCREENSHOT_DIR: artifacts/site-finalization/screenshots/menus
+        run: |
+          node scripts/ui-remodel-final-browser.mjs --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/site-finalization/ui-offline.log
+          node scripts/ui-remodel-final-browser.mjs --public --ad-free --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/site-finalization/ui-pages.log
+          node scripts/ui-remodel-final-browser.mjs --public --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/site-finalization/ui-public.log
+      - name: Commit validated source and generated offline output
+        run: |
+          test "$GITHUB_REF" = 'refs/heads/fix/public-site-finalization'
+          npm run build:standalone
+          npm run build:pages
+          npm run pages:ready
+          git add pokemon-champions-calculator-v3.html
+          git rm -r .site-finalization
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix: protect party restores and add compact site footer'
+          git push origin HEAD:refs/heads/fix/public-site-finalization
+          git rev-parse HEAD > artifacts/site-finalization/validated-commit.txt
+          git show --stat --oneline HEAD > artifacts/site-finalization/change-summary.txt
+          cp dist/deploy-manifest.json artifacts/site-finalization/deploy-manifest.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-site-finalization-validation
+          path: artifacts/site-finalization
+          retention-days: 7
