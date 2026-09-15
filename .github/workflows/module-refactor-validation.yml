@@ -78,8 +78,11 @@ jobs:
           assert hashlib.sha256(patch).hexdigest() == '87db31dc55238f732f22e6193c9e7ff86e01cd0bf4662f8d74e44d05931cf1a2'
           pathlib.Path(os.environ['RUNNER_TEMP'], 'finalize.patch').write_bytes(patch)
           PYFIX
-          git apply --check "$RUNNER_TEMP/finalize.patch"
-          git apply --index "$RUNNER_TEMP/finalize.patch"
+          # The CI workflow was already committed through the authorized connector.
+          # GITHUB_TOKEN publishes application files only; no workflows scope is needed.
+          git apply --exclude=.github/workflows/ci.yml --check "$RUNNER_TEMP/finalize.patch"
+          git apply --exclude=.github/workflows/ci.yml --index "$RUNNER_TEMP/finalize.patch"
+          test "$(git hash-object .github/workflows/ci.yml)" = a434c94351769bad8b9497d803e6f5a5f009c825
           git diff --cached --check
       - run: npm ci
       - name: Full regression suite
@@ -131,10 +134,10 @@ jobs:
           git rm -r .module-transfer .github/workflows/module-refactor-validation.yml .github/workflows/module-debug-snapshot.yml
           git diff --cached --check
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'refactor: build native ES modules and cache move slots' -m 'Direct public builds share normalized data with standalone output. Convert source files to explicit module dependencies and preserve lazy features. Cache slot presentations and separate structural markup, with regression and production browser coverage. Preserve reverse inference, forecast and transport behavior.'
-          git push origin HEAD:refs/heads/refactor/client-data-performance
           git rev-parse HEAD > artifacts/module-refactor/validated-commit.txt
           git show --stat --oneline HEAD > artifacts/module-refactor/change-summary.txt
           cp dist/deploy-manifest.json artifacts/module-refactor/deploy-manifest.json
+          git push origin HEAD:refs/heads/refactor/client-data-performance
       - uses: actions/upload-artifact@v4
         if: always()
         with:
