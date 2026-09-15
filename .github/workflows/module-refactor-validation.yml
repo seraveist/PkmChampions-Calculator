@@ -46,6 +46,24 @@ jobs:
           subprocess.run(['git','add','--',*files.keys()], check=True)
           print(f'Applied {len(files)} verified files')
           PY
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/ui-remodel-final-browser.mjs')
+          s=p.read_text()
+          old="      await captureScreenshot(client,`status-choice-${width}`);\n      await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Home'"
+          new="""      await captureScreenshot(client,`status-choice-${width}`);
+                // Accessibility/screenshot tooling may cause document scrolling; anchored
+                // choices intentionally dismiss on outside scrolling. Start the keyboard
+                // check from an explicitly open and focused menu, not that incidental state.
+                const settledChoice=await client.evaluate("({open:!!document.querySelector('.ui-choice-menu:popover-open'),focus:document.activeElement.className})");
+                console.log('CHOICE_AFTER_AUDIT '+JSON.stringify(settledChoice));
+                if(!settledChoice.open) await client.evaluate("document.querySelector('#atk-body .ui-choice-trigger').click()");
+                await waitFor(()=>client.evaluate("document.activeElement.classList.contains('ui-choice-option') && !!document.querySelector('.ui-choice-menu:popover-open')"),1500);
+                await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Home'"""
+          assert old in s
+          p.write_text(s.replace(old,new,1))
+          PY
+          git add scripts/ui-remodel-final-browser.mjs
           git diff --cached --check
       - run: npm ci
       - name: Full regression suite
