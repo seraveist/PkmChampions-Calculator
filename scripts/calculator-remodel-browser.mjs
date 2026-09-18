@@ -235,6 +235,10 @@ function check(condition, label, detail = '') {
 }
 
 async function setViewport(client, width, height) {
+  await client.send('Emulation.setTouchEmulationEnabled', {
+    enabled: width <= 760,
+    maxTouchPoints: width <= 760 ? 5 : 1,
+  });
   await client.send('Emulation.setDeviceMetricsOverride', {
     width,
     height,
@@ -360,6 +364,9 @@ async function main() {
     const report=[];
     await client.evaluate("state.atk=makeSideState('garchomp');state.def=makeSideState('dragonite');state.atk.moves=['earthquake','dragonclaw','rockslide','firefang'];state.atk.item='lifeorb';state.def.evs.hp=32;renderSide('atk');renderSide('def');runCalc();");
     check(await client.evaluate("document.querySelectorAll('#calc-results-body .move-row').length===4"),'four moves render in the shared result grid');
+    await client.evaluate("document.querySelector('[data-side=atk][data-cb-type=item]').click()");
+    check(await client.evaluate("document.querySelectorAll('dialog.picker-dialog[open] .combobox-option').length===ITEMS.length+1"),'item picker exposes the complete catalog');
+    await client.evaluate("document.querySelector('[data-picker-close]').click()");
     await runClientPerformanceBrowserChecks(client,check,{publicMode:PUBLIC_MODE});
     await runSlotCacheBrowserChecks(client,check);
     await client.evaluate("var point=document.querySelector('[data-calc-ev=hp]');point.focus();point.value='20';point.dispatchEvent(new Event('input',{bubbles:true}));");
@@ -367,6 +374,40 @@ async function main() {
     await client.evaluate("document.querySelector('[data-calc-side-settings=atk]').click()");
     check(await client.evaluate("document.getElementById('calc-side-settings').open && document.querySelectorAll('[data-calc-preset]').length===7"),'additional settings and effort presets are available');
     await client.evaluate("document.getElementById('calc-side-settings').close()");
+    await setViewport(client,390,844);
+    const mysticWaterSearch=await client.evaluate(`(async()=>{
+      const control=document.querySelector('#atk-body [data-cb-type="item"]');
+      control.dispatchEvent(new MouseEvent('click',{bubbles:true,detail:1}));
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      const dialog=document.querySelector('dialog.picker-dialog[open]');
+      const search=dialog.querySelector('.picker-search input');
+      search.value='신비의물방울';search.dispatchEvent(new Event('input',{bubbles:true}));
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+      const ids=[...dialog.querySelectorAll('.combobox-option:not(.empty)')].map(option=>option.dataset.id);
+      dialog.querySelector('[data-id="mysticwater"]')?.click();
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+      return {ids,selected:state.atk.item,label:document.querySelector('#atk-body [data-cb-type="item"] .ui-select-value')?.textContent,closed:!document.querySelector('dialog.picker-dialog[open]')};
+    })()`,true);
+    check(mysticWaterSearch.ids.length===1 && mysticWaterSearch.ids[0]==='mysticwater' && mysticWaterSearch.selected==='mysticwater' && mysticWaterSearch.label==='신비의물방울' && mysticWaterSearch.closed,'Mystic Water is searchable and selectable by its Korean name on mobile',JSON.stringify(mysticWaterSearch));
+    const mobilePickerSelectors={pokemon:'#atk-body [data-cb-type="pokemon"]',ability:'#atk-body [data-cb-type="ability"]',item:'#atk-body [data-cb-type="item"]',nature:'#atk-body [data-cb-type="nature"]',move:'#calc-results-body [data-cb-type="move"]'};
+    for(const [kind,selector] of Object.entries(mobilePickerSelectors)) {
+      const audit=await client.evaluate(`(async()=>{
+        const control=document.querySelector(${JSON.stringify(selector)});
+        control.dispatchEvent(new MouseEvent('click',{bubbles:true,detail:1}));
+        await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+        const dialog=document.querySelector('dialog.picker-dialog[open]'),search=dialog?.querySelector('.picker-search input'),list=dialog?.querySelector('.combobox-options');
+        const row=list?.querySelector('.combobox-option:not(.empty)'),selected=list?.querySelector('.combobox-option.selected');
+        const rect=dialog?.getBoundingClientRect(),rowRect=row?.getBoundingClientRect();
+        const result={kind:dialog?.dataset.kind,searchFont:parseFloat(getComputedStyle(search).fontSize),searchFocused:document.activeElement===search,
+          dialogFits:!!rect&&rect.left>=0&&rect.right<=innerWidth&&rect.top>=0&&rect.bottom<=innerHeight,rowHeight:rowRect?.height||0,
+          scrollSnap:getComputedStyle(list).scrollSnapType,selectedId:selected?.dataset.id||'',optionCount:list?.querySelectorAll('.combobox-option:not(.empty)').length||0};
+        (selected||dialog?.querySelector('[data-picker-close]'))?.click();
+        await new Promise(resolve=>requestAnimationFrame(resolve));
+        result.closed=!document.querySelector('dialog.picker-dialog[open]');
+        return result;
+      })()`,true);
+      check(audit.kind===kind && audit.searchFont>=16 && !audit.searchFocused && audit.dialogFits && audit.rowHeight>=44 && !audit.scrollSnap.includes('mandatory') && audit.selectedId && audit.optionCount>0 && audit.closed,'mobile '+kind+' picker opens, scrolls and selects without forced search zoom',JSON.stringify(audit));
+    }
     for(const width of [1440,1100,1000,768,390,320]) {
       await setViewport(client,width,1000);
       await client.evaluate("window.scrollTo(0,0)");

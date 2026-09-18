@@ -185,6 +185,9 @@ function makeCombobox(sideKey, type) {
       return calcMatches(s, d.id, d.name, d.koName, d.desc, d.descLong, calcItemCategoryLabel(d), ...(d.itemUser || []));
     });
     if (type === 'pokemon' || type === 'move') return matches;
+    // The item picker is a browsable catalog. Truncating an empty search makes
+    // every item after the first page impossible to discover by scrolling.
+    if (type === 'item') return matches;
     if (type === 'nature') return calcSortNatureOptions(matches).slice(0, 30);
     return matches.slice(0, 30);
   };

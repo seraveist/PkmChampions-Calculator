@@ -94,6 +94,16 @@ test('item/nature option sorts are cached and caller array mutations are isolate
     assert.equal(items, 1); assert.equal(natures, 1);
   } finally { sortItemsForCalcSelect = itemSort; calcSortNatureOptions = natureSort; }
 `));
+test('item picker exposes the complete catalog before and after searching', () => run(`
+  state.atk = makeSideState('garchomp');
+  const filter = makeCombobox('atk','item');
+  const all = filter('');
+  assert.equal(all.length, ITEMS.length);
+  assert(ITEMS.length > 30, 'fixture must catch the former 30-item truncation');
+  assert.equal(filter('신비의물방울').map(item => item.id).join(','), 'mysticwater');
+  const last = sortItemsForCalcSelect(ITEMS).at(-1);
+  assert(filter(last.id).some(item => item.id === last.id));
+`));
 test('a retained move filter follows Pokemon changes and does not re-sort per query', () => run(`
   state.atk = makeSideState('garchomp');
   const original = calcDatasetForCombobox; let calls = 0;

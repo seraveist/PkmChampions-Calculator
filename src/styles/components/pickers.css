@@ -7,6 +7,7 @@
 .picker-dialog[data-kind=pokemon] { --dialog-width:min(720px,calc(100% - 32px)); }
 .picker-dialog[data-kind=nature] { --dialog-width:min(480px,calc(100% - 32px)); }
 .picker-search { --ui-control-height:46px;margin:0 20px 12px;flex-shrink:0; }
+.picker-search>.ui-control { font-size:16px; }
 .picker-filters { display:flex;gap:6px;padding:0 20px 10px;flex-shrink:0; }
 .picker-dialog>.combobox-options { --picker-row-height:48px;display:block;position:static;min-height:0;flex:0 1 auto;overflow:auto;max-height:calc(min(720px,100dvh - 48px) - 190px);padding:0 12px;margin-bottom:12px;overscroll-behavior:contain;scroll-snap-type:y mandatory;scroll-padding-top:var(--picker-header-height,0px); }
 .ui-option-row,.combobox-option { display:grid;grid-template-columns:minmax(100px,.32fr) minmax(0,1fr);align-items:center;gap:14px;padding:8px 10px;height:var(--picker-row-height,48px);min-height:var(--picker-row-height,48px);border-radius:10px;scroll-snap-align:start;cursor:pointer;text-align:left; }
@@ -41,6 +42,7 @@
 .combobox-option>small { font-size:var(--text-label);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 @media(max-width:700px) {
   .picker-dialog,.picker-dialog[data-kind] { --dialog-width:calc(100% - 20px); }
+  .picker-dialog>.combobox-options { scroll-snap-type:y proximity; }
   .ui-option-row,.combobox-option { grid-template-columns:minmax(80px,.34fr) minmax(0,1fr);gap:10px; }
   .pokemon-option,.pokemon-option-header { grid-template-columns:minmax(300px,1fr) repeat(6,26px) 30px;gap:4px; }
   .nature-option { grid-template-columns:minmax(56px,1fr) repeat(2,76px); }

@@ -98,7 +98,7 @@ function uiWirePickerDialog(control, list, {showOptions,onSelect,onClose} = {}) 
     if (typeof onSelect === 'function') onSelect(option);
     requestAnimationFrame(() => focusControl(selector));
   };
-  const open = (query = '') => {
+  const open = (query = '', { focusSearch = true } = {}) => {
     if (dialog) return;
     category = '';
     dialog = document.createElement('dialog');
@@ -144,7 +144,8 @@ function uiWirePickerDialog(control, list, {showOptions,onSelect,onClose} = {}) 
     });
     dialog.showModal();
     refresh();
-    search.focus({preventScroll:true});
+    const focusTarget = focusSearch ? search : dialog.querySelector('[data-picker-close]');
+    focusTarget?.focus({preventScroll:true});
   };
   // Capture avoids older menu-specific mouse/blur handlers committing twice.
   list.addEventListener('click',event => {
@@ -156,7 +157,10 @@ function uiWirePickerDialog(control, list, {showOptions,onSelect,onClose} = {}) 
   control.addEventListener('keydown',event => {
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); open(''); }
   });
-  control.addEventListener('click',() => open(''));
+  control.addEventListener('click',event => {
+    const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches;
+    open('', { focusSearch: event.detail === 0 || !coarsePointer });
+  });
   return {open,close,select,commitTyped:()=>false,commitExact:()=>false,commitActive:()=>select(options()[Math.max(0,activeIndex)])};
 }
 
