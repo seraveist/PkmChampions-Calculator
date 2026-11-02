@@ -1,6 +1,10 @@
 name: Sync PS data
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-ps-data.yml'
   schedule:
     # 매주 일요일 02:00 UTC (KST 11:00) 자동 실행
     - cron: '0 2 * * 0'
@@ -41,6 +45,13 @@ jobs:
         # 새 포켓몬·기술이 추가됐을 수 있으므로 ko 캐시도 갱신
         run: node scripts/fetch-ko.mjs
         continue-on-error: true   # PokéAPI 일시 장애 시에도 빌드는 진행
+
+      # The sync updates data used by both generated artifacts. Refresh both before
+      # the regression suite checks that the coverage matrix is current.
+      - name: Rebuild generated data and coverage matrix
+        run: |
+          npm run build:standalone
+          npm run coverage:matrix
 
       - name: Run regression suite
         run: npm test
