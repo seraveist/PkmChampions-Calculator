@@ -5,6 +5,10 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 			this.effectState.checkedAngerShell = !(effect.effectType === "Move" && !effect.multihit);
 		},
 	},
+	auraguard: {
+		inherit: true,
+		isNonstandard: null,
+	},
 	berserk: {
 		inherit: true,
 		onDamage(damage, target, source, effect) {
@@ -18,6 +22,15 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 	eelevate: {
 		inherit: true,
 		isNonstandard: null,
+	},
+	emergencyexit: {
+		inherit: true,
+		onEmergencyExit(originalHp, target) {
+			if (!target.hp || target.hp > target.maxhp / 2 || originalHp <= target.maxhp / 2) return;
+			if (!this.canSwitch(target.side) || target.forceSwitchFlag || target.switchFlag) return;
+			target.switchFlag = true;
+			this.add('-activate', target, 'ability: Emergency Exit');
+		},
 	},
 	firemane: {
 		inherit: true,
@@ -60,11 +73,23 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 			}
 		},
 	},
+	runaway: {
+		inherit: true,
+		onTrapPokemonPriority: -10,
+		onTrapPokemon(pokemon) {
+			pokemon.trapped = false;
+		},
+		onMaybeTrapPokemonPriority: -10,
+		onMaybeTrapPokemon(pokemon) {
+			pokemon.maybeTrapped = false;
+		},
+	},
 	spicyspray: {
 		inherit: true,
 		isNonstandard: null,
 	},
 	unseenfist: {
+		inherit: true,
 		onModifyMove: undefined, // no inherit
 		onHitProtect(source, target, move) {
 			if (move.flags['contact']) {
@@ -72,6 +97,14 @@ export const Abilities: import('../../../sim/dex-abilities').ModdedAbilityDataTa
 				return false;
 			}
 		},
+	},
+	wimpout: {
 		inherit: true,
+		onEmergencyExit(originalHp, target) {
+			if (!target.hp || target.hp > target.maxhp / 2 || originalHp <= target.maxhp / 2) return;
+			if (!this.canSwitch(target.side) || target.forceSwitchFlag || target.switchFlag) return;
+			target.switchFlag = true;
+			this.add('-activate', target, 'ability: Wimp Out');
+		},
 	},
 };

@@ -162,6 +162,38 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 		inherit: true,
 		isNonstandard: "Past",
 	},
+	curse: {
+		inherit: true,
+		volatileStatus: undefined, // no inherit
+		onModifyMove(move, source, target) {
+			this.debug('Curse onModifyMove triggered', source, target);
+			if (!source.hasType('Ghost')) {
+				move.target = 'self';
+			} else if (!target || (source !== target && source.isAlly(target))) {
+				move.target = 'randomNormal';
+			}
+		},
+		onTryHit(target, source, move) {
+			this.debug('Curse onTryHit triggered', target, source);
+			if (source.hasType('Ghost') && target.volatiles['curse']) {
+				return false;
+			}
+		},
+		onHit(target, source) {
+			this.debug('Curse onHit triggered', source, target);
+			if (!source.hasType('Ghost')) {
+				return !!this.boost({ spe: -1, atk: 1, def: 1 }, source, source);
+			}
+			this.directDamage(source.maxhp / 2, source, source);
+			if (source.isAlly(target)) {
+				const random = this.getRandomTarget(source, 'Curse');
+				if (!random) return false;
+				target = random;
+			}
+			delete target.volatiles['curse'];
+			target.addVolatile('curse');
+		},
+	},
 	cut: {
 		inherit: true,
 		isNonstandard: "Past",
@@ -220,6 +252,10 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 	doublekick: {
 		inherit: true,
 		isNonstandard: "Past",
+	},
+	doubleshock: {
+		inherit: true,
+		flags: { contact: 1, protect: 1, mirror: 1, punch: 1 },
 	},
 	dragonascent: {
 		inherit: true,
@@ -290,21 +326,16 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 				const action = this.queue.willMove(target);
 				if (!action) {
 					this.effectState.duration!++;
-					// TODO: this is a quick fix, check if move priority is changed when Mental Herb cures Encore
 				} else if (action.moveid !== move.id && !target.hasItem('mentalherb')) {
-					const priority = action.priority -
-						this.dex.moves.get(action.moveid).priority +
-						this.dex.moves.get(move.id).priority;
 					this.queue.changeAction(target, {
 						choice: 'move',
 						// target: undefined,
 						// targetLoc: undefined,
 						moveid: move.id,
-						order: action.order,
 					});
-					this.queue.willMove(target)!.priority = priority;
 				}
 			},
+			onOverrideAction: undefined, // no inherit
 		},
 	},
 	esperwing: {
@@ -599,6 +630,7 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 	meteorassault: {
 		inherit: true,
 		basePower: 170,
+		isNonstandard: null,
 	},
 	metronome: {
 		inherit: true,
@@ -656,6 +688,15 @@ export const Moves: import('../../../sim/dex-moves').ModdedMoveDataTable = {
 	nihillight: {
 		inherit: true,
 		pp: 5,
+	},
+	noretreat: {
+		inherit: true,
+		condition: {
+			onStart(pokemon) {
+				if (!pokemon.addVolatile('trapped')) return;
+				this.add('-start', pokemon, 'move: No Retreat');
+			},
+		},
 	},
 	noxioustorque: {
 		inherit: true,
