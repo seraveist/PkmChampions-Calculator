@@ -1,7 +1,7 @@
 {
   "repository": "smogon/pokemon-showdown",
   "ref": "master",
-  "commit": "7e743761cd13cdb361fc0f58eb5a866284894f5b",
+  "commit": "f1040ecb5f5dba252e0e351e392dc409a5089ace",
   "files": [
     "data/pokedex.ts",
     "data/moves.ts",
@@ -50,7 +50,7 @@
     "data/text/abilities.ts": "f6f2a0d4fc8be06cc6051d39e11f5f0a3d3d9d11020d5855b09c9b2f34a00568",
     "data/text/items.ts": "344f23db9773f17c7bae6bdec848f27134047661d0f991c9a25763d7161d144c",
     "data/mods/champions/formats-data.ts": "1bce50ce8bfe8c227cf1b4183ed3dca3dd4844eb43e543d6ae8f3714a8a9c871",
-    "data/mods/champions/moves.ts": "7830b5386ef0aad255ec8d02f9f2d35c1b89a5ecbb44c7ecb000892127b55e19",
+    "data/mods/champions/moves.ts": "bcd4263a7c72e8c1d9ec0e4ffb9f1b63e6d936994c79acfc0a33f2dcc3ab2f04",
     "data/mods/champions/abilities.ts": "0c3a61bc77552f87fbbe73a7cd3fd9fae8fec7da374e1159a23b6891bd155708",
     "data/mods/champions/items.ts": "2bdaa053fe617ee859767bc4744cd1e00cddb994d7d9229bfb92d409c928c190",
     "data/mods/champions/learnsets.ts": "826d302703358260a1c4967e2bf8edd15f1fe7e0f664c8ab14aff734906cc9d0",
