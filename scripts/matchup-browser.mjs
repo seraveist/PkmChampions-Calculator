@@ -380,11 +380,17 @@ async function main() {
     await client.evaluate("document.querySelector('.matchup-move-clear:not(:disabled)').click()");
     check(await client.evaluate("!matchupCoverageMoves[0][0] && document.getElementById('matchupBody').innerText.includes('공격 기술을 입력')"),'clearing the last move restores the prompt');
     await client.evaluate("['charizard','blastoise','venusaur','snorlax','delphoxmega','vaporeon'].forEach((id,i)=>matchupSetSlotPokemon(i,id));matchupSetSlotPokemon(3,'snorlax',{abilityId:'thickfat'});matchupCoverageMoves[0]=['weatherball','flamethrower',null,null];matchupCoverageMoves[1]=['surf',null,null,null];renderMatchupSlots();renderMatchupCoverageInputs();renderMatchupTable()");
+    const waitForScrollHint = () => waitFor(() => client.evaluate(`(() => {
+      const wrap = document.querySelector('#page-matchup .matchup-table-wrap');
+      const hint = document.getElementById('matchupScrollHint');
+      return wrap.clientWidth > 0 && !hint.hidden === (wrap.scrollWidth > wrap.clientWidth + 1);
+    })()`), 3000);
     for (const width of [1440,375,320]) {
       await setViewport(client,width,1000);
       for (const mode of ['defense','coverage']) {
         await client.evaluate(`document.querySelector('[data-matchup-mode=${mode}]').click();document.querySelector('#matchupSlots').scrollIntoView({block:'start'})`);
-        await sleep(100);
+        await client.evaluate("document.querySelector('#page-matchup .matchup-table-wrap').scrollIntoView({block:'center',behavior:'instant'})");
+        await waitForScrollHint();
         const layout=await client.evaluate(`(() => ({
           width:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth,
           controls:[...document.querySelectorAll('#matchupSlots select')].map(el=>({
@@ -396,7 +402,33 @@ async function main() {
         }))()`);
         check(layout.overflow<=1,'no page overflow for '+mode+' at '+width+'px',JSON.stringify(layout));
         check(layout.controls.every(c=>c.textWidth>=55&&c.left>=0&&c.right<=width+1),'form and ability controls have readable text space at '+width+'px',JSON.stringify(layout));
-        check(layout.columns===8 && (width>760||layout.hint),'all six selected Pokemon remain reachable',JSON.stringify(layout));
+        const visibleSlots = await client.evaluate(`(() => {
+          const wrap = document.querySelector('#page-matchup .matchup-table-wrap');
+          const headers = [...document.querySelectorAll('#matchupHead th')];
+          const start = wrap.scrollLeft;
+          const bounds = wrap.getBoundingClientRect();
+          const left = bounds.left + wrap.clientLeft;
+          const right = left + wrap.clientWidth;
+          const stickyWidth = headers[0].getBoundingClientRect().width;
+          const reachable = headers.slice(1, -1).map(header => {
+            wrap.scrollLeft += header.getBoundingClientRect().right - right;
+            const box = header.getBoundingClientRect();
+            return box.left >= left + stickyWidth - 2 && box.right <= right + 2;
+          });
+          wrap.scrollLeft = start;
+          return reachable;
+        })()`);
+        check(layout.columns===8 && visibleSlots.length===6 && visibleSlots.every(Boolean),
+          'all six selected Pokemon remain reachable', JSON.stringify({layout,visibleSlots}));
+        if (width===1440 && mode==='defense') {
+          // A panel can change width without a window resize or a new party selection.
+          await client.evaluate("document.querySelector('.matchup-table-wrap').style.maxWidth='320px'");
+          await waitForScrollHint();
+          check(await client.evaluate("!document.getElementById('matchupScrollHint').hidden"),
+            'narrowing only the table region exposes the horizontal scroll hint');
+          await client.evaluate("document.querySelector('.matchup-table-wrap').style.removeProperty('max-width')");
+          await waitForScrollHint();
+        }
         if (mode==='coverage') check(await client.evaluate("document.getElementById('matchupCoverageField').open=true;[...document.querySelectorAll('#matchupCoverageField select')].every(el=>el.getBoundingClientRect().width>=75&&el.getBoundingClientRect().right<=innerWidth)"),'weather and terrain controls stay readable at '+width+'px');
         report.push({mode,...layout});
         await captureScreenshot(client,'matchup-'+mode+'-'+width);

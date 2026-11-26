@@ -384,6 +384,11 @@ function wireMatchupScrollHint() {
   if (!wrap || wrap.dataset.scrollHintWired === 'true') return;
   wrap.dataset.scrollHintWired = 'true';
   wrap.addEventListener('scroll', updateMatchupScrollHint, { passive: true });
+  if (typeof ResizeObserver === 'function') {
+    const observer = new ResizeObserver(updateMatchupScrollHint);
+    observer.observe(wrap);
+    observer.observe(document.getElementById('matchupTable'));
+  }
 }
 
 function replaceMatchupColgroup(table, widths) {
