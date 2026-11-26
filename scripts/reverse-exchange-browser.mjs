@@ -432,7 +432,13 @@ async function main() {
     await client.evaluate("document.querySelector('#rc-opp-body [data-rc-move-picker=knownOppMove]').click();var search=document.querySelector('.picker-dialog input');search.value='화염방사';search.dispatchEvent(new Event('input',{bubbles:true}));");
     await client.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
     await client.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
-    check(await client.evaluate("revCalcState.knownOppMoves[0]==='flamethrower' && !document.querySelector('.picker-dialog[open]') && document.activeElement.dataset.rcMovePicker==='knownOppMove'"),'opponent move picker selects by keyboard and returns focus to its new location');
+    check(await client.evaluate("revCalcState.knownOppMoves[0]==='flamethrower' && !document.querySelector('.picker-dialog[open]')"),
+      'Enter selects the opponent move and closes its picker');
+    // The picker restores focus after the selection handler has redrawn the controls.
+    const focusReturned = await waitFor(() => client.evaluate(`
+      document.activeElement === document.querySelector('#rc-opp-body [data-rc-move-picker="knownOppMove"][data-rc-move-slot="0"]')
+    `), 3000);
+    check(focusReturned, 'keyboard focus returns to the original opponent move slot');
     check(await client.evaluate("revCalcState.oppMove==='flamethrower' && !revCalcState.results && revCalcState.resultsStale"),'automatically updated observed attack invalidates the previous analysis');
     await client.evaluate('renderRevCalcOpp();rcSyncInputsFromDom()');
     check(await client.evaluate("revCalcState.knownOppMoves[0]==='flamethrower' && document.querySelector('#rc-opp-body [data-rc-move-picker=knownOppMove]').innerText.includes('화염방사')"),'opponent move selection survives redraw and input sync');
