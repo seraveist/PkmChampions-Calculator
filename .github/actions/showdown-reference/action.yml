@@ -20,6 +20,9 @@ runs:
       run: |
         npm ci --omit=dev --ignore-scripts --no-audit
         node build
+    - name: Compare the official Champions roster
+      shell: bash
+      run: node scripts/showdown-roster-reference.mjs .showdown-reference
     - name: Compare against the simulator
       shell: bash
       run: npm run damage:reference -- --showdown .showdown-reference

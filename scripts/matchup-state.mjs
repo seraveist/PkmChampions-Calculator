@@ -24,11 +24,23 @@ const pokemon = [
   { id: 'itemform', name: 'Item Form', koName: '도구폼 기본', types: ['Normal'], ab: { 0: 'Hydration' } },
   { id: 'itemformactive', name: 'Item Form-Active', koName: '도구폼 변화', base: 'Item Form', requiredItem: 'formitem', types: ['Water'], ab: { 0: 'Water Absorb' } },
 ];
+const pairedForms = [
+  ['Tatsugiri', 'Tatsugiri-Curly-Mega'],
+  ['Tatsugiri-Droopy', 'Tatsugiri-Droopy-Mega'],
+  ['Tatsugiri-Stretchy', 'Tatsugiri-Stretchy-Mega'],
+];
+for (const [base, mega] of pairedForms) {
+  for (const name of [base, mega]) pokemon.push({
+    id: toId(name), name, base: name === 'Tatsugiri' ? undefined : 'Tatsugiri',
+    mega: name === mega, types: ['Dragon', 'Water'], ab: { 0: 'Water Absorb' },
+  });
+}
 const abilityById = Object.fromEntries(abilities.map(ability => [ability.id, ability]));
 abilityById.stancechange = { id: 'stancechange', name: 'Stance Change', koName: '배틀스위치' };
 const pokemonById = Object.fromEntries(pokemon.map(entry => [entry.id, entry]));
 const items = [
   { id: 'delphoxite', name: 'Delphoxite', ms: { Delphox: 'Delphox-Mega' } },
+  { id: 'tatsugirinite', name: 'Tatsugirinite', ms: Object.fromEntries(pairedForms) },
   { id: 'formitem', name: 'Form Item' },
 ];
 const itemById = Object.fromEntries(items.map(item => [item.id, item]));
@@ -91,6 +103,18 @@ function assertEqual(actual, expected, label) {
 api.matchupSetSlotPokemon(0, 'delphox', { itemId: 'delphoxite', abilityId: 'blaze' });
 assertEqual(api.matchupSlots[0], 'delphoxmega', 'Mega Stone resolves the matchup slot to its Mega form');
 assertEqual(api.matchupAbilities[0], 'levitate', 'Mega form replaces an invalid base-form ability');
+
+for (const [base, mega] of pairedForms) {
+  api.matchupSetSlotPokemon(0, toId(base));
+  assertEqual(api.matchupSlots[0], toId(base), base + ' without a stone stays in its selected form');
+  api.matchupSetSlotPokemon(0, toId(base), { itemId: 'tatsugirinite' });
+  assertEqual(api.matchupSlots[0], toId(mega), base + ' resolves its own Mega form');
+  api.matchupSetSlotPokemon(0, toId(mega), { itemId: 'tatsugirinite' });
+  assertEqual(api.matchupSlots[0], toId(mega), mega + ' stays in its selected Mega form');
+}
+api.matchupSetSlotPokemon(0, 'tatsugiridroopy', { itemId: 'delphoxite' });
+assertEqual(api.matchupSlots[0], 'tatsugiridroopy', 'An unrelated stone does not change the selected form');
+api.matchupSetSlotPokemon(0, 'delphox', { itemId: 'delphoxite' });
 
 const megaGround = api.matchupDefenseEffect('Ground', {
   pokemon: pokemonById[api.matchupSlots[0]],

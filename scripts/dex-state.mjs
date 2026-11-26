@@ -5,7 +5,6 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import { loadTsModule, applyModOverrides } from './ts-loader.mjs';
-import { applyChampionsDataOverrides } from './champions-overrides.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const html = readFileSync(path.join(root, 'pokemon-champions-calculator-v3.html'), 'utf8');
@@ -31,10 +30,10 @@ const api = new Function('document', 'window', `${source}\n
     renderAbilityDetail, renderPokemonDetail, renderLearnsetByType, handleLearnsetFilterClick,
     dexScopeEntries, dexMoveTraits };
 `)(document, { innerWidth: 1280, addEventListener() {} });
-const mergedMoves = applyChampionsDataOverrides('moves', applyModOverrides(
+const mergedMoves = applyModOverrides(
   loadTsModule(path.join(root, 'data/moves.ts')).Moves,
   loadTsModule(path.join(root, 'data/mods/champions/moves.ts')).Moves,
-));
+);
 let passed = 0;
 function test(label, body) { body(); passed++; console.log(`[PASS] ${label}`); }
 const fresh = () => {

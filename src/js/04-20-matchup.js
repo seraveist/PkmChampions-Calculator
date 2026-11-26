@@ -72,10 +72,15 @@ function matchupResolveItemForm(pokemonId, itemId) {
   const item = ItemById[itemId];
   if (!pokemon || !item) return pokemonId;
 
-  const megaTarget = Object.values(item.ms || item.megaStone || {})
-    .map(target => PokemonById[toId(target)])
-    .find(Boolean);
-  if (megaTarget && matchupSameFormFamily(pokemon, megaTarget)) return megaTarget.id;
+  const megaEntries = Object.entries(item.ms || item.megaStone || {});
+  if (megaEntries.length) {
+    if (megaEntries.some(([, target]) => toId(target) === pokemonId)) return pokemonId;
+    const exact = megaEntries.find(([base]) => toId(base) === pokemonId);
+    // A stone can map multiple forms of the same species; do not select the
+    // first family member or silently substitute another form.
+    const targetId = exact && toId(exact[1]);
+    return (targetId && PokemonById[targetId]) ? targetId : pokemonId;
+  }
 
   const requiredForm = POKEMON.find(candidate => (
     toId(candidate.requiredItem) === itemId

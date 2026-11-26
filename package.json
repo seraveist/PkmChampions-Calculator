@@ -29,7 +29,7 @@
     "ui:browser:pages": "npm run build:pages && node scripts/ui-remodel-final-browser.mjs --public --ad-free",
     "spa:hosting": "node scripts/spa-hosting-check.mjs",
     "public:ready": "node scripts/public-readiness-check.mjs",
-    "data:validate": "node scripts/validate-data.mjs && node scripts/regulation-mc-golden.mjs && node scripts/korean-cache-golden.mjs && node scripts/sync-patch-golden.mjs",
+    "data:validate": "node scripts/validate-data.mjs && node scripts/champions-roster-golden.mjs && node scripts/korean-cache-golden.mjs && node scripts/sync-patch-golden.mjs",
     "dex:smoke": "node scripts/dex-ui-smoke.mjs && node scripts/dex-state.mjs",
     "dex:browser": "npm run build:pages && node scripts/dex-browser.mjs --public --ad-free --require-browser",
     "damage:golden": "node scripts/damage-golden.mjs",
