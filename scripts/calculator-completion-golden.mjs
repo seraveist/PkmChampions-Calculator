@@ -11,7 +11,7 @@ const data = Object.fromEntries([...html.matchAll(/<script id="(data-[^"]+)" typ
 function element(id = '') {
   return { id, textContent: data[id] || '', innerHTML: '', value: '', checked: false, dataset: {}, style: {},
     classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
-    addEventListener() {}, querySelectorAll() { return []; }, querySelector() { return null; },
+    showModal() { this.open=true; }, addEventListener() {}, querySelectorAll() { return []; }, querySelector() { return null; },
     closest() { return null; }, appendChild() {}, remove() {}, setAttribute() {}, getAttribute() { return null; } };
 }
 const elements = new Map();
@@ -35,6 +35,52 @@ function test(name, code) {
   catch (error) { process.exitCode = 1; console.error(`[FAIL] ${name}: ${error.stack}`); }
 }
 
+test('Previous failure boosts the first successful use and is part of observation cache identity', `
+  const a=makeSideState('rhyperior'),d=makeSideState('snorlax'),f=makeFieldState();
+  a.ability='solidrock';d.ability='immunity';a.evs.atk=12;d.evs.def=32;
+  for (const [id,first,next] of [['stompingtantrum',[126,148],[63,75]],['temperflare',[84,99],[42,50]]]) {
+    a.lastMoveFailed=true;
+    const move=MoveById[id], before=rcDamageCacheKey(a,d,move,f);
+    equal(range(power(a,d,move,f)),first);
+    const paths=advanceDamageMove(a,d,move,f);
+    assert(paths.every(p=>!p.a.lastMoveFailed));assert.equal(a.lastMoveFailed,true);
+    const after=paths[0].a;
+    equal(range(power(after,d,move,f)),next);
+    assert.notEqual(rcDamageCacheKey(after,d,move,f),before);
+    const wall=makeSideState(id==='stompingtantrum'?'charizard':'arcanine');
+    wall.ability=id==='stompingtantrum'?'blaze':'flashfire';
+    assert(advanceDamageMove({...a,lastMoveFailed:false},wall,move,f).every(p=>p.a.lastMoveFailed));
+  }
+`);
+test('Emergency Exit ends only surviving paths that cross half HP, including Champions Sheer Force', `
+  const d=makeSideState('golisopod'),a=makeSideState('jolteon'),f=makeFieldState();
+  a.ability='voltabsorb';d.ability='emergencyexit';
+  const koFor=(a,d,id)=>repeatDamageKo(a,d,MoveById[id],f,power(a,d,id,f));
+  const move='thunderbolt';
+  assert.equal(koFor(a,d,move).label,'교체로 대면 종료');
+  assert.equal(koFor(a,{...d,noReserve:true},move).metric.guaranteedTurn,2);
+  a.evs.spa=4;
+  const mixed=koFor(a,d,move);assert.equal(mixed.metric.oneMoveKoChance,1/16);
+  assert.equal(mixed.metric.guaranteedTurn,null);assert.match(mixed.sub,/2타 이내 확정/);
+  a.evs.spa=32;assert.equal(koFor(a,d,move).metric.guaranteedTurn,1);
+  const t=makeSideState('machamp');t.ability='guts';
+  setSideCurrentHp(d,125);assert.equal(koFor(t,d,'seismictoss').label,'교체로 대면 종료');
+  setSideCurrentHp(d,75);assert.equal(koFor(t,d,'seismictoss').metric.guaranteedTurn,2);
+  setSideCurrentHp(d,125);d.item='sitrusberry';
+  assert.equal(koFor(t,d,'seismictoss').metric.cumulative.length,2);
+  setSideCurrentHp(d,84);d.status='Burn';
+  const recovered=finishDamageTurn(d,t,f);assert.equal(battleHp(recovered),112);assert.equal(recovered.item,'');
+  const r=makeSideState('rampardos');r.ability='sheerforce';d.item='';d.status='none';setSideCurrentHp(d,150);
+  assert.equal(koFor(r,d,'thunderpunch').label,'교체로 대면 종료');
+`);
+
+test('Defender settings expose the independent Disguise checkbox with empty move slots', `
+  state.def=makeSideState('mimikyu');state.def.moves=[];
+  powerUiOpenSideSettings('def');
+  assert.equal(document.getElementById('calc-side-settings').open,true);
+  assert.match(document.getElementById('calc-side-settings-body').innerHTML,/data-setting-field="disguiseBroken"/);
+  assert.equal(state.def.hpPct,1);
+`);
 test('Unaware ignores both positive and negative offensive ranks', `
   const a=makeSideState('garchomp'),d=makeSideState('clefable');d.ability='unaware';
   const normal=range(power(a,d,'earthquake'));
@@ -319,6 +365,58 @@ test('Special conditions render distinct modes, preserve invalid messages and re
  runCalc();assert(document.getElementById('calc-results-body').innerHTML.includes('49–115 HP'));assert(document.getElementById('calc-results-body').innerHTML.includes('24.4%'));
  state.atk.fickleBeamMode='boosted';runCalc();assert(document.getElementById('calc-results-body').innerHTML.includes('97–115 HP'));assert(!document.getElementById('calc-results-body').innerHTML.includes('24.4%'));
  for(const side of ['atk','def']){state[side].receivedDamage=51;state[side].stockpileCount=3;state[side].fickleBeamMode='boosted';resetSideManualValues(side);assert.equal(state[side].receivedDamage,null);assert.equal(state[side].stockpileCount,0);assert.equal(state[side].fickleBeamMode,'auto');}
+`);
+
+test('Loading a party build starts healthy and preserves the side’s Tailwind', `
+  const side=makeSideState('snorlax');side.hpPct=.2;side.status='Burn';side.ranks.atk=-2;
+  side.tailwind=true;side.disguiseBroken=true;side.targetAttacking=true;side.timesAttacked=5;
+  assert(partyPresetApplyMemberToSideState(side,{pokemon:'mimikyu',ability:'disguise',moves:['playrough']}));
+  assert.equal(side.pokemonIdx,'mimikyu');assert.equal(side.hpPct,1);assert.equal(side.status,'none');
+  assert.equal(side.ranks.atk,0);assert.equal(side.tailwind,true);assert.equal(side.disguiseBroken,false);
+  assert.equal(side.timesAttacked,0);assert.equal(side.targetAttacking,false);
+`);
+
+test('Observed exchange handoff preserves initial HP, shields, calibrated move and directional screens', `
+  state.atk=makeSideState('gyarados');state.atk.ability='intimidate';
+  state.def=makeSideState('mimikyu');state.def.ability='disguise';state.def.disguiseBroken=true;
+  setSideCurrentHp(state.def,1);state.def.moves=['shadowclaw'];state.def.moveCriticalOverrides[0]=true;
+  state.def.moveTypeOverrides[0]='Fire';state.def.moveBpOverrides[0]=72;
+  state.field=makeFieldState({isGravity:true,defReflect:true,weather:'Sand',trickRoom:true});
+  setAutoEntryEffects(true);loadSideToRevCalc('def');
+  assert.equal(revCalcState.my.ranks.atk,-1);assert.equal(revCalcState.my.pokemonIdx,'mimikyu');
+  assert.equal(battleHp(revCalcState.my),1);assert.equal(revCalcState.observedMoveOptions.my.disguiseBroken,true);
+  assert.equal(rcObservedField('dealt').defReflect,false);assert.equal(rcObservedField('received').defReflect,true);
+  assert.equal(rcObservedField('dealt').isCritical,true);assert.equal(rcMoveForObservation('my').type,'Fire');
+  assert.equal(rcMoveForObservation('my').bp,72);assert.equal(revCalcState.field.isGravity,true);
+  assert.equal(revCalcState.oppAbilityKnown,'unknown');assert.equal(revCalcState.oppItemKnown,'unknown');
+  loadSideToRevCalc('atk');
+  assert.equal(revCalcState.oppStartHpPct,.77);assert.equal(revCalcState.observedMoveOptions.opp.disguiseBroken,true);
+  revCalcState.results={results:[{ability:'disguise',nature:'jolly',defStat:'def',atkStat:'atk'}]};
+  rcApplyResultToCalc(0);
+  assert.equal(state.def.disguiseBroken,true);assert.equal(battleHp(state.def),1);
+  assert.equal(makeCalcState().def.ranks.atk,-1);assert.equal(autoEntryEffects,false);
+  assert.equal(state.field.weather,'Sand');assert.equal(state.field.isGravity,true);assert.equal(state.field.trickRoom,true);
+  assert.equal(state.field.defReflect,true);
+`);
+
+test('Flash Fire activates only after the observed Fire hit and boosts the reply', `
+  const a=makeSideState('garchomp'),d=makeSideState('arcanine');d.ability='flashfire';
+  const m=MoveById.flamethrower,f=makeFieldState();
+  const minDamage=(x,y)=>Math.min(...calculateDamage(x,y,m,f).damages);
+  const first=advanceDamageMove(a,d,m,f)[0];assert.equal(first.d.flashFireActive,true);
+  assert(minDamage(first.d,first.a)>minDamage(d,a));assert.equal(d.flashFireActive,false);
+  revCalcState.observedTheirPct='';revCalcState.observedMyHp='';
+  const paths=rcExchangePaths(a,d,m,m,'my-first',null,false);
+  assert(paths.length>0);assert(paths.every(p=>p.opp.flashFireActive));
+  assert.equal(Math.max(...paths.map(p=>battleHp(p.my))),battleHp(a)-minDamage(first.d,first.a));
+`);
+
+test('A selected single-use attack can KO at the end of the same turn', `
+  const a=makeSideState('weavile'),d=makeSideState('snorlax');a.moves=['fakeout'];d.status='Poison';
+  const f=makeFieldState();const power=calculatePowerDamage(a,d,MoveById.fakeout,f);
+  setSideCurrentHp(d,power.damages.at(-1)+1);
+  const ko=repeatDamageKo(a,d,MoveById.fakeout,f,calculatePowerDamage(a,d,MoveById.fakeout,f));
+  assert.equal(ko.label,'확정');assert.equal(ko.turns,'1타');assert.match(ko.sub,/턴 종료 피해/);
 `);
 
 console.log(`Calculator completion: ${passed} checks passed${process.exitCode ? ', failures above' : ''}.`);

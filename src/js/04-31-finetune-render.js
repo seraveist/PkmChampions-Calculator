@@ -1,10 +1,10 @@
 import { RotomUI, uiStatTable } from './01-10-rotom-ui.js';
 import { toolStatApplyPointValue, toolStatApplyRankDelta, toolStatNormalizePointInputValue, toolStatShouldCommitPointInput } from './01-20-html-structure.js';
 import { NATURE_BY_ID, PokemonById, escapeHTML, pkName, renderTrustedHTML } from './01-core.js';
-import { cloneCalcValue, state } from './03-10-calc-state.js';
+import { autoEntryEffects, cloneCalcValue, state } from './03-10-calc-state.js';
 import { renderToolFormCombobox, renderToolPokemonSelectSubframe } from './03-11-calc-shared-render.js';
 import { renderSide } from './03-30-calc-side-render.js';
-import { setManualCalcField, syncFieldControls } from './03-40-calc-entry-effects.js';
+import { autoEntryFieldState, mapEntryFieldSources, setAutoEntryEffectsEnabled, syncFieldControls } from './03-40-calc-entry-effects.js';
 import { triggerCalc } from './03-50-calc-results.js';
 import { fineTuneState, ftBuildHpTargets, ftBuildSpeedTable, ftBulkMetrics, ftClampInt, ftComboLabel, ftEvSummary, ftFormatBreakpointDescriptions, ftMySpeed, ftOpponentBaseSpeed, ftRenderMagicCell, ftRenderOppSpeedChipsHtml, ftSetEv, ftStatKeys, ftWireMyComboboxes, ftWireOppComboboxes } from './04-30-finetune.js';
 import { ftApplyTarget, ftClearConditions, ftFieldHtml, ftHandlePlannerChange, ftHpTargetHtml, ftPickerHtml, ftSideConditionsHtml, ftSpeedTargetHtml } from './04-32-finetune-planner.js';
@@ -113,8 +113,8 @@ function ftApplyToCalc(targetSide) {
   const oppP = PokemonById[fineTuneState.opp.pokemonIdx];
   if (oppP) state[otherSide] = cloneCalcValue(fineTuneState.opp);
   state.field = cloneCalcValue(fineTuneState.field);
-  setManualCalcField('weather', state.field.weather);
-  setManualCalcField('terrain', state.field.terrain);
+  Object.assign(autoEntryFieldState, mapEntryFieldSources(fineTuneState.fieldSources, 'my', 'opp', targetSide, otherSide));
+  setAutoEntryEffectsEnabled(fineTuneState.autoFields);
   renderSide('atk');
   renderSide('def');
   syncFieldControls(state.field);
@@ -127,18 +127,24 @@ function ftApplyToCalc(targetSide) {
 
 // 양방향 sync — 계산기 → 세부조정
 // renderSide 가 만든 패널 헤더에 "🔧 세부조정" 버튼이 추가되어, 클릭 시 이 함수 호출.
-function loadSideToFineTune(sideKey) {
+function loadSideToFineTune(sideKey, { render = true } = {}) {
   const src = state[sideKey];
   fineTuneState.my = cloneCalcValue(src);
   // 상대 자리는 계산기의 반대편 포켓몬으로
   const otherKey = sideKey === 'atk' ? 'def' : 'atk';
   fineTuneState.opp = cloneCalcValue(state[otherKey]);
   fineTuneState.field = cloneCalcValue(state.field);
+  fineTuneState.fieldSources = mapEntryFieldSources(autoEntryFieldState, sideKey, otherKey, 'my', 'opp');
+  for (const [key, source] of Object.entries(fineTuneState.fieldSources)) {
+    if (!source.owner) source.base = state.field[key];
+  }
+  fineTuneState.autoFields = autoEntryEffects;
   fineTuneState.targetSpeed = '';
-  // 세부조정 탭 이동
-  const ftNav = document.querySelector('.nav-tab[data-page="finetune"]');
-  if (ftNav) ftNav.click();
-  renderFineTuneAll();
+  if (render) {
+    document.querySelector('.nav-tab[data-page="finetune"]')?.click();
+    renderFineTuneAll();
+  }
+
 }
 
 let bind0431FinetuneRenderBound = false;

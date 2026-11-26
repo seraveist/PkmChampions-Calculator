@@ -134,7 +134,10 @@ function bind0360CalcEvents() {
   });
   document.getElementById('defReflect').addEventListener('change', e => { state.field.defReflect = e.target.checked; triggerCalc(); });
   document.getElementById('defLightScreen').addEventListener('change', e => { state.field.defLightScreen = e.target.checked; triggerCalc(); });
-  document.getElementById('atkHelpingHand').addEventListener('change', e => { state.field.atkHelpingHand = e.target.checked; triggerCalc(); });
+  document.getElementById('atkHelpingHand').addEventListener('change', e => {
+    if (state.field.gameType === 'Doubles') state.field.atkHelpingHand = e.target.checked;
+    triggerCalc();
+  });
   document.getElementById('ruinSword').addEventListener('change', e => { markManualAutoFieldOverride('ruinSword'); state.field.ruinSword = e.target.checked; triggerCalc(); });
   document.getElementById('ruinTablet').addEventListener('change', e => { markManualAutoFieldOverride('ruinTablet'); state.field.ruinTablet = e.target.checked; triggerCalc(); });
   document.getElementById('ruinBeads').addEventListener('change', e => { markManualAutoFieldOverride('ruinBeads'); state.field.ruinBeads = e.target.checked; triggerCalc(); });
@@ -157,12 +160,18 @@ function bind0360CalcEvents() {
   document.addEventListener('click', async e => {
     const ftBtn = e.target.closest('.calc-page-jump-button[data-ft-from-side]');
     if (ftBtn) {
-      if (await activateMainPage('finetune', { updateHash:true })) featureApis.finetune.loadSideToFineTune(ftBtn.dataset.ftFromSide);
+      await activateMainPage('finetune', {
+        updateHash: true,
+        prepare: () => featureApis.finetune.loadSideToFineTune(ftBtn.dataset.ftFromSide, { render: false }),
+      });
       return;
     }
     const rcBtn = e.target.closest('.calc-page-jump-button[data-rc-from-side]');
     if (rcBtn) {
-      if (await activateMainPage('revcalc', { updateHash:true })) featureApis.revcalc.loadSideToRevCalc(rcBtn.dataset.rcFromSide);
+      await activateMainPage('revcalc', {
+        updateHash: true,
+        prepare: () => featureApis.revcalc.loadSideToRevCalc(rcBtn.dataset.rcFromSide, { render: false }),
+      });
       return;
     }
   });

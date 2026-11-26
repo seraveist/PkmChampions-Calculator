@@ -67,6 +67,8 @@ function rcActiveFieldSummary(field) {
   const parts = [];
   if (field.weather && field.weather !== 'none') parts.push(`weather=${field.weather}`);
   if (field.terrain && field.terrain !== 'none') parts.push(`terrain=${field.terrain}`);
+  if (field.trickRoom) parts.push('trickroom');
+  if (field.isGravity) parts.push('gravity');
   if (field.isCritical) parts.push('critical');
   if (field.defReflect) parts.push('reflect');
   if (field.defLightScreen) parts.push('lightscreen');
@@ -255,13 +257,22 @@ function rcSetMovePickerValue(target, id, slot = null) {
     return;
   }
   if (target === 'myMove') {
+    if (revCalcState.myMove !== moveId) {
+      revCalcState.myMoveBp = '';
+      delete revCalcState.observedMoveOptions?.my?.hitCount;
+      delete revCalcState.observedMoveOptions?.my?.moveType;
+      delete revCalcState.observedMoveOptions?.my?.actionResult;
+    }
     revCalcState.myMove = moveId;
-    revCalcState.myMoveBp = '';
     return;
   }
   if (target === 'oppMove') {
-    revCalcState.oppMove = moveId;
+    if (revCalcState.oppMove === moveId) return;
     revCalcState.oppMoveBp = '';
+    delete revCalcState.observedMoveOptions?.opp?.hitCount;
+    delete revCalcState.observedMoveOptions?.opp?.moveType;
+    delete revCalcState.observedMoveOptions?.opp?.actionResult;
+    revCalcState.oppMove = moveId;
     revCalcState.predictedOppMove = moveId;
     rcResetItemCandidatesForOpponent();
     return;
@@ -518,7 +529,8 @@ function rcSpeedCandidateInfo(oppP, nature, item, field = rcAnalysisField(), abi
   const rawOrder = revCalcState.turnOrder || 'unknown';
   const myPriority = revCalcState.myMove ? rcMovePriority(revCalcState.my, MoveById[revCalcState.myMove], field) : null;
   const oppPriority = revCalcState.oppMove ? rcMovePriority(rcBuildOpponentState(oppP, { ability, item }), MoveById[revCalcState.oppMove], field) : null;
-  const priorityUnknown = myPriority == null || oppPriority == null || myPriority !== oppPriority;
+  const interrupted = ['my','opp'].some(role => ['skipped','switched'].includes(revCalcState.observedMoveOptions?.[role]?.actionResult));
+  const priorityUnknown = interrupted || myPriority == null || oppPriority == null || myPriority !== oppPriority;
   const order = !priorityUnknown && (rawOrder === 'opp-first' || rawOrder === 'my-first') ? rawOrder : 'unknown';
   const mySpeed = effectiveSpeed(revCalcState.my, field, rcBuildOpponentState(oppP, { ability, item }));
   if (order === 'unknown') {

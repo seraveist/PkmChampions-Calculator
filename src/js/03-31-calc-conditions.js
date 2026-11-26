@@ -1,4 +1,4 @@
-import { AbilityById, ItemById, MoveById, POKEMON, calcStats, escapeHTML, mvName, pkName } from './01-core.js';
+import { validMoveHitCount, moveHitCountRange, AbilityById, ItemById, MoveById, POKEMON, calcStats, escapeHTML, mvName, pkName } from './01-core.js';
 import { battleMaxFallenAllies, displayName, flingItemForMove } from './02-engine.js';
 import { clampFallenAllies, maxFallenAllies, state } from './03-10-calc-state.js';
 
@@ -36,10 +36,9 @@ function renderCalcMoveConditions(sideKey, side) {
   side.moves.forEach((id, slot) => {
     const move = MoveById[id];
     if (!move?.mh) return;
-    const max = Array.isArray(move.mh) ? move.mh[1] : move.mh;
-    const min = Array.isArray(move.mh) ? move.mh[0] : move.variableBpKind === 'tripleAxelAverage' ? 1 : max;
+    const [min, max] = moveHitCountRange(move, state.field);
     const options = [['', '자동 (특성·도구 반영)'], ...Array.from({ length: max - min + 1 }, (_, i) => [i + min, `${i + min}회 적중`])];
-    controls.push(select(`${slot + 1}. ${mvName(move)} 적중 횟수`, `data-action="hitCount" data-slot="${slot}"`, options, side.moveHitCounts?.[slot] || ''));
+    controls.push(select(`${slot + 1}. ${mvName(move)} 적중 횟수`, `data-action="hitCount" data-slot="${slot}"`, options, validMoveHitCount(move, side.moveHitCounts?.[slot], state.field) ?? ''));
   });
   if (moves.some(m => m.variableBpKind === 'beatUpApprox')) {
     const options = [['', '참여 동료 없음'], ...POKEMON.filter(p => !p.mega).map(p => [p.id, pkName(p)])];

@@ -45,10 +45,12 @@ const fresh = () => {
 test('All emitted move PP values match merged Champions source data', () => {
   for (const move of api.MOVES) {
     assert(Number.isInteger(move.pp) && move.pp > 0, move.id);
-    assert.equal(move.pp, mergedMoves[move.id].pp, move.id);
+    const source = mergedMoves[move.id];
+    const base = Math.min(source.pp,20);
+    assert.equal(move.pp,source.noPPBoosts ? base : (base / 5 + 1) * 4, move.id);
   }
-  assert.equal(api.MoveById.banefulbunker.pp, 5);
-  assert.equal(api.MoveById.beakblast.pp, 5);
+  assert.equal(api.MoveById.banefulbunker.pp, 8);
+  assert.equal(api.MoveById.beakblast.pp, 8);
 });
 test('G-Max source moves remain available for future rules but are excluded from current output', () => {
   const gmax = Object.entries(mergedMoves).filter(([, m]) => m.isNonstandard === 'Gmax');

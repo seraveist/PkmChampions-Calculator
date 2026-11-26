@@ -9,6 +9,7 @@
   "comeuppance": { "fixedDamageKind": "receivedDamage", "receivedDamageMultiplier": 1.5 },
   "ficklebeam": { "variableBpKind": "fickleBeam" },
   "fling": { "variableBpKind": "fling" },
+  "ragefist": { "variableBpKind": "timesAttacked" },
   "spitup": { "variableBpKind": "stockpile" },
 
   "gyroball": { "variableBpKind": "gyroBall" },

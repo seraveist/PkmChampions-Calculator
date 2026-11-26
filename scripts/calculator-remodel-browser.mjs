@@ -8,6 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import WebSocket from 'ws';
+import { readDamageUiFlow, checkDamageUiFlow } from './damage-ui-flow.mjs';
 import { runClientPerformanceBrowserChecks, runSlotCacheBrowserChecks } from './client-performance-browser-checks.mjs';
 
 const require = createRequire(import.meta.url);
@@ -361,6 +362,11 @@ async function main() {
     }
 
 
+    checkDamageUiFlow(await client.evaluate(`(${readDamageUiFlow.toString()})()`, true));
+    check(true, 'damage cards, hit controls and observed-field navigation agree');
+    await client.evaluate('window.damageFlowBeforeReload = true');
+    await client.send('Page.reload', {});
+    await waitFor(() => client.evaluate("!window.damageFlowBeforeReload && document.readyState==='complete' && typeof applyPokemonToCalcSide==='function'"));
     const report=[];
     await client.evaluate("state.atk=makeSideState('garchomp');state.def=makeSideState('dragonite');state.atk.moves=['earthquake','dragonclaw','rockslide','firefang'];state.atk.item='lifeorb';state.def.evs.hp=32;renderSide('atk');renderSide('def');runCalc();");
     check(await client.evaluate("document.querySelectorAll('#calc-results-body .move-row').length===4"),'four moves render in the shared result grid');

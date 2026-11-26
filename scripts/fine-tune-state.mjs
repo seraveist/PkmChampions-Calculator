@@ -2,7 +2,7 @@ import { readSourceFileSync as readFileSync } from './source-utils.mjs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
-import { readCalcUiSource, readViewSource } from './source-utils.mjs';
+import { readJsGroup, readCalcUiSource, readViewSource } from './source-utils.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const HTML_PATH = path.join(ROOT, 'pokemon-champions-calculator-v3.html');
@@ -93,7 +93,7 @@ function loadFineTuneApi() {
     readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '01-10-rotom-ui.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '01-20-html-structure.js'), 'utf8'),
-    readFileSync(path.join(ROOT, 'src', 'js', '02-engine.js'), 'utf8'),
+    readJsGroup(ROOT, '02-'),
     readCalcUiSource(ROOT),
     readViewSource(ROOT),
     `
@@ -112,6 +112,7 @@ function loadFineTuneApi() {
         defaultPokemonItemId,
         fineTuneState,
         ftApplyPokemonToFineTune,
+        applyEntryFieldsFromSide, autoEntryFieldState, setManualCalcField, setAutoEntryEffectsEnabled, ftHandlePlannerChange,
         ftMySpeed,
         ftSpeedFieldFor,
         ftSpeedSideFor,
@@ -385,4 +386,33 @@ for (const id of ['gengar','garchomp','clefable','shedinja']) {
   const plan=api.ftBuildHpTargets(side), targets=[...plan.investment,...plan.savings,...plan.reference];
   assertEqual(new Set(targets.map(target=>target.hp)).size,targets.length,'HP goals stay unique across all sections: '+id);
   assertOk(targets.every(target=>api.calcStats({...side,evs:{...side.evs,hp:target.ev}}).hp===target.hp && target.entries.every(info=>info.rule.predicate(target.hp))),'every displayed HP and criterion matches the calculator: '+id);
+}
+
+for (const [field, ability, value, base] of [
+  ['weather','drizzle','Rain','Sand'], ['terrain','psychicsurge','Psychic','Grassy'],
+]) {
+  for (const target of ['atk','def']) {
+    const f = loadFineTuneApi();
+    f.state.atk = f.makeSideState('pelipper');
+    f.state.def = f.makeSideState('snorlax');
+    f.state.atk.ability = ability;
+    f.setManualCalcField(field, base);
+    f.applyEntryFieldsFromSide('atk');
+    f.loadSideToFineTune('atk');
+    f.applyQuietly(target);
+    assertEqual(f.state.field[field], value, field + ' survives export to ' + target);
+    assertEqual(f.autoEntryFieldState[field].owner, target, field + ' source remaps to ' + target);
+    f.setAutoEntryEffectsEnabled(false);
+    assertEqual(f.state.field[field], base, field + ' restores manual baseline with automatic effects off');
+    f.setAutoEntryEffectsEnabled(true);
+    f.state[target].ability = 'keeneye';
+    f.applyEntryFieldsFromSide(target);
+    assertEqual(f.state.field[field], base, field + ' restores baseline after ability change');
+    f.state[target].ability = ability;
+    f.applyEntryFieldsFromSide(target);
+    f.loadSideToFineTune(target);
+    f.ftHandlePlannerChange({dataset:{ftField:field},value:base,type:'select-one'});
+    f.applyQuietly(target);
+    assertEqual(f.autoEntryFieldState[field].owner,null,field + ' explicitly edited remains manual');
+  }
 }

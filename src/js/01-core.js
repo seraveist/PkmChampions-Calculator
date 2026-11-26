@@ -218,7 +218,7 @@ const FALLBACK_NATURES = [
   { id: 'adamant', ko: '고집',     up: 'atk', down: 'spa' },
   { id: 'naughty', ko: '개구쟁이', up: 'atk', down: 'spd' },
   { id: 'bold',    ko: '대담',     up: 'def', down: 'atk' },
-  { id: 'docile',  ko: '의젓',     up: null,  down: null  },
+  { id: 'docile',  ko: '온순',     up: null,  down: null  },
   { id: 'relaxed', ko: '무사태평', up: 'def', down: 'spe' },
   { id: 'impish',  ko: '장난꾸러기', up: 'def', down: 'spa' },
   { id: 'lax',     ko: '촐랑',     up: 'def', down: 'spd' },
@@ -228,8 +228,8 @@ const FALLBACK_NATURES = [
   { id: 'jolly',   ko: '명랑',     up: 'spe', down: 'spa' },
   { id: 'naive',   ko: '천진난만', up: 'spe', down: 'spd' },
   { id: 'modest',  ko: '조심',     up: 'spa', down: 'atk' },
-  { id: 'mild',    ko: '냉정',     up: 'spa', down: 'def' },
-  { id: 'quiet',   ko: '조용',     up: 'spa', down: 'spe' },
+  { id: 'mild',    ko: '의젓',     up: 'spa', down: 'def' },
+  { id: 'quiet',   ko: '냉정',     up: 'spa', down: 'spe' },
   { id: 'bashful', ko: '수줍음',   up: null,  down: null  },
   { id: 'rash',    ko: '덜렁',     up: 'spa', down: 'spd' },
   { id: 'calm',    ko: '차분',     up: 'spd', down: 'atk' },
@@ -392,7 +392,7 @@ function isGrounded(side, field, abilityOverride = null, itemOverride = null) {
   const ab = abilityOverride ?? effectiveAbility(side);
   const item = itemOverride ?? effectiveBattleItem(side, ab);
   // 강제 Grounded 조건
-  if (field.isGravity) return true;
+  if (field.isGravity || side.forcedGrounded) return true;
   const itemData = ItemById[item] || {};
   if (itemData.grounded === true) return true;
   // Ungrounded
@@ -443,6 +443,11 @@ function getStabMod(side, moveType, ab = effectiveAbility(side)) {
    타입 효과 계산 (특성·도구 포함)
    ════════════════════════════════════════════════════════════ */
 function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCtx = null, itemCtx = null, immunityNotes = null) {
+  return resolveMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCtx, itemCtx, immunityNotes).multiplier;
+}
+
+function resolveMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCtx = null, itemCtx = null, immunityNotes = null) {
+  let blockingAbility = null;
   const defTypes = field.offensivePowerOnly ? field.powerTargetTypes : effectiveTypes(defSide);
   const ctx = abilityCtx || battleAbilityContext(atkSide, defSide);
   const atkAb = ctx.atkAb;
@@ -467,8 +472,6 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCt
       eff *= factor;
     }
   }
-  // 결정력은 기본 타입으로 공격측 조건부 보정만 판정한다. 상성 자체는 곱하지 않는다.
-  if (field.offensivePowerOnly) return eff;
   const block = label => {
     if (powerMode) immunityNotes.push(label);
     else eff = 0;
@@ -483,11 +486,13 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCt
   if (priority > 0 && !ignoresAbility && ['armortail', 'dazzling', 'queenlymajesty'].includes(defAb)) block(`${abilityData(defAb).koName || defAb}: 선제 기술 무효`);
   if (priority > 0 && field.terrain === 'Psychic' && isGrounded(defSide, field, defAb, defItem)) block('사이코필드: 선제 기술 무효');
   
-  // 면역 특성 (Mold Breaker로 무시 가능)
+  // 면역 특성 (결정력에서는 안내만, 관측 피해에서는 실제로 무효 처리)
   if (eff > 0 && !(ignoresAbility && MOLD_BREAKER_IGNORED_ABILITIES.includes(defAb))) {
     for (const immunity of abilityData(defAb).immunities || []) {
-      if (defAb === 'levitate' && isGrounded(defSide, field, defAb, defItem)) continue;
+      if (immunity.types?.includes('Ground') && abilityData(defAb).grounded === false
+          && isGrounded(defSide, field, defAb, defItem)) continue;
       if (immunity.types?.includes(moveType) || (immunity.flag && move.flags?.[immunity.flag])) {
+        if (!powerMode) blockingAbility = defAb;
         block(`${abilityData(defAb).koName || defAb}: ${immunity.flag ? '해당 기술' : (TYPE_KO[moveType] || moveType)} 무효`);
         break;
       }
@@ -496,24 +501,42 @@ function getMoveEffectiveness(move, moveType, atkSide, defSide, field, abilityCt
   }
   
   // 땅 면역: 비행 타입 / 풍선 / 부유 필드 제외
-  if (moveType === 'Ground' && !field.isGravity) {
+  if (moveType === 'Ground' && !isGrounded(defSide, field, defAb, defItem)) {
     if (ItemById[defItem]?.groundImmunity) block(`${ItemById[defItem].koName || defItem}: 땅 무효`);
-    if (defTypes.includes('Flying') && !isGrounded(defSide, field, defAb, defItem)) {
-      // (이미 typeEff에서 반영됨)
-    }
   }
-  
+
+  // 결정력은 공격 측 보정만 적용한다. 타입·특성·도구 무효는 위에서 안내하고
+  // 일반 피해량 계산을 계속한다. 관측 피해와 역계산은 실제 무효(eff = 0)를 사용한다.
   // Tera Shell: full HP target turns non-immune hits into not very effective.
-  if (eff > 0 && abilityData(defAb).teraShell && defSide.fullHP) eff = 0.5;
+  if (!field.offensivePowerOnly && eff > 0 && abilityData(defAb).teraShell && defSide.fullHP) eff = 0.5;
   
-  return eff;
+  return { multiplier: eff, blockingAbility };
 }
 
 // Shared names and HP primitives; kept below the calculation/UI dependency boundary.
+let koreanNameCollator;
+function compareKoreanNames(left, right) {
+  koreanNameCollator ??= new Intl.Collator('ko', { numeric: true, sensitivity: 'base' });
+  return koreanNameCollator.compare(left, right);
+}
 function pkName(p) { return p.koName || p.name; }
 function mvName(m) { return m.koName || m.name; }
 function abName(a) { return a ? (a.koName || a.name) : '없음'; }
 function itName(i) { return i ? (i.koName || i.name) : '없음'; }
+
+function moveHitCountRange(move, field = {}) {
+  if (Array.isArray(move?.mh)) return move.mh;
+  const max = move?.mh || 1;
+  const split = move?.id === 'dragondarts' && field.gameType === 'Doubles';
+  return [split || move?.multiaccuracy ? 1 : max, max];
+}
+
+function validMoveHitCount(move, value, field) {
+  if (!move?.mh) return null;
+  const [min, max] = moveHitCountRange(move, field);
+  const hits = Number(value);
+  return Number.isInteger(hits) && hits >= min && hits <= max ? hits : null;
+}
 
 function sideHpPct(side) {
   const n = Number(side?.hpPct);
@@ -542,4 +565,4 @@ function bind01Core() {
   }
 }
 
-export { readEmbeddedGameData, GAME_DATA, POKEMON, MOVES, ABILITIES, ITEMS, NATURE_DATA, TYPE_CHART_DATA, RULES, PokemonById, MoveById, AbilityById, ItemById, escapeHTML, renderTrustedHTML, debounce, pokeRound, MOD, chainMods, OF16, OF32, FALLBACK_TYPE_CHART, TYPE_CHART, typeEff, toId, POKEMON_SPRITE_BASE_URL, pokemonSpriteUrlById, pokemonSpriteUrl, pokemonSpriteFallbackUrl, handlePokemonSpriteError, pokemonSpriteSlot, TYPE_KO, BATTLE_TYPES, STATS, STAT_LABEL, RANK_STATS, FALLBACK_NATURES, NATURE_KO, NATURES, NATURE_BY_ID, calcMaxHp, calcStats, applyBoost, isTeraEnabled, isTeraActive, selectedTypes, effectiveTypes, originalTypes, effectiveAbility, effectiveItem, NEUTRALIZING_GAS_EXEMPT_ABILITIES, MOLD_BREAKER_IGNORED_ABILITIES, abilityData, hasNeutralizingGas, suppressAbilityForGas, battleAbilityContext, effectiveBattleItem, effectiveWeather, effectiveWeight, isGrounded, getStabMod, getMoveEffectiveness, pkName, mvName, abName, itName, sideHpPct, sideIsFullHp, bind01CoreBound, bind01Core };
+export { compareKoreanNames, resolveMoveEffectiveness, moveHitCountRange, validMoveHitCount, readEmbeddedGameData, GAME_DATA, POKEMON, MOVES, ABILITIES, ITEMS, NATURE_DATA, TYPE_CHART_DATA, RULES, PokemonById, MoveById, AbilityById, ItemById, escapeHTML, renderTrustedHTML, debounce, pokeRound, MOD, chainMods, OF16, OF32, FALLBACK_TYPE_CHART, TYPE_CHART, typeEff, toId, POKEMON_SPRITE_BASE_URL, pokemonSpriteUrlById, pokemonSpriteUrl, pokemonSpriteFallbackUrl, handlePokemonSpriteError, pokemonSpriteSlot, TYPE_KO, BATTLE_TYPES, STATS, STAT_LABEL, RANK_STATS, FALLBACK_NATURES, NATURE_KO, NATURES, NATURE_BY_ID, calcMaxHp, calcStats, applyBoost, isTeraEnabled, isTeraActive, selectedTypes, effectiveTypes, originalTypes, effectiveAbility, effectiveItem, NEUTRALIZING_GAS_EXEMPT_ABILITIES, MOLD_BREAKER_IGNORED_ABILITIES, abilityData, hasNeutralizingGas, suppressAbilityForGas, battleAbilityContext, effectiveBattleItem, effectiveWeather, effectiveWeight, isGrounded, getStabMod, getMoveEffectiveness, pkName, mvName, abName, itName, sideHpPct, sideIsFullHp, bind01CoreBound, bind01Core };

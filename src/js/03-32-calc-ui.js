@@ -1,3 +1,4 @@
+import { repeatDamageKo } from './02-repeat-damage.js';
 import { RotomUI } from './01-10-rotom-ui.js';
 import { AbilityById, ItemById, MoveById, PokemonById, abName, escapeHTML, getStabMod, mvName } from './01-core.js';
 import { calculatePowerDamage, displayName, formatCalcMultiplier, hkoLabel, powerMoveField } from './02-engine.js';
@@ -20,16 +21,32 @@ function powerUiNamedEffects() {
     .map(data => displayName(data)).filter(Boolean).sort((a,b) => b.length-a.length);
 }
 
-function powerUiCalculateSlot(slot, calc = makeCalcState()) {
+function powerUiCalculateSlot(slot, calc = makeCalcState(), input = calc.input || calc) {
   const base = MoveById[calc.atk.moves[slot]];
-  const movePower = estimateMovePower(state.atk, base ? calcMoveWithConditions(base,state.atk,slot) : null, state.def,
-    {...state.field, isCritical:!!state.atk.moveCriticalOverrides[slot]});
+  const movePower = estimateMovePower(input.atk, base ? calcMoveWithConditions(base,input.atk,slot,input.field) : null, input.def,
+    {...input.field, isCritical:!!input.atk.moveCriticalOverrides[slot]});
   if (!base || base.cat === 'Status' || !PokemonById[calc.atk.pokemonIdx] || !PokemonById[calc.def.pokemonIdx]) return { base, calc, movePower };
-  const move = calcMoveWithConditions(base,calc.atk,slot);
+  const move = calcMoveWithConditions(base,calc.atk,slot,calc.field);
   const field = {...powerMoveField(calc.atk,calc.def,move,calc.field), isCritical:!!calc.atk.moveCriticalOverrides[slot]};
   const result = calculatePowerDamage(calc.atk,calc.def,move,field);
   if (!result) return { base,move,calc,movePower,issue:calcMoveConditionIssue(move,calc.atk,calc.def,field) };
-  const ko = hkoLabel(result.damages,result.defHP,calc.def,calc.field,result.koContext,result.hitProfile);
+  if (move.id === 'dragondarts' && calc.field.gameType === 'Doubles' && !move.hitCount) {
+    const split = calculatePowerDamage(calc.atk,calc.def,{ ...move,hitCount:1 },field);
+    const range = x => x.damages[0]+'–'+x.damages.at(-1)+' HP';
+    return {base,move,result,calc,movePower,orderRanges:'분산 '+range(split)+' / 집중 '+range(result), branchNote:'기술 설정에서 이 대상 적중 횟수 선택'};
+  }
+  const orderSensitive = (!move.manualBp && ['userMovesFirstDouble','userMovesSecondDouble'].includes(move.variableBpKind))
+    || AbilityById[result.koContext?.atkAbility]?.bpBoosts?.some(rule => rule.movesSecond);
+  if (field.orderUncertain && orderSensitive && !isFixedPowerMove(move) && !result.typeImmune) {
+    const branches = [true,false].map(first => calculatePowerDamage(calc.atk,calc.def,move,{
+      ...field, orderUncertain:false, atkMovesFirst:first, atkMovesSecond:!first,
+    }));
+    if (branches.every(Boolean) && branches[0].damages.some((value,i) => value !== branches[1].damages[i])) {
+      const range = branch => branch.damages[0] + '–' + branch.damages.at(-1) + ' HP';
+      return { base, move, result, calc, movePower, orderRanges:'선공 '+range(branches[0])+' / 후공 '+range(branches[1]) };
+    }
+  }
+  const ko = repeatDamageKo(calc.atk,calc.def,move,field,result);
   return { base,move,result,ko,calc,movePower };
 }
 
@@ -71,21 +88,22 @@ function powerUiResultNote(note) {
 }
 
 function powerUiMovePresentation(slot, calc, calculated = powerUiCalculateSlot(slot,calc)) {
-  const {base,move,result,ko,issue,movePower} = calculated;
+  const {base,move,result,ko,issue,movePower,orderRanges} = calculated;
   const powerMarkup = `<div class="move-power"><span class="move-power-label">결정력</span><strong class="move-power-value">${typeof movePower.eff === 'number' ? movePower.eff.toLocaleString('ko-KR') : '—'}</strong></div>`;
-  const pickerContent = `<span class="move-name picker-label">${powerUiEscape(base ? mvName(base) : '기술 선택')}</span>${base ? `<span class="move-meta">${powerUiType(result?.moveType || move?.type || base.type)}<span>${powerUiCategoryNames[base.cat]}</span><span>${result?.bp ? `위력 ${result.bp}` : base.cat === 'Status' ? '' : base.bp ? `위력 ${base.bp}` : '조건부'}</span></span>` : ''}`;
+  const pickerContent = `<span class="move-name picker-label">${powerUiEscape(base ? mvName(base) : '기술 선택')}</span>${base ? `<span class="move-meta">${powerUiType(result?.moveType || move?.type || base.type)}<span>${powerUiCategoryNames[result?.category || base.cat]}</span><span>${result?.bp ? `위력 ${result.bp}` : base.cat === 'Status' ? '' : base.bp ? `위력 ${base.bp}` : '조건부'}</span></span>` : ''}`;
 
   let damage = `<span class="empty-damage">${base?.cat === 'Status' ? '변화기' : issue ? '조건 입력 필요' : '—'}</span>`;
   const notes = [];
   const addNote = (text, effect = false) => {
     const label = powerUiResultNote(text);
-    if (label) notes.push(`<span class="ui-tag${effect ? ' effect-note' : ''}">${powerUiEscape(label)}</span>`);
+    if (label) notes.push(`<span class="ui-tag${effect ? ' effect-note' : ''}"${effect ? ` title="${powerUiEscape(text)}"` : ''}>${powerUiEscape(label)}</span>`);
   };
   if (result) {
     const min = Math.min(...result.damages), max = Math.max(...result.damages);
-    damage = `<div class="damage-text"><span class="damage-amount">${result.minPct.toFixed(1)}–${result.maxPct.toFixed(1)}<small>%</small></span><span class="damage-raw">${min === max ? min : `${min}–${max}`} HP</span></div><div class="ui-meter damage-bar" aria-hidden="true"><span class="ui-meter-fill range" data-damage-width="${Math.min(100,result.maxPct)}"></span><span class="ui-meter-fill" data-damage-width="${Math.min(100,result.minPct)}"></span></div>`;
+    const rawLabel = max > 0 && (result.immunityNotes?.length || result.survivalNotes?.length) ? '<span class="damage-basis">일반 피해</span>' : '';
+    damage = `${rawLabel}<div class="damage-text"><span class="damage-amount">${result.minPct.toFixed(1)}–${result.maxPct.toFixed(1)}<small>%</small></span><span class="damage-raw">${min === max ? min : `${min}–${max}`} HP</span></div><div class="ui-meter damage-bar" aria-hidden="true"><span class="ui-meter-fill range" data-damage-width="${Math.min(100,result.maxPct)}"></span><span class="ui-meter-fill" data-damage-width="${Math.min(100,result.minPct)}"></span></div>`;
     for (const note of [...(result.immunityNotes || []),...(result.survivalNotes || [])]) addNote(note,true);
-    if (result.hitCounts?.some(count=>count>1)) addNote(`${Math.min(...result.hitCounts)===Math.max(...result.hitCounts) ? result.hitCounts[0] : `${Math.min(...result.hitCounts)}–${Math.max(...result.hitCounts)}`}회 적중`);
+    if (!(orderRanges && move.id === 'dragondarts') && result.hitCounts?.some(count=>count>1)) addNote(`${Math.min(...result.hitCounts)===Math.max(...result.hitCounts) ? result.hitCounts[0] : `${Math.min(...result.hitCounts)}–${Math.max(...result.hitCounts)}`}회 적중`);
     if (!isFixedPowerMove(move)) {
       const ability = result.koContext?.atkAbility || '';
       const stab = getStabMod(calc.atk,result.moveType,ability);
@@ -97,7 +115,11 @@ function powerUiMovePresentation(slot, calc, calculated = powerUiCalculateSlot(s
     }
     if (state.atk.moveCriticalOverrides[slot] && !result.mods?.some(mod => mod.includes('급소'))) addNote('급소');
     for (const mod of result.mods || []) if (!['테라 매칭 STAB×2','다능 STAB×2.25'].includes(mod)) addNote(mod);
-    if (ko.sub) for (const note of ko.sub.split(' · ')) addNote(note);
+    if (orderRanges) {
+      damage = rawLabel+'<span class="damage-raw damage-branches">'+powerUiEscape(orderRanges)+'</span>';
+      addNote(calculated.branchNote || '동속 · 기술 설정에서 행동 순서 선택');
+    }
+    if (ko?.sub) for (const note of ko.sub.split(' · ')) addNote(note);
   } else if (issue) addNote(issue);
   const koMarkup = ko ? `<strong>${powerUiEscape([ko.label,ko.turns].filter(Boolean).join(' '))}</strong>${ko.pct ? ` <span class="ko-probability">${powerUiEscape(ko.pct)} 확률</span>` : ''}` : '';
   return {

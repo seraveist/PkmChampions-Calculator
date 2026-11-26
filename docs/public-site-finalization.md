@@ -34,7 +34,9 @@ contains the preceding party snapshot. Both are stored in **one** `setItem`
 operation, avoiding partial two-key saves. Earlier readers ignore the additional
 field. The undo snapshot survives reload after a successful write.
 
-Saving returns a boolean. Failure preserves the current in-memory edits, keeps
+Edits are merged by party name or member slot inside a cross-tab write lock. An overlapping edit requires confirmation and a second check. JSON undo restores the full roster. Showdown undo restores only the selected party’s members, preserving party names and other teams. Earlier undo records retain their original whole-roster scope.
+
+Callers await the save result. Failure preserves the current in-memory edits, keeps
 the previous durable record and displays a persistent warning advising JSON
 backup. Transient success messages cannot hide this warning. A later successful
 save clears it. Failed writes do not claim durable import success.

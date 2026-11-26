@@ -16,9 +16,10 @@ for(const [kind,name] of [['abilities','Abilities'],['items','Items']]){
  rows[kind]=data(kind).map(entry=>{
   const m=fields[entry.id]||{};const policy=[];
   if(m.immunities||m.groundImmunity||m.damageBlock||m.ohkoBlock||entry.id==='wonderguard')policy.push('무효·차단은 카드 안내, 피해 산출 계속');
-  if(m.koSurvival||entry.id==='focusband')policy.push('생존은 카드 안내, KO 제한 제외');
+  if(m.switchAtHalfHp)policy.push('HP 절반 이하로 내려가 생존하면 교체 가능 여부를 같은 대상 KO에 반영');
+  if(m.koSurvival||entry.id==='focusband')policy.push('결정력은 안내 배지, KO는 생존 발동 확률 반영');
   if(kind==='items'&&(m.hpRecovery||m.residualRecovery))policy.push('생존 후 회복; KO 확률에 반영');
-  if(kind==='abilities'&&m.residualRecovery)policy.push('특성의 턴 종료 회복은 제외');
+  if(kind==='abilities'&&m.residualRecovery)policy.push('턴 종료 조건부 회복을 KO에 반영');
   if(m.resistBerryType)policy.push('직접 피해 감소, 첫 타격 후 1회 소비');
   if(allyFields[entry.id])policy.push('더블 필드 입력: '+allyFields[entry.id]);
   if(external[entry.id])policy.push(external[entry.id]);
@@ -31,6 +32,16 @@ for(const [kind,name] of [['abilities','Abilities'],['items','Items']]){
  lines.push('',`## ${kind==='abilities'?'특성':'도구'} ${rows[kind].length}개`,'','| ID | 이름 | 계산기 처리 | 구현 규칙 | 원본 이벤트 |','| --- | --- | --- | --- | --- |');
  for(const r of rows[kind])lines.push(`| ${r.id} | ${r.name} | ${r.policy} | ${r.mechanicKeys.join(', ')||'—'} | ${r.hooks.join(', ')||'—'} |`);
 }
-fs.writeFileSync(path.join(root,'docs/power-mechanics-audit.md'),lines.join('\n')+'\n');
-fs.writeFileSync(path.join(root,'docs/power-mechanics-audit.json'),JSON.stringify(rows,null,2)+'\n');
+const reports = [
+  ['power-mechanics-audit.md', lines.join('\n') + '\n'],
+  ['power-mechanics-audit.json', JSON.stringify(rows, null, 2) + '\n'],
+];
+for (const [name, contents] of reports) {
+  const file = path.join(root, 'docs', name);
+  if (!process.argv.includes('--check')) fs.writeFileSync(file, contents);
+  else if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== contents) {
+    console.error('Outdated '+name+'. Run npm run power:audit after building the standalone calculator.');
+    process.exitCode = 1;
+  }
+}
 console.log(`Classified ${rows.abilities.length} abilities and ${rows.items.length} items.`);

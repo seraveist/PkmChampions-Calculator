@@ -41,11 +41,12 @@ for(const output of compiled.outputFiles) {
   if(entry==='src/main.js') assets.app=appAsset=recordEntry;
   else if(/src\/features\/feature-(dex|matchup|finetune|revcalc)\.js$/.test(entry)) {
     const page=entry.match(/feature-(.+)\.js$/)[1];assets['feature'+page[0].toUpperCase()+page.slice(1)]=recordEntry;
-  } else assets[`shared${++sharedIndex}`]=recordEntry;
+  } else if(entry==='src/js/04-01-party-presets-image.js') assets.partyImage=recordEntry;
+  else assets[`shared${++sharedIndex}`]=recordEntry;
 }
 if(!appAsset)throw new Error('Application module output is missing.');
 html=html.replace(themeMatch[0],`<script src="${themeAsset.path}"></script>`);
-html=html.replace(/<style>[\s\S]*?<\/style>/,`<link rel="stylesheet" href="${styleAsset.path}">`);
+html=html.replace(/<style>[\s\S]*?<\/style>/,`<link rel="stylesheet" href="${styleAsset.path}">\n<link rel="modulepreload" href="${dataAsset.path}">\n<link rel="modulepreload" href="${appAsset.path}">`);
 for(const id of DATA_FIELDS)html=html.replace(new RegExp(`<script id="data-${id}" type="application/json">[\\s\\S]*?<\\/script>`),'');
 html=html.replace(/<script id="reverse-worker-source" type="application\/json">[\s\S]*?<\/script>/,`<script id="reverse-worker-source" type="application/json" data-worker-src="${workerAsset.path}"></script>`);
 html=html.replace('<script id="page-feature-assets" type="application/json"></script>','');

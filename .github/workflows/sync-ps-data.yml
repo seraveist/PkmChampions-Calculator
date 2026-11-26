@@ -7,7 +7,7 @@ on:
   workflow_dispatch: {}   # Actions 탭에서 수동 트리거 가능
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: sync-ps-data
@@ -16,18 +16,21 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      changed: ${{ steps.changes.outputs.changed }}
+      korean: ${{ steps.korean.outcome }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          # 자동 커밋 시 trigger workflow 가 다시 트리거되지 않도록 GITHUB_TOKEN 그대로 사용
-          # (기본 GITHUB_TOKEN 으로 push 한 커밋은 다른 workflow 를 깨우지 않음 — 안전)
-          fetch-depth: 1
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: '20'
+          node-version: '24'
+          package-manager-cache: false
 
       - name: Install dependencies
         run: npm ci
@@ -38,6 +41,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Refresh Korean name cache (PokéAPI)
+        id: korean
         # 새 포켓몬·기술이 추가됐을 수 있으므로 ko 캐시도 갱신
         run: node scripts/fetch-ko.mjs
         continue-on-error: true   # PokéAPI 일시 장애 시에도 빌드는 진행
@@ -48,45 +52,81 @@ jobs:
         run: |
           npm run build:standalone
           npm run coverage:matrix
+          npm run power:audit
 
       - name: Run regression suite
         run: npm test
 
-      - name: Detect changes
+      - name: Compare against pinned Showdown
+        uses: ./.github/actions/showdown-reference
+
+      - name: Collect synchronized outputs
         id: changes
         run: |
-          if git diff --quiet HEAD -- data/ docs/damage-calculator-coverage-matrix.md pokemon-champions-calculator-v3.html; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "변경 없음 — 커밋 생략"
+          node scripts/sync-patch.mjs create "$RUNNER_TEMP/sync.patch"
+          if [[ -s "$RUNNER_TEMP/sync.patch" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "변경 감지:"
-            git diff --stat HEAD -- data/ docs/damage-calculator-coverage-matrix.md pokemon-champions-calculator-v3.html | tail -20
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Commit & push
+      - name: Check updated production UI
         if: steps.changes.outputs.changed == 'true'
         run: |
+          node scripts/modules-browser.mjs --public --disable-browser-sandbox
+          node scripts/modules-browser.mjs --disable-browser-sandbox
+
+      - name: Save validated changes
+        if: steps.changes.outputs.changed == 'true' && github.ref_name == github.event.repository.default_branch && github.ref_type == 'branch'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: validated-sync
+          path: ${{ runner.temp }}/sync.patch
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: sync
+    if: needs.sync.outputs.changed == 'true' && github.ref_name == github.event.repository.default_branch && github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: validated-sync
+          path: ${{ runner.temp }}/validated-sync
+      - name: Publish to validated branch
+        env:
+          BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          node scripts/sync-patch.mjs apply "$RUNNER_TEMP/validated-sync/sync.patch"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/ docs/damage-calculator-coverage-matrix.md pokemon-champions-calculator-v3.html
-          DATE=$(date -u +%Y-%m-%d)
-          git commit -m "chore: sync PS data ${DATE}" -m "Auto-synced from one recorded smogon/pokemon-showdown commit via .github/workflows/sync-ps-data.yml — see data/upstream.json."
-          git push
+          git commit -m "chore: sync PS data $(date -u +%F)"
+          git push origin "HEAD:refs/heads/$BRANCH"
 
-      - name: Job summary
-        if: always()
+  summary:
+    if: always()
+    needs: [sync, publish]
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Record outcome
+        env:
+          VALIDATION: ${{ needs.sync.result }}
+          CHANGED: ${{ needs.sync.outputs.changed }}
+          PUBLICATION: ${{ needs.publish.result }}
+          KOREAN: ${{ needs.sync.outputs.korean }}
         run: |
           {
-            echo "## PS data sync $(date -u +%Y-%m-%d)"
-            echo ""
-            if [ "${{ steps.changes.outputs.changed }}" = "true" ]; then
-              echo "✏️ Changes detected and committed."
-              echo ""
-              echo '```'
-              git log -1 --stat
-              echo '```'
-            else
-              echo "· No changes."
+            echo "## PS data sync"
+            echo "Validation: $VALIDATION · Changed: ${CHANGED:-unknown} · Publication: $PUBLICATION"
+            if [[ "$KOREAN" == failure ]]; then
+              echo "Korean refresh failed. The last translation cache was used."
             fi
-          } >> $GITHUB_STEP_SUMMARY
+          } >> "$GITHUB_STEP_SUMMARY"

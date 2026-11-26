@@ -1,0 +1,25 @@
+name: Verify pinned Showdown reference
+description: Build the synchronized simulator and compare damage, KO and Speed rules
+runs:
+  using: composite
+  steps:
+    - name: Read synchronized revision
+      id: reference
+      shell: bash
+      run: |
+        node -e 'const sha = require("./data/upstream.json").commit; if (!/^[a-f0-9]{40}$/.test(sha)) process.exit(1); console.log("sha=" + sha)' >> "$GITHUB_OUTPUT"
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      with:
+        repository: smogon/pokemon-showdown
+        ref: ${{ steps.reference.outputs.sha }}
+        path: .showdown-reference
+        persist-credentials: false
+    - name: Build reference simulator
+      shell: bash
+      working-directory: .showdown-reference
+      run: |
+        npm ci --omit=dev --ignore-scripts --no-audit
+        node build
+    - name: Compare against the simulator
+      shell: bash
+      run: npm run damage:reference -- --showdown .showdown-reference

@@ -116,7 +116,9 @@ function rcCreateAnalysisWorker() {
     rcAnalysisWorkerUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
     rcAnalysisWorker = new Worker(rcAnalysisWorkerUrl, { name: 'pkmchampions-reverse-analysis' });
   }
-  rcAnalysisWorker.addEventListener('message', event => {
+  const worker = rcAnalysisWorker;
+  worker.addEventListener('message', event => {
+    if (worker !== rcAnalysisWorker) return;
     const message = event.data || {};
     const pending = rcAnalysisWorkerPending;
     if (!pending || (message.id != null && message.id !== pending.id)) return;
@@ -128,12 +130,18 @@ function rcCreateAnalysisWorker() {
       pending.reject(new Error(message.message || '역계산 Worker 오류'));
     }
   });
-  rcAnalysisWorker.addEventListener('error', event => {
+  worker.addEventListener('error', event => {
+    if (worker !== rcAnalysisWorker) return;
     const error = new Error(event.message || '역계산 Worker를 실행하지 못했습니다.');
     rcTerminateAnalysisWorker(error);
   });
-  rcAnalysisWorker.postMessage({ type: 'init', data: rcAnalysisWorkerData() });
-  return rcAnalysisWorker;
+  try {
+    worker.postMessage({ type: 'init', data: rcAnalysisWorkerData() });
+  } catch (error) {
+    rcTerminateAnalysisWorker(error);
+    throw error;
+  }
+  return worker;
 }
 
 function rcAnalysisSnapshot() {
@@ -156,7 +164,11 @@ function rcAnalyzeInWorker() {
   const id = ++rcAnalysisRequestId;
   return new Promise((resolve, reject) => {
     rcAnalysisWorkerPending = { id, resolve, reject };
-    worker.postMessage({ type: 'analyze', id, state: rcAnalysisSnapshot() });
+    try {
+      worker.postMessage({ type: 'analyze', id, state: rcAnalysisSnapshot() });
+    } catch (error) {
+      rcTerminateAnalysisWorker(error);
+    }
   });
 }
 
@@ -170,7 +182,7 @@ async function rcAnalyzeCachedAsync() {
 }
 
 function rcCancelAnalysis() {
-  rcTerminateAnalysisWorker(new Error('RC_ANALYSIS_CANCELLED'));
+  if (rcAnalysisWorkerPending) rcTerminateAnalysisWorker(new Error('RC_ANALYSIS_CANCELLED'));
 }
 
 // 베이스 defender state 빌드 (역계산 검색 중간 단계용)

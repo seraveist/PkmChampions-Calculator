@@ -1,10 +1,13 @@
 import { toolStatApplyPointValue, toolStatApplyRankDelta, toolStatNormalizePointInputValue, toolStatShouldCommitPointInput } from './01-20-html-structure.js';
-import { AbilityById, ItemById, MoveById, NATURE_BY_ID, PokemonById, abName, itName } from './01-core.js';
-import { calcNatureLabel, cloneCalcValue, makeSideState, setSideCurrentHp, state } from './03-10-calc-state.js';
+import { validMoveHitCount, AbilityById, ItemById, MoveById, NATURE_BY_ID, calcMaxHp, PokemonById, abName, itName } from './01-core.js';
+import { setCalcMoveSlot } from './03-09-move-slots.js';
+import { makeCalcState, resetAutoEntryFieldState, resetManualAutoFieldOverrides, setAutoEntryEffectsEnabled } from './03-40-calc-entry-effects.js';
+import { battleHp } from './02-hit-state.js';
+import { calcNatureLabel, cloneCalcValue, normalizeManualBp, normalizeMoveType, makeSideState, setSideCurrentHp, state } from './03-10-calc-state.js';
 import { calcAbilityOptionDataForPokemon, calcItemOptionData, calcNatureOptionData } from './03-20-calc-combobox.js';
 import { renderSide } from './03-30-calc-side-render.js';
 import { triggerCalc } from './03-50-calc-results.js';
-import { RC_MOVESET_SIZE, rcDefaultField, rcEnsureMoveInSet, rcForecastKey, rcItemCandidateCountLabel, rcMoveSet, rcNextMyRanks, rcNextOpponentRanks, rcResetItemCandidatesForOpponent, revCalcState } from './04-40-revcalc-state.js';
+import { RC_MOVESET_SIZE, rcDefaultField, rcEnsureMoveInSet, rcForecastKey, rcItemCandidateCountLabel, rcMoveSet, rcNextMyRanks, rcNextOpponentRanks, rcObservedField, rcSetMovePickerValue, rcResetItemCandidatesForOpponent, revCalcState } from './04-40-revcalc-state.js';
 import { rcAnalysisCache, rcAnalysisCacheKey, rcAnalyzeCachedAsync, rcCancelAnalysis } from './04-42-revcalc-candidates.js';
 import { renderRevCalcAll, renderRevCalcInputs, renderRevCalcMy, renderRevCalcOpp, renderRevCalcResults } from './04-43-revcalc-render.js';
 import { rcDefaultKnownOpponentItemForPokemon, rcFieldInputValue, rcSyncInputsFromDom } from './04-44-revcalc-events.js';
@@ -29,7 +32,7 @@ function rcReadExtraObservationInput(t) {
     revCalcState.observedMoveOptions ||= { my: {}, opp: {} };
     const role = t.dataset.rcRole;
     revCalcState.observedMoveOptions[role] ||= {};
-    revCalcState.observedMoveOptions[role][t.dataset.rcMoveOption] = t.value;
+    revCalcState.observedMoveOptions[role][t.dataset.rcMoveOption] = t.type === 'checkbox' ? t.checked : t.dataset.rcMoveOption === 'disguiseBroken' ? t.value === 'broken' : t.dataset.rcMoveOption === 'forcedGrounded' ? t.value === 'grounded' : t.value;
   }
 }
 
@@ -108,6 +111,30 @@ function rcComboSearchMatches(query, option) {
 // 분석 시작
 
 
+function rcSideConditions(side) {
+  return {
+    disguiseBroken: !!side.disguiseBroken, forcedGrounded: !!side.forcedGrounded, tailwind: !!side.tailwind,
+    flashFireActive: !!side.flashFireActive, timesAttacked: Number(side.timesAttacked) || 0, stockpileCount: Number(side.stockpileCount) || 0,
+    fickleBeamMode: side.fickleBeamMode || 'auto',
+  };
+}
+
+function rcRestoreObservedMoves(side, moves, role, selected, bp, field) {
+  const options = revCalcState.observedMoveOptions?.[role] || {};
+  const count = Math.min(RC_MOVESET_SIZE, moves.length);
+  for (let slot = 0; slot < RC_MOVESET_SIZE; slot++) {
+    const id = moves[slot] || '';
+    if (side.moves[slot] !== id) setCalcMoveSlot(side, slot, id);
+    if (!id) continue;
+    if (id !== selected) continue;
+    side.moveCriticalOverrides[slot] = !!field.isCritical;
+    side.moveBpOverrides[slot] = normalizeManualBp(bp);
+    side.moveTypeOverrides[slot] = normalizeMoveType(options.moveType);
+    side.moveHitCounts[slot] = validMoveHitCount(MoveById[id], options.hitCount);
+  }
+  side.moves.length = count;
+}
+
 // 결과 spread 를 계산기 방어측에 적용
 function rcApplyResultToCalc(idx) {
   const r = revCalcState.results;
@@ -127,11 +154,25 @@ function rcApplyResultToCalc(idx) {
   defState.ability = c.ability || defState.ability;
   defState.ranks = { ...revCalcState.opp.ranks };
   defState.status = revCalcState.opp.status || 'none';
-  // 적용
+  const dealt = rcObservedField('dealt'), received = rcObservedField('received');
+  Object.assign(defState, rcSideConditions(revCalcState.observedMoveOptions?.opp || {}));
+  setSideCurrentHp(defState, battleHp({ ...defState, hpPct: Number(revCalcState.oppStartHpPct) / 100 }));
+  const theirMoves = [...(revCalcState.knownOppMoves || [])];
+  if (revCalcState.oppMove && !theirMoves.includes(revCalcState.oppMove)) {
+    const empty = theirMoves.findIndex(id => !id);
+    theirMoves[empty < 0 ? 0 : empty] = revCalcState.oppMove;
+  }
+  rcRestoreObservedMoves(defState, theirMoves, 'opp', revCalcState.oppMove, revCalcState.oppMoveBp, received);
+  const mine = cloneCalcValue(revCalcState.my);
+  Object.assign(mine, rcSideConditions({ ...mine, ...revCalcState.observedMoveOptions?.my }));
+  rcRestoreObservedMoves(mine, rcMoveSet(), 'my', revCalcState.myMove, revCalcState.myMoveBp, dealt);
+  // Imported ranks already describe the start of the observed exchange.
+  resetManualAutoFieldOverrides();
+  setAutoEntryEffectsEnabled(false);
   state.def = defState;
-  state.atk = cloneCalcValue(revCalcState.my);
-  // 필드 상태 적용
-  Object.assign(state.field, revCalcState.field);
+  state.atk = mine;
+  state.field = { ...dealt };
+  resetAutoEntryFieldState();
   renderSide('atk');
   renderSide('def');
   triggerCalc();
@@ -140,30 +181,46 @@ function rcApplyResultToCalc(idx) {
 }
 
 // 계산기 → 형태 역계산 sync
-function loadSideToRevCalc(sideKey) {
-  const src = state[sideKey];
+function loadSideToRevCalc(sideKey, { render = true } = {}) {
+  const calc = makeCalcState();
+  const src = calc[sideKey];
   rcNewObservation({ render: false });
   revCalcState.my = cloneCalcValue(src);
   revCalcState.nextMyRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(src.ranks || {}) };
   revCalcState.myMoveSet = [...(src.moves || [])].slice(0, RC_MOVESET_SIZE);
   while (revCalcState.myMoveSet.length < RC_MOVESET_SIZE) revCalcState.myMoveSet.push('');
   revCalcState.myMove = revCalcState.myMoveSet.find(id => MoveById[id]?.cat !== 'Status') || '';
-  revCalcState.myMoveBp = '';
+  const slot = src.moves.indexOf(revCalcState.myMove);
+  revCalcState.myMoveBp = src.moveBpOverrides[slot] ?? '';
   const otherKey = sideKey === 'atk' ? 'def' : 'atk';
-  revCalcState.opp.pokemonIdx = state[otherKey].pokemonIdx;
-  revCalcState.opp.ranks = { ...state[otherKey].ranks };
-  revCalcState.nextOppRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...(state[otherKey].ranks || {}) };
-  revCalcState.opp.status = state[otherKey].status || 'none';
+  const other = calc[otherKey];
+  revCalcState.opp.pokemonIdx = other.pokemonIdx;
+  revCalcState.opp.ranks = { ...other.ranks };
+  revCalcState.nextOppRanks = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, ...other.ranks };
+  revCalcState.opp.status = other.status || 'none';
   revCalcState.oppItemKnown = 'unknown';
   revCalcState.oppAbilityKnown = 'unknown';
-  revCalcState.observedMoveOptions = { my: {}, opp: {} };
+  revCalcState.observedMoveOptions = { my: rcSideConditions(src), opp: rcSideConditions(other) };
+  const move = MoveById[revCalcState.myMove];
+  revCalcState.observedMoveOptions.my.moveType = src.moveTypeOverrides[slot] || '';
+  const hits = validMoveHitCount(move, src.moveHitCounts[slot]);
+  if (hits) revCalcState.observedMoveOptions.my.hitCount = hits;
+  if (PokemonById[other.pokemonIdx]) {
+    revCalcState.oppStartHpPct = Math.ceil(battleHp(other) * 10000 / calcMaxHp(other)) / 100;
+  }
+  const direction = revCalcState.observedFields[sideKey === 'atk' ? 'dealt' : 'received'];
+  direction.defReflect = !!calc.field.defReflect;
+  direction.defLightScreen = !!calc.field.defLightScreen;
+  revCalcState.observedFields.dealt.isCritical = !!src.moveCriticalOverrides[slot];
   revCalcState.results = null;
   revCalcState.resultsStale = false;
   rcResetItemCandidatesForOpponent();
-  revCalcState.field = rcDefaultField();
-  const navBtn = document.querySelector('.nav-tab[data-page="revcalc"]');
-  if (navBtn) navBtn.click();
-  renderRevCalcAll();
+  const { weather, terrain, trickRoom, isGravity } = calc.field;
+  revCalcState.field = { ...rcDefaultField(), weather, terrain, trickRoom: !!trickRoom, isGravity: !!isGravity };
+  if (render) {
+    document.querySelector('.nav-tab[data-page="revcalc"]')?.click();
+    renderRevCalcAll();
+  }
 }
 
 function rcNewObservation({ opponentId = '', keepField = false, render = true } = {}) {
@@ -233,17 +290,14 @@ function bind0445RevcalcActions() {
     }
     if (t.dataset.rcAction === 'oppStatus') { revCalcState.opp.status = t.value; return; }
     if (t.dataset.rcAction === 'myMove') {
-      revCalcState.myMove = t.value;
+      rcSetMovePickerValue('myMove', t.value);
       rcEnsureMoveInSet(t.value);
-      revCalcState.myMoveBp = '';   // 자동 채움
       renderRevCalcInputs();
       renderRevCalcResults();
       return;
     }
     if (t.dataset.rcAction === 'oppMove') {
-      revCalcState.oppMove = t.value;
-      revCalcState.oppMoveBp = '';
-      if (!revCalcState.predictedOppMove) revCalcState.predictedOppMove = t.value;
+      rcSetMovePickerValue('oppMove', t.value);
       renderRevCalcInputs();
       return;
     }

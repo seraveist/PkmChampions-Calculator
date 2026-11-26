@@ -2,7 +2,7 @@ import { readSourceFileSync as readFileSync } from './source-utils.mjs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
-import { readCalcUiSource } from './source-utils.mjs';
+import { readJsGroup, readCalcUiSource } from './source-utils.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const HTML_PATH = path.join(ROOT, 'pokemon-champions-calculator-v3.html');
@@ -73,7 +73,7 @@ function loadUiApi() {
     readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '01-10-rotom-ui.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '01-20-html-structure.js'), 'utf8'),
-    readFileSync(path.join(ROOT, 'src', 'js', '02-engine.js'), 'utf8'),
+    readJsGroup(ROOT, '02-'),
     readCalcUiSource(ROOT),
     `
       globalThis.__entryApi = {

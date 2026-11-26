@@ -1,5 +1,5 @@
 import { bindUiTabKeyboard, syncUiPanels, syncUiTabs, uiButton } from './01-20-html-structure.js';
-import { ABILITIES, AbilityById, BATTLE_TYPES, ITEMS, MOVES, POKEMON, PokemonById, TYPE_KO, abName, debounce, escapeHTML, itName, mvName, pkName, pokemonSpriteSlot, renderTrustedHTML, toId } from './01-core.js';
+import { compareKoreanNames, ABILITIES, AbilityById, BATTLE_TYPES, ITEMS, MOVES, POKEMON, PokemonById, TYPE_KO, abName, debounce, escapeHTML, itName, mvName, pkName, pokemonSpriteSlot, renderTrustedHTML, toId } from './01-core.js';
 import { PokemonByAbility, PokemonByMove, closeDexDetail, closeDexFullPage, dexMoveTraits } from './04-11-dex-detail.js';
 
 /* Dex navigation, filtering, sorting, pagination, and list rendering. */
@@ -314,7 +314,7 @@ function compareDexValues(a, b, dir) {
   const bv = b ?? '';
   const result = (typeof av === 'number' && typeof bv === 'number')
     ? av - bv
-    : String(av).localeCompare(String(bv), 'ko', { numeric: true, sensitivity: 'base' });
+    : compareKoreanNames(String(av), String(bv));
   return dir === 'desc' ? -result : result;
 }
 function dexSortValue(entry, tab, key) {

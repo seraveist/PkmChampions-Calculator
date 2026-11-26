@@ -28,6 +28,10 @@ header { background:var(--panel);border-bottom:1px solid var(--line); }
 .site-footer p { margin:0; }
 .site-footer-links { display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:4px; }
 .site-footer-links a { display:inline-flex;align-items:center;min-height:32px;color:var(--ink);text-underline-offset:3px;overflow-wrap:anywhere; }
+.calculation-guide { display:none;max-width:68ch;margin:0 auto;padding:16px 24px 24px;line-height:1.7; }
+.calculation-guide:target { display:block; }
+.calculation-guide p { margin-block:8px; }
+
 @media(max-width:1200px) { .site-shell { grid-template-columns:minmax(0,1152px); }.ad-rail { display:none; } }
 @media(max-width:900px) { .main-nav { padding-inline:20px; } }
 @media(max-width:700px) {

@@ -1,5 +1,5 @@
 import { AbilityById, ItemById, MoveById, NATURE_BY_ID, PokemonById, STATS } from './01-core.js';
-import { confirmPartyPresetReplacement, renderPartyPresetModal } from './04-03-party-presets-ui.js';
+
 
 /* Party presets: state and persistence. */
 const PARTY_PRESET_STORAGE_KEY = 'pkmChampions.partyPresets.v1';
@@ -55,7 +55,14 @@ let partyPresetStorageWarning = '';
 let partyPresetStorageReadBlocked = false;
 let partyPresetPreviousImport = null;
 let partyPresetImportBusy = false;
+let partyPresetStoredRaw = null;
 let partyPresetData = loadPartyPresetData();
+let partyPresetBase = normalizePartyPresetData(partyPresetData);
+let partyPresetSaveQueue = Promise.resolve();
+let partyPresetLockDb;
+let partyPresetDeferredWrite = null;
+let partyPresetUi;
+function configurePartyPresetUi(ui) { partyPresetUi = ui; }
 let partyPresetModalReady = false;
 let partyPresetTextState = { partyIndex: 0, mode: 'import' };
 let partyPresetPickerTarget = '';
@@ -83,15 +90,13 @@ function partyPresetFocusableElements(container) {
 }
 
 function partyPresetFocusLayer(container, preferred = null) {
-  requestAnimationFrame(() => {
-    const target = preferred || partyPresetFocusableElements(container)[0];
-    target?.focus?.();
-  });
+  const target = preferred || partyPresetFocusableElements(container)[0];
+  target?.focus?.({ preventScroll: true });
 }
 
 function partyPresetRestoreFocus(target) {
   if (!target || typeof target.focus !== 'function' || target.isConnected === false) return;
-  requestAnimationFrame(() => target.focus());
+  target.focus({ preventScroll: true });
 }
 
 function partyPresetTrapFocus(event, container) {
@@ -245,6 +250,7 @@ function loadPartyPresetData() {
   let raw;
   try {
     raw = localStorage.getItem(PARTY_PRESET_STORAGE_KEY);
+    partyPresetStoredRaw = raw;
   } catch {
     partyPresetStorageReadBlocked = true;
     partyPresetStorageWarning = '브라우저 저장소를 읽지 못했습니다. 현재 탭의 변경은 자동 저장되지 않습니다. JSON으로 백업해 주세요.';
@@ -256,7 +262,7 @@ function loadPartyPresetData() {
     // Stored records from earlier versions still use the existing ID normalization.
     const data = parsePartyPresetBackup(stored, { checkIds: false });
     if (stored.previousImport) {
-      try { partyPresetPreviousImport = parsePartyPresetBackup(stored.previousImport, { checkIds: false }); }
+      try { partyPresetPreviousImport = readPartyUndo(stored.previousImport); }
       catch { partyPresetPreviousImport = null; }
     }
     return data;
@@ -281,57 +287,207 @@ function updatePartyPresetBackupControls() {
   if (input) input.disabled = partyPresetImportBusy;
 }
 
-function savePartyPresetData({ allowOverwrite = false } = {}) {
-  if (partyPresetStorageReadBlocked && !allowOverwrite) {
-    updatePartyPresetBackupControls();
-    return false;
+function readPartyUndo(value) {
+  if (!value) return null;
+  const snapshot = parsePartyPresetBackup(value, { checkIds: false });
+  if (Number.isInteger(value.partyIndex) && snapshot.parties[value.partyIndex]) snapshot.partyIndex = value.partyIndex;
+  if (typeof value.importId === 'string') snapshot.importId = value.importId;
+  return snapshot;
+}
+
+function samePartyValue(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+// Serialize the read/merge/write across tabs, including restores and undo.
+async function withPartyStorageLock(operation) {
+  if (globalThis.navigator?.locks) return navigator.locks.request(PARTY_PRESET_STORAGE_KEY, operation);
+  if (!globalThis.indexedDB) throw new Error('파티 저장 잠금을 사용할 수 없습니다.');
+  if (!partyPresetLockDb) {
+    partyPresetLockDb = new Promise((resolve, reject) => {
+      const request = indexedDB.open(PARTY_PRESET_STORAGE_KEY + '.lock', 1);
+      request.onupgradeneeded = () => request.result.createObjectStore('writer');
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        db.onversionchange = () => { db.close(); partyPresetLockDb = null; };
+        resolve(db);
+      };
+    }).catch(error => { partyPresetLockDb = null; throw error; });
   }
+  const db = await partyPresetLockDb;
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('writer', 'readwrite');
+    let result;
+    tx.oncomplete = () => resolve(result);
+    tx.onabort = () => reject(tx.error || new Error('파티 저장 잠금 실패'));
+    tx.objectStore('writer').get(0).onsuccess = () => {
+      try { result = operation(); } catch (error) { tx.abort(); reject(error); }
+    };
+  });
+}
+
+function partyScope(data, scope) {
+  if (scope.all) return data.parties;
+  const party = data.parties[scope.party];
+  if (scope.members) return party.members;
+  return scope.slot === undefined ? party.name : party.members[scope.slot];
+}
+
+function setPartyScope(data, scope, value) {
+  if (scope.all) data.parties = value;
+  else if (scope.members) data.parties[scope.party].members = value;
+  else if (scope.slot === undefined) data.parties[scope.party].name = value;
+  else data.parties[scope.party].members[scope.slot] = value;
+}
+
+function partyEdits(before, after) {
+  const scopes = [];
+  after.parties.forEach((party, i) => {
+    if (before.parties[i].name !== party.name) scopes.push({ party: i });
+    party.members.forEach((member, j) => {
+      if (!samePartyValue(before.parties[i].members[j], member)) scopes.push({ party: i, slot: j });
+    });
+  });
+  return scopes;
+}
+
+// The confirmation is outside the storage lock. Recheck before applying it.
+async function commitPartyChange(before, desired, scopes, action = 'edit', undo = null) {
+  let accepted;
   try {
-    // One atomic storage write contains the current parties and one undo snapshot.
-    // No second key can fail halfway through replacing the active record.
-    const stored = { ...partyPresetData };
-    if (partyPresetPreviousImport) stored.previousImport = partyPresetPreviousImport;
-    localStorage.setItem(PARTY_PRESET_STORAGE_KEY, JSON.stringify(stored));
-    partyPresetStorageReadBlocked = false;
-    partyPresetStorageWarning = '';
-    updatePartyPresetBackupControls();
-    return true;
+    for (;;) {
+      const result = await withPartyStorageLock(() => {
+        const raw = localStorage.getItem(PARTY_PRESET_STORAGE_KEY);
+        let disk = blankPartyPresetData(), previous = null;
+        if (raw) {
+          try {
+            const record = JSON.parse(raw);
+            disk = parsePartyPresetBackup(record, { checkIds: false });
+            try { previous = readPartyUndo(record.previousImport); } catch { previous = null; }
+          } catch (error) {
+            if (!(action === 'import' && scopes[0].all && partyPresetStorageReadBlocked && raw === partyPresetStoredRaw)) throw error;
+          }
+        }
+        if (action === 'undo' && !samePartyValue(previous, undo)) return { stale: true, disk, previous };
+        const values = scopes.map(scope => partyScope(disk, scope));
+        const conflict = scopes.some((scope, i) => !samePartyValue(values[i], partyScope(before, scope)) &&
+          (action !== 'edit' || !samePartyValue(values[i], partyScope(desired, scope))));
+        if (conflict && !samePartyValue(values, accepted)) return { conflict: true, values, disk, previous };
+        if (action === 'import') {
+          previous = normalizePartyPresetData(disk);
+          if (scopes[0].members) previous.partyIndex = scopes[0].party;
+          previous.importId = globalThis.crypto?.randomUUID?.() || String(Date.now()) + Math.random();
+        }
+        if (action === 'undo') previous = null;
+        for (const scope of scopes) setPartyScope(disk, scope, partyScope(desired, scope));
+        const record = { ...disk };
+        if (previous) record.previousImport = previous;
+        const nextRaw = JSON.stringify(record);
+        localStorage.setItem(PARTY_PRESET_STORAGE_KEY, nextRaw);
+        partyPresetStoredRaw = nextRaw;
+        return { saved: true, disk, previous };
+      });
+      if (result.conflict) {
+        const ok = await partyPresetUi.confirm({
+          title: '다른 탭의 파티 변경', message: '저장하려는 항목이 다른 탭에서 바뀌었습니다. 현재 편집으로 교체할까요?',
+          actionLabel: '내 편집 적용',
+        });
+        if (ok) { accepted = result.values; continue; }
+      }
+      // Preserve edits typed while waiting for the lock or confirmation.
+      partyPresetDeferredWrite = null;
+      const pending = normalizePartyPresetData(partyPresetData);
+      const changes = partyEdits(desired, pending);
+      partyPresetBase = normalizePartyPresetData(result.disk);
+      const merged = normalizePartyPresetData(result.disk);
+      for (const scope of changes) setPartyScope(merged, scope, partyScope(pending, scope));
+      const refreshed = !samePartyValue(merged, pending);
+      partyPresetData = merged;
+      partyPresetPreviousImport = result.previous;
+      partyPresetStorageReadBlocked = false;
+      partyPresetStorageWarning = result.stale ? '다른 탭에서 가져오기 기록이 변경되었습니다.' : '';
+      if (refreshed) partyPresetUi.refresh();
+      updatePartyPresetBackupControls();
+      return result.saved === true;
+    }
   } catch {
+    if (action !== 'edit') {
+      partyPresetDeferredWrite = { before, desired, scopes, action, undo };
+      if (action === 'import') {
+        partyPresetPreviousImport = normalizePartyPresetData(before);
+        if (scopes[0].members) partyPresetPreviousImport.partyIndex = scopes[0].party;
+      } else partyPresetPreviousImport = null;
+    }
     partyPresetStorageWarning = '이 브라우저에 저장하지 못했습니다. 변경은 현재 탭에만 유지됩니다. JSON으로 백업해 주세요.';
     updatePartyPresetBackupControls();
     return false;
   }
 }
 
-// Shared by JSON restore and single-party Showdown imports. File reading and
-// confirmation hold one lock, preventing stale reads or duplicate confirmation.
+function queuePartyWrite(run) {
+  partyPresetSaveQueue = partyPresetSaveQueue.then(run, run);
+  return partyPresetSaveQueue;
+}
+
+function savePartyPresetData() {
+  if (partyPresetStorageReadBlocked) { updatePartyPresetBackupControls(); return false; }
+  return queuePartyWrite(async () => {
+    if (partyPresetDeferredWrite) {
+      const { before, desired, scopes, action, undo } = partyPresetDeferredWrite;
+      if (!await commitPartyChange(before, desired, scopes, action, undo)) return false;
+    }
+    const desired = normalizePartyPresetData(partyPresetData);
+    const scopes = partyEdits(partyPresetBase, desired);
+    return scopes.length ? commitPartyChange(partyPresetBase, desired, scopes) : true;
+  });
+}
+
+function refreshPartyPresetFromDisk() {
+  if (partyPresetImportBusy || partyPresetStorageWarning || partyEdits(partyPresetBase, normalizePartyPresetData(partyPresetData)).length) return;
+  try {
+    if (partyPresetStoredRaw === localStorage.getItem(PARTY_PRESET_STORAGE_KEY)) return;
+    const priorUndo = partyPresetPreviousImport;
+    partyPresetPreviousImport = null;
+    const data = loadPartyPresetData();
+    if (partyPresetStorageReadBlocked) {
+      partyPresetPreviousImport = priorUndo;
+      updatePartyPresetBackupControls();
+      return;
+    }
+    partyPresetData = data;
+    partyPresetBase = normalizePartyPresetData(partyPresetData);
+    partyPresetUi.refresh();
+  } catch { /* Explicit save handles unavailable storage. */ }
+}
+
 async function runPartyPresetImport(prepare) {
   if (partyPresetImportBusy) return false;
   partyPresetImportBusy = true;
   updatePartyPresetBackupControls();
   try {
-    const { data, summary, success } = await prepare();
-    if (!partyPresetStorageReadBlocked && JSON.stringify(data) === JSON.stringify(normalizePartyPresetData(partyPresetData))) {
-      setPartyPresetStatus('현재 파티와 같은 내용입니다. 변경하지 않았습니다.');
+    await partyPresetSaveQueue;
+    const before = normalizePartyPresetData(partyPresetData);
+    const { data, partyIndex, summary, success, warnings = [] } = await prepare();
+    const scope = partyIndex === undefined ? { all: true } : { party: partyIndex, members: true };
+    if (!partyPresetStorageReadBlocked && samePartyValue(partyScope(data, scope), partyScope(before, scope))) {
+      setPartyPresetStatus(['현재 파티와 같은 내용입니다. 변경하지 않았습니다.', ...warnings].join('\n'), warnings.length ? 'warning' : '');
       return false;
     }
-    const blockedNote = partyPresetStorageReadBlocked ? ' 읽지 못한 기존 저장 기록도 교체되며, 해당 원본은 되돌리기에 포함되지 않습니다.' : '';
-    if (!await confirmPartyPresetReplacement({
-      title: '파티 가져오기 확인',
-      message: `${summary}${blockedNote} 교체 직전의 파티는 한 단계 되돌릴 수 있습니다. 계속할까요?`,
-      actionLabel: '교체하기',
-    })) {
-      setPartyPresetStatus('가져오기를 취소했습니다. 기존 파티는 유지됩니다.');
-      return false;
-    }
-    partyPresetPreviousImport = normalizePartyPresetData(partyPresetData);
-    partyPresetData = data;
-    const saved = savePartyPresetData({ allowOverwrite: true });
-    renderPartyPresetModal();
-    setPartyPresetStatus(saved ? success : '가져온 파티는 현재 탭에만 적용되었습니다. JSON으로 백업해 주세요.', saved ? 'success' : 'warning');
-    return true;
+    const blockedNote = partyPresetStorageReadBlocked ? ' 읽지 못한 기존 저장 기록은 교체됩니다.' : '';
+    if (!await partyPresetUi.confirm({
+      title: '파티 가져오기 확인', message: summary + blockedNote + ' 직전 가져오기는 한 단계 되돌릴 수 있습니다. 계속할까요?', actionLabel: '교체하기',
+    })) return false;
+    await savePartyPresetData();
+    const desired = normalizePartyPresetData(partyPresetData);
+    setPartyScope(desired, scope, partyScope(data, scope));
+    partyPresetData = normalizePartyPresetData(desired);
+    const saved = await queuePartyWrite(() => commitPartyChange(before, desired, [scope], 'import'));
+    partyPresetUi.render();
+    setPartyPresetStatus(saved ? success : partyPresetStorageWarning || '가져오기를 취소했습니다.', saved ? 'success' : 'warning');
+    return saved || !!partyPresetStorageWarning;
   } catch (error) {
-    setPartyPresetStatus(error instanceof SyntaxError ? 'JSON 형식을 확인해 주세요. 기존 파티는 변경하지 않았습니다.' : error.message || '파티를 가져오지 못했습니다.', 'error');
+    setPartyPresetStatus(error instanceof SyntaxError ? 'JSON 형식을 확인해 주세요.' : error.message || '파티를 가져오지 못했습니다.', 'error');
     return false;
   } finally {
     partyPresetImportBusy = false;
@@ -344,20 +500,20 @@ async function undoPartyPresetImport() {
   partyPresetImportBusy = true;
   updatePartyPresetBackupControls();
   try {
-    if (!await confirmPartyPresetReplacement({
-      title: '가져오기 되돌리기',
-      message: '모든 파티를 직전 가져오기 이전으로 되돌립니다. 가져온 뒤 수정한 내용도 교체됩니다. 계속할까요?',
-      actionLabel: '되돌리기',
-    })) return false;
-    partyPresetData = normalizePartyPresetData(partyPresetPreviousImport);
-    partyPresetPreviousImport = null;
-    const saved = savePartyPresetData({ allowOverwrite: true });
-    renderPartyPresetModal();
-    setPartyPresetStatus(saved ? '직전 가져오기를 되돌렸습니다.' : '현재 탭에서 되돌렸지만 저장하지 못했습니다. JSON으로 백업해 주세요.', saved ? 'success' : 'warning');
-    return true;
-  } catch {
-    setPartyPresetStatus('되돌리기를 완료하지 못했습니다.', 'error');
-    return false;
+    await savePartyPresetData();
+    const undo = partyPresetPreviousImport;
+    if (!undo) return false;
+    const before = normalizePartyPresetData(partyPresetData);
+    const scope = undo.partyIndex === undefined ? { all: true } : { party: undo.partyIndex, members: true };
+    const label = scope.all ? '모든 파티' : ('파티 ' + (scope.party + 1) + '의 멤버 목록');
+    if (!await partyPresetUi.confirm({ title: '가져오기 되돌리기', message: label + '을 가져오기 이전으로 되돌립니다. 계속할까요?', actionLabel: '되돌리기' })) return false;
+    const desired = normalizePartyPresetData(partyPresetData);
+    setPartyScope(desired, scope, partyScope(undo, scope));
+    partyPresetData = normalizePartyPresetData(desired);
+    const saved = await queuePartyWrite(() => commitPartyChange(before, desired, [scope], 'undo', undo));
+    partyPresetUi.render();
+    setPartyPresetStatus(saved ? '가져오기를 되돌렸습니다.' : partyPresetStorageWarning || '되돌리기를 취소했습니다.', saved ? 'success' : 'warning');
+    return saved;
   } finally {
     partyPresetImportBusy = false;
     updatePartyPresetBackupControls();
@@ -365,10 +521,10 @@ async function undoPartyPresetImport() {
 }
 
 function setPartyPresetStatus(message = '', tone = '') {
-  const status = document.getElementById('partyPresetStatus');
-  if (!status) return;
-  status.textContent = message;
-  status.dataset.tone = tone || '';
+  for (const id of ['partyPresetStatus', 'partyPresetTextStatus']) {
+    const status = document.getElementById(id);
+    if (status) { status.textContent = message; status.dataset.tone = tone; }
+  }
 }
 
 function partyPresetExportPayload() {
@@ -478,4 +634,4 @@ function setPartyPresetTextState(value) { partyPresetTextState = value; return v
 // Assignment stays in the module that owns the live binding.
 function setPartyPresetModalReady(value) { partyPresetModalReady = value; return value; }
 
-export { PARTY_PRESET_BACKUP_FORMAT, PARTY_PRESET_BACKUP_MAX_BYTES, parsePartyPresetBackup, updatePartyPresetBackupControls, runPartyPresetImport, undoPartyPresetImport, PARTY_PRESET_STORAGE_KEY, PARTY_PRESET_MAX_PARTIES, PARTY_PRESET_MAX_MEMBERS, PARTY_PRESET_STAT_LABEL, PARTY_PRESET_SHOWDOWN_STAT_LABEL, PARTY_PRESET_MAX_NAME_LENGTH, PARTY_PRESET_IMAGE_WIDTH, PARTY_PRESET_IMAGE_HEIGHT, PARTY_PRESET_IMAGE_OUTPUT_SCALE, PARTY_PRESET_IMAGE_CARD_COLUMNS, PARTY_PRESET_IMAGE_CARD_ROWS, PARTY_PRESET_LABELS, PARTY_PRESET_TYPE_PALETTE_CACHE, partyPresetMoveTypePalette, PARTY_PRESET_SHOWDOWN_STAT_ALIAS, partyPresetData, partyPresetModalReady, partyPresetTextState, partyPresetPickerTarget, partyPresetModalReturnFocus, partyPresetPickerReturnFocus, partyPresetTextReturnFocus, partyPresetCollapsedParties, partyPresetExpandedSlots, partyPresetSlotCollapseKey, partyPresetFocusableElements, partyPresetFocusLayer, partyPresetRestoreFocus, partyPresetTrapFocus, partyPresetDefaultName, normalizePartyPresetName, blankPartyPresetMember, blankPartyPresetData, normalizePartyPresetEvs, normalizePartyPresetMember, normalizePartyPresetData, loadPartyPresetData, savePartyPresetData, setPartyPresetStatus, partyPresetExportPayload, partyPresetDownloadText, partyPresetDownloadBlob, exportPartyPresetJson, importPartyPresetJsonFile, partyPresetCopyOrDownload, partyPresetMember, partyPresetMemberClone, partyPresetFilledMembers, partyPresetFilenamePart, setPartyPresetData, setPartyPresetModalReturnFocus, setPartyPresetPickerReturnFocus, setPartyPresetPickerTarget, setPartyPresetTextReturnFocus, setPartyPresetTextState, setPartyPresetModalReady };
+export { configurePartyPresetUi, refreshPartyPresetFromDisk, PARTY_PRESET_BACKUP_FORMAT, PARTY_PRESET_BACKUP_MAX_BYTES, parsePartyPresetBackup, updatePartyPresetBackupControls, runPartyPresetImport, undoPartyPresetImport, PARTY_PRESET_STORAGE_KEY, PARTY_PRESET_MAX_PARTIES, PARTY_PRESET_MAX_MEMBERS, PARTY_PRESET_STAT_LABEL, PARTY_PRESET_SHOWDOWN_STAT_LABEL, PARTY_PRESET_MAX_NAME_LENGTH, PARTY_PRESET_IMAGE_WIDTH, PARTY_PRESET_IMAGE_HEIGHT, PARTY_PRESET_IMAGE_OUTPUT_SCALE, PARTY_PRESET_IMAGE_CARD_COLUMNS, PARTY_PRESET_IMAGE_CARD_ROWS, PARTY_PRESET_LABELS, PARTY_PRESET_TYPE_PALETTE_CACHE, partyPresetMoveTypePalette, PARTY_PRESET_SHOWDOWN_STAT_ALIAS, partyPresetData, partyPresetModalReady, partyPresetTextState, partyPresetPickerTarget, partyPresetModalReturnFocus, partyPresetPickerReturnFocus, partyPresetTextReturnFocus, partyPresetCollapsedParties, partyPresetExpandedSlots, partyPresetSlotCollapseKey, partyPresetFocusableElements, partyPresetFocusLayer, partyPresetRestoreFocus, partyPresetTrapFocus, partyPresetDefaultName, normalizePartyPresetName, blankPartyPresetMember, blankPartyPresetData, normalizePartyPresetEvs, normalizePartyPresetMember, normalizePartyPresetData, loadPartyPresetData, savePartyPresetData, setPartyPresetStatus, partyPresetExportPayload, partyPresetDownloadText, partyPresetDownloadBlob, exportPartyPresetJson, importPartyPresetJsonFile, partyPresetCopyOrDownload, partyPresetMember, partyPresetMemberClone, partyPresetFilledMembers, partyPresetFilenamePart, setPartyPresetData, setPartyPresetModalReturnFocus, setPartyPresetPickerReturnFocus, setPartyPresetPickerTarget, setPartyPresetTextReturnFocus, setPartyPresetTextState, setPartyPresetModalReady };

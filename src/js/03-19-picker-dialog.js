@@ -1,6 +1,6 @@
 import { RotomUI } from './01-10-rotom-ui.js';
 import { escapeHTML, renderTrustedHTML } from './01-core.js';
-import { calcSharedComboboxUid, setCalcSharedComboboxUid } from './03-20-calc-combobox.js';
+let nextPickerId = 0;
 
 /* One modal search/list interaction for every menu. State remains with each caller. */
 function uiPickerKind(control) {
@@ -33,7 +33,7 @@ function uiPickerSize(list) {
 function uiWirePickerDialog(control, list, {showOptions,onSelect,onClose} = {}) {
   if (!control || !list) return null;
   const kind = uiPickerKind(control);
-  const uid = `ui-picker-${setCalcSharedComboboxUid(calcSharedComboboxUid + 1)}`;
+  const uid = `ui-picker-${++nextPickerId}`;
   const home = list.parentNode;
   let dialog = null, search = null, activeIndex = -1, category = '';
   control.setAttribute('aria-haspopup','dialog');

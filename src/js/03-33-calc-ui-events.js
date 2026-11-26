@@ -104,6 +104,11 @@ function powerUiRefresh() {
       cell.classList.toggle('up',nature?.up===stat);cell.classList.toggle('down',nature?.down===stat);
     });
     const hp=sideCurrentHp(stats.hp,side);
+    const hpInput = document.querySelector(`#calc-side-settings[open] [data-setting-side="${key}"][data-setting-field="currentHp"]`);
+    if (hpInput) {
+      hpInput.max = String(stats.hp);
+      hpInput.value = String(hp);
+    }
     root.querySelector('[data-hp-value]').textContent=`${hp} / ${stats.hp}`;
     root.querySelector('[data-hp-bar]').style.width=`${side.hpPct*100}%`;
     const tailwind=document.querySelector(`[data-calc-tailwind="${key}"]`);
@@ -144,18 +149,21 @@ function powerUiOpenSideSettings(key) {
   let html=`<div class="form-grid">${forms.length>1 ? field('form','폼',forms.map(p=>[p.id,calcPokemonFormLabel(p)]),side.pokemonIdx) : ''}${RotomUI.field('현재 HP',RotomUI.number({'data-setting-side':key,'data-setting-field':'currentHp',min:1,max:calcStats(side).hp,value:sideCurrentHp(calcStats(side).hp,side)}))}</div>`;
   html+=`<div class="form-grid">${[0,1].map(i=>field(`type${i}`,`타입 ${i+1}`,i===0 ? types.slice(1) : types,side.types?.[i] || '')).join('')}</div>`;
   html+=`<div class="action-row"><button type="button" class="ui-label-action" data-setting-side="${key}" data-reset-types>기본 타입</button></div>`;
+  if (side.forcedGrounded || side.types?.includes('Flying') || AbilityById[side.ability]?.grounded === false || side.item === 'airballoon')
+    html += flag('forcedGrounded','떨어뜨리기 등으로 이미 접지됨');
+  if(AbilityById[side.ability]?.damageBlock?.pokemon?.includes(p.id)) html+=flag('disguiseBroken', side.ability === 'iceface' ? '이미 아이스페이스가 깨짐' : '이미 탈이 깨짐');
   if(flags[side.ability]) html+=flag(...flags[side.ability]);
   if(side.ability==='rivalry') html+=field('rivalryGender','투쟁심',[['none','미적용'],['same','동성'],['opposite','이성']],side.rivalryGender || 'none');
   if(AbilityById[side.ability]?.paradoxBoost) html+=flag('paradoxActive','부스트에너지 발동 유지');
   if(AbilityById[side.ability]?.supremeOverlord) html+=RotomUI.field('쓰러진 아군',RotomUI.number({'data-setting-side':key,'data-setting-field':'fallenAllies',min:0,max:battleMaxFallenAllies(state.field),value:side.fallenAllies || 0}));
   html+=`<section><h3>노력치 프리셋</h3><div class="action-row">${['AS','HA','HB','CS','HC','HD'].map(preset=>`<button type="button" class="ui-label-action" data-calc-preset="${preset}" data-setting-side="${key}">${preset}</button>`).join('')}<button type="button" class="ui-label-action" data-calc-preset="reset" data-setting-side="${key}">초기화</button></div></section>`;
-  if(key==='def') html+=`<section><h3>보유 기술</h3><div class="form-grid">${[0,1,2,3].map(slot=>RotomUI.picker(`기술 ${slot+1}`,mvName(MoveById[side.moves[slot]]),{'data-cb-type':'move','data-side':key,'data-field':`moves.${slot}`})).join('')}</div></section>`;
+  if(key==='def') html+=`<section><h3>보유 기술</h3><div class="form-grid">${[0,1,2,3].map(slot=>RotomUI.picker(`기술 ${slot+1}`,MoveById[side.moves[slot]] ? mvName(MoveById[side.moves[slot]]) : '기술 선택',{'data-cb-type':'move','data-side':key,'data-field':`moves.${slot}`})).join('')}</div></section>`;
   const body=document.getElementById('calc-side-settings-body');
   renderTrustedHTML(body,html);
   body.querySelectorAll('.cb-input').forEach(input=>wireCalcCombobox(input,{onSelect:id=>{
     applyMoveToCalcSlot(key,Number(input.dataset.field.split('.')[1]),id);powerUiRefresh();
   }}));
-  dialog.showModal();
+  if (!dialog.open) dialog.showModal();
 }
 
 
@@ -185,7 +193,11 @@ function bind0333CalcUiEvents() {
       if(Number(t.value)===previous) return;
     }
     else if(d.calcRank && key) state[key].ranks[d.calcRank]=Number(t.value);
-    else if(d.calcHp) { setSideHpPct(state[d.calcHp],Number(t.value)/100);t.value=hpPercentInputValue(state[d.calcHp]); }
+    else if(d.calcHp) {
+      const side = state[d.calcHp];
+      if (t.value !== '') setSideHpPct(side, Math.max(0.1, Math.min(100, Number(t.value))) / 100);
+      t.value = hpPercentInputValue(side);
+    }
     else if(d.calcStatus) state[d.calcStatus].status=t.value;
     else if(d.calcTailwind) state[d.calcTailwind].tailwind=t.checked;
     else if(d.calcField) {

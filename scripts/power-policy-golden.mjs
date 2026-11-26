@@ -48,6 +48,7 @@ function loadCalcApi() {
     readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '01-10-rotom-ui.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '02-engine.js'), 'utf8'),
+    readFileSync(path.join(ROOT, 'src', 'js', '02-damage-events.js'), 'utf8'),
     `
       globalThis.__calcApi = {
         PokemonById, MoveById, AbilityById, ItemById, RULES,
@@ -303,6 +304,32 @@ const wonder = power(neutral(),neutral({ability:'wonderguard'}),move('Normal'));
 assertOk(wonder.damages[0] > 0 && wonder.immunityNotes.length,'Wonder Guard bypassed and annotated');
 const gravity = power(neutral(),neutral({types:['Flying'],ability:'levitate'}),move('Ground'),field({isGravity:true}));
 assertOk(gravity.damages[0] > 0 && gravity.immunityNotes.length === 0,'Gravity removes Ground immunity rather than reporting a false immunity');
+const eelevatePokemon = api.PokemonById.eelektrossmega;
+assertOk(eelevatePokemon?.ab?.['0'] === 'Eelevate', 'Mega Eelektross is the roster form with Eelevate');
+assertOk(eelevatePokemon?.ls?.includes('bulldoze') && eelevatePokemon?.ls?.includes('stompingtantrum')
+  && api.MoveById.bulldoze && api.MoveById.stompingtantrum,
+  'Eelevate form data includes Bulldoze and Stomping Tantrum');
+const eelevateDef = side('eelektrossmega');
+const groundMove = api.MoveById.bulldoze;
+const eelevatePower = power(neutral(), eelevateDef, groundMove);
+const eelevateObserved = api.calculateDamage(neutral(), eelevateDef, groundMove, field());
+assertOk(eelevatePower.damages.some(damage => damage > 0)
+  && eelevatePower.immunityNotes.some(note => note.includes('천정부지')),
+  'Eelevate annotates Ground immunity but keeps ordinary power damage');
+assertOk(eelevateObserved.damages.every(damage => damage === 0),
+  'observed-damage engine applies Eelevate Ground immunity');
+const eelevateGravity = power(neutral(), eelevateDef, groundMove, field({isGravity:true}));
+const eelevateGravityObserved = api.calculateDamage(neutral(), eelevateDef, groundMove, field({isGravity:true}));
+assertOk(eelevateGravity.damages.some(damage => damage > 0) && eelevateGravity.immunityNotes.length === 0
+  && eelevateGravityObserved.damages.some(damage => damage > 0),
+  'Gravity grounds Eelevate and removes the Ground immunity');
+const eelevateIronBall = power(neutral(), side('eelektrossmega', {item:'ironball'}), groundMove);
+assertOk(eelevateIronBall.damages.some(damage => damage > 0) && eelevateIronBall.immunityNotes.length === 0,
+  'Iron Ball grounds Eelevate and removes the Ground immunity');
+const breaker = neutral({ability:'moldbreaker'});
+const eelevateBroken = api.calculateDamage(breaker, eelevateDef, groundMove, field());
+assertOk(eelevateBroken.damages.some(damage => damage > 0),
+  'Mold Breaker bypasses Eelevate in the observed-damage engine');
 const a = neutral();
 const d = neutral({types:['Grass'],ability:'multiscale'});
 const reduced = power(a,d,move('Fire'));

@@ -48,6 +48,7 @@ function loadCalcApi() {
     readFileSync(path.join(ROOT, 'src', 'js', '01-core.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '01-10-rotom-ui.js'), 'utf8'),
     readFileSync(path.join(ROOT, 'src', 'js', '02-engine.js'), 'utf8'),
+    readFileSync(path.join(ROOT, 'src', 'js', '02-damage-events.js'), 'utf8'),
     `
       globalThis.__calcApi = {
         PokemonById, MoveById, AbilityById, ItemById, RULES,
@@ -1678,7 +1679,7 @@ assertDeepEqual(
   );
   assertDeepEqual(
     result.koContext,
-    { defAbility: 'klutz', defItem: '', atkAbility: 'blaze' },
+    { defAbility: 'klutz', defItem: '', atkItem: '', atkAbility: 'blaze' },
     'damage result carries the resolved defender KO context',
   );
   assertDeepEqual(

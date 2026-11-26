@@ -6,10 +6,10 @@ Pokémon Champions 규칙과 데이터에 맞춘 대미지 계산·형태 역계
 
 - 공격측·방어측 상태, 필드, 급소, 가변 위력과 다타 기술을 반영한 대미지 계산
 - 한 턴 관측으로 형태를 추정하고 다음 턴 상태·선후공·대미지를 비교하는 [형태 역계산](docs/reverse-rebuild.md)
-- 배치·조건을 보존하며 스피드 목표, HP 조정 효과와 배분 전후를 비교하는 [세부조정](docs/fine-tune-improvements.md)
+- 스피드 목표에 필요한 최소 투자와 HP 기준점을 확인하고 계산기로 되돌리는 세부조정
 - 파티의 방어 배율·약점/반감/무효 마릿수와 공격 기술 타입 분포를 보여 주는 [상성표](docs/matchup-improvements.md)
 - Pokémon Champions 포켓몬·기술·특성·도구 도감
-- JSON·Showdown 텍스트 가져오기/내보내기와 파티 이미지 출력
+- 계산기 양측의 배치 저장, JSON 전체 백업, Showdown 파티별 교환, 파티 이미지 출력
 - 라이트/다크 테마, 320px 이상 반응형 UI, 키보드 조작과 접근성 상태
 
 ## Local build
@@ -34,7 +34,11 @@ Cloudflare Pages의 Production branch는 `main`, Build command는 `npm run build
 
 ## Validation
 
-결정력 수치와 HP바·N타의 적용 범위, 타입 무효·회복·파동의방호 처리 기준은 [결정력 계산 정책](docs/move-power-policy.md)을 따른다.
+키보드·동시 저장의 실제 Chrome 검증, 메뉴 구조와 수정 전후 시간은 [후속 개선 결과](docs/project-followup-2026-11-25.md)를 참고한다.
+
+11월 25일 로컬 후보본의 수정 근거와 남은 검증 항목은 [프로젝트 전체 재검토](docs/project-completion-review-2026-11-25.md)에 정리했다.
+
+결정력·일반 피해·실제 KO·관측 역계산의 차이는 [계산 목적과 현행 판정](docs/damage-purpose-review.md)에 정리했다.
 
 전 메뉴에 확정 계산기 샘플의 공통 UI를 적용했다. 메뉴별 개선, HTML 참조·CSS 소유권, 320~1440px 반응형·키보드 검사 결과는 [UI 리모델링 최종 검토](docs/ui-remodel-final-review.md)에 정리했다.
 
@@ -51,6 +55,8 @@ npm run ui:browser:pages -- --require-browser
 ```
 
 `npm test`는 소스·HTML·CSS·JavaScript 구조, 데이터 무결성, 공개 배포 준비, 대미지·역계산 golden test와 상태 회귀를 검사한다. 브라우저 smoke test는 레이아웃, 지연 로딩, 키보드 계약, 접근성, 다크 테마와 320px 모바일 화면을 실제 Chromium 계열 브라우저에서 검증한다.
+
+한국어 자동 갱신은 동일한 PokéAPI 커밋에서 이름·설명 7종을 검증한 뒤 `data/ko/auto-cache.json`을 한 번에 교체한다. `categories`에는 자동 번역, `missing`에는 수동 번역까지 고려한 누락 ID가 들어간다. 첫 갱신 전에는 기존 카테고리별 파일을 사용한다. 수동 수정은 계속 `*.manual.json`에서 관리한다.
 
 ## Architecture
 
@@ -74,7 +80,7 @@ npm run ui:browser:pages -- --require-browser
 ## Known scope
 
 - Protect/Detect는 단발 피해 계산 범위 밖의 명시적 미지원 상태다.
-- Aurora Veil, 아군 위치 기반 더블 보정, Room 계열 일부와 이전 피해량 의존 기술은 상태 모델 확장이 필요해 보류돼 있다.
+- Aurora Veil, 아군 위치 기반 더블 보정, Room 계열 일부는 상태 모델 확장이 필요해 보류돼 있다.
 - 정확한 목록과 근거는 coverage matrix가 단일 기준이다.
 
 ## License

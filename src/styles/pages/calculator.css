@@ -73,3 +73,6 @@
   .damage-bar { margin-top:6px; }
 }
 @media(max-width:360px) { .battle-grid .ui-panel-body { padding-inline:10px; }.move-rows { --result-padding:12px;column-gap:6px; }.hp-track { display:none; }.status-select { margin-left:auto; } }
+
+.damage-summary .damage-branches { white-space: normal; overflow-wrap: anywhere; }
+.damage-basis { display: block; font-size: .75rem; }

@@ -118,7 +118,7 @@ function matchupDefenseEffect(type, entry) {
   const immune = (data.immunities || []).some(rule => matchupTypeRule(rule) && rule.types?.includes(type));
   if (immune || (data.superEffectiveOnly && typeEffect <= 1)) return { eff: 0, typeEffect, ability: data };
   let eff = typeEffect;
-  for (const rule of [...(data.defensiveAttackMods || []), ...(data.defensiveFinalMods || [])]) {
+  for (const rule of [...(data.defensiveBpMods || []), ...(data.defensiveAttackMods || []), ...(data.defensiveFinalMods || [])]) {
     if (!matchupTypeRule(rule) || (rule.types && !rule.types.includes(type))) continue;
     if (rule.effectiveness === 'superEffective' && typeEffect <= 1) continue;
     const mod = typeof rule.mod === 'number' ? rule.mod : MOD[rule.mod];

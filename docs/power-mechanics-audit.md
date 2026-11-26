@@ -4,7 +4,7 @@
 
 생성: `node scripts/power-mechanics-audit.mjs`
 
-## 특성 316개
+## 특성 317개
 
 | ID | 이름 | 계산기 처리 | 구현 규칙 | 원본 이벤트 |
 | --- | --- | --- | --- | --- |
@@ -22,6 +22,7 @@
 | asoneglastrier | 혼연일체 | 특성 억제·접지·진입 등 보조 규칙 | gasExempt, blocksBerries | onStart, onEnd, onFoeTryEatItem, onSourceAfterFaint |
 | asonespectrier | 혼연일체 | 특성 억제·접지·진입 등 보조 규칙 | gasExempt, blocksBerries | onStart, onEnd, onFoeTryEatItem, onSourceAfterFaint |
 | aurabreak | 오라브레이크 | 특성 억제·접지·진입 등 보조 규칙 | reversesAura | onStart, onAnyTryPrimaryHit |
+| auraguard | 파동의방호 | 직접 보정은 입력 조건에 따라 적용 | moldBreakerIgnored, defensiveFinalMods | onSourceModifyDamage |
 | baddreams | 나이트메어 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onResidual |
 | ballfetch | 볼줍기 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | — |
 | battery | 배터리 | 더블 필드 입력: 공격 아군 배터리 | — | onAllyBasePower |
@@ -60,16 +61,16 @@
 | defiant | 오기 | 위협 자동 적용에 공격 상승 반응 포함 | — | onAfterEachBoost |
 | deltastream | 델타스트림 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart, onAnySetWeather, onEnd |
 | desolateland | 끝의대지 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart, onAnySetWeather, onEnd |
-| disguise | 탈 | 무효·차단은 카드 안내, 피해 산출 계속 | gasExempt, damageBlock | onDamage, onCriticalHit, onEffectiveness, onUpdate |
+| disguise | 탈 | 무효·차단은 카드 안내, 피해 산출 계속 | moldBreakerIgnored, gasExempt, damageBlock | onDamage, onCriticalHit, onEffectiveness, onUpdate |
 | download | 다운로드 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart |
 | dragonize | 드래곤스킨 | 직접 보정은 입력 조건에 따라 적용 | typeChange | onModifyType, onBasePower |
 | dragonsmaw | 용의턱 | 직접 보정은 입력 조건에 따라 적용 | bpBoosts | onModifyAtk, onModifySpA |
 | drizzle | 잔비 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart |
 | drought | 가뭄 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart |
-| dryskin | 건조피부 | 무효·차단은 카드 안내, 피해 산출 계속; 직접 보정은 입력 조건에 따라 적용 | moldBreakerIgnored, immunities, defensiveFinalMods | onTryHit, onSourceBasePower, onWeather |
+| dryskin | 건조피부 | 무효·차단은 카드 안내, 피해 산출 계속; 직접 보정은 입력 조건에 따라 적용 | moldBreakerIgnored, immunities, defensiveBpMods | onTryHit, onSourceBasePower, onWeather |
 | earlybird | 일찍기상 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | — |
 | eartheater | 흙먹기 | 무효·차단은 카드 안내, 피해 산출 계속 | moldBreakerIgnored, immunities | onTryHit |
-| eelevate | 천정부지 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onSourceAfterFaint |
+| eelevate | 천정부지 | 무효·차단은 카드 안내, 피해 산출 계속 | moldBreakerIgnored, grounded, immunities | onSourceAfterFaint |
 | effectspore | 포자 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onDamagingHit |
 | electricsurge | 일렉트릭메이커 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart |
 | electromorphosis | 전기로바꾸기 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onDamagingHit |
@@ -77,7 +78,7 @@
 | embodyaspecthearthflame | 초상투영 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart |
 | embodyaspectteal | 초상투영 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart |
 | embodyaspectwellspring | 초상투영 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart |
-| emergencyexit | 위기회피 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onEmergencyExit |
+| emergencyexit | 위기회피 | HP 절반 이하로 내려가 생존하면 교체 가능 여부를 같은 대상 KO에 반영 | switchAtHalfHp | onEmergencyExit |
 | fairyaura | 페어리오라 | 직접 보정은 입력 조건에 따라 적용 | aura | onStart, onAnyBasePower |
 | filter | 필터 | 직접 보정은 입력 조건에 따라 적용 | moldBreakerIgnored, defensiveFinalMods | onSourceModifyDamage |
 | firemane | 불꽃의갈기 | 직접 보정은 입력 조건에 따라 적용 | attackStatBoosts | onModifyAtk, onModifySpA |
@@ -108,7 +109,7 @@
 | hadronengine | 하드론엔진 | 직접 보정은 입력 조건에 따라 적용 | attackStatBoosts | onStart, onModifySpA |
 | harvest | 수확 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onResidual |
 | healer | 치유의마음 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onResidual |
-| heatproof | 내열 | 직접 보정은 입력 조건에 따라 적용 | moldBreakerIgnored, defensiveFinalMods | onSourceModifyAtk, onSourceModifySpA, onDamage |
+| heatproof | 내열 | 직접 보정은 입력 조건에 따라 적용 | moldBreakerIgnored, defensiveAttackMods | onSourceModifyAtk, onSourceModifySpA, onDamage |
 | heavymetal | 헤비메탈 | 직접 보정은 입력 조건에 따라 적용 | moldBreakerIgnored, weightModifier | onModifyWeight |
 | honeygather | 꿀모으기 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | — |
 | hospitality | 대접 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart |
@@ -118,7 +119,7 @@
 | hydration | 촉촉바디 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onResidual |
 | hypercutter | 괴력집게 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTryBoost |
 | icebody | 아이스바디 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onWeather, onImmunity |
-| iceface | 아이스페이스 | 무효·차단은 카드 안내, 피해 산출 계속 | gasExempt, damageBlock | onStart, onDamage, onCriticalHit, onEffectiveness, onUpdate, onWeatherChange |
+| iceface | 아이스페이스 | 무효·차단은 카드 안내, 피해 산출 계속 | moldBreakerIgnored, gasExempt, damageBlock | onStart, onDamage, onCriticalHit, onEffectiveness, onUpdate, onWeatherChange |
 | icescales | 얼음인분 | 직접 보정은 입력 조건에 따라 적용 | moldBreakerIgnored, defensiveFinalMods | onSourceModifyDamage |
 | illuminate | 발광 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTryBoost, onModifyMove |
 | illusion | 일루전 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onBeforeSwitchIn, onDamagingHit, onEnd, onFaint |
@@ -186,7 +187,7 @@
 | piercingdrill | 관통드릴 | 특성 억제·접지·진입 등 보조 규칙 | protectBypass | onHitProtect |
 | pixilate | 페어리스킨 | 직접 보정은 입력 조건에 따라 적용 | typeChange | onModifyType, onBasePower |
 | plus | 플러스 | 아군 조건 수동 입력; 직접 보정은 입력 조건에 따라 적용 | attackStatBoosts | onModifySpA |
-| poisonheal | 포이즌힐 | 특성의 턴 종료 회복은 제외 | residualRecovery | onDamage |
+| poisonheal | 포이즌힐 | 턴 종료 조건부 회복을 KO에 반영 | residualRecovery | onDamage |
 | poisonpoint | 독가시 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onDamagingHit |
 | poisonpuppeteer | 독조종 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onAnyAfterSetStatus |
 | poisontouch | 독수 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onSourceDamagingHit |
@@ -220,7 +221,7 @@
 | rockhead | 돌머리 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onDamage |
 | rockypayload | 바위나르기 | 직접 보정은 입력 조건에 따라 적용 | bpBoosts | onModifyAtk, onModifySpA |
 | roughskin | 까칠한피부 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onDamagingHit |
-| runaway | 도주 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | — |
+| runaway | 도주 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTrapPokemon, onMaybeTrapPokemon |
 | sandforce | 모래의힘 | 직접 보정은 입력 조건에 따라 적용 | bpBoosts | onBasePower, onImmunity |
 | sandrush | 모래헤치기 | 직접 보정은 입력 조건에 따라 적용; 공통 실효 스피드 계산 | speedStatBoosts | onModifySpe, onImmunity |
 | sandspit | 모래뿜기 | 후속 타격에 모래바람 반영 | — | onDamagingHit |
@@ -267,7 +268,7 @@
 | stickyhold | 점착 | 특성 억제·접지·진입 등 보조 규칙 | moldBreakerIgnored, blocksItemRemoval | onTakeItem |
 | stormdrain | 마중물 | 무효·차단은 카드 안내, 피해 산출 계속 | moldBreakerIgnored, immunities | onTryHit, onAnyRedirectTarget |
 | strongjaw | 옹골찬턱 | 직접 보정은 입력 조건에 따라 적용 | bpBoosts | onBasePower |
-| sturdy | 옹골참 | 무효·차단은 카드 안내, 피해 산출 계속; 생존은 카드 안내, KO 제한 제외 | moldBreakerIgnored, ohkoBlock, koSurvival | onTryHit, onDamage |
+| sturdy | 옹골참 | 무효·차단은 카드 안내, 피해 산출 계속; 결정력은 안내 배지, KO는 생존 발동 확률 반영 | moldBreakerIgnored, ohkoBlock, koSurvival | onTryHit, onDamage |
 | suctioncups | 흡반 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onDragOut |
 | superluck | 대운 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onModifyCritRatio |
 | supersweetsyrup | 감미로운꿀 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart |
@@ -289,7 +290,7 @@
 | terashift | 테라체인지 | 특성 억제·접지·진입 등 보조 규칙 | gasExempt | onSwitchIn |
 | teravolt | 테라볼티지 | 특성 억제·접지·진입 등 보조 규칙 | ignoresTargetAbility | onStart, onModifyMove |
 | thermalexchange | 열교환 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onDamagingHit, onUpdate, onSetStatus |
-| thickfat | 두꺼운지방 | 직접 보정은 입력 조건에 따라 적용 | moldBreakerIgnored, defensiveFinalMods | onSourceModifyAtk, onSourceModifySpA |
+| thickfat | 두꺼운지방 | 직접 보정은 입력 조건에 따라 적용 | moldBreakerIgnored, defensiveAttackMods | onSourceModifyAtk, onSourceModifySpA |
 | tintedlens | 색안경 | 직접 보정은 입력 조건에 따라 적용 | finalDamageBoosts | onModifyDamage |
 | torrent | 급류 | 직접 보정은 입력 조건에 따라 적용 | attackStatBoosts | onModifyAtk, onModifySpA |
 | toughclaws | 단단한발톱 | 직접 보정은 입력 조건에 따라 적용 | bpBoosts | onBasePower |
@@ -317,7 +318,7 @@
 | weakarmor | 깨어진갑옷 | 같은 물리 기술의 후속 타격에 방어 하락·스피드 상승 반영 | — | onDamagingHit |
 | wellbakedbody | 노릇노릇몸 | 무효·차단은 카드 안내, 피해 산출 계속 | moldBreakerIgnored, immunities | onTryHit |
 | whitesmoke | 하얀연기 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTryBoost |
-| wimpout | 도망태세 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onEmergencyExit |
+| wimpout | 도망태세 | HP 절반 이하로 내려가 생존하면 교체 가능 여부를 같은 대상 KO에 반영 | switchAtHalfHp | onEmergencyExit |
 | windpower | 풍력발전 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onDamagingHit, onSideConditionStart |
 | windrider | 바람타기 | 무효·차단은 카드 안내, 피해 산출 계속 | moldBreakerIgnored, immunities | onStart, onTryHit, onSideConditionStart |
 | wonderguard | 불가사의부적 | 무효·차단은 카드 안내, 피해 산출 계속 | moldBreakerIgnored, superEffectiveOnly | onTryHit |
@@ -325,14 +326,16 @@
 | zenmode | 달마모드 | 특성 억제·접지·진입 등 보조 규칙 | gasExempt | onResidual, onEnd |
 | zerotohero | 마이티체인지 | 특성 억제·접지·진입 등 보조 규칙 | gasExempt | onSwitchOut, onSwitchIn |
 
-## 도구 149개
+## 도구 171개
 
 | ID | 이름 | 계산기 처리 | 구현 규칙 | 원본 이벤트 |
 | --- | --- | --- | --- | --- |
 | abomasite | 눈설왕나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | absolite | 앱솔나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
+| absolitez | 앱솔나이트Z | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | aerodactylite | 프테라나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | aggronite | 보스로라나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
+| airballoon | 풍선 | 무효·차단은 카드 안내, 피해 산출 계속 | grounded, groundImmunity | onStart, onDamagingHit, onAfterSubDamage |
 | alakazite | 후디나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | altarianite | 파비코리나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | ampharosite | 전룡나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
@@ -341,10 +344,14 @@
 | babiriberry | 바리비열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |
 | banettite | 다크펫나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | barbaracite | 거북손데스나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
+| baxcalibrite | 드닐레이브나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | beedrillite | 독침붕나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | bigroot | 큰뿌리 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTryHeal |
+| bindingband | 조임밴드 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | — |
+| blackaugurite | 검은휘석 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | — |
 | blackbelt | 검은띠 | 직접 보정은 입력 조건에 따라 적용 | typeBoostType | onBasePower |
 | blackglasses | 검은안경 | 직접 보정은 입력 조건에 따라 적용 | typeBoostType | onBasePower |
+| blankplate | 순백플레이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | — |
 | blastoisinite | 거북왕나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | blazikenite | 번치코나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | brightpowder | 반짝가루 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onModifyAccuracy |
@@ -373,6 +380,8 @@
 | dragoninite | 망나뇽나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | drampanite | 할비롱나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | eelektrossite | 저리더프나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
+| ejectbutton | 탈출버튼 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onAfterMoveSecondary |
+| electricseed | 일렉트릭시드 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart, onTerrainChange |
 | emboarite | 염무왕나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | excadrite | 몰드류나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | expertbelt | 달인의띠 | 직접 보정은 입력 조건에 따라 적용 | finalDamageBoost | onModifyDamage |
@@ -380,16 +389,19 @@
 | falinksite | 대여르나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | feraligite | 장크로다일나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | floettite | 플라엣테나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
-| focusband | 기합의머리띠 | 생존은 카드 안내, KO 제한 제외 | — | onDamage |
-| focussash | 기합의띠 | 생존은 카드 안내, KO 제한 제외 | koSurvival | onDamage |
+| focusband | 기합의머리띠 | 결정력은 안내 배지, KO는 생존 발동 확률 반영 | — | onDamage |
+| focussash | 기합의띠 | 결정력은 안내 배지, KO는 생존 발동 확률 반영 | koSurvival | onDamage |
 | froslassite | 눈여아나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | galladite | 엘레이드나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | garchompite | 한카리아스나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
+| garchompitez | 한카리아스나이트Z | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | gardevoirite | 가디안나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | gengarite | 팬텀나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | glalitite | 얼음귀신나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | glimmoranite | 킬라플로르나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
+| golisopite | 갑주무사나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | golurkite | 골루그나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
+| grassyseed | 그래스시드 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart, onTerrainChange |
 | greninjite | 개굴닌자나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | gyaradosite | 갸라도스나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | habanberry | 하반열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |
@@ -404,13 +416,16 @@
 | kasibberry | 수불열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |
 | kebiaberry | 으름열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |
 | kingsrock | 왕의징표석 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onModifyMove |
+| leek | 대파 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onModifyCritRatio |
 | leftovers | 먹다남은음식 | 생존 후 회복; KO 확률에 반영 | residualRecovery | onResidual |
+| legendplate | 레전드플레이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | — |
 | leppaberry | 과사열매 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onUpdate, onEat |
 | lifeorb | 생명의구슬 | 직접 보정은 입력 조건에 따라 적용 | finalDamageBoost | onModifyDamage, onAfterMoveSecondarySelf |
 | lightball | 전기구슬 | 직접 보정은 입력 조건에 따라 적용 | attackStatBoost | onModifyAtk, onModifySpA |
 | lightclay | 빛의점토 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | — |
 | lopunnite | 이어롭나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | lucarionite | 루카리오나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
+| lucarionitez | 루카리오나이트Z | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | lumberry | 리샘열매 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onAfterSetStatus, onUpdate, onEat |
 | magnet | 자석 | 직접 보정은 입력 조건에 따라 적용 | typeBoostType | onBasePower |
 | malamarite | 칼라마네로나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
@@ -424,26 +439,33 @@
 | metalcoat | 금속코트 | 직접 보정은 입력 조건에 따라 적용 | typeBoostType | onBasePower |
 | metronome | 메트로놈 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart |
 | miracleseed | 기적의씨 | 직접 보정은 입력 조건에 따라 적용 | typeBoostType | onBasePower |
+| mistyseed | 미스트시드 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart, onTerrainChange |
 | muscleband | 힘의머리띠 | 직접 보정은 입력 조건에 따라 적용 | powerBoostKind, powerBoostMod | onBasePower |
 | mysticwater | 신비의물방울 | 직접 보정은 입력 조건에 따라 적용 | typeBoostType | onBasePower |
 | nevermeltice | 녹지않는얼음 | 직접 보정은 입력 조건에 따라 적용 | typeBoostType | onBasePower |
+| normalgem | 노말주얼 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onSourceTryPrimaryHit |
 | occaberry | 오카열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |
 | oranberry | 오랭열매 | 생존 후 회복; KO 확률에 반영 | hpRecovery | onUpdate, onTryEatItem, onEat |
 | passhoberry | 꼬시개열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |
 | payapaberry | 야파열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |
+| peatblock | 피트블록 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | — |
 | pechaberry | 복슝열매 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onUpdate, onEat |
 | persimberry | 시몬열매 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onUpdate, onEat |
 | pidgeotite | 피죤투나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | pinsirite | 쁘사이저나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | poisonbarb | 독바늘 | 직접 보정은 입력 조건에 따라 적용 | typeBoostType | onBasePower |
+| psychicseed | 사이코시드 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart, onTerrainChange |
 | pyroarite | 화염레오나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | quickclaw | 선제공격손톱 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onFractionalPriority |
 | raichunitex | 라이츄나이트X | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | raichunitey | 라이츄나이트Y | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | rawstberry | 복분열매 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onUpdate, onEat |
+| redcard | 레드카드 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onAfterMoveSecondary |
 | rindoberry | 린드열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |
+| rockyhelmet | 울퉁불퉁멧 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onDamagingHit |
 | roseliberry | 로셀열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |
 | sablenite | 깜까미나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
+| salamencite | 보만다나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | sceptilite | 나무킹나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | scizorite | 핫삼나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | scolipite | 펜드라나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
@@ -468,12 +490,13 @@
 | steelixite | 강철톤나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | swampertite | 대짱이나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | tangaberry | 리체열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |
+| terrainextender | 그라운드코트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | — |
 | twistedspoon | 휘어진스푼 | 직접 보정은 입력 조건에 따라 적용 | typeBoostType | onBasePower |
 | tyranitarite | 마기라스나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | venusaurite | 이상해꽃나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | victreebelite | 우츠보트나이트 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onTakeItem |
 | wacanberry | 초나열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |
-| whiteherb | 하양허브 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart, onAnySwitchIn, onAnyAfterMega, onAnyAfterMove, onResidual, onUse, onWhiteHerb |
+| whiteherb | 하양허브 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onStart, onAnySwitchIn, onAnyAfterMega, onAnyAfterMove, onResidual, onUse |
 | widelens | 광각렌즈 | 상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음 | — | onSourceModifyAccuracy |
 | wiseglasses | 박식안경 | 직접 보정은 입력 조건에 따라 적용 | powerBoostKind, powerBoostMod | onBasePower |
 | yacheberry | 플카열매 | 직접 피해 감소, 첫 타격 후 1회 소비 | resistBerryType | onSourceModifyDamage, onEat |

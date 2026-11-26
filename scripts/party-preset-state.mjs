@@ -1,3 +1,4 @@
+import { replaceCalcMoves } from '../src/js/03-09-move-slots.js';
 import { readSourceFileSync as readFileSync } from './source-utils.mjs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -41,6 +42,9 @@ function loadPartyPresetApi() {
     defaultPokemonAbilityId() { return ability.id; },
     defaultPokemonItemId() { return ''; },
     defaultPokemonTypes() { return ['Normal']; },
+    makeSideState() { return { hpPct: 1, status: 'none', ranks: { atk: 0 } }; },
+    replaceCalcMoves,
+    resetMoveHistory() {},
     setSideDamageBlockActive() {},
   });
 

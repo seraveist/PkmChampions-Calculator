@@ -27,6 +27,7 @@ const DATA_IDS = [
   'data-rules',
 ];
 const ASSET_BUDGETS = {
+  partyImage: { sizeBytes: 24 * 1024, gzipBytes: 6 * 1024 },
   theme: { sizeBytes: 1024, gzipBytes: 1024 },
   style: { sizeBytes: 360 * 1024, gzipBytes: 55 * 1024 },
   data: { sizeBytes: 950 * 1024, gzipBytes: 170 * 1024 },
@@ -91,7 +92,7 @@ check(!/\son[a-z]+=["']/.test(index), 'public index has no inline event handlers
 check(!/__(?!PURE__)[A-Z0-9_]+__/.test(index), 'public index has no unresolved build placeholders');
 check(notFound.includes('<!DOCTYPE html>') && notFound.includes('href="/"'), '404 page is a complete document with a home link');
 check(notFound.includes('<meta name="robots" content="noindex,follow">'), '404 page is excluded from search results');
-check(/<link rel="stylesheet" href="\/assets\/[a-z-]+\.[a-f0-9]{12}\.css">/.test(notFound), '404 page uses a root-relative hashed stylesheet');
+check(/<link rel="stylesheet" href="\/assets\/[a-z0-9-]+\.[a-f0-9]{12}\.css">/.test(notFound), '404 page uses a root-relative hashed stylesheet');
 
 const stylesheetHrefs = [...index.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map((match) => match[1]);
 const scriptSrcs = [...index.matchAll(/<script[^>]*\ssrc="([^"]+)"[^>]*><\/script>/g)].map(match=>match[1]);
@@ -108,7 +109,7 @@ check(Object.keys(featureSources).sort().join(',') === 'dex,finetune,matchup,rev
 check(executableInlineScripts.length === 0, 'public index has no executable inline scripts');
 
 const referencedAssets = [...new Set([...stylesheetHrefs,...scriptSrcs,workerSource,...Object.values(manifest?.assets || {}).map(entry=>entry.path)])].filter(Boolean);
-check(referencedAssets.every((source) => /^\.\/assets\/[a-z-]+\.(?:[a-f0-9]{12}|[A-Z0-9]{8})\.(?:css|js)$/.test(source)), 'public assets use content-hashed filenames');
+check(referencedAssets.every((source) => /^\.\/assets\/[a-z0-9-]+\.(?:[a-f0-9]{12}|[A-Z0-9]{8})\.(?:css|js)$/.test(source)), 'public assets use content-hashed filenames');
 for (const source of referencedAssets) {
   const assetPath = path.join(DIST, source.replace(/^\.\//, ''));
   check(existsSync(assetPath) && statSync(assetPath).size > 0, `${source} exists and is non-empty`);

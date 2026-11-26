@@ -54,7 +54,7 @@ export async function buildApplication({outdir,dataPath,standalone=false,testMod
     bundle:true,splitting:!standalone,format:standalone?'iife':'esm',platform:'browser',target:'es2020',charset:'utf8',
     entryNames:'app.[hash]',chunkNames:'[name].[hash]',write:false,metafile:true,
     // Preserve readable function names; tree shaking still follows actual imports.
-    minify:false,legalComments:'inline',plugins:[sourcePlugin({dataPath,testMode})]});
+    minifyWhitespace:!standalone && !testMode,legalComments:'inline',plugins:[sourcePlugin({dataPath,testMode})]});
 }
 export async function buildReverseWorker() {
   const built=await bundle({absWorkingDir:ROOT,stdin:{contents:`

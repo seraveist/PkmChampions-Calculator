@@ -1,6 +1,6 @@
 import { RotomUI, uiStatTable } from './01-10-rotom-ui.js';
-import { AbilityById, ItemById, MoveById, NATURE_BY_ID, PokemonById, abName, calcStats, escapeHTML, itName, mvName, pkName, renderTrustedHTML } from './01-core.js';
-import { CALC_TERRAIN_OPTIONS, CALC_WEATHER_OPTIONS, calcMoveCategoryLabel } from './03-10-calc-state.js';
+import { moveHitCountRange, BATTLE_TYPES, TYPE_KO, AbilityById, ItemById, MoveById, NATURE_BY_ID, PokemonById, abName, calcStats, escapeHTML, itName, mvName, pkName, renderTrustedHTML } from './01-core.js';
+import { canEditMovePower, CALC_TERRAIN_OPTIONS, CALC_WEATHER_OPTIONS, calcMoveCategoryLabel } from './03-10-calc-state.js';
 import { renderToolFormCombobox, renderToolPokemonSelectSubframe, renderToolTypePills } from './03-11-calc-shared-render.js';
 import { RC_MOVESET_SIZE, rcForecastKey, rcKnownOpponentItem, rcMoveSet, rcNormalizeObservedMyMove, rcPokemonAbilityIds, rcRenderMoveCombobox, revCalcState } from './04-40-revcalc-state.js';
 import { rcCandidateAbilityIds, rcCandidateEvParts, rcRoleCompletionInfo } from './04-41-revcalc-scoring.js';
@@ -12,7 +12,7 @@ import { rcComboLabel, rcInvalidateChangedObservation, rcScheduleForecastRefresh
 /* Reverse calculator rendering. */
 function rcRenderStartConditions(role) {
   const own = role==='my', side = revCalcState[role], max = own ? calcStats(side).hp : 100;
-  const input = RotomUI.number({'data-rc-action':own ? 'myStartHp' : 'oppStartHpPct',min:1,max,value:own ? rcHp(side) : revCalcState.oppStartHpPct ?? 100,'aria-label':own ? '내 시작 HP' : '상대 시작 HP %'});
+  const input = RotomUI.number({'data-rc-action':own ? 'myStartHp' : 'oppStartHpPct',min:own ? 1 : 0.01,step:own ? 1 : 0.01,max,value:own ? rcHp(side) : revCalcState.oppStartHpPct ?? 100,'aria-label':own ? '내 시작 HP' : '상대 시작 HP %'});
   return '<div class="rc-start-row">' + RotomUI.field('시작 HP','<span class="rc-start-value">' + input + '<span>' + (own ? '/ '+max : '%') + '</span></span>','form-field--inline') +
     RotomUI.select(rcStatusOptions().map(s=>[s.id,s.label]),side.status,{'data-rc-action':own ? 'myStatus' : 'oppStatus','aria-label':own ? '내 상태' : '상대 상태'},'ui-select--choice rc-start-status') + '</div>';
 }
@@ -58,12 +58,34 @@ function renderRevCalcOpp() {
 
 function rcRenderObservationMoveOptions(role) {
   const move = MoveById[role === 'my' ? revCalcState.myMove : revCalcState.oppMove];
-  if (!move) return '';
+  const side = role === 'my' ? revCalcState.my : revCalcState.opp;
   const options = revCalcState.observedMoveOptions?.[role] || {};
   const select = (key,label,choices,current) => RotomUI.field(label,RotomUI.select(choices,current,{'data-rc-move-option':key,'data-rc-role':role}));
-  const controls = [];
+  const controls = [RotomUI.check('순풍',{'data-rc-move-option':'tailwind','data-rc-role':role,checked:!!(options.tailwind ?? side.tailwind)})];
+  if (rcPokemonAbilityIds(PokemonById[side.pokemonIdx]).includes('flashfire'))
+    controls.push(RotomUI.check('타오르는불꽃 발동',{'data-rc-move-option':'flashFireActive','data-rc-role':role,checked:!!(options.flashFireActive ?? side.flashFireActive)}));
+  if (['mimikyu','eiscue'].includes(side.pokemonIdx)) controls.push(select('disguiseBroken',side.pokemonIdx === 'eiscue' ? '아이스페이스 상태' : '탈 상태',[['','온전함'],['broken','이미 깨짐']], options.disguiseBroken ? 'broken' : ''));
+  if (side.types?.includes('Flying') || PokemonById[side.pokemonIdx]?.types?.includes('Flying') ||
+      rcPokemonAbilityIds(PokemonById[side.pokemonIdx]).some(id => AbilityById[id]?.grounded === false) ||
+      options.forcedGrounded || side.item === 'airballoon' || (role === 'opp' && rcKnownOpponentItem() === 'airballoon'))
+    controls.push(select('forcedGrounded','접지 상태',[['','기본'],['grounded','이미 접지됨']],options.forcedGrounded ? 'grounded' : ''));
+  if (!move) return controls.join('');
+  const actions = [['auto','기술 조건 적용'],['landed','기술 실행·적중'],['skipped','실패·풀죽음 등 미행동'],['switched','앞선 기술 뒤 교체로 대면 종료']];
+  if (move.flags?.charge || ['futuresight','doomdesire'].includes(move.id)) {
+    actions[0][1] = '첫 사용 조건 적용';
+    actions.push(['charging','준비·예약 턴']);
+  }
+  controls.push(select('actionResult','관측한 행동',actions,options.actionResult || 'auto'));
+  if (move.cat !== 'Status') {
+    controls.push(select('moveType', '기술 타입', [['','자동'], ...BATTLE_TYPES.map(t => [t, TYPE_KO[t]])], options.moveType || ''));
+    if (canEditMovePower(move)) {
+      const key = role === 'my' ? 'myMoveBp' : 'oppMoveBp';
+      controls.push(RotomUI.field('기술 위력', RotomUI.number({'data-rc-action':key, min:0, max:999, value:revCalcState[key], placeholder:String(move.bp || '자동')})));
+    }
+  }
+  if (move.id === 'ragefist') controls.push(select('timesAttacked','등장 후 맞은 횟수',Array.from({length:7},(_,i)=>[i,i===6?'6회 이상':i+'회']),options.timesAttacked || 0));
   if (move.mh) {
-    const min = Array.isArray(move.mh) ? move.mh[0] : move.mh, max = Array.isArray(move.mh) ? move.mh[1] : move.mh;
+    const [min, max] = moveHitCountRange(move);
     controls.push(select('hitCount', '관측 적중 횟수', [['', '미확인'], ...Array.from({ length: max - min + 1 }, (_, i) => [min + i, `${min + i}회`])], options.hitCount));
   }
   if (move.variableBpKind === 'fickleBeam') controls.push(select('fickleBeamMode', '변덕레이저 강화', [['auto','미확인'],['normal','일반'],['boosted','강화 관측']], options.fickleBeamMode || 'auto'));
@@ -87,9 +109,9 @@ function renderRevCalcInputs() {
       <section class="rc-action-block"><h3>상대 공격</h3><div class="rc-observed-row"><div class="form-field"><span>사용 기술</span>${rcRenderMoveCombobox('oppMove',revCalcState.oppMove)}</div>${RotomUI.field('내 남은 HP',RotomUI.number({'data-rc-action':'observedMyHp',value:revCalcState.observedMyHp,min:0,max:calcStats(my).hp,placeholder:'실수치'}))}</div></section>
     </div>
     <div class="rc-facts-grid">${RotomUI.field('행동 순서',RotomUI.select(rcTurnOrderOptions().map(s=>[s.id,s.label]),revCalcState.turnOrder,{'data-rc-action':'turnOrder'}))}<div class="form-field"><span>관측 도구</span>${rcRenderOppItemCombobox(revCalcState.oppItemKnown)}</div>${RotomUI.field('관측 특성',RotomUI.select([['unknown','미관측'],...rcPokemonAbilityIds(oppP).map(id=>[id,abName(AbilityById[id] || {name:id})])],revCalcState.oppAbilityKnown,{'data-rc-action':'oppAbilityKnown'}))}</div>
-    <p class="rc-timing-note">HP는 회복·열매 발동 후 기준</p>
+    <p class="rc-timing-note">싱글 대면 기준 · HP는 회복·열매 발동 후 입력</p>
     <details class="field-panel ui-surface rc-extra-observation"><summary class="ui-disclosure"><span class="field-label">${RotomUI.icon('settings')}필드 · 추가 관측</span>${RotomUI.icon('chevron')}</summary><div class="rc-extra-body">
-      <div class="form-grid form-grid--three">${RotomUI.field('날씨',RotomUI.select(CALC_WEATHER_OPTIONS.map(s=>[s.id,s.label]),revCalcState.field.weather,{'data-rc-field':'weather'}))}${RotomUI.field('필드',RotomUI.select(CALC_TERRAIN_OPTIONS.map(s=>[s.id,s.label]),revCalcState.field.terrain,{'data-rc-field':'terrain'}))}${RotomUI.field('트릭룸',RotomUI.select([['false','해제'],['true','적용']],!!revCalcState.field.trickRoom,{'data-rc-field':'trickRoom'}))}</div>
+      <div class="form-grid form-grid--three">${RotomUI.field('날씨',RotomUI.select(CALC_WEATHER_OPTIONS.map(s=>[s.id,s.label]),revCalcState.field.weather,{'data-rc-field':'weather'}))}${RotomUI.field('필드',RotomUI.select(CALC_TERRAIN_OPTIONS.map(s=>[s.id,s.label]),revCalcState.field.terrain,{'data-rc-field':'terrain'}))}${RotomUI.field('트릭룸',RotomUI.select([['false','해제'],['true','적용']],!!revCalcState.field.trickRoom,{'data-rc-field':'trickRoom'}))}${RotomUI.check('중력',{'data-rc-field':'isGravity',checked:!!revCalcState.field.isGravity})}</div>
       <div class="rc-input-grid">${conditions('dealt','내 공격 조건')}${conditions('received','상대 공격 조건')}</div>
     </div></details>`);
   rcWireMoveComboboxes(container);
@@ -219,7 +241,7 @@ function renderRevCalcResults() {
 
   if (!r.results.length) {
     renderTrustedHTML(container, `
-      <div class="empty-state ui-empty">HP 우선 배분과 현재 관측을 함께 만족하는 형태가 없습니다. 최종 HP, 행동 순서, 관측 도구와 기술 조건을 확인해 주세요.</div>
+      <div class="empty-state ui-empty">대표 성격 10종의 HP 우선 배분과 현재 관측을 함께 만족하는 형태가 없습니다. 최종 HP, 행동 순서, 관측 도구와 기술 조건을 확인해 주세요.</div>
     `);
     return;
   }
@@ -234,11 +256,12 @@ function renderRevCalcResults() {
       rcRenderCandidateHeader(c,i,r.speedActive,expanded) +
       '<div class="rc-result-expanded-body" id="rc-candidate-details-' + i + '" ' + (expanded ? '' : 'hidden') + '>' +
       (expanded ? (report ? '<div class="rc-followup-head"><h4>다음 턴 시작 상태</h4></div><div class="rc-duel-grid">' + ['my','opp'].map(role=>'<section class="ui-frame ui-frame--' + role + ' rc-duel-side">' + rcRenderNextStateSummary(report.state,role) + moves(role,role==='my' ? '내 기술' : '상대 관측 기술',role==='my' ? '상대 최대 HP 기준' : '내 최대 HP 기준') + '</section>').join('') + '</div>' : '<p class="rc-mini-note" role="status">다음 턴 정보 갱신 중</p>') : '') +
+      (expanded ? `<button type="button" class="ui-button" data-rc-applyresult="${i}">관측 시작 조건으로 대표 배분 적용</button>` : '') +
       '</div></article>';
   }).join('');
   renderTrustedHTML(container,
     (r.hpTolerance ? '<p class="rc-hp-approx" role="status">HP 근사 일치 · ±1%p</p>' : '') +
-    rcRenderExchangeSummary(r) +
+    '<p class="rc-mini-note">상대 형태 검색 범위 · 대표 성격 10종 · HP 우선 배분</p>' + rcRenderExchangeSummary(r) +
     '<div class="rc-briefing"><h3>예상 형태</h3></div><div class="rc-results-list">' + rows + '</div>');
   container.querySelectorAll('[data-rc-hp-fill]').forEach(el => { el.style.width = el.dataset.rcHpFill + '%'; });
   rcWireMoveComboboxes(container);

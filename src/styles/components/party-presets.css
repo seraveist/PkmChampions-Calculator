@@ -6,6 +6,7 @@
 .party-preset-modal-actions { display:flex;align-items:center;gap:6px;flex-wrap:wrap;grid-column:1/-1; }
 .party-preset-status { color:var(--muted);font-size:var(--text-label); }
 .party-preset-status:empty { display:none; }
+#partyPresetTextStatus { white-space:pre-line;overflow-wrap:anywhere;max-height:25vh;overflow-y:auto; }
 .party-preset-backup-note { padding:0 20px 12px;color:var(--muted);font-size:var(--text-meta); }
 .party-preset-modal-body,.party-preset-picker-body { display:grid;align-content:start;gap:12px;padding:16px;overflow:auto;overscroll-behavior:contain;min-height:0; }
 .party-preset-modal-body { background:var(--canvas); }
@@ -46,7 +47,7 @@
 .party-preset-text-actions { display:flex;justify-content:flex-end;gap:8px;padding:16px 20px; }
 .party-preset-storage-warning { margin:0 20px 12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:var(--canvas);font-size:var(--text-label);line-height:1.6; }
 .party-preset-confirm { --dialog-width:min(480px,calc(100% - 32px)); }
-.party-preset-confirm-message { padding:0 20px;line-height:1.7;overflow-wrap:anywhere; }
+.party-preset-confirm-message { white-space:pre-line;max-height:55vh;overflow-y:auto;padding:0 20px;line-height:1.7;overflow-wrap:anywhere; }
 body.party-preset-open { overflow:hidden; }
 @media(max-width:900px) { .party-preset-slot-grid { grid-template-columns:1fr; } }
 @media(max-width:700px) {

@@ -72,8 +72,8 @@
 | 가변 위력 | 기어오르기 (powertrip) | 지원 감지 | mechanics, built-data | computeVariableBp()에서 처리 |
 | 가변 위력 | 기사회생 (reversal) | 지원 감지 | mechanics, built-data | computeVariableBp()에서 처리 |
 | 가변 위력 | 라이징볼트 (risingvoltage) | 지원 감지 | mechanics, built-data | computeVariableBp()에서 처리 |
-| 가변 위력 | 솔라빔 (solarbeam) | 지원 감지 | mechanics, built-data | computeVariableBp()에서 처리 |
-| 가변 위력 | 솔라블레이드 (solarblade) | 지원 감지 | mechanics, built-data | computeVariableBp()에서 처리 |
+| 가변 위력 | 솔라빔 (solarbeam) | 지원 감지 | mechanics, built-data, code | computeVariableBp()에서 처리 |
+| 가변 위력 | 솔라블레이드 (solarblade) | 지원 감지 | mechanics, built-data, code | computeVariableBp()에서 처리 |
 | 가변 위력 | 토해내기 (spitup) | 지원 감지 | mechanics, built-data | computeVariableBp()에서 처리 |
 | 가변 위력 | 아이언롤러 (steelroller) | 지원 감지 | mechanics, built-data | computeVariableBp()에서 처리 |
 | 가변 위력 | 분함의발구르기 (stompingtantrum) | 지원 감지 | mechanics, built-data | computeVariableBp()에서 처리 |
@@ -122,10 +122,10 @@
 | 공격/BP/방어 보정 | 심록 (overgrow) | 지원 감지 | mechanics, built-data |  |
 | 공격/BP/방어 보정 | 순수한힘 (purepower) | 지원 감지 | mechanics, built-data |  |
 | 공격/BP/방어 보정 | 이판사판 (reckless) | 지원 감지 | mechanics, built-data |  |
-| 공격/BP/방어 보정 | 모래의힘 (sandforce) | 지원 감지 | mechanics, built-data |  |
+| 공격/BP/방어 보정 | 모래의힘 (sandforce) | 지원 감지 | mechanics, built-data, code |  |
 | 공격/BP/방어 보정 | 예리함 (sharpness) | 지원 감지 | mechanics, built-data |  |
-| 공격/BP/방어 보정 | 우격다짐 (sheerforce) | 지원 감지 | mechanics, built-data |  |
-| 공격/BP/방어 보정 | 선파워 (solarpower) | 지원 감지 | mechanics, built-data |  |
+| 공격/BP/방어 보정 | 우격다짐 (sheerforce) | 지원 감지 | mechanics, built-data, code |  |
+| 공격/BP/방어 보정 | 선파워 (solarpower) | 지원 감지 | mechanics, built-data, code |  |
 | 공격/BP/방어 보정 | 강철정신 (steelyspirit) | 지원 감지 | mechanics, built-data |  |
 | 공격/BP/방어 보정 | 옹골찬턱 (strongjaw) | 지원 감지 | mechanics, built-data |  |
 | 공격/BP/방어 보정 | 총대장 (supremeoverlord) | 지원 감지 | mechanics, built-data |  |
@@ -139,26 +139,26 @@
 | 대미지 보정 | 페어리오라 (fairyaura) | 지원 감지 | mechanics, built-data |  |
 | 대미지 보정 | 필터 (filter) | 지원 감지 | mechanics, built-data |  |
 | 대미지 보정 | 복슬복슬 (fluffy) | 지원 감지 | mechanics, built-data |  |
-| 대미지 보정 | 내열 (heatproof) | 지원 감지 | mechanics, built-data |  |
+| 대미지 보정 | 내열 (heatproof) | 지원 감지 | mechanics, built-data, code |  |
 | 대미지 보정 | 멀티스케일 (multiscale) | 지원 감지 | mechanics, built-data |  |
 | 대미지 보정 | 펑크록 (punkrock) | 지원 감지 | mechanics, built-data |  |
-| 대미지 보정 | 정화의소금 (purifyingsalt) | 지원 감지 | mechanics, built-data |  |
+| 대미지 보정 | 정화의소금 (purifyingsalt) | 지원 감지 | mechanics, built-data, code |  |
 | 대미지 보정 | 스나이퍼 (sniper) | 지원 감지 | mechanics |  |
 | 대미지 보정 | 하드록 (solidrock) | 지원 감지 | mechanics, built-data |  |
 | 대미지 보정 | 두꺼운지방 (thickfat) | 지원 감지 | mechanics, built-data |  |
-| 대미지 보정 | 수포 (waterbubble) | 지원 감지 | mechanics, built-data |  |
+| 대미지 보정 | 수포 (waterbubble) | 지원 감지 | mechanics, built-data, code |  |
 | 면역/상성 | 방탄 (bulletproof) | 지원 감지 | mechanics, built-data |  |
-| 면역/상성 | 건조피부 (dryskin) | 지원 감지 | mechanics, built-data |  |
-| 면역/상성 | 흙먹기 (eartheater) | 지원 감지 | mechanics, built-data |  |
+| 면역/상성 | 건조피부 (dryskin) | 지원 감지 | mechanics, built-data, code |  |
+| 면역/상성 | 흙먹기 (eartheater) | 지원 감지 | mechanics, built-data, code |  |
 | 면역/상성 | 타오르는불꽃 (flashfire) | 지원 감지 | mechanics, built-data, code |  |
-| 면역/상성 | 부유 (levitate) | 지원 감지 | mechanics, built-data, code |  |
-| 면역/상성 | 피뢰침 (lightningrod) | 지원 감지 | mechanics, built-data |  |
-| 면역/상성 | 전기엔진 (motordrive) | 지원 감지 | mechanics, built-data |  |
-| 면역/상성 | 초식 (sapsipper) | 지원 감지 | mechanics, built-data |  |
+| 면역/상성 | 부유 (levitate) | 지원 감지 | mechanics, built-data |  |
+| 면역/상성 | 피뢰침 (lightningrod) | 지원 감지 | mechanics, built-data, code |  |
+| 면역/상성 | 전기엔진 (motordrive) | 지원 감지 | mechanics, built-data, code |  |
+| 면역/상성 | 초식 (sapsipper) | 지원 감지 | mechanics, built-data, code |  |
 | 면역/상성 | 배짱 (scrappy) | 지원 감지 | mechanics |  |
 | 면역/상성 | 방음 (soundproof) | 지원 감지 | mechanics, built-data |  |
-| 면역/상성 | 축전 (voltabsorb) | 지원 감지 | mechanics, built-data |  |
-| 면역/상성 | 저수 (waterabsorb) | 지원 감지 | mechanics, built-data |  |
+| 면역/상성 | 축전 (voltabsorb) | 지원 감지 | mechanics, built-data, code |  |
+| 면역/상성 | 저수 (waterabsorb) | 지원 감지 | mechanics, built-data, code |  |
 | 방어 예외/아이템 상호작용 | 전투무장 (battlearmor) | 지원 감지 | mechanics, built-data |  |
 | 방어 예외/아이템 상호작용 | 탈 (disguise) | 지원 감지 | mechanics, built-data |  |
 | 방어 예외/아이템 상호작용 | 헤비메탈 (heavymetal) | 지원 감지 | mechanics, built-data |  |
@@ -166,16 +166,16 @@
 | 방어 예외/아이템 상호작용 | 라이트메탈 (lightmetal) | 지원 감지 | mechanics, built-data |  |
 | 방어 예외/아이템 상호작용 | 숙성 (ripen) | 지원 감지 | mechanics, built-data |  |
 | 방어 예외/아이템 상호작용 | 조가비갑옷 (shellarmor) | 지원 감지 | mechanics, built-data |  |
-| 방어 예외/아이템 상호작용 | 점착 (stickyhold) | 지원 감지 | mechanics, built-data |  |
-| 방어 예외/아이템 상호작용 | 옹골참 (sturdy) | 지원 감지 | mechanics, built-data |  |
+| 방어 예외/아이템 상호작용 | 점착 (stickyhold) | 지원 감지 | mechanics, built-data, code |  |
+| 방어 예외/아이템 상호작용 | 옹골참 (sturdy) | 지원 감지 | mechanics, built-data, code |  |
 | 방어 예외/아이템 상호작용 | 긴장감 (unnerve) | 지원 감지 | mechanics, built-data, code |  |
-| 위협 차단 | 클리어바디 (clearbody) | 지원 감지 | mechanics | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
+| 위협 차단 | 클리어바디 (clearbody) | 지원 감지 | mechanics, code | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
 | 위협 차단 | 파수견 (guarddog) | 지원 감지 | mechanics, code | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
-| 위협 차단 | 정신력 (innerfocus) | 지원 감지 | mechanics | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
+| 위협 차단 | 정신력 (innerfocus) | 지원 감지 | mechanics, code | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
 | 위협 차단 | 둔감 (oblivious) | 지원 감지 | mechanics | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
 | 위협 차단 | 마이페이스 (owntempo) | 지원 감지 | mechanics | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
 | 위협 차단 | 주눅 (rattled) | 지원 감지 | mechanics, code | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
-| 위협 차단 | 하얀연기 (whitesmoke) | 지원 감지 | mechanics | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
+| 위협 차단 | 하얀연기 (whitesmoke) | 지원 감지 | mechanics, code | entry-effects.json의 위협 차단 목록으로 적용 전 차단 |
 | 자동 진입 효과 | 잔비 (drizzle) | 지원 감지 | mechanics | entry-effects.json을 makeCalcState()에서 계산용 복사본에 적용 |
 | 자동 진입 효과 | 가뭄 (drought) | 지원 감지 | mechanics | entry-effects.json을 makeCalcState()에서 계산용 복사본에 적용 |
 | 자동 진입 효과 | 일렉트릭메이커 (electricsurge) | 지원 감지 | mechanics | entry-effects.json을 makeCalcState()에서 계산용 복사본에 적용 |
@@ -193,10 +193,10 @@
 | KO 추정 | 먹다남은음식 (leftovers) | 지원 감지 | mechanics, built-data | hkoLabel(): 살아남은 뒤 회복, 열매 1회 소비, 독립 난수 합산 |
 | KO 추정 | 오랭열매 (oranberry) | 지원 감지 | mechanics, built-data | hkoLabel(): 살아남은 뒤 회복, 열매 1회 소비, 독립 난수 합산 |
 | KO 추정 | 자뭉열매 (sitrusberry) | 지원 감지 | mechanics, built-data | hkoLabel(): 살아남은 뒤 회복, 열매 1회 소비, 독립 난수 합산 |
-| 가변 위력/접지 보조 | 풍선 (airballoon) | 지원 감지 | mechanics, built-data |  |
+| 가변 위력/접지 보조 | 풍선 (airballoon) | 지원 감지 | mechanics, built-data, code |  |
 | 가변 위력/접지 보조 | 검은철구 (ironball) | 지원 감지 | mechanics, built-data |  |
 | 결정력 생존 안내 | 기합의머리띠 (focusband) | 지원 감지 | code | 결과 카드에 생존 효과를 안내하고 순수 피해·KO 산출에서는 제외 |
-| 결정력 생존 안내 | 기합의띠 (focussash) | 지원 감지 | mechanics, built-data | 결과 카드에 생존 효과를 안내하고 순수 피해·KO 산출에서는 제외 |
+| 결정력 생존 안내 | 기합의띠 (focussash) | 지원 감지 | mechanics, built-data, code | 결과 카드에 생존 효과를 안내하고 순수 피해·KO 산출에서는 제외 |
 | 공격/방어 실수치 보정 | 전기구슬 (lightball) | 지원 감지 | mechanics, built-data |  |
 | 반감 열매 | 바리비열매 (babiriberry) | 지원 감지 | mechanics, built-data | Unnerve/As One/Ripen 반영 |
 | 반감 열매 | 루미열매 (chartiberry) | 지원 감지 | mechanics, built-data | Unnerve/As One/Ripen 반영 |
@@ -217,7 +217,7 @@
 | 반감 열매 | 초나열매 (wacanberry) | 지원 감지 | mechanics, built-data | Unnerve/As One/Ripen 반영 |
 | 반감 열매 | 플카열매 (yacheberry) | 지원 감지 | mechanics, built-data | Unnerve/As One/Ripen 반영 |
 | 최종 대미지/BP 보정 | 달인의띠 (expertbelt) | 지원 감지 | mechanics, built-data |  |
-| 최종 대미지/BP 보정 | 생명의구슬 (lifeorb) | 지원 감지 | mechanics, built-data |  |
+| 최종 대미지/BP 보정 | 생명의구슬 (lifeorb) | 지원 감지 | mechanics, built-data, code |  |
 | 최종 대미지/BP 보정 | 힘의머리띠 (muscleband) | 지원 감지 | mechanics, built-data |  |
 | 최종 대미지/BP 보정 | 박식안경 (wiseglasses) | 지원 감지 | mechanics, built-data |  |
 | 타입 위력 보정 | 검은띠 (blackbelt) | 지원 감지 | mechanics, built-data |  |

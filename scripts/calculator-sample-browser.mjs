@@ -1,4 +1,5 @@
-// Dex checks against the actual public or standalone browser build.
+// Check the shipped sample, then exercise detailed scenarios with a local fixture.
+import { build } from 'esbuild';
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -38,8 +39,34 @@ async function startPublicServer() {
   const csp = headersSource.match(/^\s*Content-Security-Policy:\s*(.+)$/m)?.[1]?.trim();
   if (!csp) throw new Error('Public build CSP header was not found.');
 
+  const directory = path.join(ROOT, 'samples/calculator');
+  const source = readFileSync(path.join(directory, 'calculator.js'), 'utf8');
+  const fixture = await build({
+    stdin: {
+      resolveDir: directory,
+      contents: source + `
+        import { getStabMod } from '../../src/js/01-core.js';
+        import { calculatePowerDamage, powerMoveField } from '../../src/js/02-engine.js';
+        import { makeFieldState } from '../../src/js/03-10-calc-state.js';
+        import { resetAutoEntryFieldState } from '../../src/js/03-40-calc-entry-effects.js';
+        Object.assign(globalThis, { state, AbilityById, PokemonById, MoveById, abName, getStabMod,
+          calcStats, sideCurrentHp, makeFieldState, resetAutoEntryFieldState, calculatePowerDamage, powerMoveField,
+          sampleOpenMoveSettings, sampleCalculateSlot: powerUiCalculateSlot, sampleTheme, sampleRefresh,
+          sampleSetPokemon, sampleRenderSides });
+      `,
+    },
+    bundle: true, format: 'iife', platform: 'browser', write: false,
+  });
   const server = createServer((request, response) => {
     const pathname = decodeURIComponent(new URL(request.url || '/', 'http://127.0.0.1').pathname);
+    if (pathname === '/sample-fixture.html' || pathname === '/sample-fixture.js') {
+      const isHtml = pathname.endsWith('.html');
+      response.writeHead(200, { 'Content-Type': contentType(pathname), 'Content-Security-Policy': csp });
+      response.end(isHtml
+        ? readFileSync(HTML_PATH, 'utf8').replace('./samples/calculator/calculator.js', './sample-fixture.js')
+        : fixture.outputFiles[0].contents);
+      return;
+    }
     const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
     const file = path.resolve(PUBLIC_ROOT, relative);
     if (!file.startsWith(`${path.resolve(PUBLIC_ROOT)}${path.sep}`) || !existsSync(file)) {
@@ -362,6 +389,12 @@ async function main() {
 
 
 
+    check(await client.evaluate(`typeof sampleOpenMoveSettings === 'undefined' &&
+      document.querySelector('[data-move-row="0"] .damage-raw').textContent.includes('HP')`), 'shipped sample renders damage with private module bindings');
+    await client.evaluate(`document.querySelector('[data-move-settings="0"]').click()`);
+    check(await client.evaluate("document.getElementById('move-settings').open"), 'shipped settings control opens the move dialog');
+    await client.send('Page.navigate', { url: publicServer.url + 'sample-fixture.html' });
+    await waitFor(() => client.evaluate("location.pathname === '/sample-fixture.html' && window.calculatorSampleReady === true"));
     const report = [];
     await installAxe(client);
     if (process.argv.includes('--final-review-only')) {
@@ -439,14 +472,18 @@ async function main() {
       }
     }
     writeFileSync(path.join(ROOT,'docs/calculator-sample-dropdown-review.json'),JSON.stringify(dropdownReview,null,2)+'\n');
-    const hpDamage = await client.evaluate("sampleCalculateSlot(0).result.damages");
-    check(hpDamage.some(n=>n>0),'ground immunity is annotated without zeroing decisive power');
+    const hpDamage = await client.evaluate("sampleCalculateSlot(1).result.damages");
+    check(await client.evaluate("sampleCalculateSlot(0).result.damages.every(n => n === 0)"), 'Flying type immunity gives zero actual and displayed HP damage');
     check(await client.evaluate("document.querySelector('[data-move-row=\"0\"] .move-notes').textContent.includes('무효')"),'immunity is visible in its result row');
     check(await client.evaluate("document.querySelector('[data-move-row=\"1\"] .ko').textContent.includes('타')"),'KO label includes hit count');
-    check(await client.evaluate("document.querySelector('[data-move-row=\"0\"] .ko strong').textContent==='난수 2타' && document.querySelector('[data-move-row=\"0\"] .ko-probability').textContent==='18.4% 확률' && !document.querySelector('[data-move-row=\"1\"] .ko-probability')"),'random KO separates probability from its headline while certain KO omits probability');
+    check(await client.evaluate(`document.querySelector('[data-move-row="0"] .ko strong').textContent.trim()==='무효'
+      && !document.querySelector('[data-move-row="0"] .ko-probability')`), 'an immune defender has no KO probability');
     check(await client.evaluate("document.querySelector('[data-move-row=\"0\"] .effect-note').textContent==='땅 무효' && !document.getElementById('move-rows').textContent.includes('피해 산출 제외')"),'result tags use concise immunity wording');
+    check(await client.evaluate(`document.querySelector('[data-move-row="2"] .ko strong').textContent === '난수 2타'
+      && document.querySelector('[data-move-row="2"] .ko-probability').textContent === '29.3% 확률'
+      && !document.querySelector('[data-move-row="1"] .ko-probability')`), 'random and guaranteed KO rows use distinct probability displays');
     await client.evaluate(`let ev=document.querySelector('[data-side="atk"][data-ev="atk"]');ev.value='0';ev.dispatchEvent(new Event('change',{bubbles:true}));`);
-    const lessDamage = await client.evaluate("sampleCalculateSlot(0).result.damages");
+    const lessDamage = await client.evaluate("sampleCalculateSlot(1).result.damages");
     check(Math.max(...lessDamage)<Math.max(...hpDamage),'editing attack EV immediately recalculates damage');
     await client.evaluate(`let he=document.querySelector('[data-side="atk"][data-ev="hp"]');he.value='32';he.dispatchEvent(new Event('change',{bubbles:true}));let ae=document.querySelector('[data-side="atk"][data-ev="atk"]');ae.value='32';ae.dispatchEvent(new Event('change',{bubbles:true}));`);
     check(await client.evaluate("Object.values(state.atk.evs).reduce((a,b)=>a+b,0)===66 && state.atk.evs.atk===2"),'EV total is capped at 66 without changing other allocations');
@@ -470,12 +507,30 @@ async function main() {
     check(await client.evaluate("state.field.weather==='Rain' && document.getElementById('field-summary').textContent.includes('비')"),'weather control updates field and summary');
     await checkAxe(client,'expanded field');
     await captureScreenshot(client,'calculator-sample-field');
-    const recovery = await client.evaluate(`(() => { sampleSetPokemon('atk','garchomp'); sampleSetPokemon('def','dragonite'); state.atk.moves=['dragonclaw']; state.def.ability='innerfocus'; state.def.item='leftovers'; sampleRenderSides(); sampleRefresh({fields:true}); return {ko:sampleCalculateSlot(0).ko, text:document.querySelector('[data-move-row="0"]').textContent}; })()`);
-    check(recovery.ko.sub.includes('회복') && recovery.text.includes('회복'),'multi-hit KO output includes observed recovery item adjustment',JSON.stringify(recovery));
+    const recovery = await client.evaluate(`(() => {
+      sampleSetPokemon('atk','garchomp'); sampleSetPokemon('def','dragonite');
+      state.field=makeFieldState(); state.atk.moves=['dragonclaw']; state.atk.ranks.atk=-1;
+      state.def.ability='innerfocus'; state.def.item=''; sampleRenderSides(); sampleRefresh({fields:true});
+      const row=()=>document.querySelector('[data-move-row="0"] .ko').textContent;
+      const without=row();
+      state.def.item='leftovers'; sampleRenderSides(); sampleRefresh();
+      return {without, withRecovery:row()};
+    })()`);
+    check(recovery.without !== recovery.withRecovery && recovery.without.includes('2타') && recovery.withRecovery.includes('타'),
+      'Leftovers recovery changes the shown KO outcome for a borderline two-use attack', JSON.stringify(recovery));
     await client.evaluate("document.getElementById('swap-sides').click()");
     check(await client.evaluate("state.atk.pokemonIdx==='dragonite' && state.def.pokemonIdx==='garchomp'"),'swap exchanges full participant settings');
     await client.evaluate("document.querySelector('[data-pick=pokemon][data-side=def]').click();document.getElementById('picker-search').value='보만다';document.getElementById('picker-search').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('[data-choice=salamence]').click()");
     check(await client.evaluate("state.def.pokemonIdx==='salamence' && !document.getElementById('picker').open && document.getElementById('entry-effects').textContent.includes('위협')"),'changing species resets its configuration and applies entry ability');
+    check(await client.evaluate(`(() => {
+      state.field=makeFieldState(); resetAutoEntryFieldState();
+      sampleSetPokemon('atk','garchomp',true); sampleSetPokemon('def','eelektrossmega');
+      sampleRenderSides(); sampleRefresh({fields:true});
+      const row=document.querySelector('[data-move-row="0"]');
+      return state.def.ability==='eelevate' && row.querySelector('.damage-basis')?.textContent==='일반 피해'
+        && parseInt(row.querySelector('.damage-raw').textContent,10)>0
+        && row.querySelector('.ko strong').textContent==='무효' && row.textContent.includes('천정부지');
+    })()`), 'Eelevate keeps ordinary damage visible with its badge and an immune KO result');
     const details=await verifyCalculatorSampleDetails({client,check,setViewport,captureScreenshot,checkAxe,sleep});
     writeFileSync(path.join(ROOT,'docs/calculator-sample-details-review.json'),JSON.stringify(details,null,2)+'\n');
     const components=await verifyCalculatorSampleComponents({client,check,setViewport,captureScreenshot,checkAxe,sleep});

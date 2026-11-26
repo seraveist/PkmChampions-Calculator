@@ -16,15 +16,21 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         shell: bash
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Lint GitHub workflows
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '20'
           cache: npm
@@ -44,7 +50,7 @@ jobs:
         run: npm test 2>&1 | tee artifacts/ui-smoke/npm-test.log
 
       - name: Verify generated artifacts are committed
-        run: git diff --exit-code -- pokemon-champions-calculator-v3.html docs/damage-calculator-coverage-matrix.md
+        run: git diff --exit-code -- pokemon-champions-calculator-v3.html docs/damage-calculator-coverage-matrix.md docs/power-mechanics-audit.md docs/power-mechanics-audit.json
 
       - name: Verify uninstrumented module and offline output
         run: |
@@ -68,6 +74,11 @@ jobs:
         env:
           UI_SMOKE_SCREENSHOT_DIR: artifacts/ui-smoke/public
 
+      - name: Verify separate calculator sample
+        run: |
+          npm run sample:calculator
+          node scripts/calculator-sample-browser.mjs --public --require-browser --disable-browser-sandbox 2>&1 | tee artifacts/ui-smoke/sample.log
+
       - name: Build Cloudflare Pages output
         run: npm run build:pages
 
@@ -79,11 +90,31 @@ jobs:
         env:
           UI_SMOKE_SCREENSHOT_DIR: artifacts/ui-smoke/pages
 
+      - name: Verify public tool interactions
+        run: |
+          for suite in dex-browser reverse-exchange-browser fine-tune-browser matchup-browser party-remodel-browser; do
+            node "scripts/$suite.mjs" --public --ad-free --require-browser --disable-browser-sandbox 2>&1 | tee "artifacts/ui-smoke/$suite.log"
+          done
+
       - name: Upload browser validation logs and screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ui-smoke-screenshots
           path: artifacts/ui-smoke
           retention-days: 7
           if-no-files-found: warn
+
+  reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - uses: ./.github/actions/showdown-reference

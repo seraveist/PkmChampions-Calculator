@@ -1,4 +1,4 @@
-import { AbilityById, ItemById, MOD, MOLD_BREAKER_IGNORED_ABILITIES, OF16, OF32, PokemonById, RULES, STAT_LABEL, TYPE_KO, applyBoost, battleAbilityContext, calcStats, chainMods, effectiveAbility, effectiveBattleItem, effectiveItem, effectiveTypes, effectiveWeather, effectiveWeight, getMoveEffectiveness, getStabMod, isGrounded, isTeraActive, pokeRound, sideHpPct, sideIsFullHp, toId, typeEff } from './01-core.js';
+import { AbilityById, ItemById, MOD, MOLD_BREAKER_IGNORED_ABILITIES, OF16, OF32, PokemonById, RULES, STAT_LABEL, TYPE_KO, applyBoost, battleAbilityContext, calcStats, chainMods, effectiveAbility, effectiveBattleItem, effectiveItem, effectiveTypes, effectiveWeather, effectiveWeight, resolveMoveEffectiveness, getStabMod, isGrounded, isTeraActive, pokeRound, sideHpPct, sideIsFullHp, toId, typeEff } from './01-core.js';
 
 /* ════════════════════════════════════════════════════════════
  * 02-engine.js — 계산 엔진: 가변 BP, calculateDamage, 진입 위험, simulateKO/hkoLabel, 속도
@@ -332,6 +332,8 @@ function computeVariableBp(move, atkSide, defSide, field, atkStats, defStats) {
   if (move.manualBp && !['fickleBeam', 'fling', 'stockpile'].includes(move.variableBpKind)) return baseBp;
 
   switch (move.variableBpKind) {
+    case 'timesAttacked':
+      return 50 * (1 + Math.max(0, Math.min(6, Math.floor(Number(atkSide.timesAttacked) || 0))));
     case 'fickleBeam':
       return atkSide.fickleBeamMode === 'boosted' ? 160 : 80;
     case 'fling':
@@ -532,7 +534,7 @@ function makeDamageContext(atkSide, defSide, move, field) {
   const abilityCtx = battleAbilityContext(atkSide, defSide);
   const atkAb = abilityCtx.atkAb;
   const rawDefAb = abilityCtx.defAb;
-  const moldBreakerActive = !!AbilityById[atkAb]?.ignoresTargetAbility;
+  const moldBreakerActive = !!AbilityById[atkAb]?.ignoresTargetAbility || move.ignoresAbility;
   const defAb = (moldBreakerActive && MOLD_BREAKER_IGNORED_ABILITIES.includes(rawDefAb)) ? '' : rawDefAb;
   const atkItem = effectiveBattleItem(atkSide, atkAb);
   const defItem = effectiveBattleItem(defSide, defAb);
@@ -581,21 +583,6 @@ function resolveDamagePreludeStage(ctx) {
     atkAbilityData, defAbilityData, abilityCtx, itemCtx, weather, atkStats, defStats,
   } = ctx;
 
-  // ─ 디스가이즈 (Mimikyu / Mimikyu-Totem): 풀피일 때 첫 공격 무효 ─
-  // 챔피언스 사양: onEffectiveness 가 0 반환 → 데미지 0
-  // 다단히트도 first hit 에 neutral 플래그가 set 되어 모든 hit 가 차단됨 (champions/abilities.ts:14-32)
-  if (!ctx.immunityNotes && damageBlockApplies(defAbilityData?.damageBlock, defP, defSide, move, move.cat === 'Physical')) {
-    return finishDamageStage({
-      damages: new Array(16).fill(0),
-      minPct: 0, maxPct: 0,
-      effectiveness: 0,
-      moveType: move.type, category: move.cat,
-      bp: move.bp, atk: 0, def: 0,
-      defHP: defStats.hp,
-      mods: [`${displayName(defAbilityData)} 차단`]
-    });
-  }
-
   // ─ 기술 타입 결정 ─
   let moveType = move.type;
   // 가변 위력 기술은 callback 으로 실제 BP 계산
@@ -623,6 +610,10 @@ function resolveDamagePreludeStage(ctx) {
     }
   }
 
+  if (!move.manualType && move.id === 'ragingbull') {
+    moveType = { taurospaldeacombat: 'Fighting', taurospaldeablaze: 'Fire', taurospaldeaaqua: 'Water' }[atkP.id] || moveType;
+  }
+  if (!move.manualType && move.id === 'aurawheel') moveType = (atkSide.hangry ?? (atkP.id === 'morpekohangry')) ? 'Dark' : 'Electric';
   let typeChangeMod = null;
   const abilityTypeChange = atkAbilityData?.typeChange;
   if (!move.manualType && abilityTypeChange && (!abilityTypeChange.flag || move.flags?.[abilityTypeChange.flag])) {
@@ -671,21 +662,33 @@ function resolveDamagePreludeStage(ctx) {
   }
 
   // ─ 타입 상성 먼저 계산 (0배면 조기 종료) ─
-  if (ctx.immunityNotes && defAbilityData?.damageBlock && pokemonMatchesCondition(defP, defAbilityData.damageBlock)
+  if (ctx.immunityNotes && !defSide.disguiseBroken && defAbilityData?.damageBlock && pokemonMatchesCondition(defP, defAbilityData.damageBlock)
       && categoryMatches(defAbilityData.damageBlock, isPhysical)) {
     ctx.immunityNotes.push(`${displayName(defAbilityData)}: 첫 공격 차단`);
   }
-  const effectiveness = getMoveEffectiveness(move, moveType, atkSide, defSide, field, { ...abilityCtx, atkAb, defAb }, itemCtx, ctx.immunityNotes);
+  const { multiplier: effectiveness, blockingAbility } = resolveMoveEffectiveness(move, moveType, atkSide, defSide, field, { ...abilityCtx, atkAb, defAb }, itemCtx, ctx.immunityNotes);
   if (effectiveness === 0 && !field.offensivePowerOnly) {
     return finishDamageStage({
       damages: new Array(16).fill(0),
       minPct: 0, maxPct: 0,
-      effectiveness: 0,
+      effectiveness: 0, blockingAbility,
       moveType, category,
       bp, atk: 0, def: 0,
       defHP: defStats.hp,
       ...(ctx.immunityNotes ? { typeImmune: true } : {}),
       mods: ['효과 없음']
+    });
+  }
+
+  if (!field.resolveHitState && !ctx.immunityNotes && damageBlockApplies(defAbilityData?.damageBlock, defP, defSide, move, isPhysical)) {
+    return finishDamageStage({
+      damages: new Array(16).fill(0),
+      minPct: 0, maxPct: 0,
+      effectiveness: 0,
+      moveType: moveType, category,
+      bp: move.bp, atk: 0, def: 0,
+      defHP: defStats.hp,
+      mods: [`${displayName(defAbilityData)} 차단`]
     });
   }
 
@@ -712,18 +715,6 @@ function calculateBasePowerStage(ctx) {
   // ═══════════════════════════════════════
   // STAGE 1: BP modifiers
   // ═══════════════════════════════════════
-  if (!ctx.immunityNotes && damageBlockApplies(defAbilityData?.damageBlock, defP, defSide, move, isPhysical)) {
-    return finishDamageStage({
-      damages: new Array(16).fill(0),
-      minPct: 0, maxPct: 0,
-      effectiveness,
-      moveType, category,
-      bp, atk: 0, def: 0,
-      defHP: defStats.hp,
-      mods: [`${displayName(defAbilityData)} 차단`]
-    });
-  }
-
   if (ctx.immunityNotes && typeof move.ohko === 'string' && effectiveTypes(defSide).includes(move.ohko)) {
     ctx.immunityNotes.push(`${displayType(move.ohko)} 타입: 일격기 무효`);
   }
@@ -737,6 +728,7 @@ function calculateBasePowerStage(ctx) {
 
   const bpMods = [];
 
+  applyAbilityRuleMods(ctx.defAbilityData?.defensiveBpMods, ctx, bpMods, displayName(ctx.defAbilityData));
   applyAbilityRuleMods(atkAbilityData?.bpBoosts, ctx, bpMods, atkAbilityData?.koName || atkAbilityData?.name || atkAb);
   if (typeChangeMod) bpMods.push(typeChangeMod);  // Aerilate 등
 
@@ -1077,12 +1069,12 @@ function calculateFinalDamageStage(ctx) {
   }
   applyFieldRuleMods(fieldMechanics().finalMods, ctx, finalMods);
 
-  if (!isCritical && !ctx.atkAbilityData?.ignoresScreens) {
+  if (!isCritical && !ctx.atkAbilityData?.ignoresScreens && !breaksDamageScreens(move)) {
     for (const rule of fieldMechanics().screenFinalMods || []) {
       if (!fieldRuleApplies(rule, ctx)) continue;
       const mod = field.gameType === 'Doubles' ? rule.doublesMod : rule.singlesMod;
       finalMods.push(mechanicMod(mod));
-      mods.push(rule.label);
+      mods.push(field.gameType === 'Doubles' ? rule.label.replace('0.5', '⅔') : rule.label);
     }
   }
 
@@ -1101,7 +1093,9 @@ function calculateFinalDamageStage(ctx) {
       mods.push(formatModLabel(atkItemData.koName, mod));
     }
   }
-  // Metronome item requires consecutive-move context and is intentionally omitted for one-shot damage.
+  if (atkItem === 'metronome' && atkSide.metronomeUses) {
+    finalMods.push([4096,4915,5734,6553,7372,8192][Math.min(5, atkSide.metronomeUses)]);
+  }
 
   // 여보먹열매 (효과굉장 시 0.5×) — 단발 계산이라 단순 적용
   const resistBerryType = defItemData?.resistBerryType;
@@ -1227,9 +1221,32 @@ function sampleMultiHitCounts(variants, sampleCount = 16) {
   });
 }
 
+function shellSideArmCategory(a, d) {
+  const as = calcStats(a), ds = calcStats(d);
+  const power = (offense, defense) => Math.floor(22 * 90 * applyBoost(as[offense], a.ranks[offense] || 0)
+    / applyBoost(ds[defense], d.ranks[defense] || 0) / 50);
+  const diff = power('atk', 'def') - power('spa', 'spd');
+  return diff > 0 ? 'Physical' : diff < 0 ? 'Special' : 'tie';
+}
+
+function prepareDamageAttacker(a, move) {
+  if (a.pokemonIdx === 'aegislash' && a.ability === 'stancechange' && move.cat !== 'Status')
+    a = { ...a, pokemonIdx: 'aegislashblade' };
+  if (['electroshot','meteorbeam'].includes(move.id)) {
+    const boost = a.ability === 'contrary' ? -1 : a.ability === 'simple' ? 2 : 1;
+    a = { ...a, ranks: { ...a.ranks, spa: Math.max(-6, Math.min(6, (a.ranks.spa || 0) + boost)) } };
+  }
+  return a;
+}
+
 function calculateDamage(atkSide, defSide, move, field) {
   if (!move || move.cat === 'Status') return null;
 
+  atkSide = prepareDamageAttacker(atkSide, move);
+  if (move.id === 'shellsidearm') {
+    const physical = (field.shellCategory || shellSideArmCategory(atkSide, defSide)) === 'Physical';
+    move = { ...move, cat: physical ? 'Physical' : 'Special', flags: { ...move.flags, contact: physical } };
+  }
   const ctx = makeDamageContext(atkSide, defSide, move, field);
   if (ctx.invalid) return null;
 
@@ -1247,6 +1264,10 @@ function calculateDamage(atkSide, defSide, move, field) {
   }
 
   return attachKoContext(calculateFinalDamageStage(ctx), ctx);
+}
+
+function breaksDamageScreens(move) {
+  return ['ragingbull', 'brickbreak', 'psychicfangs'].includes(move?.id);
 }
 
 function isSpreadDamage(move, field, attacker) {
@@ -1285,7 +1306,9 @@ function calculatePowerDamage(atkSide, defSide, move, field) {
   // Only legacy display endpoints use 16 samples; probabilities use the exact weighted distribution.
   result.damages = Array.from({ length: 16 }, (_, i) => {
     let cumulative = 0;
-    const quantile = i === 0 ? 0 : i === 15 ? 1 : (i + 0.5) / 16;
+    if (i === 0) return distribution[0].damage;
+    if (i === 15) return distribution.at(-1).damage;
+    const quantile = (i + 0.5) / 16;
     return (distribution.find(row => { cumulative += row.chance; return cumulative + 1e-12 >= quantile; }) || distribution.at(-1))?.damage || 0;
   });
   result.damageDistribution = distribution;
@@ -1382,6 +1405,9 @@ function powerAttackProfile(attacker, move, field, context) {
 function makePowerAttackModel(attacker, defender, move, field, firstResult) {
   const context = firstResult.koContext;
   const { ability, item, isBeatUp, participants, parent, variants } = powerAttackProfile(attacker, move, field, context);
+  if (move.id === 'shellsidearm' && shellSideArmCategory(attacker, defender) === 'tie') {
+    variants.splice(0, variants.length, ...variants.flatMap(v => ['Physical','Special'].map(shellCategory => ({ ...v, shellCategory }))));
+  }
   const maxHp = firstResult.defHP;
   const hitCache = new Map();
   const hitChanges = [];
@@ -1408,6 +1434,7 @@ function makePowerAttackModel(attacker, defender, move, field, firstResult) {
       if (variants[variantIndex]?.fickleBeamMode) atk.fickleBeamMode = variants[variantIndex].fickleBeamMode;
       const def = { ...defender, ranks: { ...defender.ranks }, hpPct: Math.max(0, hp) / maxHp, fullHP: hp === maxHp, pinch: hp <= Math.floor(maxHp / 3), item: used ? '' : defender.item };
       const hitField = { ...field, singleHitCalculation: true, powerHitIndex: index, parentalBondChild: !!parent && index > 0 };
+      if (variants[variantIndex].shellCategory) hitField.shellCategory = variants[variantIndex].shellCategory;
       if (consumesAttackItem) {
         atk.item = '';
         hitField.normalGemBoost = useIndex === 0;
@@ -1424,10 +1451,10 @@ function makePowerAttackModel(attacker, defender, move, field, firstResult) {
           def.ranks.spe = Math.min(6, (def.ranks.spe || 0) + 2 * index);
         }
         if (defensive === 'watercompaction' && firstResult.moveType === 'Water') def.ranks.def = Math.min(6, (def.ranks.def || 0) + 2 * index);
-        if (move.id === 'poweruppunch') atk.ranks.atk = Math.max(-6, Math.min(6, (atk.ranks.atk || 0) + index * (context.atkAbility === 'contrary' ? -1 : context.atkAbility === 'simple' ? 2 : 1)));
-        if (move.flags?.contact && !['longreach'].includes(context.atkAbility) && !(item?.id === 'punchingglove' && move.flags?.punch)) {
-          if (['mummy', 'lingeringaroma'].includes(defensive) && !ability?.gasExempt) atk.ability = defensive;
-          if (defensive === 'wanderingspirit' && !ability?.gasExempt && index % 2) { atk.ability = defensive; def.ability = context.atkAbility; }
+        if (move.id === 'poweruppunch' && context.atkAbility !== 'sheerforce') atk.ranks.atk = Math.max(-6, Math.min(6, (atk.ranks.atk || 0) + index * (context.atkAbility === 'contrary' ? -1 : context.atkAbility === 'simple' ? 2 : 1)));
+        if (move.flags?.contact && context.atkAbility !== 'longreach' && item?.id !== 'protectivepads' && !(item?.id === 'punchingglove' && move.flags?.punch)) {
+          if (['mummy', 'lingeringaroma'].includes(defensive) && !ability?.noOverwrite) atk.ability = defensive;
+          if (defensive === 'wanderingspirit' && !ability?.noAbilitySwap) { atk.ability = defensive; def.ability = context.atkAbility; }
         }
         if (defensive === 'seedsower') hitField.terrain = 'Grassy';
         if (defensive === 'sandspit') hitField.weather = 'Sand';
@@ -1547,6 +1574,7 @@ function attachKoContext(result, ctx) {
       ...(result.typeImmune ? { typeImmune: true } : {}),
       defAbility: ctx.defAb || '',
       defItem: ctx.defItem || '',
+      atkItem: ctx.atkItem || '',
       atkAbility: ctx.atkAb || '',
     },
   };
@@ -1803,15 +1831,14 @@ function effectiveSpeed(side, field, opponent = side) {
     speMods.push(mechanicMod(itemData.speedStatBoost.mod));
   }
   
+  // 순풍은 다른 스피드 배율과 함께 적용하고, 마비는 그 결과를 절반으로 내린다.
+  if (side.tailwind) speMods.push(MOD.x2_0);
   spe = pokeRound(spe * chainMods(speMods, 410, 131172) / 4096);
   
   // 마비 (Gen 7+: 0.5×)
   if (side.status === 'Paralysis' && !abilityData?.ignoresParalysisSpeedDrop) {
     spe = Math.floor(spe * 0.5);
   }
-  
-  // Tailwind
-  if (side.tailwind) spe *= 2;
   
   return spe;
 }
@@ -1824,4 +1851,4 @@ function firstMover(movePri, atkSpe, defSpe) {
   return "tie";
 }
 
-export { BERRY_BLOCKING_ABILITIES, MECHANIC_MODS, mechanicMod, formatCalcMultiplier, formatModLabel, displayName, displayType, normalizeParadoxItemState, sideParadoxItemActive, asArray, fieldMechanics, moveHasRuleFlag, fieldRuleApplies, applyFieldRuleMods, firstMatchingFieldRule, conditionListIncludes, pokemonMatchesCondition, statBoostApplies, fractionValue, categoryMatches, statusMatches, sideCurrentHp, sideIsPinch, battleMaxFallenAllies, battleFallenAllies, abilityRuleApplies, applyAbilityRuleMods, damageBlockApplies, normalizedStatus, isBurnStatus, isPoisonStatus, isToxicStatus, attackerBlocksBerries, canRemovePowerItem, fixedDamageAmount, flingItemForMove, specialMoveInputIssue, fixedDamageResult, computeVariableBp, finishDamageStage, makeDamageContext, resolveDamagePreludeStage, calculateBasePowerStage, calculateAttackStage, activeParadoxBoost, highestBattleStat, calculateDefenseStage, calculateBaseDamageStage, calculateFinalDamageStage, resolveMultiHitVariants, sampleMultiHitCounts, calculateDamage, isSpreadDamage, powerMoveField, calculatePowerDamage, koRecoveryOptions, recoverPowerHit, recoverFlungBerry, beatUpParticipants, powerAttackProfile, makePowerAttackModel, resolvePowerMoveUse, simulatePowerKo, attachKoContext, calcHazardDamage, simulateKO, koRollWeights, simulateMoveKoDistribution, simulateOneMoveKoChance, withKoMetric, hkoLabel, effectiveSpeed, firstMover };
+export { prepareDamageAttacker, breaksDamageScreens, BERRY_BLOCKING_ABILITIES, MECHANIC_MODS, mechanicMod, formatCalcMultiplier, formatModLabel, displayName, displayType, normalizeParadoxItemState, sideParadoxItemActive, asArray, fieldMechanics, moveHasRuleFlag, fieldRuleApplies, applyFieldRuleMods, firstMatchingFieldRule, conditionListIncludes, pokemonMatchesCondition, statBoostApplies, fractionValue, categoryMatches, statusMatches, sideCurrentHp, sideIsPinch, battleMaxFallenAllies, battleFallenAllies, abilityRuleApplies, applyAbilityRuleMods, damageBlockApplies, normalizedStatus, isBurnStatus, isPoisonStatus, isToxicStatus, attackerBlocksBerries, canRemovePowerItem, fixedDamageAmount, flingItemForMove, specialMoveInputIssue, fixedDamageResult, computeVariableBp, finishDamageStage, makeDamageContext, resolveDamagePreludeStage, calculateBasePowerStage, calculateAttackStage, activeParadoxBoost, highestBattleStat, calculateDefenseStage, calculateBaseDamageStage, calculateFinalDamageStage, resolveMultiHitVariants, sampleMultiHitCounts, calculateDamage, isSpreadDamage, powerMoveField, calculatePowerDamage, koRecoveryOptions, recoverPowerHit, recoverFlungBerry, beatUpParticipants, powerAttackProfile, makePowerAttackModel, resolvePowerMoveUse, simulatePowerKo, attachKoContext, calcHazardDamage, simulateKO, koRollWeights, simulateMoveKoDistribution, simulateOneMoveKoChance, withKoMetric, hkoLabel, effectiveSpeed, firstMover };

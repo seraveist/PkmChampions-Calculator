@@ -5,9 +5,8 @@ import { renderToolTypePills } from './03-11-calc-shared-render.js';
 import { uiWirePickerDialog } from './03-19-picker-dialog.js';
 import { calcAbilityOptionDataForPokemon, calcItemOptionData, calcNatureOptionData } from './03-20-calc-combobox.js';
 import { calcComboboxHeaderHtml, calcRenderComboboxOption } from './03-21-calc-combobox-options.js';
-import { PARTY_PRESET_LABELS, PARTY_PRESET_MAX_NAME_LENGTH, blankPartyPresetMember, exportPartyPresetJson, importPartyPresetJsonFile, normalizePartyPresetName, partyPresetCollapsedParties, partyPresetCopyOrDownload, partyPresetData, partyPresetExpandedSlots, partyPresetFilledMembers, partyPresetFocusLayer, partyPresetMember, partyPresetMemberClone, partyPresetModalReady, partyPresetModalReturnFocus, partyPresetPickerReturnFocus, partyPresetPickerTarget, partyPresetRestoreFocus, partyPresetSlotCollapseKey, partyPresetTextReturnFocus, partyPresetTextState, savePartyPresetData, undoPartyPresetImport, updatePartyPresetBackupControls, setPartyPresetModalReady, setPartyPresetModalReturnFocus, setPartyPresetPickerReturnFocus, setPartyPresetPickerTarget, setPartyPresetStatus, setPartyPresetTextReturnFocus, setPartyPresetTextState } from './04-00-party-presets-state.js';
-import { exportPartyPresetSummaryImage } from './04-01-party-presets-image.js';
-import { importPartyPresetShowdownText, partyPresetApplyPartyToMatchup, partyPresetApplyPickerMember, partyPresetDefaultAbility, partyPresetDefaultItem, partyPresetExportShowdownParty } from './04-02-party-presets-integration.js';
+import { PARTY_PRESET_LABELS, PARTY_PRESET_MAX_NAME_LENGTH, blankPartyPresetMember, exportPartyPresetJson, importPartyPresetJsonFile, normalizePartyPresetName, configurePartyPresetUi, refreshPartyPresetFromDisk, PARTY_PRESET_STORAGE_KEY, partyPresetCollapsedParties, partyPresetCopyOrDownload, partyPresetData, partyPresetExpandedSlots, partyPresetFilledMembers, partyPresetFocusLayer, partyPresetMember, partyPresetMemberClone, partyPresetModalReady, partyPresetModalReturnFocus, partyPresetPickerReturnFocus, partyPresetPickerTarget, partyPresetRestoreFocus, partyPresetSlotCollapseKey, partyPresetTextReturnFocus, partyPresetTextState, savePartyPresetData, undoPartyPresetImport, updatePartyPresetBackupControls, setPartyPresetModalReady, setPartyPresetModalReturnFocus, setPartyPresetPickerReturnFocus, setPartyPresetPickerTarget, setPartyPresetStatus, setPartyPresetTextReturnFocus, setPartyPresetTextState } from './04-00-party-presets-state.js';
+import { saveCalcMemberToParty, importPartyPresetShowdownText, partyPresetApplyPartyToMatchup, partyPresetApplyPickerMember, partyPresetDefaultAbility, partyPresetDefaultItem, partyPresetExportShowdownParty } from './04-02-party-presets-integration.js';
 
 /* Party presets: modal UI and events. */
 function partyPresetMovePool(pokemonId) {
@@ -164,6 +163,7 @@ function ensurePartyPresetModal() {
             <button type="button" class="ui-button icon-button party-preset-close" aria-label="닫기" id="partyPresetTextClose">${RotomUI.icon('close')}</button>
           </div>
           <textarea id="partyPresetTextArea" class="ui-control party-preset-textarea" aria-labelledby="partyPresetTextTitle" spellcheck="false"></textarea>
+        <p class="party-preset-status" id="partyPresetTextStatus" role="status"></p>
           <div class="party-preset-text-actions">
             <button type="button" class="ui-label-action party-preset-action" id="partyPresetTextApply">가져오기 적용</button>
             <button type="button" class="ui-label-action party-preset-action" id="partyPresetTextCopy">복사</button>
@@ -209,6 +209,7 @@ function confirmPartyPresetReplacement({ title, message, actionLabel }) {
 }
 
 function openPartyPresetModal() {
+  refreshPartyPresetFromDisk();
   renderPartyPresetModal();
   const modal = document.getElementById('partyPresetModal');
   if (!modal) return;
@@ -257,6 +258,7 @@ function ensurePartyPresetPickerModal() {
 }
 
 function partyPresetPickerMode(target) {
+  if (target === 'save:atk' || target === 'save:def') return 'save';
   return target === 'matchup' ? 'party' : 'member';
 }
 
@@ -266,7 +268,7 @@ function renderPartyPresetPicker() {
   const title = document.getElementById('partyPresetPickerTitle');
   if (!body || !title) return;
   const mode = partyPresetPickerMode(partyPresetPickerTarget);
-  title.textContent = mode === 'party' ? '파티 불러오기' : '포켓몬 불러오기';
+  title.textContent = mode === 'save' ? '파티에 저장할 슬롯 선택' : mode === 'party' ? '파티 불러오기' : '포켓몬 불러오기';
 
   if (mode === 'party') {
     renderTrustedHTML(body, `
@@ -292,7 +294,7 @@ function renderPartyPresetPicker() {
   }
 
   renderTrustedHTML(body, partyPresetData.parties.map((party, partyIndex) => {
-    const members = partyPresetFilledMembers(party);
+    const members = mode === 'save' ? party.members.map((member, slotIndex) => ({ member, slotIndex })) : partyPresetFilledMembers(party);
     return `
       <section class="party-preset-picker-section ui-surface">
         <div class="party-preset-picker-section-head">${escapeHTML(normalizePartyPresetName(party.name, partyIndex))}</div>
@@ -303,7 +305,7 @@ function renderPartyPresetPicker() {
               <button type="button" class="ui-button party-preset-picker-member" data-party-picker-party="${partyIndex}" data-party-picker-slot="${slotIndex}">
                 ${pokemonSpriteSlot(pokemon, { className: 'party-preset-picker-member-sprite' })}
                 <span>슬롯 ${slotIndex + 1}</span>
-                <b>${escapeHTML(pkName(pokemon))}</b>
+                <b>${pokemon ? escapeHTML(pkName(pokemon)) : '빈 슬롯'}</b>
               </button>
             `;
           }).join('') : '<div class="party-preset-picker-empty">저장된 포켓몬 없음</div>'}
@@ -313,9 +315,10 @@ function renderPartyPresetPicker() {
   }).join(''));
 }
 
-function openPartyPresetPicker(target) {
+function openPartyPresetPicker(target, trigger = document.activeElement) {
+  refreshPartyPresetFromDisk();
   ensurePartyPresetPickerModal();
-  setPartyPresetPickerReturnFocus(document.activeElement);
+  setPartyPresetPickerReturnFocus(trigger);
   setPartyPresetPickerTarget(target || '');
   renderPartyPresetPicker();
   const modal = document.getElementById('partyPresetPickerModal');
@@ -335,12 +338,38 @@ function closePartyPresetPicker() {
   if (document.getElementById('partyPresetModal')?.hidden !== false) {
     document.body.classList.remove('party-preset-open');
   }
-  const returnFocus = partyPresetPickerReturnFocus;
+  const trigger = partyPresetPickerReturnFocus;
   setPartyPresetPickerReturnFocus(null);
+  const target = trigger?.dataset?.partyImportTarget;
+  const returnFocus = trigger?.isConnected || !target ? trigger
+    : document.querySelector(`[data-party-import-target="${CSS.escape(target)}"]`);
   partyPresetRestoreFocus(returnFocus);
 }
 
+let partySlotSavePending = false;
+async function saveCalcPartySlot(partyIndex, slotIndex) {
+  if (partySlotSavePending) return;
+  partySlotSavePending = true;
+  try {
+    const result = await saveCalcMemberToParty(partyPresetPickerTarget.split(':')[1], partyIndex, slotIndex, confirmPartyPresetReplacement);
+    if (result === 'cancelled') return;
+    if (result !== 'saved') {
+      renderPartyPresetPicker();
+      document.getElementById('partyPresetPickerTitle').textContent = result === 'changed'
+        ? '슬롯이 변경되었습니다. 저장할 슬롯을 다시 선택해 주세요.'
+        : '슬롯을 저장하지 못했습니다. 파티를 확인해 주세요.';
+      return;
+    }
+    closePartyPresetPicker();
+    const status = document.getElementById('calculation-status');
+    if (status) status.textContent = (partyIndex + 1) + '번 파티의 ' + (slotIndex + 1) + '번 슬롯에 저장했습니다.';
+  } finally {
+    partySlotSavePending = false;
+  }
+}
+
 function applyPartyPresetPickerSelection(partyIndex, slotIndex = null) {
+  if (partyPresetPickerMode(partyPresetPickerTarget) === 'save') return saveCalcPartySlot(partyIndex, slotIndex);
   let applied = false;
   if (partyPresetPickerMode(partyPresetPickerTarget) === 'party') {
     applied = partyPresetApplyPartyToMatchup(partyIndex);
@@ -361,6 +390,7 @@ function openPartyPresetTextDialog(partyIndex, mode) {
   const copyButton = document.getElementById('partyPresetTextCopy');
   if (!dialog || !title || !area) return;
 
+  setPartyPresetStatus();
   setPartyPresetTextReturnFocus(document.activeElement);
   setPartyPresetTextState({ partyIndex, mode });
   const partyName = partyPresetData.parties?.[partyIndex]?.name || `파티 ${partyIndex + 1}`;
@@ -521,6 +551,7 @@ function wirePartyPresetInputs() {
     button.addEventListener('click', async () => {
       button.disabled = true;
       try {
+        const { exportPartyPresetSummaryImage } = await import('./04-01-party-presets-image.js');
         await exportPartyPresetSummaryImage(Number(button.dataset.partyImageExport));
       } catch {
         setPartyPresetStatus(`${PARTY_PRESET_LABELS.imageExport} \uC2E4\uD328`, 'error');
@@ -531,9 +562,21 @@ function wirePartyPresetInputs() {
   });
 }
 
+function refreshPartyPresetViews() {
+  const modal = document.getElementById('partyPresetModal');
+  if (modal?.open) renderPartyPresetModal();
+  if (document.getElementById('partyPresetPickerModal')?.open) renderPartyPresetPicker();
+}
+
 function initPartyPresets() {
   if (partyPresetModalReady) return;
+  configurePartyPresetUi({ confirm: confirmPartyPresetReplacement, refresh: refreshPartyPresetViews, render: renderPartyPresetModal });
   setPartyPresetModalReady(true);
+  window.addEventListener('storage', event => {
+    if (event.key !== PARTY_PRESET_STORAGE_KEY && event.key !== null) return;
+    if (document.activeElement?.matches?.('input, textarea, [contenteditable]')) return;
+    refreshPartyPresetFromDisk();
+  });
   ensurePartyPresetModal();
   ensurePartyPresetPickerModal();
   document.getElementById('partyPresetOpen')?.addEventListener('click', openPartyPresetModal);
@@ -575,7 +618,7 @@ function initPartyPresets() {
     const trigger = event.target.closest('[data-party-import-target]');
     if (trigger) {
       event.preventDefault();
-      openPartyPresetPicker(trigger.dataset.partyImportTarget);
+      openPartyPresetPicker(trigger.dataset.partyImportTarget, trigger);
       return;
     }
     const partyButton = event.target.closest('[data-party-picker-party]');
@@ -591,4 +634,4 @@ function initPartyPresets() {
   }
 }
 
-export { confirmPartyPresetReplacement, partyPresetMovePool, partyPresetSearch, partyPresetOptions, partyPresetCurrentLabel, renderPartyPresetOptions, partyPresetComboboxHtml, renderPartyPresetSlot, renderPartyPresetModal, ensurePartyPresetModal, openPartyPresetModal, closePartyPresetModal, ensurePartyPresetPickerModal, partyPresetPickerMode, renderPartyPresetPicker, openPartyPresetPicker, closePartyPresetPicker, applyPartyPresetPickerSelection, openPartyPresetTextDialog, closePartyPresetTextDialog, applyPartyPresetTextImport, copyPartyPresetTextExport, updatePartyPresetName, updatePartyPresetPokemon, updatePartyPresetField, updatePartyPresetEv, wirePartyPresetCombobox, wirePartyPresetInputs, initPartyPresets };
+export { refreshPartyPresetViews, confirmPartyPresetReplacement, partyPresetMovePool, partyPresetSearch, partyPresetOptions, partyPresetCurrentLabel, renderPartyPresetOptions, partyPresetComboboxHtml, renderPartyPresetSlot, renderPartyPresetModal, ensurePartyPresetModal, openPartyPresetModal, closePartyPresetModal, ensurePartyPresetPickerModal, partyPresetPickerMode, renderPartyPresetPicker, openPartyPresetPicker, closePartyPresetPicker, applyPartyPresetPickerSelection, openPartyPresetTextDialog, closePartyPresetTextDialog, applyPartyPresetTextImport, copyPartyPresetTextExport, updatePartyPresetName, updatePartyPresetPokemon, updatePartyPresetField, updatePartyPresetEv, wirePartyPresetCombobox, wirePartyPresetInputs, initPartyPresets };

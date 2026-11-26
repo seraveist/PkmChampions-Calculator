@@ -1,13 +1,30 @@
+import { replaceCalcMoves } from './03-09-move-slots.js';
 import { featureApis } from '../runtime/features.js';
 import { ABILITIES, AbilityById, ITEMS, ItemById, MOVES, MoveById, NATURES, NATURE_BY_ID, POKEMON, PokemonById, STATS, toId } from './01-core.js';
-import { applyPokemonToCalcSide, defaultPokemonAbilityId, defaultPokemonItemId, defaultPokemonTypes, makeSideState, setSideDamageBlockActive, state } from './03-10-calc-state.js';
+import { resetMoveHistory, applyPokemonToCalcSide, defaultPokemonAbilityId, defaultPokemonItemId, defaultPokemonTypes, makeSideState, setSideDamageBlockActive, state } from './03-10-calc-state.js';
 import { renderSide } from './03-30-calc-side-render.js';
 import { applyEntryFieldsFromSide, syncFieldControls } from './03-40-calc-entry-effects.js';
 import { triggerCalc } from './03-50-calc-results.js';
-import { PARTY_PRESET_MAX_MEMBERS, PARTY_PRESET_SHOWDOWN_STAT_ALIAS, PARTY_PRESET_SHOWDOWN_STAT_LABEL, blankPartyPresetMember, normalizePartyPresetData, normalizePartyPresetMember, partyPresetData, partyPresetMemberClone, runPartyPresetImport, savePartyPresetData, setPartyPresetData, setPartyPresetStatus } from './04-00-party-presets-state.js';
-import { renderPartyPresetModal } from './04-03-party-presets-ui.js';
+import { PARTY_PRESET_MAX_MEMBERS, PARTY_PRESET_SHOWDOWN_STAT_ALIAS, PARTY_PRESET_SHOWDOWN_STAT_LABEL, blankPartyPresetMember, normalizePartyPresetData, normalizePartyPresetEvs, normalizePartyPresetMember, partyPresetData, partyPresetMemberClone, runPartyPresetImport, savePartyPresetData } from './04-00-party-presets-state.js';
 
 /* Party presets: tool integration and Showdown format. */
+async function saveCalcMemberToParty(sideKey, partyIndex, slotIndex, confirm) {
+  const side = state[sideKey];
+  const party = () => partyPresetData.parties[partyIndex];
+  const slot = party()?.members[slotIndex];
+  if (!side?.pokemonIdx || !slot) return 'cancelled';
+  const member = normalizePartyPresetMember({ ...side, pokemon: side.pokemonIdx });
+  const original = JSON.stringify(slot);
+  if (slot.pokemon && !await confirm({
+    title: '파티 슬롯 교체',
+    message: `${partyIndex + 1}번 파티의 ${slotIndex + 1}번 슬롯을 교체할까요?`,
+    actionLabel: '교체하기',
+  })) return 'cancelled';
+  if (original !== JSON.stringify(party()?.members[slotIndex])) return 'changed';
+  party().members[slotIndex] = member;
+  return await savePartyPresetData() ? 'saved' : 'failed';
+}
+
 function partyPresetMemberMoves(member) {
   return Array.from({ length: 4 }, (_, index) => {
     const moveId = member?.moves?.[index] || '';
@@ -26,7 +43,8 @@ function partyPresetApplyMemberToSideState(side, member) {
   const data = partyPresetMemberClone(member);
   const pokemon = PokemonById[data.pokemon];
   if (!side || !pokemon) return false;
-  side.pokemonIdx = data.pokemon;
+  const tailwind = side.tailwind;
+  Object.assign(side, makeSideState(data.pokemon), { tailwind: !!tailwind });
   side.ability = data.ability || defaultPokemonAbilityId(pokemon);
   side.item = data.item || '';
   side.nature = data.nature || 'hardy';
@@ -34,10 +52,8 @@ function partyPresetApplyMemberToSideState(side, member) {
   side.types = defaultPokemonTypes(pokemon);
   side.teraType = side.types?.[0] || 'Normal';
   side.tera = false;
-  side.moves = partyPresetMemberMoves(data);
-  side.moveBpOverrides = [null, null, null, null];
-  side.moveTypeOverrides = [null, null, null, null];
-  side.moveCriticalOverrides = [false, false, false, false];
+  replaceCalcMoves(side, partyPresetMemberMoves(data));
+  resetMoveHistory(side);
   setSideDamageBlockActive?.(side, false);
   return true;
 }
@@ -48,7 +64,6 @@ function partyPresetApplyMemberToCalc(sideKey, member) {
   if (!side || !PokemonById[pokemonId]) return false;
   const result = applyPokemonToCalcSide(sideKey, pokemonId, {
     forceDefaults: true,
-    resetMoves: false,
     deferEntryEffects: true,
   });
   partyPresetApplyMemberToSideState(side, member);
@@ -59,50 +74,18 @@ function partyPresetApplyMemberToCalc(sideKey, member) {
   return true;
 }
 
-function partyPresetApplyMemberToFineTune(member) {
-  if (!member?.pokemon || !PokemonById[member.pokemon]) return false;
-  featureApis.finetune.fineTuneState.my = makeSideState();
-  featureApis.finetune.ftApplyPokemonToFineTune(member.pokemon);
-  partyPresetApplyMemberToSideState(featureApis.finetune.fineTuneState.my, member);
-  featureApis.finetune.renderFineTuneAll();
-  return true;
-}
-
-function partyPresetApplyMemberToRevCalc(member) {
-  if (!member?.pokemon || !PokemonById[member.pokemon]) return false;
-  featureApis.revcalc.rcApplyMyPokemonSelection(member.pokemon);
-  partyPresetApplyMemberToSideState(featureApis.revcalc.revCalcState.my, member);
-  featureApis.revcalc.revCalcState.myMoveSet = partyPresetMemberMoves(member);
-  featureApis.revcalc.revCalcState.myMove = featureApis.revcalc.revCalcState.myMoveSet.includes(featureApis.revcalc.revCalcState.myMove) ? featureApis.revcalc.revCalcState.myMove : '';
-  featureApis.revcalc.revCalcState.myMoveBp = '';
-  featureApis.revcalc.renderRevCalcAll();
-  return true;
-}
-
 function partyPresetApplyPartyToMatchup(partyIndex) {
   const party = partyPresetData.parties?.[partyIndex];
   if (!party) return false;
-  Array.from({ length: PARTY_PRESET_MAX_MEMBERS }).forEach((_, slotIndex) => {
-    const member = partyPresetMemberClone(party.members?.[slotIndex]);
-    featureApis.matchup.matchupSetSlotPokemon(slotIndex, member.pokemon, {
-      abilityId: member.ability,
-      itemId: member.item,
-    });
-    featureApis.matchup.matchupCoverageMoves[slotIndex] = featureApis.matchup.matchupSlots[slotIndex]
-      ? partyPresetAttackingMoves(member)
-      : [null, null, null, null];
-  });
-  featureApis.matchup.renderMatchupSlots();
-  featureApis.matchup.renderMatchupCoverageInputs();
-  featureApis.matchup.renderMatchupTable();
+  featureApis.matchup.applyParty(party.members);
   return true;
 }
 
 function partyPresetApplyPickerMember(target, member) {
   if (target === 'calc:atk') return partyPresetApplyMemberToCalc('atk', member);
   if (target === 'calc:def') return partyPresetApplyMemberToCalc('def', member);
-  if (target === 'finetune:my') return partyPresetApplyMemberToFineTune(member);
-  if (target === 'revcalc:my') return partyPresetApplyMemberToRevCalc(member);
+  if (target === 'finetune:my') return featureApis.finetune.applyPartyMember(member);
+  if (target === 'revcalc:my') return featureApis.revcalc.applyPartyMember(member);
   return false;
 }
 
@@ -117,104 +100,87 @@ function partyPresetDefaultItem(pokemonId) {
 }
 
 function partyPresetLookupByText(collection, byId, text) {
-  const key = toId(text);
-  if (!key) return null;
-  if (byId[key]) return byId[key];
-  return collection.find(entry => (
-    toId(entry?.id) === key ||
-    toId(entry?.name) === key ||
-    toId(entry?.koName) === key
-  )) || null;
+  const name = String(text || '').trim();
+  const key = toId(name);
+  if (key && Object.hasOwn(byId, key)) return byId[key];
+  return name ? collection.find(entry => entry.koName === name || (key && toId(entry.name) === key)) || null : null;
 }
 
 function partyPresetPokemonFromShowdownName(text) {
-  let name = String(text || '').trim();
-  name = name.replace(/\s+\((?:M|F)\)$/i, '').trim();
-  const nicknameMatch = name.match(/\(([^()]+)\)\s*$/);
-  if (nicknameMatch && !/^(?:M|F)$/i.test(nicknameMatch[1])) {
-    name = nicknameMatch[1].trim();
-  }
-  return partyPresetLookupByText(POKEMON, PokemonById, name);
+  const name = String(text || '').trim().replace(/\s+\((?:M|F)\)$/i, '').trim();
+  return partyPresetLookupByText(POKEMON, PokemonById, name) ||
+    partyPresetLookupByText(POKEMON, PokemonById, name.match(/\(([^()]+)\)$/)?.[1]);
 }
 
 function partyPresetNatureFromText(text) {
   const key = toId(text);
-  if (!key) return null;
-  return NATURE_BY_ID[key] || NATURES.find(nature => (
-    toId(nature?.id) === key ||
-    toId(nature?.name) === key ||
-    toId(nature?.ko) === key
-  )) || null;
+  return (key && Object.hasOwn(NATURE_BY_ID, key) && NATURE_BY_ID[key]) || NATURES.find(n => n.ko === text) || null;
 }
 
-function partyPresetParseShowdownEvs(text) {
-  const evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
-  String(text || '').split('/').forEach(part => {
+function partyPresetParseShowdownEvs(text, warn = () => {}) {
+  const evs = blankPartyPresetMember().evs;
+  for (const part of text.split('/')) {
     const match = part.trim().match(/^(\d+)\s+(.+)$/);
-    if (!match) return;
-    const value = Math.max(0, Math.min(32, parseInt(match[1], 10) || 0));
-    const stat = PARTY_PRESET_SHOWDOWN_STAT_ALIAS[toId(match[2])];
-    if (stat) evs[stat] = value;
-  });
-  return evs;
+    const key = match && toId(match[2]);
+    const stat = Object.hasOwn(PARTY_PRESET_SHOWDOWN_STAT_ALIAS, key) && PARTY_PRESET_SHOWDOWN_STAT_ALIAS[key];
+    if (stat) evs[stat] = Number(match[1]);
+    else warn(part.trim(), '포인트 해석 불가');
+  }
+  const bounded = normalizePartyPresetEvs(evs);
+  for (const stat of STATS) {
+    if (evs[stat] !== bounded[stat]) warn(stat.toUpperCase() + ' ' + evs[stat], bounded[stat] + '포인트로 조정');
+  }
+  return bounded;
 }
 
-function partyPresetParseShowdownSet(block) {
-  const lines = String(block || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+function partyPresetParseShowdownSet(block, warn = () => {}) {
+  const lines = block.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
   if (!lines.length) return null;
-
-  const member = blankPartyPresetMember();
-  const firstLine = lines[0];
-  const [pokemonText, itemText = ''] = firstLine.split(/\s+@\s+/, 2);
+  const [pokemonText, itemText] = lines[0].split(/\s+@\s+/, 2);
   const pokemon = partyPresetPokemonFromShowdownName(pokemonText);
-  if (!pokemon) return null;
-
+  if (!pokemon) { warn(pokemonText, '포켓몬 미인식'); return null; }
+  const member = blankPartyPresetMember();
   member.pokemon = pokemon.id;
   member.ability = partyPresetDefaultAbility(pokemon.id);
   member.item = partyPresetDefaultItem(pokemon.id);
-
-  const item = partyPresetLookupByText(ITEMS, ItemById, itemText);
-  if (item) member.item = item.id;
-
-  const moves = [];
-  lines.slice(1).forEach(line => {
-    const abilityMatch = line.match(/^Ability:\s*(.+)$/i);
-    if (abilityMatch) {
-      const ability = partyPresetLookupByText(ABILITIES, AbilityById, abilityMatch[1]);
+  if (itemText) {
+    const item = partyPresetLookupByText(ITEMS, ItemById, itemText);
+    if (item) member.item = item.id;
+    else warn(itemText, '도구 미인식');
+  }
+  let moveCount = 0;
+  for (const line of lines.slice(1)) {
+    if (/^Ability:/i.test(line)) {
+      const ability = partyPresetLookupByText(ABILITIES, AbilityById, line.slice(8));
       if (ability) member.ability = ability.id;
-      return;
-    }
-
-    const evMatch = line.match(/^EVs:\s*(.+)$/i);
-    if (evMatch) {
-      member.evs = partyPresetParseShowdownEvs(evMatch[1]);
-      return;
-    }
-
-    const natureMatch = line.match(/^(.+?)\s+Nature$/i);
-    if (natureMatch) {
-      const nature = partyPresetNatureFromText(natureMatch[1]);
+      else warn(line, '특성 미인식');
+    } else if (/^EVs:/i.test(line)) {
+      member.evs = partyPresetParseShowdownEvs(line.slice(4), warn);
+    } else if (/\sNature$/i.test(line)) {
+      const nature = partyPresetNatureFromText(line.replace(/\s+Nature$/i, ''));
       if (nature) member.nature = nature.id;
-      return;
-    }
-
-    const moveMatch = line.match(/^-\s*(.+)$/);
-    if (moveMatch && moves.length < 4) {
-      const move = partyPresetLookupByText(MOVES, MoveById, moveMatch[1]);
-      moves.push(move?.id || '');
-    }
-  });
-
-  member.moves = Array.from({ length: 4 }, (_, index) => moves[index] || '');
+      else warn(line, '성격 미인식');
+    } else if (line.startsWith('-')) {
+      const move = partyPresetLookupByText(MOVES, MoveById, line.slice(1));
+      if (moveCount >= 4) warn(line, '기술 4칸 초과');
+      else if (move) member.moves[moveCount] = move.id;
+      else warn(line, '기술 미인식');
+      moveCount++;
+    } else warn(line, '샘플 저장 대상에서 제외');
+  }
   return normalizePartyPresetMember(member);
 }
 
-function partyPresetParseShowdownParty(text) {
+function partyPresetParseShowdownParty(text, warnings = []) {
+  const members = [];
   const blocks = String(text || '').split(/\n\s*\n/).map(block => block.trim()).filter(Boolean);
-  return blocks
-    .map(partyPresetParseShowdownSet)
-    .filter(Boolean)
-    .slice(0, PARTY_PRESET_MAX_MEMBERS);
+  blocks.forEach((block, index) => {
+    const warn = (value, reason) => warnings.push((index + 1) + '번째 포켓몬 · ' + value + ' — ' + reason);
+    if (members.length >= PARTY_PRESET_MAX_MEMBERS) { warn(block.split(/\r?\n/)[0], '6슬롯 초과'); return; }
+    const member = partyPresetParseShowdownSet(block, warn);
+    if (member) members.push(member);
+  });
+  return members;
 }
 
 function partyPresetNatureShowdownName(natureId) {
@@ -256,15 +222,17 @@ function partyPresetExportShowdownParty(partyIndex) {
 
 async function importPartyPresetShowdownText(partyIndex, text) {
   return runPartyPresetImport(() => {
-    const members = partyPresetParseShowdownParty(text);
-    if (!members.length) throw new Error('Showdown 텍스트에서 포켓몬을 찾지 못했습니다.');
+    const warnings = [];
+    const members = partyPresetParseShowdownParty(text, warnings);
+    if (!members.length) throw new Error(['Showdown 텍스트에서 포켓몬을 찾지 못했습니다.', ...warnings].join('\n'));
     if (!Number.isInteger(partyIndex) || !partyPresetData.parties[partyIndex]) throw new Error('대상 파티를 확인해 주세요.');
     const data = normalizePartyPresetData(partyPresetData);
     data.parties[partyIndex].members = Array.from({ length: PARTY_PRESET_MAX_MEMBERS }, (_, index) => (
       members[index] || blankPartyPresetMember()
     ));
-    return { data, summary: `파티 ${partyIndex + 1}의 포켓몬 목록을 ${members.length}마리로 교체합니다. 다른 파티는 유지됩니다.`, success: `파티 ${partyIndex + 1} Showdown 텍스트 가져오기 및 저장 완료` };
+    const details = warnings.length ? '\n' + warnings.join('\n') + '\n' : '';
+    return { data, partyIndex, warnings, summary: details + `파티 ${partyIndex + 1}의 포켓몬 목록을 ${members.length}마리로 교체합니다. 다른 파티는 유지됩니다.`, success: `파티 ${partyIndex + 1} Showdown 텍스트 가져오기 및 저장 완료` };
   });
 }
 
-export { partyPresetMemberMoves, partyPresetAttackingMoves, partyPresetApplyMemberToSideState, partyPresetApplyMemberToCalc, partyPresetApplyMemberToFineTune, partyPresetApplyMemberToRevCalc, partyPresetApplyPartyToMatchup, partyPresetApplyPickerMember, partyPresetDefaultAbility, partyPresetDefaultItem, partyPresetLookupByText, partyPresetPokemonFromShowdownName, partyPresetNatureFromText, partyPresetParseShowdownEvs, partyPresetParseShowdownSet, partyPresetParseShowdownParty, partyPresetNatureShowdownName, partyPresetExportShowdownSet, partyPresetExportShowdownParty, importPartyPresetShowdownText };
+export { saveCalcMemberToParty, partyPresetMemberMoves, partyPresetAttackingMoves, partyPresetApplyMemberToSideState, partyPresetApplyMemberToCalc, partyPresetApplyPartyToMatchup, partyPresetApplyPickerMember, partyPresetDefaultAbility, partyPresetDefaultItem, partyPresetLookupByText, partyPresetPokemonFromShowdownName, partyPresetNatureFromText, partyPresetParseShowdownEvs, partyPresetParseShowdownSet, partyPresetParseShowdownParty, partyPresetNatureShowdownName, partyPresetExportShowdownSet, partyPresetExportShowdownParty, importPartyPresetShowdownText };

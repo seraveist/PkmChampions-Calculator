@@ -9,6 +9,7 @@ const abilities = [
   { id: 'blaze', name: 'Blaze', koName: '맹화' },
   { id: 'magician', name: 'Magician', koName: '매지션' },
   { id: 'levitate', name: 'Levitate', koName: '부유', immunities: [{ types: ['Ground'] }] },
+  { id: 'eelevate', name: 'Eelevate', koName: '천정부지', immunities: [{ types: ['Ground'] }] },
   { id: 'waterabsorb', name: 'Water Absorb', koName: '저수', immunities: [{ types: ['Water'] }] },
   { id: 'hydration', name: 'Hydration', koName: '촉촉바디' },
 ];
@@ -17,6 +18,7 @@ const pokemon = [
   { id: 'delphoxmega', name: 'Delphox-Mega', koName: '메가마폭시', base: 'Delphox', mega: true, types: ['Fire', 'Psychic'], ab: { 0: 'Levitate' } },
   { id: 'vaporeon', name: 'Vaporeon', koName: '샤미드', types: ['Water'], ab: { 0: 'Water Absorb', H: 'Hydration' } },
   { id: 'gengar', name: 'Gengar', koName: '팬텀', types: ['Ghost', 'Poison'], ab: { 0: 'Levitate' } },
+  { id: 'eelektrossmega', name: 'Eelektross-Mega', koName: '메가저리더프', types: ['Electric'], ab: { 0: 'Eelevate' } },
   { id: 'aegislash', name: 'Aegislash', koName: '킬가르도', types: ['Steel', 'Ghost'], ab: { 0: 'Stance Change' }, formGroup: 'aegislash', formGroupForms: ['aegislash', 'aegislashblade'] },
   { id: 'aegislashblade', name: 'Aegislash-Blade', koName: '킬가르도 블레이드폼', types: ['Steel', 'Ghost'], ab: { 0: 'Stance Change' }, formGroup: 'aegislash', formGroupForms: ['aegislash', 'aegislashblade'] },
   { id: 'itemform', name: 'Item Form', koName: '도구폼 기본', types: ['Normal'], ab: { 0: 'Hydration' } },
@@ -96,6 +98,13 @@ const megaGround = api.matchupDefenseEffect('Ground', {
 });
 assertEqual(megaGround.eff, 0, 'Levitate makes Mega Delphox immune to Ground');
 assertEqual(megaGround.ability.koName, '부유', 'ability immunity keeps the concise Korean display label');
+
+const eelevateGround = api.matchupDefenseEffect('Ground', {
+  pokemon: pokemonById.eelektrossmega,
+  abilityId: 'eelevate',
+});
+assertEqual(eelevateGround.eff, 0, 'Eelevate makes Mega Eelektross immune to Ground in the party matchup table');
+assertEqual(eelevateGround.ability.koName, '천정부지', 'Eelevate immunity uses its Korean display label');
 
 api.matchupSetSlotPokemon(0, 'delphox');
 const baseGround = api.matchupDefenseEffect('Ground', {

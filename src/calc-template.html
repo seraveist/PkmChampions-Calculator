@@ -72,7 +72,7 @@
       </div>
       <details class="field-panel ui-surface" id="calc-field-panel"><summary class="ui-disclosure" id="calc-field-head"><span class="field-label"><span data-ui-icon="settings"></span>필드 설정</span><span id="calc-field-summary"></span><span data-ui-icon="chevron"></span></summary>
         <div class="field-controls" id="calc-field-controls"></div>
-        <div class="field-checks calc-field-checks"><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="autoEntry" checked>등장 특성</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="defReflect">리플렉터</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="defLightScreen">빛의장막</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="gravity">중력</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="atkHelpingHand">도우미</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="ruinSword">검의재앙</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="ruinTablet">목간의재앙</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="ruinBeads">구슬의재앙</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="ruinVessel">그릇의재앙</label>
+        <div class="field-checks calc-field-checks"><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="autoEntry" checked>등장 특성</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="defReflect">리플렉터</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="defLightScreen">빛의장막</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="gravity">중력</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="atkHelpingHand" disabled>도우미</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="ruinSword">검의재앙</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="ruinTablet">목간의재앙</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="ruinBeads">구슬의재앙</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" id="ruinVessel">그릇의재앙</label>
           <label class="ui-check"><input class="ui-checkbox" type="checkbox" data-power-field="trickRoom">트릭룸</label>
           <label class="ui-check"><input class="ui-checkbox" type="checkbox" data-calc-tailwind="atk">내 순풍</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" data-calc-tailwind="def">상대 순풍</label>
           <label class="ui-check"><input class="ui-checkbox" type="checkbox" data-power-field="allyBattery">배터리</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" data-power-field="allyPowerSpot">파워스폿</label><label class="ui-check"><input class="ui-checkbox" type="checkbox" data-power-field="allyFriendGuard">프렌드가드</label>
@@ -270,11 +270,19 @@
 <footer class="site-footer" aria-label="사이트 정보">
   <p>비공식 팬 도구 · 데이터 M-C <time datetime="2026-09-09">2026-09-09</time></p>
   <nav class="site-footer-links" aria-label="사이트 참고 링크">
-    <a href="https://github.com/seraveist/PkmChampions-Calculator/blob/main/docs/move-power-policy.md" target="_blank" rel="noopener noreferrer">계산 기준</a>
+    <a href="#calculation-guide">계산 기준</a>
     <a href="https://github.com/smogon/pokemon-showdown" target="_blank" rel="noopener noreferrer">데이터 출처 · Pokémon Showdown</a>
     <a href="https://github.com/seraveist/PkmChampions-Calculator/issues/new" target="_blank" rel="noopener noreferrer">오류 제보</a>
   </nav>
 </footer>
+
+<section id="calculation-guide" class="calculation-guide" aria-labelledby="calculation-guide-title" tabindex="-1">
+  <h2 id="calculation-guide-title">계산 기준</h2>
+  <p><strong>피해 범위와 결정력</strong> · 타입 자체가 무효면 피해는 0 HP입니다. 특성으로 공격을 막는 경우에는 특성 배지와 함께 차단 전의 일반 피해를 보여 줍니다. 결정력은 공격측 화력을 비교하는 값입니다.</p>
+  <p><strong>KO 타수</strong> · 한 타는 기술 한 번 사용입니다. 명중을 전제로 현재 HP, 탈의 소모 여부, 연속기와 지원하는 회복 효과를 반영합니다. 공격이 계속 무효면 ‘무효’로 표시합니다.</p>
+  <p><strong>형태 역계산</strong> · 공격 전후에 관측한 HP로 가능한 배분을 찾습니다. 탈이나 특성이 피해를 막았다면 실제로 줄어든 HP를 기준으로 후보를 계산합니다.</p>
+  <a href="#appContent">본문으로 돌아가기</a>
+</section>
 
 <dialog class="ui-dialog ui-surface" id="calc-move-settings" aria-labelledby="calc-move-settings-title"><div class="dialog-heading"><h2 id="calc-move-settings-title">기술 조건</h2><button type="button" class="ui-button icon-button" data-close-calc-dialog aria-label="닫기"><span data-ui-icon="close"></span></button></div><div class="settings-body" id="calc-move-settings-body"></div><div class="dialog-actions"><button type="button" class="ui-button ui-button--primary" data-close-calc-dialog>완료</button></div></dialog>
 <dialog class="ui-dialog ui-surface" id="calc-side-settings" aria-labelledby="calc-side-settings-title"><div class="dialog-heading"><h2 id="calc-side-settings-title">추가 설정</h2><button type="button" class="ui-button icon-button" data-close-calc-dialog aria-label="닫기"><span data-ui-icon="close"></span></button></div><div class="settings-body" id="calc-side-settings-body"></div><div class="dialog-actions"><button type="button" class="ui-button ui-button--primary" data-close-calc-dialog>완료</button></div></dialog>

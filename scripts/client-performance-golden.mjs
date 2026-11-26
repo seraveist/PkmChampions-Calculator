@@ -185,4 +185,35 @@ test('presentation updates never construct structural picker markup', () => run(
     assert(powerUiMoveMarkup(0,calc,view).includes('move-select'));assert.equal(calls,1);
   } finally {powerUiMovePickerMarkup=original;}
 `));
+
+// Cancellation can race with a queued event from a terminated worker.
+{
+  const workers = [];
+  class WorkerDouble {
+    constructor() { this.events = {}; workers.push(this); }
+    addEventListener(type, listener) { this.events[type] = listener; }
+    postMessage(message) { this.last = message; }
+    terminate() { this.stopped = true; }
+  }
+  const context = vm.createContext({ Worker: WorkerDouble, GAME_DATA: payload,
+    document: { getElementById: () => ({ dataset: { workerSrc: './worker.js' } }) },
+    cloneCalcValue: structuredClone, revCalcState: {}, URL });
+  vm.runInContext(read('src/js/04-42-revcalc-candidates.js'), context);
+  const run = expression => vm.runInContext(expression,context);
+  const first = run('rcAnalyzeInWorker()');
+  const cancelled = assert.rejects(first, /RC_ANALYSIS_CANCELLED/);
+  run('rcCancelAnalysis()');
+  await cancelled;
+  assert(workers[0].stopped);
+  const second = run('rcAnalyzeInWorker()');
+  workers[0].events.error({message:'late error'});
+  assert(!workers[1].stopped);
+  workers[1].events.message({data:{type:'result',id:workers[1].last.id,result:42}});
+  assert.equal(await second,42);
+  run('rcCancelAnalysis()');
+  assert.equal(run('rcCreateAnalysisWorker()'),workers[1]);
+  passed++;
+  console.log('[PASS] cancellation stops active work, ignores late worker events and reuses an idle worker');
+}
+
 console.log(`Client performance contracts: ${passed} passed.`);

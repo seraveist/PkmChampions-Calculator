@@ -1,5 +1,6 @@
+import { replaceCalcMoves } from './03-09-move-slots.js';
 import { uiSetPickerLabel } from './01-10-rotom-ui.js';
-import { ABILITIES, AbilityById, BATTLE_TYPES, ITEMS, ItemById, MOVES, MoveById, NATURES, POKEMON, PokemonById, TYPE_KO, abName, calcStats, itName, mvName, pkName, toId } from './01-core.js';
+import { compareKoreanNames, validMoveHitCount, ABILITIES, AbilityById, BATTLE_TYPES, ITEMS, ItemById, MOVES, MoveById, NATURES, POKEMON, PokemonById, TYPE_KO, abName, calcStats, itName, mvName, pkName, toId } from './01-core.js';
 import { specialMoveInputIssue } from './02-engine.js';
 import { renderSide } from './03-30-calc-side-render.js';
 import { applyEntryFieldsFromSide, emptyEntryMeta, manualAutoFieldOverrides, resetAutoEntryFieldState, resetManualAutoFieldOverrides, setLastAutoEntry, syncFieldControls } from './03-40-calc-entry-effects.js';
@@ -41,6 +42,11 @@ function makeSideState(defaultIdx = '') {
     rivalryGender: 'none',
     boosterEnergyState: 'auto',
     damageBlockActive: false,
+    disguiseBroken: false,
+    forcedGrounded: false,
+    timesAttacked: 0,
+    preventSwitch: false,
+    noReserve: false,
     moves: [],
     moveBpOverrides: [null, null, null, null],
     moveTypeOverrides: [null, null, null, null],
@@ -230,7 +236,7 @@ function sortMovesForCalcSelect(moves) {
     const bpA = typeof a?.bp === 'number' ? a.bp : 0;
     const bpB = typeof b?.bp === 'number' ? b.bp : 0;
     if (bpA !== bpB) return bpB - bpA;
-    return mvName(a).localeCompare(mvName(b), 'ko', { numeric: true, sensitivity: 'base' });
+    return compareKoreanNames(mvName(a), mvName(b));
   });
 }
 function sortItemsForCalcSelect(items) {
@@ -238,7 +244,7 @@ function sortItemsForCalcSelect(items) {
     const catA = calcItemCategoryRank(a);
     const catB = calcItemCategoryRank(b);
     if (catA !== catB) return catA - catB;
-    return itName(a).localeCompare(itName(b), 'ko', { numeric: true, sensitivity: 'base' });
+    return compareKoreanNames(itName(a), itName(b));
   });
 }
 function sortPokemonForCalcSelect(pokemon) {
@@ -246,7 +252,7 @@ function sortPokemonForCalcSelect(pokemon) {
     const numA = typeof a?.num === 'number' && a.num > 0 ? a.num : Number.MAX_SAFE_INTEGER;
     const numB = typeof b?.num === 'number' && b.num > 0 ? b.num : Number.MAX_SAFE_INTEGER;
     if (numA !== numB) return numA - numB;
-    return pkName(a).localeCompare(pkName(b), 'ko', { numeric: true, sensitivity: 'base' });
+    return compareKoreanNames(pkName(a), pkName(b));
   });
 }
 function defaultPokemonTypes(pokemon) {
@@ -346,6 +352,7 @@ function applyPokemonFormToSideState(side, targetPokemonId) {
   const targetAbilities = Object.values(targetPokemon.ab || {}).map(toId);
   if (side.ability && !targetAbilities.includes(side.ability)) {
     side.ability = defaultPokemonAbilityId(targetPokemon);
+    resetMoveHistory(side);
     setSideDamageBlockActive(side, false);
   }
   if (usesDefaultTypes) {
@@ -434,13 +441,10 @@ function applyPokemonToCalcSide(sideKey, pokemonId, options = {}) {
     side.teraType = side.types?.[0] || 'Normal';
     side.tera = false;
     side.item = defaultPokemonItemId(pokemon);
+    resetMoveHistory(side);
     setSideDamageBlockActive(side, false);
     if (options.resetMoves !== false) {
-      side.moves = [];
-      side.moveBpOverrides = [null, null, null, null];
-      side.moveTypeOverrides = [null, null, null, null];
-      side.moveCriticalOverrides = [false, false, false, false];
-      side.moveHitCounts = [null, null, null, null];
+      replaceCalcMoves(side);
       side.beatUpParty = [];
       side.moveOrder = 'auto';
       side.wasHit = false;
@@ -500,10 +504,10 @@ function normalizeHpPct(value) {
   return Math.max(0, Math.min(1, raw));
 }
 
-function calcMoveWithConditions(move, side, slot) {
+function calcMoveWithConditions(move, side, slot, field = state.field) {
   const adjusted = moveWithManualBp(move, canEditMovePower(move) ? side.moveBpOverrides?.[slot] : null, side.moveTypeOverrides?.[slot]);
-  const hits = Number(side.moveHitCounts?.[slot]);
-  return hits > 0 && move.mh ? { ...adjusted, hitCount: hits } : adjusted;
+  const hits = validMoveHitCount(move, side.moveHitCounts?.[slot], field);
+  return hits ? { ...adjusted, hitCount: hits } : adjusted;
 }
 
 function calcMoveConditionIssue(move, attacker, defender, field) {
@@ -563,9 +567,21 @@ function consumedDamageBlockHpPct(side) {
   return Math.max(1, maxHp - loss) / maxHp;
 }
 
+function resetMoveHistory(side) {
+  side.forcedGrounded = false;
+  side.timesAttacked = 0;
+  side.preventSwitch = false;
+  side.noReserve = false;
+  side.usedOtherMoves = false;
+  side.ateBerry = false;
+  side.targetAttacking = false;
+  side.targetPriorityAttack = false;
+}
+
 function setSideDamageBlockActive(side, active) {
   if (!side) return;
   side.damageBlockActive = !!active;
+  side.disguiseBroken = false;
   deriveHpFlags(side);
 }
 
@@ -650,7 +666,6 @@ function resetSideManualValues(sideKey) {
   side.wasHit = false;
   side.moveOrder = 'auto';
   side.beatUpParty = [];
-  side.moveHitCounts = [null, null, null, null];
   side.fallenAllies = 0;
   side.tailwind = false;
   side.fickleBeamMode = 'auto';
@@ -665,10 +680,9 @@ function resetSideManualValues(sideKey) {
   side.rivalryGender = 'none';
   side.paradoxActive = false;
   side.boosterEnergyState = 'auto';
+  resetMoveHistory(side);
   setSideDamageBlockActive(side, false);
-  side.moveBpOverrides = [null, null, null, null];
-  side.moveTypeOverrides = [null, null, null, null];
-  side.moveCriticalOverrides = [false, false, false, false];
+  replaceCalcMoves(side, side.moves);
   deriveHpFlags(side);
 }
 
@@ -754,4 +768,4 @@ let autoEntryEffects = true;
 // Assignment stays in the module that owns the live binding.
 function setAutoEntryEffects(value) { autoEntryEffects = value; return value; }
 
-export { makeSideState, makeFieldState, cloneCalcValue, state, calcPokemonAbilityLabels, calcPokemonBst, calcPokemonOptionMetaLabel, CALC_MOVE_CATEGORY_LABEL, CALC_STATUS_OPTIONS, CALC_STATUS_BY_ID, CALC_WEATHER_OPTIONS, CALC_TERRAIN_OPTIONS, CALC_GAME_TYPE_OPTIONS, CALC_SPIKES_LAYER_OPTIONS, CALC_FIELD_OPTION_SETS, CALC_FIELD_OPTION_BY_TYPE, CALC_TYPE_OPTIONS, CALC_SECOND_TYPE_OPTIONS, CALC_FORM_LABEL_KO, calcSearchText, calcMatches, calcMoveCategoryLabel, calcNatureLabel, calcAbilityDisplayLabel, calcStatusDisplayLabel, calcFieldOptionLabel, setComboboxValue, calcItemCategoryLabel, calcItemCategoryRank, sortMovesForCalcSelect, sortItemsForCalcSelect, sortPokemonForCalcSelect, defaultPokemonTypes, sameTypeList, calcPokemonFormLabel, calcFormGroupForPokemon, calcFormGroupForSide, calcFormOptionDataForPokemon, normalizeSideTypes, sideTypeId, setSideType, resetSideTypes, applyPokemonFormToSideState, applyPokemonFormToCalcSide, calcPokemonAbilityTerms, calcDatasetForCombobox, defaultPokemonAbilityId, defaultPokemonItemId, applyPokemonToCalcSide, normalizeManualBp, manualBpForSlot, normalizeMoveType, manualTypeForSlot, moveWithManualBp, normalizeHpPct, calcMoveWithConditions, calcMoveConditionIssue, hpPercentInputValue, currentHpValue, deriveHpFlags, calcPokemonMatchesBlock, sideManualDamageBlock, fractionHpLoss, consumedDamageBlockHpPct, setSideDamageBlockActive, setSideHpPct, setSideCurrentHp, selectedAttackMoves, selectedMoveHasVariableKind, attackerAbilityData, sideAbilityData, attackerNeedsFlashFireToggle, normalizeBoosterEnergyState, maxFallenAllies, clampFallenAllies, normalizeBattleConditionState, resetSideManualValues, resetFieldManualValues, resetCalcManualValues, applyMoveBpInput, isFixedPowerMove, canEditMovePower, calcPowerModeText, applyMoveTypeOverride, autoEntryEffects, setAutoEntryEffects };
+export { resetMoveHistory, makeSideState, makeFieldState, cloneCalcValue, state, calcPokemonAbilityLabels, calcPokemonBst, calcPokemonOptionMetaLabel, CALC_MOVE_CATEGORY_LABEL, CALC_STATUS_OPTIONS, CALC_STATUS_BY_ID, CALC_WEATHER_OPTIONS, CALC_TERRAIN_OPTIONS, CALC_GAME_TYPE_OPTIONS, CALC_SPIKES_LAYER_OPTIONS, CALC_FIELD_OPTION_SETS, CALC_FIELD_OPTION_BY_TYPE, CALC_TYPE_OPTIONS, CALC_SECOND_TYPE_OPTIONS, CALC_FORM_LABEL_KO, calcSearchText, calcMatches, calcMoveCategoryLabel, calcNatureLabel, calcAbilityDisplayLabel, calcStatusDisplayLabel, calcFieldOptionLabel, setComboboxValue, calcItemCategoryLabel, calcItemCategoryRank, sortMovesForCalcSelect, sortItemsForCalcSelect, sortPokemonForCalcSelect, defaultPokemonTypes, sameTypeList, calcPokemonFormLabel, calcFormGroupForPokemon, calcFormGroupForSide, calcFormOptionDataForPokemon, normalizeSideTypes, sideTypeId, setSideType, resetSideTypes, applyPokemonFormToSideState, applyPokemonFormToCalcSide, calcPokemonAbilityTerms, calcDatasetForCombobox, defaultPokemonAbilityId, defaultPokemonItemId, applyPokemonToCalcSide, normalizeManualBp, manualBpForSlot, normalizeMoveType, manualTypeForSlot, moveWithManualBp, normalizeHpPct, calcMoveWithConditions, calcMoveConditionIssue, hpPercentInputValue, currentHpValue, deriveHpFlags, calcPokemonMatchesBlock, sideManualDamageBlock, fractionHpLoss, consumedDamageBlockHpPct, setSideDamageBlockActive, setSideHpPct, setSideCurrentHp, selectedAttackMoves, selectedMoveHasVariableKind, attackerAbilityData, sideAbilityData, attackerNeedsFlashFireToggle, normalizeBoosterEnergyState, maxFallenAllies, clampFallenAllies, normalizeBattleConditionState, resetSideManualValues, resetFieldManualValues, resetCalcManualValues, applyMoveBpInput, isFixedPowerMove, canEditMovePower, calcPowerModeText, applyMoveTypeOverride, autoEntryEffects, setAutoEntryEffects };

@@ -1,5 +1,5 @@
 import { RotomUI } from './01-10-rotom-ui.js';
-import { AbilityById, BATTLE_TYPES, MoveById, POKEMON, TYPE_KO, calcStats, mvName, pkName, renderTrustedHTML } from './01-core.js';
+import { validMoveHitCount, moveHitCountRange, AbilityById, BATTLE_TYPES, MoveById, POKEMON, TYPE_KO, calcStats, mvName, pkName, renderTrustedHTML } from './01-core.js';
 import { battleMaxFallenAllies } from './02-engine.js';
 import { canEditMovePower, state } from './03-10-calc-state.js';
 import { powerUiMoveSlot, setPowerUiMoveSlot } from './03-32-calc-ui.js';
@@ -19,10 +19,18 @@ function powerUiMoveSettingsMarkup(slot) {
   primary += RotomUI.check('급소',{'data-slot':'moveCriticalOverrides',checked:!!m.willCrit || !!s.moveCriticalOverrides[slot],disabled:!!m.willCrit});
   let html = '';
   if (m.mh) {
-    const max = Array.isArray(m.mh) ? m.mh[1] : m.mh;
-    const min = Array.isArray(m.mh) ? m.mh[0] : m.variableBpKind === 'tripleAxelAverage' ? 1 : max;
-    html += select('moveHitCounts','적중 횟수',[['','자동'],...Array.from({length:max-min+1},(_,i) => [min+i,`${min+i}회`])],s.moveHitCounts[slot] || '','slot');
+    const [min, max] = moveHitCountRange(m, state.field);
+    html += select('moveHitCounts',m.id === 'dragondarts' && state.field.gameType === 'Doubles' ? '이 대상 적중 횟수' : '적중 횟수',[['','자동'],...Array.from({length:max-min+1},(_,i) => [min+i,`${min+i}회`])],validMoveHitCount(m, s.moveHitCounts[slot], state.field) ?? '','slot');
   }
+  if (m.id === 'ragefist') html += number('timesAttacked','등장 후 맞은 횟수 (6회 이상은 6)',s.timesAttacked || 0,0,6);
+  if (['uturn','voltswitch','flipturn','dragontail','circlethrow'].includes(m.id) || ['redcard','ejectbutton'].includes(state.def.item))
+    html += flag('preventSwitch','대기 포켓몬이 없거나 교체할 수 없음');
+  if (AbilityById[s.ability]?.switchAtHalfHp) html += flag('noReserve','공격측 교체할 포켓몬 없음');
+  if (AbilityById[state.def.ability]?.switchAtHalfHp) html += flag('noReserve','방어측 교체할 포켓몬 없음','def-condition',state.def.noReserve);
+  if (m.id === 'upperhand') html += flag('targetPriorityAttack','상대가 선제 공격기를 준비 중');
+  if (m.id === 'lastresort') html += flag('usedOtherMoves','다른 보유 기술을 모두 사용함');
+  if (m.id === 'belch') html += flag('ateBerry','이전에 열매를 먹음');
+  if (['suckerpunch','thunderclap'].includes(m.id)) html += flag('targetAttacking','상대가 공격을 준비 중');
   if (m.fixedDamageKind === 'receivedDamage') html += number('receivedDamage','마지막 타격의 받은 피해',s.receivedDamage,0,calcStats(s).hp-1) + select('receivedDamageCategory','받은 공격',[['Physical','물리'],['Special','특수']],s.receivedDamageCategory);
   if (m.variableBpKind === 'stockpile') html += select('stockpileCount','비축',[0,1,2,3].map(n => [n,`${n}회`]),s.stockpileCount);
   if (m.variableBpKind === 'fickleBeam') html += select('fickleBeamMode','강화',[['auto','확률 반영'],['normal','일반'],['boosted','강화']],s.fickleBeamMode);
@@ -52,7 +60,7 @@ function powerUiApplyMoveSetting(target) {
     if(target.type==='number') target.value=state.atk[d.slot][powerUiMoveSlot] ?? '';
   } else if(d.condition || d.defCondition) {
     const key=d.condition || d.defCondition,side=d.defCondition ? state.def : state.atk;
-    side[key]=target.type==='checkbox' ? target.checked : ['receivedDamage','fallenAllies','stockpileCount'].includes(key) ? target.value==='' ? null : Math.max(0,Math.min(Number(target.max) || 999,Number(target.value))) : target.value;
+    side[key]=target.type==='checkbox' ? target.checked : ['receivedDamage','fallenAllies','stockpileCount','timesAttacked'].includes(key) ? target.value==='' ? null : Math.max(0,Math.min(Number(target.max) || 999,Number(target.value))) : target.value;
     if(target.type==='number') target.value=side[key] ?? '';
   } else if('member' in d) state.atk.beatUpParty[Number(d.member)]=target.value;
   else return;

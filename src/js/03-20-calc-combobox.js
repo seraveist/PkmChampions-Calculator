@@ -1,6 +1,7 @@
+import { prepareDamageSide } from './02-damage-events.js';
 import { uiSetPickerLabel } from './01-10-rotom-ui.js';
 import { AbilityById, ITEMS, NATURES, POKEMON, PokemonById, RULES, STAT_LABEL, TYPE_KO, abName, battleAbilityContext, calcStats, chainMods, effectiveBattleItem, getStabMod, itName, pkName, renderTrustedHTML, toId } from './01-core.js';
-import { applyAbilityRuleMods, calculateAttackStage, calculateBasePowerStage, fieldMechanics, firstMatchingFieldRule, fixedDamageAmount, isSpreadDamage, makeDamageContext, mechanicMod, powerAttackProfile, resolveDamagePreludeStage, specialMoveInputIssue } from './02-engine.js';
+import { prepareDamageAttacker, applyAbilityRuleMods, calculateAttackStage, calculateBasePowerStage, fieldMechanics, firstMatchingFieldRule, fixedDamageAmount, isSpreadDamage, makeDamageContext, mechanicMod, powerAttackProfile, resolveDamagePreludeStage, specialMoveInputIssue } from './02-engine.js';
 import { CALC_FIELD_OPTION_SETS, autoEntryEffects, calcDatasetForCombobox, calcItemCategoryLabel, calcMatches, calcMoveCategoryLabel, calcNatureLabel, calcSearchText, clampFallenAllies, makeSideState, sortItemsForCalcSelect, sortPokemonForCalcSelect, state } from './03-10-calc-state.js';
 import { uiWirePickerDialog } from './03-19-picker-dialog.js';
 import { calcPokemonOptionHeaderHtml, calcRenderPokemonOption } from './03-21-calc-combobox-options.js';
@@ -54,7 +55,7 @@ function makeMovePowerState(source, target, suppliedField) {
     }
   }
   side.fallenAllies = clampFallenAllies(side.fallenAllies, field.gameType);
-  return { side, defender, field, ability };
+  return { side:prepareDamageSide(side,defender,field), defender, field, ability };
 }
 
 function estimateMovePower(source, move, target = state.def, suppliedField = null) {
@@ -73,7 +74,7 @@ function estimateMovePower(source, move, target = state.def, suppliedField = nul
   for (const variant of profile.variants) {
     let sum = 0;
     for (let index = 0; index < variant.hits; index++) {
-      const hitSide = cloneSideForCalc(side);
+      const hitSide = prepareDamageAttacker(cloneSideForCalc(side), move);
       if (variant.fickleBeamMode) hitSide.fickleBeamMode = variant.fickleBeamMode;
       if (index && move.id === 'poweruppunch') hitSide.ranks.atk = clampRank((side.ranks.atk || 0) + index * (ability?.id === 'contrary' ? -1 : ability?.id === 'simple' ? 2 : 1));
       const hitField = { ...field, powerHitIndex: index, beatUpBaseAttack: profile.participants[index]?.bs.atk };
@@ -193,7 +194,7 @@ function makeCombobox(sideKey, type) {
   };
 }
 
-let calcSharedComboboxUid = 0;
+
 
 function wireSharedComboboxKeyboard(control, optsEl, options = {}) {
   return uiWirePickerDialog(control, optsEl, options);
@@ -243,6 +244,6 @@ function wirePokemonSelectCombobox(input, {
 }
 
 // Assignment stays in the module that owns the live binding.
-function setCalcSharedComboboxUid(value) { calcSharedComboboxUid = value; return value; }
 
-export { ENTRY_EFFECTS, INTIMIDATE_BLOCKERS, TARGET_DEPENDENT_POWER_KINDS, movePowerNeedsTarget, makeMovePowerState, estimateMovePower, CALC_NATURE_SORT_STATS, calcNatureSortRank, calcSortNatureOptions, calcAbilityOptionDataForPokemon, calcItemOptionsCache, calcNatureOptionsCache, calcItemOptionData, calcNatureOptionData, makeCombobox, calcSharedComboboxUid, wireSharedComboboxKeyboard, calcPokemonComboboxMatches, wirePokemonSelectCombobox, setCalcSharedComboboxUid };
+
+export { ENTRY_EFFECTS, INTIMIDATE_BLOCKERS, TARGET_DEPENDENT_POWER_KINDS, movePowerNeedsTarget, makeMovePowerState, estimateMovePower, CALC_NATURE_SORT_STATS, calcNatureSortRank, calcSortNatureOptions, calcAbilityOptionDataForPokemon, calcItemOptionsCache, calcNatureOptionsCache, calcItemOptionData, calcNatureOptionData, makeCombobox, wireSharedComboboxKeyboard, calcPokemonComboboxMatches, wirePokemonSelectCombobox };

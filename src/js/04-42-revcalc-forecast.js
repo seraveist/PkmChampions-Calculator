@@ -1,5 +1,5 @@
 import { AbilityById, MoveById, PokemonById, calcMaxHp } from './01-core.js';
-import { calculateDamage, damageBlockApplies, makePowerAttackModel, resolvePowerMoveUse } from './02-engine.js';
+import { calculateDamage, makePowerAttackModel, resolvePowerMoveUse } from './02-engine.js';
 import { rcAnalysisField, rcForecastKey, rcKnownOpponentItem, rcKnownOpponentMoves, rcNextMyRanks, rcNextOpponentRanks, rcRenderMoveCombobox, rcVisibleMoveSet, revCalcState } from './04-40-revcalc-state.js';
 import { rcDamageBounds, rcMoveDefenseStat, rcMoveOffenseStat } from './04-41-revcalc-scoring.js';
 import { rcBuildOpponentState } from './04-42-revcalc-candidates.js';
@@ -32,6 +32,15 @@ function rcCardHitOutcomes(a, d, move, field, cache) {
   if (cache.has(key)) return cache.get(key);
   const first = calculateDamage(a, d, move, { ...field, singleHitCalculation: true, powerHitIndex: 0 });
   if (!first?.koContext) return [];
+  if (!d.disguiseBroken && AbilityById[first.koContext.defAbility]?.damageBlock) {
+    const paths = rcHitOutcomes(a, d, move, field, cache);
+    if (paths.some(path => path.broken)) {
+      // The attack itself deals zero through an intact shield. Include direct
+      // damage from later strikes; the form's separate HP cost is not move damage.
+      cache.set(key, paths);
+      return paths;
+    }
+  }
   const model = makePowerAttackModel(a, d, move, { ...field, singleHitCalculation: true }, first);
   const result = resolvePowerMoveUse(model, rcHp(d), false, true);
   cache.set(key, result);
@@ -64,7 +73,7 @@ function rcForecastSpeedValues(member, path, opp, move, precedingMove, cache) {
 function rcForecastHit(a, d, move, precedingMove, field, goesFirst, cache, precedingField = field) {
   if (goesFirst || !precedingMove || precedingMove.cat === 'Status') return rcHitOutcomes(a, d, move, field, cache);
   const outcomes = [];
-  for (const first of rcAdvanceAttack(d, a, precedingMove, { ...precedingField, atkMovesFirst: true, atkMovesSecond: false, isCritical: false }, cache)) {
+  for (const first of rcAdvanceAttack(d, a, {...precedingMove,observedAction:'landed',observedTargetMove:move.id}, { ...precedingField, atkMovesFirst: true, atkMovesSecond: false, isCritical: false }, cache)) {
     if (rcHp(first.d) <= 0) {
       outcomes.push({ hp: rcHp(first.a), damage: 0, chance: first.chance, cannotAct: true });
       continue;
@@ -78,6 +87,8 @@ function rcForecastDirect(c, moveId, role, speedActive, selectedMyMoveId = null)
   const move = MoveById[moveId];
   if (!move || move.cat === 'Status') return move ? { move, statusMove: true, badges: ['직접 피해 없음'] } : null;
   if (!c.paths && !c.members) return null;
+  if (['my','opp'].some(side => revCalcState.observedMoveOptions?.[side]?.actionResult === 'switched'))
+    return {move,unavailable:true,badges:['교체로 관측 대면 종료']};
   if (['firstimpression', 'fakeout'].includes(moveId)) return { move, unavailable: true, badges: ['이 대면의 첫 행동 이후 사용 불가'] };
   if (moveId === 'doubleshock' && (role === 'my' ? revCalcState.myMove : revCalcState.oppMove) === moveId) return { move, unavailable: true, badges: ['전기 타입 소실로 재사용 불가'] };
   if (move.fixedDamageKind === 'receivedDamage') return { move, unavailable: true, badges: ['다음 턴 피격에 따라 결정되는 기술'] };
@@ -113,8 +124,6 @@ function rcForecastDirect(c, moveId, role, speedActive, selectedMyMoveId = null)
             let d = role === 'my' ? o : my;
             // Glaive Rush ends when its user acts, before a slower opponent's hit.
             if (d.glaiveRushExposed && !goesFirst) d = { ...d, glaiveRushExposed: false };
-            const block = AbilityById[d.ability]?.damageBlock;
-            if (block?.manual && damageBlockApplies(block, PokemonById[d.pokemonIdx], { ...d, damageBlockActive: true }, move, move.cat === 'Physical')) { incomplete = true; continue; }
             const f = { ...field, atkMovesFirst: goesFirst, atkMovesSecond: !goesFirst };
             const evaluationKey = rcDamageCacheKey(a, d, move, f);
             if (seenEvaluations.has(evaluationKey)) continue;

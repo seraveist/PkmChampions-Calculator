@@ -29,7 +29,7 @@
     "ui:browser:pages": "npm run build:pages && node scripts/ui-remodel-final-browser.mjs --public --ad-free",
     "spa:hosting": "node scripts/spa-hosting-check.mjs",
     "public:ready": "node scripts/public-readiness-check.mjs",
-    "data:validate": "node scripts/validate-data.mjs && node scripts/regulation-mc-golden.mjs",
+    "data:validate": "node scripts/validate-data.mjs && node scripts/regulation-mc-golden.mjs && node scripts/korean-cache-golden.mjs && node scripts/sync-patch-golden.mjs",
     "dex:smoke": "node scripts/dex-ui-smoke.mjs && node scripts/dex-state.mjs",
     "dex:browser": "npm run build:pages && node scripts/dex-browser.mjs --public --ad-free --require-browser",
     "damage:golden": "node scripts/damage-golden.mjs",
@@ -43,7 +43,7 @@
     "party:browser": "npm run build:pages && node scripts/party-remodel-browser.mjs --public --ad-free --require-browser",
     "state:matchup": "node scripts/matchup-state.mjs && node scripts/matchup-behavior.mjs",
     "matchup:browser": "npm run build:pages && node scripts/matchup-browser.mjs --public --ad-free --require-browser",
-    "test": "npm run check && npm run build:standalone && npm run html:structure && npm run css:structure && npm run css:cascade && npm run js:structure && npm run ui:dropdowns && npm run spa:hosting && npm run build:public && npm run public:ready && npm run build:pages && npm run pages:ready && npm run data:validate && npm run coverage:check && npm run dex:smoke && npm run damage:golden && npm run power:golden && npm run calculator:golden && npm run client:golden && npm run reverse:golden && npm run reverse:policy && npm run state:entry && npm run state:finetune && npm run state:party && npm run state:matchup && npm run modules:golden",
+    "test": "npm run check && npm run build:standalone && npm run html:structure && npm run css:structure && npm run css:cascade && npm run js:structure && npm run ui:dropdowns && npm run spa:hosting && npm run build:public && npm run public:ready && npm run build:pages && npm run pages:ready && npm run data:validate && npm run coverage:check && npm run power:audit:check && npm run dex:smoke && npm run damage:golden && npm run damage:reference && npm run power:golden && npm run calculator:golden && npm run client:golden && npm run reverse:golden && npm run reverse:policy && npm run state:entry && npm run state:finetune && npm run state:party && npm run state:matchup && npm run modules:golden",
     "sync-data": "node scripts/sync-ps-data.mjs",
     "sync-data:dry": "node scripts/sync-ps-data.mjs --dry-run",
     "fetch-ko": "node scripts/fetch-ko.mjs",
@@ -53,10 +53,12 @@
     "power:audit": "node scripts/power-mechanics-audit.mjs",
     "calculator:golden": "node scripts/calculator-completion-golden.mjs && node scripts/move-power-golden.mjs",
     "calculator:browser": "npm run build:pages && node scripts/calculator-remodel-browser.mjs --public --ad-free --require-browser",
-    "client:golden": "node scripts/client-performance-golden.mjs",
+    "client:golden": "node scripts/client-performance-golden.mjs && node scripts/navigation-golden.mjs",
     "modules:golden": "node scripts/modules-golden.mjs",
     "modules:browser": "npm run build:pages && node scripts/modules-browser.mjs --public",
-    "party:safety": "node scripts/party-storage-golden.mjs"
+    "party:safety": "node scripts/party-storage-golden.mjs",
+    "power:audit:check": "node scripts/power-mechanics-audit.mjs --check",
+    "damage:reference": "node scripts/damage-reference.mjs"
   },
   "devDependencies": {
     "axe-core": "^4.12.1",

@@ -60,7 +60,7 @@ export async function checkPartyStorageBrowser({evaluate,send,waitFor,pass}) {
     await screenshot('storage-warning');
   } finally {await evaluate(`Storage.prototype.setItem=window.__storageSet;delete window.__storageSet;`);}
   await evaluate(`(()=>{const input=document.querySelector('[data-party-name-index="0"]');input.value='Saved after retry';input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
-  assert.equal(JSON.parse(await stored()).parties[0].name,'Saved after retry');
+  await waitFor(async () => JSON.parse(await stored()).parties[0].name === 'Saved after retry');
   assert.equal(await evaluate(`document.getElementById('partyPresetStorageWarning').hidden`),true);
   pass('quota failure preserves durable data and a persistent warning until save recovery');
   await evaluate(`document.querySelector('[data-party-showdown-import="0"]').click();document.getElementById('partyPresetTextArea').value=${JSON.stringify('Garchomp\nAbility: Rough Skin\nJolly Nature\n- Dragon Claw')};document.getElementById('partyPresetTextApply').click()`);
@@ -69,10 +69,38 @@ export async function checkPartyStorageBrowser({evaluate,send,waitFor,pass}) {
   assert.equal(JSON.parse(await stored()).previousImport.parties[0].members[0].evs.atk,32);
   pass('Showdown replacement uses the same confirmation and undo path');
   await evaluate(`document.getElementById('partyPresetClose').click()`);
+  await evaluate(`document.getElementById('nav-calc').click()`);
+  await waitFor(()=>evaluate(`document.getElementById('nav-calc').getAttribute('aria-selected')==='true'`));
+  const openPicker = target => evaluate(`(() => {
+    const button = document.querySelector(${JSON.stringify('[data-party-import-target="' + target + '"]')});
+    button.focus();
+    button.click();
+  })()`);
+  const pickSlot = (party,slot) => evaluate(`document.querySelector('[data-party-picker-party="${party}"][data-party-picker-slot="${slot}"]').click()`);
+  await openPicker('calc:def');await pickSlot(0,0);
+  await waitFor(()=>evaluate(`document.activeElement.dataset.partyImportTarget==='calc:def'`));
+  await openPicker('save:def');await pickSlot(1,3);
+  await waitFor(async()=>JSON.parse(await stored()).parties[1].members[3].pokemon==='garchomp');
+  const savedMember=JSON.parse(await stored()).parties[1].members[3];
+  assert.equal(savedMember.moves[0],'dragonclaw');assert.equal(savedMember.nature,'jolly');
+  assert(!('hpPct' in savedMember));
+  await waitFor(()=>evaluate(`!document.getElementById('partyPresetPickerModal').open`));
+  assert(await evaluate(`document.activeElement.dataset.partyImportTarget==='save:def'`));
+  await openPicker('save:def');await pickSlot(1,3);await confirmOpen();
+  await evaluate(`document.querySelector('[data-party-confirm-cancel]').click()`);
+  await waitFor(()=>evaluate(`!document.getElementById('partyPresetConfirm')`));
+  await evaluate(`document.getElementById('partyPresetPickerClose').click()`);
+  pass('calculator saves the selected side to a party slot and restores focus');
   const footer=await evaluate(`(()=>{const el=document.querySelector('footer.site-footer');return {text:el.textContent,links:[...el.querySelectorAll('a')].map(a=>a.textContent.trim()),date:el.querySelector('time').dateTime}})()`);
   assert.deepEqual(footer.links,['계산 기준','데이터 출처 · Pokémon Showdown','오류 제보']);
   assert.equal(footer.date,'2026-09-09');assert.match(footer.text,/비공식 팬 도구/);
   assert.equal(await evaluate(`document.body.textContent.includes('결정력은 공격측 화력 지수입니다.')`),false);
+  await evaluate(`document.querySelector('footer [href="#calculation-guide"]').click()`);
+  await waitFor(()=>evaluate(`document.getElementById('calculation-guide').getClientRects().length > 0`));
+  assert(await evaluate(`document.getElementById('calculation-guide').textContent.includes('실제로 줄어든 HP')`));
+  await evaluate(`document.querySelector('#calculation-guide a').click()`);
+  await waitFor(()=>evaluate(`!document.getElementById('calculation-guide').getClientRects().length`));
+  pass('version-matched calculation guide opens and closes in the current build');
   for(const width of [320,1440]) {
     await send('Emulation.setDeviceMetricsOverride',{width,height:950,deviceScaleFactor:1,mobile:false});
     await evaluate(`document.querySelector('footer').scrollIntoView({block:'end',behavior:'instant'})`);

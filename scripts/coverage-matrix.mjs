@@ -70,6 +70,9 @@ const itemIds = new Set(items.map(item => item.id));
 const codeFiles = [
   'src/js/01-core.js',
   'src/js/02-engine.js',
+  'src/js/02-damage-events.js',
+  'src/js/02-hit-state.js',
+  'src/js/02-repeat-damage.js',
 ].map(file => readFileSync(path.join(ROOT, file), 'utf8')).join('\n') + '\n' + readCalcUiSource(ROOT);
 
 function codeMentions(id) {
@@ -79,6 +82,7 @@ function codeMentions(id) {
 }
 
 const MOVE_MECHANIC_FIELDS = [
+  'hitStatus', 'hitVolatile', 'bindsTarget', 'selfBoosts', 'targetHitBoosts',
   'variableBpKind',
   'fixedDamageKind',
   'typeChangeKind',

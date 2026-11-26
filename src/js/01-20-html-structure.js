@@ -1,6 +1,5 @@
 import { loadPageFeature, pageFeatureNeedsLoad } from '../runtime/features.js';
 import { NATURE_BY_ID, STATS, escapeHTML } from './01-core.js';
-import { ensureMainPageInitialized } from './05-init.js';
 
 /* Shared HTML structure helpers.
  * Keep these helpers presentation-neutral: they describe hierarchy and state,
@@ -375,7 +374,7 @@ function bindUiTabKeyboard(tablist, options = {}) {
   });
 }
 
-const mainPageFeatureLoads = new Map();
+let renderMainPage;
 let mainPageLoadRequestId = 0;
 
 function setMainPageLoadState(tab, state = '', message = '') {
@@ -385,7 +384,7 @@ function setMainPageLoadState(tab, state = '', message = '') {
   const isError = state === 'error';
 
   document.querySelectorAll('.nav-tab').forEach(candidate => {
-    candidate.classList.remove('is-loading');
+    candidate.classList.remove('is-loading', 'is-error');
     candidate.removeAttribute('aria-busy');
   });
   if (tab) {
@@ -409,19 +408,21 @@ function ensureMainPageFeatureLoaded(pageKey) {
 }
 
 async function activateMainPage(pageKey, options = {}) {
-  const tab = document.querySelector(`.nav-tab[data-page="${pageKey}"]`);
+  const tab = document.getElementById(`nav-${pageKey}`);
   const activePage = document.getElementById(`page-${pageKey}`);
-  if (!tab || !activePage) return false;
+  if (tab?.dataset.page !== pageKey || !activePage) return false;
 
   const requestId = ++mainPageLoadRequestId;
   const requiresLoad = pageFeatureNeedsLoad(pageKey);
   const pageLabel = tab.textContent.trim();
 
-  setMainPageLoadState(tab);
-  if (requiresLoad) setMainPageLoadState(tab, 'loading');
+  setMainPageLoadState(tab, requiresLoad ? 'loading' : '');
 
   try {
     await ensureMainPageFeatureLoaded(pageKey);
+    if (requestId !== mainPageLoadRequestId) return false;
+    options.prepare?.();
+    renderMainPage(pageKey, { refresh: !!options.prepare });
   } catch (error) {
     if (requestId === mainPageLoadRequestId) {
       setMainPageLoadState(tab, 'error', `${pageLabel} 화면을 불러오지 못했습니다. 탭을 다시 눌러 주세요.`);
@@ -430,9 +431,7 @@ async function activateMainPage(pageKey, options = {}) {
     return false;
   }
 
-  if (requestId !== mainPageLoadRequestId) return false;
-  if (requiresLoad) setMainPageLoadState(tab);
-  if (typeof ensureMainPageInitialized === 'function') ensureMainPageInitialized(pageKey);
+  setMainPageLoadState(tab);
   syncUiTabs(document.querySelectorAll('.nav-tab'), tab);
   syncUiPanels(document.querySelectorAll('.page'), activePage);
 
@@ -442,15 +441,19 @@ async function activateMainPage(pageKey, options = {}) {
   return true;
 }
 
-async function activateMainPageFromHash() {
+async function activateMainPageFromHash(fallbackPage) {
   let pageKey;
-  try { pageKey = decodeURIComponent(location.hash.replace(/^#(?:page-)?/, '')).trim(); }
-  catch { return activateMainPage('calc', { updateHash: false }); }
-  if (!pageKey) return false;
+  try {
+    pageKey = decodeURIComponent(location.hash.replace(/^#(?:page-)?/, '')).trim();
+  } catch {
+    pageKey = 'calc';
+  }
+  if (!document.getElementById(`nav-${pageKey}`) && fallbackPage) pageKey = fallbackPage;
   return activateMainPage(pageKey, { updateHash: false });
 }
 
-function bindMainNavigation() {
+function bindMainNavigation(renderPage) {
+  renderMainPage = renderPage;
   const nav = document.querySelector('.main-nav');
   const navTabs = document.querySelectorAll('.nav-tab');
   if (!nav || !navTabs.length) return;
@@ -464,13 +467,21 @@ function bindMainNavigation() {
   bindUiTabKeyboard(nav);
 
   const activeTab = document.querySelector('.nav-tab.active') || navTabs[0];
-  void (async () => {
-    const initialPage = await activateMainPageFromHash()
-      || await activateMainPage(activeTab?.dataset.page || 'calc', { updateHash: false });
-    if (!initialPage) await activateMainPage('calc', { updateHash: false });
-  })();
+  const defaultPage = activeTab.dataset.page;
+  const initialRequestId = mainPageLoadRequestId + 1;
+  void activateMainPageFromHash(defaultPage).then(async opened => {
+    // A failed deep link leaves the initial panel visible. Initialize its controls
+    // while retaining the retry message, unless the user has already navigated.
+    if (opened || mainPageLoadRequestId !== initialRequestId) return;
+    const failedTab = document.querySelector('.nav-tab.is-error');
+    if (!failedTab || failedTab === activeTab) return;
+    const message = document.getElementById('pageLoadStatus').textContent;
+    if (await activateMainPage(defaultPage) && mainPageLoadRequestId === initialRequestId + 1) {
+      setMainPageLoadState(failedTab, 'error', message);
+    }
+  });
 
   window.addEventListener('hashchange', () => { void activateMainPageFromHash(); });
 }
 
-export { htmlAttrValue, htmlAttrs, uiButton, uiClassNames, uiMergeClass, TOOL_STAT_COLUMN_LABELS, toolStatColumnClass, renderToolStatHead, renderToolStatNatureMark, renderToolStatPointControl, renderToolStatRankControl, toolStatClampPointValue, toolStatPointInputDigits, toolStatNormalizePointInputValue, toolStatShouldCommitPointInput, toolStatApplyPointValue, toolStatApplyRankDelta, renderToolStatMagicCell, renderToolStatRow, renderToolStatRows, renderToolStatBulkStrip, TOOL_MOVE_COLUMNS, TOOL_MOVE_COLUMN_LABELS, toolMoveColumnClass, toolMoveColumnCell, renderToolMoveHead, renderToolMoveRow, renderToolMoveList, syncUiTabs, syncUiPanels, bindUiTabKeyboard, mainPageFeatureLoads, mainPageLoadRequestId, setMainPageLoadState, ensureMainPageFeatureLoaded, activateMainPage, activateMainPageFromHash, bindMainNavigation };
+export { htmlAttrValue, htmlAttrs, uiButton, uiClassNames, uiMergeClass, TOOL_STAT_COLUMN_LABELS, toolStatColumnClass, renderToolStatHead, renderToolStatNatureMark, renderToolStatPointControl, renderToolStatRankControl, toolStatClampPointValue, toolStatPointInputDigits, toolStatNormalizePointInputValue, toolStatShouldCommitPointInput, toolStatApplyPointValue, toolStatApplyRankDelta, renderToolStatMagicCell, renderToolStatRow, renderToolStatRows, renderToolStatBulkStrip, TOOL_MOVE_COLUMNS, TOOL_MOVE_COLUMN_LABELS, toolMoveColumnClass, toolMoveColumnCell, renderToolMoveHead, renderToolMoveRow, renderToolMoveList, syncUiTabs, syncUiPanels, bindUiTabKeyboard, mainPageLoadRequestId, setMainPageLoadState, ensureMainPageFeatureLoaded, activateMainPage, activateMainPageFromHash, bindMainNavigation };

@@ -1,7 +1,7 @@
 // scripts/fetch-ko.mjs
 //
 // PokéAPI 의 공개 CSV (raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv)
-// 에서 한국어 이름을 일괄 수집해 data/ko/*.json 캐시 파일로 저장한다.
+// 에서 한국어 이름을 일괄 수집해 data/ko/auto-cache.json 스냅샷으로 저장한다.
 //
 // 사용법:
 //   node scripts/fetch-ko.mjs            # 4 카테고리 모두
@@ -12,23 +12,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadTsModule, applyModOverrides } from './ts-loader.mjs';
-import { applyChampionsDataOverrides } from './champions-overrides.mjs';
+import { buildGameData } from './build-game-data.mjs';
+import { randomUUID } from 'node:crypto';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const DATA = path.join(ROOT, 'data');
 const KO_DIR = path.join(DATA, 'ko');
-const CSV_BASE = 'https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv';
+
 const KO_LANG_ID = '3';  // PokéAPI languages.csv 에서 ko=3
-const EXCLUDED_NONSTANDARD = new Set(['CAP', 'Custom', 'Gmax']);
+
 
 // PS id ↔ identifier 정규화
 function psNorm(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
-function isPast(e) { return e?.isNonstandard === 'Past' || e?.isNonstandard === 'Future'; }
-function isAvailable(e) { return !isPast(e) && !EXCLUDED_NONSTANDARD.has(e?.isNonstandard); }
 
-async function fetchText(url) {
-  const res = await fetch(url);
+
+async function fetchText(url, fetchImpl) {
+  const res = await fetchImpl(url);
   if (!res.ok) throw new Error(`${url} → ${res.status}`);
   return res.text();
 }
@@ -74,26 +73,17 @@ function cleanFlavor(text) {
   return (text || '').replace(/\s+/g, ' ').trim();
 }
 
-// version_groups.csv 에서 id → order 맵을 만든다.
-// flavor text 여러 버전 중 가장 최신 (order 큰) 것을 고르기 위해.
-let _versionOrderCache = null;
-async function getVersionOrder() {
-  if (_versionOrderCache) return _versionOrderCache;
-  const rows = parseCsv(await fetchText(`${CSV_BASE}/version_groups.csv`));
-  _versionOrderCache = new Map(rows.map(r => [r.id, parseInt(r.order, 10) || 0]));
-  return _versionOrderCache;
-}
-
 // 한 카테고리의 flavor text(한국어) 를 PS id 키로 매핑해서 반환.
 // opts: { tableCsv, flavorCsv, idColumn (e.g. 'ability_id'/'move_id'/'item_id') }
-async function fetchKoFlavor(targetIds, opts) {
+async function fetchKoFlavor(targetIds, opts, readCsv) {
   console.log(`   ${opts.tableCsv} ...`);
-  const items = parseCsv(await fetchText(`${CSV_BASE}/${opts.tableCsv}`));
+  const items = await readCsv(opts.tableCsv);
   console.log(`   ${opts.flavorCsv} ...`);
-  const flavors = parseCsv(await fetchText(`${CSV_BASE}/${opts.flavorCsv}`));
+  const flavors = await readCsv(opts.flavorCsv);
 
   const idToIdent = new Map(items.map(r => [r.id, r.identifier]));
-  const versionOrder = await getVersionOrder();
+  const orderRows = await readCsv('version_groups.csv');
+  const versionOrder = new Map(orderRows.map(row => [row.id, Number(row.order)]));
 
   // {pokeapi_id} → { latestOrder, flavor_text }
   const bestPerId = new Map();
@@ -131,15 +121,15 @@ async function fetchKoFlavor(targetIds, opts) {
 // === 카테고리별 fetcher ===
 
 // 포켓몬: pokemon_species + pokemon_forms (메가/지역폼) 합치기
-async function fetchKoPokemon(targetIds) {
+async function fetchKoPokemon(targetIds, readCsv) {
   console.log('   pokemon_species.csv ...');
-  const species = parseCsv(await fetchText(`${CSV_BASE}/pokemon_species.csv`));        // id, identifier
+  const species = await readCsv('pokemon_species.csv');        // id, identifier
   console.log('   pokemon_species_names.csv ...');
-  const speciesNames = parseCsv(await fetchText(`${CSV_BASE}/pokemon_species_names.csv`));
+  const speciesNames = await readCsv('pokemon_species_names.csv');
   console.log('   pokemon_forms.csv ...');
-  const forms = parseCsv(await fetchText(`${CSV_BASE}/pokemon_forms.csv`));            // id, identifier
+  const forms = await readCsv('pokemon_forms.csv');            // id, identifier
   console.log('   pokemon_form_names.csv ...');
-  const formNames = parseCsv(await fetchText(`${CSV_BASE}/pokemon_form_names.csv`));
+  const formNames = await readCsv('pokemon_form_names.csv');
 
   // PS_id → ko_name 매핑 빌드
   const koByPsId = new Map();
@@ -174,11 +164,11 @@ async function fetchKoPokemon(targetIds) {
 }
 
 // 일반 카테고리: <table>.csv (id, identifier) + <table>_names.csv (id, lang, name)
-async function fetchKoSimple(targetIds, opts) {
+async function fetchKoSimple(targetIds, opts, readCsv) {
   console.log(`   ${opts.tableCsv} ...`);
-  const items = parseCsv(await fetchText(`${CSV_BASE}/${opts.tableCsv}`));
+  const items = await readCsv(opts.tableCsv);
   console.log(`   ${opts.namesCsv} ...`);
-  const names = parseCsv(await fetchText(`${CSV_BASE}/${opts.namesCsv}`));
+  const names = await readCsv(opts.namesCsv);
 
   const idToIdent = new Map(items.map(r => [r.id, r.identifier]));
   const koByPsId = new Map();
@@ -202,50 +192,41 @@ async function fetchKoSimple(targetIds, opts) {
 }
 
 // === 우리 데이터에서 fetch 대상 ID 추출 ===
-function loadTargetIds() {
-  const Pokedex = loadTsModule(path.join(DATA, 'pokedex.ts')).Pokedex;
-  const Moves = loadTsModule(path.join(DATA, 'moves.ts')).Moves;
-  const Abilities = loadTsModule(path.join(DATA, 'abilities.ts')).Abilities;
-  const Items = loadTsModule(path.join(DATA, 'items.ts')).Items;
-  const FormatsData = applyChampionsDataOverrides('formats', loadTsModule(path.join(DATA, 'mods', 'champions', 'formats-data.ts')).FormatsData);
-  const champMoves = loadTsModule(path.join(DATA, 'mods', 'champions', 'moves.ts')).Moves;
-  const champAbilities = loadTsModule(path.join(DATA, 'mods', 'champions', 'abilities.ts')).Abilities;
-  const champItems = loadTsModule(path.join(DATA, 'mods', 'champions', 'items.ts')).Items;
-
-  const legalPokemon = Object.entries(FormatsData)
-    .filter(([_, f]) => f && f.tier !== 'Illegal' && isAvailable(f))
-    .map(([id]) => id)
-    .filter(id => Pokedex[id]);
-
-  return {
-    pokemon: legalPokemon,
-    moves: Object.entries(applyChampionsDataOverrides('moves', applyModOverrides(Moves, champMoves))).filter(([_, m]) => m?.name && isAvailable(m)).map(([id]) => id),
-    abilities: Object.entries(applyChampionsDataOverrides('abilities', applyModOverrides(Abilities, champAbilities))).filter(([_, a]) => a?.name && isAvailable(a)).map(([id]) => id),
-    items: Object.entries(applyChampionsDataOverrides('items', applyModOverrides(Items, champItems))).filter(([_, i]) => i?.name && isAvailable(i)).map(([id]) => id),
-  };
+export function loadTargetIds() {
+  const data = buildGameData();
+  return Object.fromEntries(['pokemon', 'moves', 'abilities', 'items'].map(kind => [kind, data[kind].map(row => row.id)]));
 }
 
-async function main() {
-  console.log('🇰🇷 PokéAPI CSV 한국어 이름 fetcher');
-  fs.mkdirSync(KO_DIR, { recursive: true });
-  const targets = loadTargetIds();
+export async function refreshKoreanCache({ directory = KO_DIR, targets = loadTargetIds(), commit, fetchImpl = fetch } = {}) {
+  if (commit === undefined) commit = JSON.parse(await fetchText('https://api.github.com/repos/PokeAPI/pokeapi/commits/master', fetchImpl)).sha;
+  if (!/^[0-9a-f]{40}$/i.test(commit)) throw new Error('PokéAPI 커밋 SHA를 확인해 주세요.');
+  const csvBase = `https://raw.githubusercontent.com/PokeAPI/pokeapi/${commit}/data/v2/csv`;
+  const smallTables = new Map();
+  async function readCsv(file) {
+    if (smallTables.has(file)) return smallTables.get(file);
+    const rows = parseCsv(await fetchText(csvBase + '/' + file, fetchImpl));
+    if (!rows.length) throw new Error(file + ' CSV에 데이터가 없습니다.');
+    if (['moves.csv','abilities.csv','items.csv','version_groups.csv'].includes(file)) smallTables.set(file, rows);
+    return rows;
+  }
+  fs.mkdirSync(directory, { recursive: true });
 
   const tasks = [
     // 이름
-    { key: 'pokemon',   total: targets.pokemon.length,   run: () => fetchKoPokemon(targets.pokemon) },
-    { key: 'moves',     total: targets.moves.length,     run: () => fetchKoSimple(targets.moves, { tableCsv: 'moves.csv', namesCsv: 'move_names.csv', idColumn: 'move_id' }) },
-    { key: 'abilities', total: targets.abilities.length, run: () => fetchKoSimple(targets.abilities, { tableCsv: 'abilities.csv', namesCsv: 'ability_names.csv', idColumn: 'ability_id' }) },
-    { key: 'items',     total: targets.items.length,     run: () => fetchKoSimple(targets.items, { tableCsv: 'items.csv', namesCsv: 'item_names.csv', idColumn: 'item_id' }) },
+    { key: 'pokemon',   total: targets.pokemon.length,   run: () => fetchKoPokemon(targets.pokemon, readCsv) },
+    { key: 'moves',     total: targets.moves.length,     run: () => fetchKoSimple(targets.moves, { tableCsv: 'moves.csv', namesCsv: 'move_names.csv', idColumn: 'move_id' }, readCsv) },
+    { key: 'abilities', total: targets.abilities.length, run: () => fetchKoSimple(targets.abilities, { tableCsv: 'abilities.csv', namesCsv: 'ability_names.csv', idColumn: 'ability_id' }, readCsv) },
+    { key: 'items',     total: targets.items.length,     run: () => fetchKoSimple(targets.items, { tableCsv: 'items.csv', namesCsv: 'item_names.csv', idColumn: 'item_id' }, readCsv) },
     // 설명 (flavor text 의 한국어 — 최신 게임 버전 우선)
-    { key: 'desc-moves',     total: targets.moves.length,     run: () => fetchKoFlavor(targets.moves, { tableCsv: 'moves.csv', flavorCsv: 'move_flavor_text.csv', idColumn: 'move_id' }) },
-    { key: 'desc-abilities', total: targets.abilities.length, run: () => fetchKoFlavor(targets.abilities, { tableCsv: 'abilities.csv', flavorCsv: 'ability_flavor_text.csv', idColumn: 'ability_id' }) },
-    { key: 'desc-items',     total: targets.items.length,     run: () => fetchKoFlavor(targets.items, { tableCsv: 'items.csv', flavorCsv: 'item_flavor_text.csv', idColumn: 'item_id' }) },
+    { key: 'desc-moves',     total: targets.moves.length,     run: () => fetchKoFlavor(targets.moves, { tableCsv: 'moves.csv', flavorCsv: 'move_flavor_text.csv', idColumn: 'move_id' }, readCsv) },
+    { key: 'desc-abilities', total: targets.abilities.length, run: () => fetchKoFlavor(targets.abilities, { tableCsv: 'abilities.csv', flavorCsv: 'ability_flavor_text.csv', idColumn: 'ability_id' }, readCsv) },
+    { key: 'desc-items',     total: targets.items.length,     run: () => fetchKoFlavor(targets.items, { tableCsv: 'items.csv', flavorCsv: 'item_flavor_text.csv', idColumn: 'item_id' }, readCsv) },
   ];
 
   // 수동 번역 파일을 미리 읽어서, missing 목록에서 빼기 위한 set 으로 보관.
   // 우선순위는 build.mjs 에서 적용 (manual > auto). 여기선 진단용 missing 만 정확히 산출.
   function readManual(key) {
-    const fp = path.join(KO_DIR, `${key}.manual.json`);
+    const fp = path.join(directory, `${key}.manual.json`);
     if (!fs.existsSync(fp)) return {};
     try {
       const data = JSON.parse(fs.readFileSync(fp, 'utf8'));
@@ -257,34 +238,27 @@ async function main() {
       }
       return clean;
     } catch (e) {
-      console.warn(`   ⚠️ ${fp} parse 실패: ${e.message}`);
-      return {};
+      throw new Error(`수동 번역을 읽지 못했습니다 · ${fp}`, { cause: e });
     }
   }
 
   const summary = {};
+  const categories = {};
+  const missing = {};
   for (const t of tasks) {
     console.log(`\n📦 [${t.key}] 대상 ${t.total}개`);
     const { cache, missing: rawMissing } = await t.run();
-    fs.writeFileSync(path.join(KO_DIR, `${t.key}.json`),
-      JSON.stringify(cache, null, 2) + '\n');
+    if (!Object.keys(cache).length || Object.keys(cache).length + rawMissing.length !== t.total) {
+      throw new Error(t.key + ' 번역 결과를 검증하지 못했습니다.');
+    }
+    categories[t.key] = cache;
 
     // 수동 번역 적용 후 진짜 missing 만 남김
     const manual = readManual(t.key);
     const stillMissing = rawMissing.filter(id => !manual[id]);
     const filledByManual = rawMissing.length - stillMissing.length;
 
-    // missing.json 을 "수동 번역 템플릿" 형태로 작성 — 사용자가 그대로 manual.json 에 복사해
-    // 값만 채우면 되도록 { id: "" } 객체로 출력.
-    if (stillMissing.length > 0) {
-      const tmpl = {};
-      for (const id of stillMissing) tmpl[id] = '';
-      fs.writeFileSync(path.join(KO_DIR, `${t.key}.missing.json`),
-        JSON.stringify(tmpl, null, 2) + '\n');
-    } else {
-      const f = path.join(KO_DIR, `${t.key}.missing.json`);
-      if (fs.existsSync(f)) fs.rmSync(f);
-    }
+    missing[t.key] = stillMissing;
 
     summary[t.key] = {
       auto: Object.keys(cache).length,
@@ -298,9 +272,17 @@ async function main() {
 
   console.log('\n📊 요약');
   console.table(summary);
-  console.log('\n💡 누락된 항목은 data/ko/<카테고리>.missing.json 에 템플릿 형태로 기록됩니다.');
-  console.log('   해당 파일의 항목을 data/ko/<카테고리>.manual.json 에 옮기고 한글값을 채우면');
-  console.log('   다음 빌드부터 표시됩니다. PokéAPI 가 추후 같은 항목을 추가해도 수동값이 우선합니다.');
+  const output = path.join(directory, 'auto-cache.json');
+  const temp = output + '.' + randomUUID() + '.tmp';
+  try {
+    fs.writeFileSync(temp, JSON.stringify({ version: 1, commit, categories, missing }, null, 2) + '\n', { flag: 'wx' });
+    fs.renameSync(temp, output);
+  } finally {
+    fs.rmSync(temp, { force: true });
+  }
+  console.log('번역 캐시 갱신 완료 · ' + commit);
 }
 
-main().catch(err => { console.error('❌ fetcher 실패:', err); process.exit(1); });
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) refreshKoreanCache({
+  commit: process.argv.find(arg => arg.startsWith('--commit='))?.slice(9),
+}).catch(err => { console.error('❌ fetcher 실패:', err); process.exit(1); });

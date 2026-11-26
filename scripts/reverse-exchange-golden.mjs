@@ -32,6 +32,19 @@ check('First-hit HP reaches the Eruption retaliation',`
 check('H32 is an absolute priority before likelihood; defense below H32 is outside this assumption',`
 const pairs=rcHpFirstSpreads('def',true);requireCheck(pairs[0].hp===32&&pairs[0].defense===0,'H32 B0 must be first');requireCheck(pairs.every(p=>p.hp===32||p.defense===0),'B below H32');requireCheck(rcCompareCandidates({defStat:'def',hpEv:32,defEv:0,totalScore:.01},{defStat:'def',hpEv:16,defEv:0,totalScore:1})<0,'H32 priority lost to score');requireCheck(rcCompareCandidates({defStat:'spd',hpEv:32,defEv:0,totalScore:.01},{defStat:'spd',hpEv:32,defEv:20,totalScore:1})<0,'unneeded D preferred');
 `);
+check('Ground immunity and absorption retain true HP in observed exchanges',`
+  setupExchange('garchomp','eelektrossmega','bulldoze','');
+  revCalcState.observedTheirPct='100';
+  const a=revCalcState.my, d=rcBuildOpponentState(PokemonById.eelektrossmega,{ability:'eelevate',item:'eelektrossite'});
+  const paths=rcExchangePaths(a,d,MoveById.bulldoze,null,'my-first',new Map());
+  requireCheck(paths.length && paths.every(p=>rcHp(p.opp)===160),'immune observation should retain full HP');
+  requireCheck(!rcExchangePaths(a,{...d,forcedGrounded:true},MoveById.bulldoze,null,'my-first',new Map()).length,'grounded observation cannot retain full HP');
+  setupExchange('blastoise','vaporeon','waterpulse','');
+  revCalcState.observedTheirPct='73';
+  const injured=rcSetHp(rcBuildOpponentState(PokemonById.vaporeon,{ability:'waterabsorb'}),100);
+  const absorbed=rcExchangePaths(revCalcState.my,injured,MoveById.waterpulse,null,'my-first',new Map());
+  requireCheck(absorbed.length && absorbed.every(p=>rcHp(p.opp)===151),'absorption must heal before matching observed HP');
+`);
 check('Observed Sitrus and Leftovers match their final HP and consumption',`
 setupExchange('garchomp','snorlax','earthquake','', 'my-first','sitrusberry');revCalcState.observedTheirPct='74';const a=revCalcState.my,d=rcBuildOpponentState(PokemonById.snorlax,{item:'sitrusberry'});const p=rcExchangePaths(a,d,MoveById.earthquake,null,'my-first',new Map());requireCheck(p.some(p=>rcHp(p.opp)===175&&p.opp.item===''),'Sitrus after HP missing');revCalcState.oppItemKnown='leftovers';revCalcState.observedTheirPct='63';d.item='leftovers';const l=rcExchangePaths(a,d,MoveById.earthquake,null,'my-first',new Map());requireCheck(l.some(p=>rcHp(p.opp)===149&&p.opp.item==='leftovers'),'Leftovers final HP missing');
 `);
@@ -80,8 +93,10 @@ check('Fickle Beam retains ordinary and boosted observed outcomes',`
 check('An observation before residual healing advances once before the next turn',`
  setupExchange('garchomp','snorlax','earthquake','','my-first','leftovers');revCalcState.observationTiming='hit';revCalcState.observedTheirPct='57';const d=rcBuildOpponentState(PokemonById.snorlax,{item:'leftovers'});const p=rcExchangePaths(revCalcState.my,d,MoveById.earthquake,null,'my-first',new Map()).find(p=>rcHp(p.opp)===135);requireCheck(!!p,'pre-recovery path absent');requireCheck(rcHp(rcForecastStartState(p,'opp'))===149,'next turn lost residual recovery');revCalcState.observationTiming='end';p.opp=rcSetHp(p.opp,149);requireCheck(rcHp(rcForecastStartState(p,'opp'))===149,'end observation recovered twice');
 `);
-check('Untracked damage blocks are explicit and observed Weakness Policy changes final ranks',`
- setupExchange('garchomp','mimikyu','earthquake','playrough');revCalcState.observedTheirPct='87';revCalcState.observedMyHp='100';requireCheck(rcAnalyze().error.includes('차단 상태'),'Disguise treated as ordinary damage');
+check('Observed damage blocks preserve HP and observed Weakness Policy changes final ranks',`
+ setupExchange('garchomp','mimikyu','earthquake','playrough');revCalcState.observedTheirPct='87';revCalcState.observedMyHp='100';const shielded=rcBuildOpponentState(PokemonById.mimikyu,{ability:'disguise'});
+ const blocked=rcHitOutcomes(revCalcState.my,shielded,MoveById.earthquake,makeFieldState(),new Map());
+ requireCheck(blocked.every(h=>h.hp===114&&h.damage===0&&h.broken),'Disguise HP loss must stay separate from direct damage');
  setupExchange('garchomp','archaludon','earthquake','flashcannon','my-first','weaknesspolicy');
  const d=rcBuildOpponentState(PokemonById.archaludon,{evs:{hp:32},item:'weaknesspolicy'});
  const rows=rcAdvanceAttack(revCalcState.my,d,MoveById.earthquake,makeFieldState(),new Map());
@@ -242,5 +257,37 @@ check('Only the participant moving first gets the green first-action label', `
  requireCheck(first('my')&&!first('opp'),'own first action duplicated');
  analysis.summary.order='상대 선공';requireCheck(!first('my')&&first('opp'),'opponent first action missing or duplicated');
  analysis.summary.order='동속';requireCheck(!first('my')&&!first('opp'),'tie mislabeled as first');
+`);
+check('Showdown observations retain the actual Jolly uninvested build', `
+ const cases = [
+   ['garchomp','roughskin','dragonclaw','snorlax','immunity','amnesia',100,65,{bell:true}],
+   ['garchomp','roughskin','bulldoze','milotic','competitive','dragonpulse',51,69,{}],
+   ['jolteon','voltabsorb','thunderbolt','drampa','berserk','dragonpulse',53,45,{pct:65}],
+   ['charizard','blaze','inferno','snorlax','immunity','amnesia',153,69,{}],
+   ['charizard','blaze','fly','snorlax','immunity','amnesia',153,100,{myAction:'charging'}],
+   ['snorlax','immunity','belch','garchomp','roughskin','swordsdance',235,100,{}],
+   ['weavile','pressure','throatchop','snorlax','immunity','hypervoice',145,68,{}],
+   ['persian','limber','fakeout','snorlax','immunity','bodypress',140,89,{}],
+   ['jolteon','voltabsorb','thunderbolt','golisopod','emergencyexit','waterfall',140,20,{oppAction:'switched'}],
+   ['jolteon','voltabsorb','thunderbolt','golisopod','emergencyexit','waterfall',58,20,{oppAction:'landed'}],
+ ];
+ for (const [a,ab,m,d,db,dm,myHp,pct,o] of cases) {
+   setupExchange(a,d,m,dm,m==='belch'?'opp-first':'my-first');
+   const state=revCalcState;
+   state.my.ability=ab;state.oppAbilityKnown=db;state.oppItemKnown='';state.hpTolerance=0;
+   if (o.bell) {state.my.item='shellbell';setSideCurrentHp(state.my,90);}
+   state.oppStartHpPct=o.pct||100;
+   state.observedMoveOptions={my:{actionResult:o.myAction||'auto'},opp:{actionResult:o.oppAction||'auto'}};
+   state.observedMyHp=String(myHp);state.observedTheirPct=String(pct);
+   const result=rcAnalyzeExchange();
+   requireCheck(result.candidates?.some(c=>c.nature==='jolly' && c.hpEv===0 && c.atkEv===0 && c.defEv===0 && c.speEvMin===0),a+'/'+m+'/'+d);
+ }
+`);
+check('Priority attacks use the observed opposing action', `
+ const a=makeSideState('absol'), d=makeSideState('snorlax'), f=makeFieldState();
+ const hp=rcHp(d), outcome=id=>rcAdvanceAttack(a,d,{...MoveById.suckerpunch,observedTargetMove:id},{...f,atkMovesFirst:true},new Map());
+ requireCheck(outcome('amnesia').every(p=>rcHp(p.d)===hp),'Sucker Punch hit Amnesia');
+ requireCheck(outcome('bodypress').every(p=>rcHp(p.d)<hp),'Sucker Punch failed against an attack');
+ requireCheck(rcAdvanceAttack(a,d,{...MoveById.upperhand,observedTargetMove:'bodypress'},{...f,atkMovesFirst:true},new Map()).every(p=>rcHp(p.d)===hp),'Upper Hand hit an ordinary move');
 `);
 console.log(passed+' exchange checks passed');

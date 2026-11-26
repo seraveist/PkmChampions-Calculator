@@ -54,7 +54,8 @@ test('Automatic opposing Intimidate is excluded; own automatic entry rank is ret
 test('Own HP, weather, terrain, Helping Hand and spread modifiers remain active', `
  const a=side('typhlosion'),d=side('snorlax');const full=index(a,d,'eruption');setSideHpPct(a,.5);assert(index(a,d,'eruption')<full);
  const c=side('charizard'),base=index(c,d,'flamethrower');assert.equal(index(c,d,'flamethrower',makeFieldState({weather:'Sun'})),Math.round(base*1.5));
- assert.equal(index(c,d,'flamethrower',makeFieldState({atkHelpingHand:true})),Math.round(base*1.5));
+ assert.equal(index(c,d,'flamethrower',makeFieldState({atkHelpingHand:true})),base);
+ assert.equal(index(c,d,'flamethrower',makeFieldState({gameType:'Doubles',atkHelpingHand:true})),Math.round(base*1.5));
  const p=side('pikachu');assert.equal(index(p,d,'thunderbolt',makeFieldState({terrain:'Electric'})),12285);
  const g=side('garchomp');assert.equal(index(g,d,'earthquake',makeFieldState({gameType:'Doubles'})),16875);
 `);

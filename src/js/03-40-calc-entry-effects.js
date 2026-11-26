@@ -1,4 +1,5 @@
 import { AbilityById, ItemById, STAT_LABEL, battleAbilityContext, calcStats, effectiveBattleItem } from './01-core.js';
+import { prepareDamageSide } from './02-damage-events.js';
 import { displayName } from './02-engine.js';
 import { autoEntryEffects, clampFallenAllies, deriveHpFlags, setAutoEntryEffects, setComboboxValue, state } from './03-10-calc-state.js';
 import { ENTRY_EFFECTS, INTIMIDATE_BLOCKERS } from './03-20-calc-combobox.js';
@@ -49,7 +50,7 @@ function cloneSideForCalc(side) {
 }
 
 function cloneFieldForCalc(field) {
-  return { ...field };
+  return { ...field, atkHelpingHand: field.gameType === 'Doubles' && !!field.atkHelpingHand };
 }
 
 function clampRank(value) {
@@ -91,25 +92,32 @@ function setAppliedEntryField(fieldKey, value) {
 }
 
 function applyEntryFieldsFromSide(sideKey) {
-  let changed = false;
-  for (const fieldKey of AUTO_ENTRY_FIELD_KEYS) {
-    const tracked = autoEntryFieldState[fieldKey];
-    const effect = entryFieldEffectForSide(sideKey, fieldKey);
-    if (effect) {
-      tracked.owner = sideKey;
-      if (autoEntryEffects) changed = setAppliedEntryField(fieldKey, effect.value) || changed;
-      continue;
-    }
-    if (tracked.owner !== sideKey) continue;
+  return updateEntryFieldSource(state, autoEntryFieldState, sideKey, otherCalcSideKey(sideKey), autoEntryEffects);
+}
 
-    const otherKey = otherCalcSideKey(sideKey);
-    const fallback = entryFieldEffectForSide(otherKey, fieldKey);
-    tracked.owner = fallback ? otherKey : null;
-    if (autoEntryEffects) {
-      changed = setAppliedEntryField(fieldKey, fallback?.value ?? tracked.base) || changed;
+function updateEntryFieldSource(battle, sources, sideKey, otherKey, enabled) {
+  let changed = false;
+  for (const key of AUTO_ENTRY_FIELD_KEYS) {
+    const tracked = sources[key];
+    const value = ENTRY_EFFECTS[battle[sideKey]?.ability]?.[key];
+    if (value) tracked.owner = sideKey;
+    else if (tracked.owner === sideKey) {
+      tracked.owner = ENTRY_EFFECTS[battle[otherKey]?.ability]?.[key] ? otherKey : null;
+    } else continue;
+    const next = enabled && tracked.owner ? ENTRY_EFFECTS[battle[tracked.owner].ability][key] : tracked.base;
+    if (battle.field[key] !== next) {
+      battle.field[key] = next;
+      changed = true;
     }
   }
   return changed;
+}
+
+function mapEntryFieldSources(sources, first, second, mappedFirst, mappedSecond) {
+  return Object.fromEntries(AUTO_ENTRY_FIELD_KEYS.map(key => {
+    const { owner, base } = sources[key];
+    return [key, { owner: owner === first ? mappedFirst : owner === second ? mappedSecond : null, base }];
+  }));
 }
 
 function setManualCalcField(fieldKey, value) {
@@ -247,7 +255,13 @@ function makeCalcState() {
     field: cloneFieldForCalc(state.field),
   };
   for (const side of [calcState.atk, calcState.def]) side.fallenAllies = clampFallenAllies(side.fallenAllies, calcState.field.gameType);
+  calcState.input = { atk:state.atk, def:state.def, field:state.field };
   calcState.entryMeta = applyEntryEffectsToCalcState(calcState);
+  for (const key of ['atk','def']) {
+    const next = prepareDamageSide(calcState[key],calcState[otherCalcSideKey(key)],calcState.field);
+    if (next !== calcState[key]) calcState.entryMeta.logs.push(sideEntryLabel(key)+' '+next.stateEvents.at(-1));
+    calcState[key] = next;
+  }
   return calcState;
 }
 
@@ -291,11 +305,16 @@ function syncFieldControls(fieldState = null) {
   setComboboxValue('gameType', f.gameType || state.field.gameType, 'gameType');
   setChecked('defReflect', f.defReflect);
   setChecked('defLightScreen', f.defLightScreen);
-  setChecked('atkHelpingHand', f.atkHelpingHand);
+  const hand = document.getElementById('atkHelpingHand');
+  if (hand) {
+    hand.disabled = f.gameType !== 'Doubles';
+    hand.checked = !hand.disabled && !!f.atkHelpingHand;
+  }
   setChecked('defStealthRock', f.defStealthRock);
   setChecked('defSpikes', f.defSpikesLayers > 0);
   setComboboxValue('defSpikesLayers', String(Math.max(1, f.defSpikesLayers || 1)), 'spikesLayers');
   if (typeof syncSpikesLayerControl === 'function') syncSpikesLayerControl(f.defSpikesLayers > 0);
+  setChecked('autoEntry', autoEntryEffects);
   setChecked('gravity', f.isGravity);
   if (typeof updateRuinCheckboxes === 'function') updateRuinCheckboxes(f);
 }
@@ -311,4 +330,4 @@ function formatRankValue(value) {
 // Assignment stays in the module that owns the live binding.
 function setLastAutoEntry(value) { lastAutoEntry = value; return value; }
 
-export { lastAutoEntry, manualAutoFieldOverrides, AUTO_ENTRY_FIELD_KEYS, autoEntryFieldState, defaultAutoFieldValue, emptyEntryMeta, cloneSideForCalc, cloneFieldForCalc, clampRank, addRankDelta, applyRankDelta, sideEntryLabel, otherCalcSideKey, entryFieldEffectForSide, setAppliedEntryField, applyEntryFieldsFromSide, setManualCalcField, setAutoEntryEffectsEnabled, swapAutoEntryFieldOwners, resetAutoEntryFieldState, appendActiveEntryFieldMeta, applyDerivedEntryRankEffects, applyContinuousAbilityEffects, applyEntryEffectsToCalcState, makeCalcState, activeAutoFieldBase, markManualAutoFieldOverride, resetManualAutoFieldOverrides, syncFieldControls, formatRankValue, setLastAutoEntry };
+export { updateEntryFieldSource, mapEntryFieldSources, lastAutoEntry, manualAutoFieldOverrides, AUTO_ENTRY_FIELD_KEYS, autoEntryFieldState, defaultAutoFieldValue, emptyEntryMeta, cloneSideForCalc, cloneFieldForCalc, clampRank, addRankDelta, applyRankDelta, sideEntryLabel, otherCalcSideKey, entryFieldEffectForSide, setAppliedEntryField, applyEntryFieldsFromSide, setManualCalcField, setAutoEntryEffectsEnabled, swapAutoEntryFieldOwners, resetAutoEntryFieldState, appendActiveEntryFieldMeta, applyDerivedEntryRankEffects, applyContinuousAbilityEffects, applyEntryEffectsToCalcState, makeCalcState, activeAutoFieldBase, markManualAutoFieldOverride, resetManualAutoFieldOverrides, syncFieldControls, formatRankValue, setLastAutoEntry };

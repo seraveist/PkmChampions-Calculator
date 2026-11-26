@@ -156,6 +156,18 @@
       ]
     },
     {
+      "id": "auraguard",
+      "name": "파동의방호",
+      "policy": "직접 보정은 입력 조건에 따라 적용",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "defensiveFinalMods"
+      ],
+      "hooks": [
+        "onSourceModifyDamage"
+      ]
+    },
+    {
       "id": "baddreams",
       "name": "나이트메어",
       "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
@@ -534,6 +546,7 @@
       "name": "탈",
       "policy": "무효·차단은 카드 안내, 피해 산출 계속",
       "mechanicKeys": [
+        "moldBreakerIgnored",
         "gasExempt",
         "damageBlock"
       ],
@@ -602,7 +615,7 @@
       "mechanicKeys": [
         "moldBreakerIgnored",
         "immunities",
-        "defensiveFinalMods"
+        "defensiveBpMods"
       ],
       "hooks": [
         "onTryHit",
@@ -632,8 +645,12 @@
     {
       "id": "eelevate",
       "name": "천정부지",
-      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
-      "mechanicKeys": [],
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "moldBreakerIgnored",
+        "grounded",
+        "immunities"
+      ],
       "hooks": [
         "onSourceAfterFaint"
       ]
@@ -704,8 +721,10 @@
     {
       "id": "emergencyexit",
       "name": "위기회피",
-      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
-      "mechanicKeys": [],
+      "policy": "HP 절반 이하로 내려가 생존하면 교체 가능 여부를 같은 대상 KO에 반영",
+      "mechanicKeys": [
+        "switchAtHalfHp"
+      ],
       "hooks": [
         "onEmergencyExit"
       ]
@@ -1041,7 +1060,7 @@
       "policy": "직접 보정은 입력 조건에 따라 적용",
       "mechanicKeys": [
         "moldBreakerIgnored",
-        "defensiveFinalMods"
+        "defensiveAttackMods"
       ],
       "hooks": [
         "onSourceModifyAtk",
@@ -1142,6 +1161,7 @@
       "name": "아이스페이스",
       "policy": "무효·차단은 카드 안내, 피해 산출 계속",
       "mechanicKeys": [
+        "moldBreakerIgnored",
         "gasExempt",
         "damageBlock"
       ],
@@ -1868,7 +1888,7 @@
     {
       "id": "poisonheal",
       "name": "포이즌힐",
-      "policy": "특성의 턴 종료 회복은 제외",
+      "policy": "턴 종료 조건부 회복을 KO에 반영",
       "mechanicKeys": [
         "residualRecovery"
       ],
@@ -2228,7 +2248,10 @@
       "name": "도주",
       "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
       "mechanicKeys": [],
-      "hooks": []
+      "hooks": [
+        "onTrapPokemon",
+        "onMaybeTrapPokemon"
+      ]
     },
     {
       "id": "sandforce",
@@ -2719,7 +2742,7 @@
     {
       "id": "sturdy",
       "name": "옹골참",
-      "policy": "무효·차단은 카드 안내, 피해 산출 계속; 생존은 카드 안내, KO 제한 제외",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속; 결정력은 안내 배지, KO는 생존 발동 확률 반영",
       "mechanicKeys": [
         "moldBreakerIgnored",
         "ohkoBlock",
@@ -2953,7 +2976,7 @@
       "policy": "직접 보정은 입력 조건에 따라 적용",
       "mechanicKeys": [
         "moldBreakerIgnored",
-        "defensiveFinalMods"
+        "defensiveAttackMods"
       ],
       "hooks": [
         "onSourceModifyAtk",
@@ -3261,8 +3284,10 @@
     {
       "id": "wimpout",
       "name": "도망태세",
-      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
-      "mechanicKeys": [],
+      "policy": "HP 절반 이하로 내려가 생존하면 교체 가능 여부를 같은 대상 KO에 반영",
+      "mechanicKeys": [
+        "switchAtHalfHp"
+      ],
       "hooks": [
         "onEmergencyExit"
       ]
@@ -3357,6 +3382,15 @@
       ]
     },
     {
+      "id": "absolitez",
+      "name": "앱솔나이트Z",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
       "id": "aerodactylite",
       "name": "프테라나이트",
       "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
@@ -3372,6 +3406,20 @@
       "mechanicKeys": [],
       "hooks": [
         "onTakeItem"
+      ]
+    },
+    {
+      "id": "airballoon",
+      "name": "풍선",
+      "policy": "무효·차단은 카드 안내, 피해 산출 계속",
+      "mechanicKeys": [
+        "grounded",
+        "groundImmunity"
+      ],
+      "hooks": [
+        "onStart",
+        "onDamagingHit",
+        "onAfterSubDamage"
       ]
     },
     {
@@ -3451,6 +3499,15 @@
       ]
     },
     {
+      "id": "baxcalibrite",
+      "name": "드닐레이브나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
       "id": "beedrillite",
       "name": "독침붕나이트",
       "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
@@ -3467,6 +3524,20 @@
       "hooks": [
         "onTryHeal"
       ]
+    },
+    {
+      "id": "bindingband",
+      "name": "조임밴드",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
+      "id": "blackaugurite",
+      "name": "검은휘석",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
     },
     {
       "id": "blackbelt",
@@ -3489,6 +3560,13 @@
       "hooks": [
         "onBasePower"
       ]
+    },
+    {
+      "id": "blankplate",
+      "name": "순백플레이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
     },
     {
       "id": "blastoisinite",
@@ -3765,6 +3843,25 @@
       ]
     },
     {
+      "id": "ejectbutton",
+      "name": "탈출버튼",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAfterMoveSecondary"
+      ]
+    },
+    {
+      "id": "electricseed",
+      "name": "일렉트릭시드",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onTerrainChange"
+      ]
+    },
+    {
       "id": "emboarite",
       "name": "염무왕나이트",
       "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
@@ -3834,7 +3931,7 @@
     {
       "id": "focusband",
       "name": "기합의머리띠",
-      "policy": "생존은 카드 안내, KO 제한 제외",
+      "policy": "결정력은 안내 배지, KO는 생존 발동 확률 반영",
       "mechanicKeys": [],
       "hooks": [
         "onDamage"
@@ -3843,7 +3940,7 @@
     {
       "id": "focussash",
       "name": "기합의띠",
-      "policy": "생존은 카드 안내, KO 제한 제외",
+      "policy": "결정력은 안내 배지, KO는 생존 발동 확률 반영",
       "mechanicKeys": [
         "koSurvival"
       ],
@@ -3872,6 +3969,15 @@
     {
       "id": "garchompite",
       "name": "한카리아스나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "garchompitez",
+      "name": "한카리아스나이트Z",
       "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
       "mechanicKeys": [],
       "hooks": [
@@ -3915,12 +4021,31 @@
       ]
     },
     {
+      "id": "golisopite",
+      "name": "갑주무사나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
       "id": "golurkite",
       "name": "골루그나이트",
       "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
       "mechanicKeys": [],
       "hooks": [
         "onTakeItem"
+      ]
+    },
+    {
+      "id": "grassyseed",
+      "name": "그래스시드",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onTerrainChange"
       ]
     },
     {
@@ -4061,6 +4186,15 @@
       ]
     },
     {
+      "id": "leek",
+      "name": "대파",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onModifyCritRatio"
+      ]
+    },
+    {
       "id": "leftovers",
       "name": "먹다남은음식",
       "policy": "생존 후 회복; KO 확률에 반영",
@@ -4070,6 +4204,13 @@
       "hooks": [
         "onResidual"
       ]
+    },
+    {
+      "id": "legendplate",
+      "name": "레전드플레이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
     },
     {
       "id": "leppaberry",
@@ -4124,6 +4265,15 @@
     {
       "id": "lucarionite",
       "name": "루카리오나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "lucarionitez",
+      "name": "루카리오나이트Z",
       "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
       "mechanicKeys": [],
       "hooks": [
@@ -4256,6 +4406,16 @@
       ]
     },
     {
+      "id": "mistyseed",
+      "name": "미스트시드",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onTerrainChange"
+      ]
+    },
+    {
       "id": "muscleband",
       "name": "힘의머리띠",
       "policy": "직접 보정은 입력 조건에 따라 적용",
@@ -4287,6 +4447,15 @@
       ],
       "hooks": [
         "onBasePower"
+      ]
+    },
+    {
+      "id": "normalgem",
+      "name": "노말주얼",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onSourceTryPrimaryHit"
       ]
     },
     {
@@ -4339,6 +4508,13 @@
       ]
     },
     {
+      "id": "peatblock",
+      "name": "피트블록",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
       "id": "pechaberry",
       "name": "복슝열매",
       "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
@@ -4388,6 +4564,16 @@
       ]
     },
     {
+      "id": "psychicseed",
+      "name": "사이코시드",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onStart",
+        "onTerrainChange"
+      ]
+    },
+    {
       "id": "pyroarite",
       "name": "화염레오나이트",
       "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
@@ -4434,6 +4620,15 @@
       ]
     },
     {
+      "id": "redcard",
+      "name": "레드카드",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onAfterMoveSecondary"
+      ]
+    },
+    {
       "id": "rindoberry",
       "name": "린드열매",
       "policy": "직접 피해 감소, 첫 타격 후 1회 소비",
@@ -4443,6 +4638,15 @@
       "hooks": [
         "onSourceModifyDamage",
         "onEat"
+      ]
+    },
+    {
+      "id": "rockyhelmet",
+      "name": "울퉁불퉁멧",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onDamagingHit"
       ]
     },
     {
@@ -4460,6 +4664,15 @@
     {
       "id": "sablenite",
       "name": "깜까미나이트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": [
+        "onTakeItem"
+      ]
+    },
+    {
+      "id": "salamencite",
+      "name": "보만다나이트",
       "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
       "mechanicKeys": [],
       "hooks": [
@@ -4702,6 +4915,13 @@
       ]
     },
     {
+      "id": "terrainextender",
+      "name": "그라운드코트",
+      "policy": "상태·명중·추가 행동 등: 직접 피해 배율 규칙 없음",
+      "mechanicKeys": [],
+      "hooks": []
+    },
+    {
       "id": "twistedspoon",
       "name": "휘어진스푼",
       "policy": "직접 보정은 입력 조건에 따라 적용",
@@ -4762,8 +4982,7 @@
         "onAnyAfterMega",
         "onAnyAfterMove",
         "onResidual",
-        "onUse",
-        "onWhiteHerb"
+        "onUse"
       ]
     },
     {

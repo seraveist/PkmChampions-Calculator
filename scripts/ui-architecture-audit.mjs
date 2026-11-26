@@ -1,12 +1,14 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { parse } from 'acorn';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const TEMPLATE = path.join(ROOT, 'src', 'calc-template.html');
 const CSS_ROOT = path.join(ROOT, 'src', 'styles');
 const JS_ROOT = path.join(ROOT, 'src', 'js');
-const MANIFEST = path.join(ROOT, 'dist', 'deploy-manifest.json');
+const dist = process.argv.find(arg => arg.startsWith('--dist='))?.slice(7) || path.join(ROOT, 'dist');
+const MANIFEST = path.join(dist, 'deploy-manifest.json');
 const PAGE_OWNERS = new Map([
   ['pages/matchup.css', 'matchup'],
   ['pages/finetune.css', 'finetune'],
@@ -87,12 +89,29 @@ if (existsSync(MANIFEST)) {
     bytes: entry.sizeBytes,
     gzipBytes: entry.gzipBytes,
   }));
+  const byFile = new Map(assets.map(asset => [asset.file, asset]));
+  const initial = new Set();
+  function visitAsset(file) {
+    if (initial.has(file)) return;
+    if (!byFile.has(file)) throw new Error('초기 자산이 manifest에 없습니다: ' + file);
+    initial.add(file);
+    if (!file.endsWith('.js')) return;
+    const source = read(path.join(path.dirname(MANIFEST), 'assets', file));
+    for (const node of parse(source, { sourceType: 'module', ecmaVersion: 'latest' }).body) {
+      if (node.source) visitAsset(path.posix.normalize(path.posix.join(path.posix.dirname(file), node.source.value)));
+    }
+  }
+  const index = read(path.join(path.dirname(MANIFEST), 'index.html'));
+  for (const [tag] of index.matchAll(/<(?:script|link)\b[^>]*>/gi)) {
+    const attr = tag.startsWith('<script') ? 'src' : 'href';
+    const file = tag.match(new RegExp('\\s' + attr + '="(?:\\.\\/)?assets/([^"]+)"'))?.[1];
+    if (file) visitAsset(file);
+  }
   publicAssets = {
-    count: assets.length,
-    initialGzipBytes: assets
-      .filter(asset => ['theme', 'style', 'data', 'app'].includes(asset.role))
-      .reduce((sum, asset) => sum + (asset.gzipBytes || 0), 0),
-    totalGzipBytes: assets.reduce((sum, asset) => sum + (asset.gzipBytes || 0), 0),
+    count: byFile.size,
+    initialFiles: [...initial].sort(),
+    initialGzipBytes: [...initial].reduce((sum, file) => sum + byFile.get(file).gzipBytes, 0),
+    totalGzipBytes: [...byFile.values()].reduce((sum, asset) => sum + (asset.gzipBytes || 0), 0),
     assets,
   };
 }

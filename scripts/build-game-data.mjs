@@ -127,7 +127,15 @@ export function buildGameData() {
 
   console.log('🇰🇷 한국어 캐시(data/ko/) 로드');
   const koDir = path.join(DATA, 'ko');
+  const snapshotPath = path.join(koDir, 'auto-cache.json');
+  const snapshot = fs.existsSync(snapshotPath) ? JSON.parse(fs.readFileSync(snapshotPath, 'utf8')) : null;
+  if (snapshot && (snapshot.version !== 1 || !/^[0-9a-f]{40}$/i.test(snapshot.commit))) throw new Error('한국어 캐시 버전 또는 출처 오류');
   function readKoJsonRaw(name) {
+    if (snapshot && !name.endsWith('.manual')) {
+      const values = snapshot.categories?.[name];
+      if (!values || typeof values !== 'object' || Array.isArray(values)) throw new Error('한국어 캐시 항목 누락 · ' + name);
+      return values;
+    }
     const fp = path.join(koDir, `${name}.json`);
     if (!fs.existsSync(fp)) return {};
     try { return JSON.parse(fs.readFileSync(fp, 'utf8')); }
@@ -277,7 +285,7 @@ export function buildGameData() {
       bst: Object.values(p.baseStats || {}).reduce((a, b) => a + b, 0),
       ab: p.abilities,
       weightkg: p.weightkg,
-      mega: /^Mega/.test(p.forme || '') || undefined,
+      mega: /(?:^|-)Mega(?:-|$)/.test(p.forme || '') || undefined,
       primal: /^Primal/.test(p.forme || '') || undefined,
       tier: fd.tier || inheritedFd.tier,
       requiredItem: p.requiredItem,
@@ -306,6 +314,8 @@ export function buildGameData() {
       const enLong = pickLongText(m, MovesText[id]);
       const ko = koDescMoves[id];
       const mechanicFlags = moveMechanicFlags(id, m, moveMechanics);
+      const certain = [m.secondary, ...(m.secondaries || [])].filter(effect => effect && (effect.chance ?? 100) === 100);
+      const selfSecondary = certain.find(effect => effect.self?.boosts);
       finalMoves.push({
         id,
         name: m.name,
@@ -313,21 +323,28 @@ export function buildGameData() {
         type: m.type,
         cat: m.category,
         bp: m.basePower,
-        pp: m.pp,
+        pp: m.noPPBoosts ? Math.min(20, m.pp) : (Math.min(20, m.pp) / 5 + 1) * 4,
         referenceTag: m.isNonstandard || undefined,
         acc: m.accuracy === true ? 0 : m.accuracy,
         pri: m.priority,
         flags: m.flags || {},
         mh: m.multihit || undefined,
+        multiaccuracy: m.multiaccuracy || undefined,
         sec: (m.secondary || m.secondaries) ? true : undefined,
         recoil: m.recoil || undefined,
         drain: m.drain || undefined,
         selfdestruct: m.selfdestruct || undefined,
-        selfBoosts: m.self?.boosts || (m.selfBoost?.chance === 100 ? m.selfBoost.boosts : undefined),
+        selfBoosts: m.self?.boosts || ((m.selfBoost?.chance ?? 100) === 100 ? m.selfBoost?.boosts : undefined) || selfSecondary?.self.boosts,
+        selfSecondaryBoost: !!selfSecondary && !m.self?.boosts && !m.selfBoost?.boosts || undefined,
+        targetHitBoosts: certain.find(effect => effect.boosts)?.boosts,
+        hitStatus: certain.find(effect => effect.status)?.status,
+        hitVolatile: certain.find(effect => effect.volatileStatus)?.volatileStatus,
+        bindsTarget: m.volatileStatus === 'partiallytrapped' || undefined,
         statusBoosts: m.category === 'Status' && m.target === 'self' ? m.boosts : undefined,
         statusHeal: m.category === 'Status' && m.target === 'self' ? m.heal : undefined,
         damage: m.damage || undefined,
         ohko: m.ohko || undefined,
+        ignoresAbility: m.ignoreAbility || undefined,
         willCrit: m.willCrit || undefined,
         fixedDamageKind: mechanicFlags.fixedDamageKind,
         breaksProtect: m.breaksProtect || undefined,
@@ -363,6 +380,8 @@ export function buildGameData() {
       id,
       name: a.name,
       koName: koAbilities[id] || a.name,
+      noAbilitySwap: a.flags?.failskillswap || undefined,
+      noOverwrite: a.flags?.cantsuppress || undefined,
       rating: typeof a.rating === 'number' ? a.rating : undefined,
       ...mechanics,
       desc: ko || enShort,

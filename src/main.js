@@ -20,7 +20,6 @@ import './js/03-40-calc-entry-effects.js';
 import { bind0350CalcResults } from './js/03-50-calc-results.js';
 import { bind0360CalcEvents } from './js/03-60-calc-events.js';
 import './js/04-00-party-presets-state.js';
-import './js/04-01-party-presets-image.js';
 import './js/04-02-party-presets-integration.js';
 import './js/04-03-party-presets-ui.js';
 import { bind05Init } from './js/05-init.js';

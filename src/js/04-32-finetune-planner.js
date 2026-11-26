@@ -74,6 +74,7 @@ function ftHandlePlannerChange(target) {
   const role = target.dataset.ftSide;
   if (target.dataset.ftField) {
     const key = target.dataset.ftField;
+    if (['weather', 'terrain'].includes(key)) fineTuneState.fieldSources[key] = { owner: null, base: target.value };
     if (['weather', 'terrain', 'isGravity'].includes(key)) fineTuneState.field[key] = target.type === 'checkbox' ? target.checked : target.value;
   } else if (role && ['my', 'opp'].includes(role) && target.dataset.ftFlag) {
     const key = target.dataset.ftFlag;

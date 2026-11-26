@@ -1,5 +1,6 @@
 import { renderToolStatMagicCell, renderToolStatNatureMark, toolStatApplyPointValue } from './01-20-html-structure.js';
-import { AbilityById, ItemById, NATURE_BY_ID, POKEMON, PokemonById, STATS, TYPE_KO, abName, battleAbilityContext, calcStats, effectiveBattleItem, effectiveTypes, escapeHTML, isGrounded, itName, pkName, renderTrustedHTML, typeEff } from './01-core.js';
+import { compareKoreanNames, AbilityById, ItemById, NATURE_BY_ID, POKEMON, PokemonById, STATS, TYPE_KO, abName, battleAbilityContext, calcStats, effectiveBattleItem, effectiveTypes, escapeHTML, isGrounded, itName, pkName, renderTrustedHTML, typeEff } from './01-core.js';
+import { updateEntryFieldSource } from './03-40-calc-entry-effects.js';
 import { effectiveSpeed, fractionValue } from './02-engine.js';
 import { applyPokemonFormToSideState, calcFormOptionDataForPokemon, calcNatureLabel, calcPokemonFormLabel, cloneCalcValue, defaultPokemonItemId, deriveHpFlags, makeFieldState, makeSideState } from './03-10-calc-state.js';
 import { uiWirePickerDialog } from './03-19-picker-dialog.js';
@@ -15,6 +16,8 @@ const fineTuneState = {
   my: makeSideState(),
   opp: makeSideState(),
   field: makeFieldState(),
+  fieldSources: { weather: { owner: null, base: 'none' }, terrain: { owner: null, base: 'none' } },
+  autoFields: true,
   margin: 1,
   targetSpeed: '',
 };
@@ -157,7 +160,7 @@ function sortPokemonForFineTuneSelect(pokemon) {
   return pokemon.slice().sort((a, b) => {
     const speedDiff = (b.bs?.spe || 0) - (a.bs?.spe || 0);
     if (speedDiff !== 0) return speedDiff;
-    return pkName(a).localeCompare(pkName(b), 'ko', { numeric: true, sensitivity: 'base' });
+    return compareKoreanNames(pkName(a), pkName(b));
   });
 }
 
@@ -227,7 +230,15 @@ function ftApplyPokemonToFineTune(pokemonId) {
   }
 }
 
+function ftRefreshEntryFields(role) {
+  updateEntryFieldSource(fineTuneState, fineTuneState.fieldSources, role, role === 'my' ? 'opp' : 'my', fineTuneState.autoFields);
+}
+
 function ftSelectCombo(target, id) {
+  const role = ['my', 'myForm', 'ability'].includes(target) ? 'my'
+    : ['opp', 'oppForm', 'oppAbility'].includes(target) ? 'opp' : null;
+  const previous = role && fineTuneState[role];
+  const previousId = previous?.pokemonIdx, previousAbility = previous?.ability;
   if (target === 'my') ftApplyPokemonToFineTune(id);
   if (target === 'myForm') {
     applyPokemonFormToSideState(fineTuneState.my, id);
@@ -247,6 +258,7 @@ function ftSelectCombo(target, id) {
   if (target === 'oppAbility') fineTuneState.opp.ability = id || '';
   if (target === 'oppItem') fineTuneState.opp.item = id || '';
   if (target === 'oppNature') fineTuneState.opp.nature = id || 'hardy';
+  if (role && (fineTuneState[role].pokemonIdx !== previousId || fineTuneState[role].ability !== previousAbility)) ftRefreshEntryFields(role);
 }
 
 function ftCurrentComboId(target) {
@@ -500,4 +512,4 @@ function ftBuildHpTargets(side) {
   };
 }
 
-export { fineTuneState, ftStatKeys, ftClampInt, ftClampEvValue, ftSetEv, ftDefaultField, ftSpeedFieldFor, ftSpeedSideFor, ftMySpeed, ftOpponentBaseSpeed, ftNatureForSpeedCase, ftOppSpeedCase, ftOppSpeedRefCases, ftRenderOppSpeedChipsHtml, ftRefreshOppSpeedChips, ftFindMinSpeedEv, ftSpeedCases, ftBuildSpeedTable, ftSpeedRequirement, ftAbilityOptionsForCurrentPokemon, sortPokemonForFineTuneSelect, ftComboData, ftComboLabel, ftSearchMatches, ftRenderOpponentPokemonOption, ftApplyPokemonToFineTune, ftSelectCombo, ftCurrentComboId, ftWireComboboxes, ftWireMyComboboxes, ftWireOppComboboxes, ftHpAtEv, ftMultiplierLabel, ftHpBreakpointRules, ftHpBreakpointDeltas, ftHpBreakpoints, ftMagicNumbers, ftEvSummary, ftNatureMark, ftRenderMagicCell, ftBulkMetrics, ftUniqueJoin, ftHpRulePriority, ftFormatBreakpointDescriptions, ftBuildHpTargets };
+export { ftRefreshEntryFields, fineTuneState, ftStatKeys, ftClampInt, ftClampEvValue, ftSetEv, ftDefaultField, ftSpeedFieldFor, ftSpeedSideFor, ftMySpeed, ftOpponentBaseSpeed, ftNatureForSpeedCase, ftOppSpeedCase, ftOppSpeedRefCases, ftRenderOppSpeedChipsHtml, ftRefreshOppSpeedChips, ftFindMinSpeedEv, ftSpeedCases, ftBuildSpeedTable, ftSpeedRequirement, ftAbilityOptionsForCurrentPokemon, sortPokemonForFineTuneSelect, ftComboData, ftComboLabel, ftSearchMatches, ftRenderOpponentPokemonOption, ftApplyPokemonToFineTune, ftSelectCombo, ftCurrentComboId, ftWireComboboxes, ftWireMyComboboxes, ftWireOppComboboxes, ftHpAtEv, ftMultiplierLabel, ftHpBreakpointRules, ftHpBreakpointDeltas, ftHpBreakpoints, ftMagicNumbers, ftEvSummary, ftNatureMark, ftRenderMagicCell, ftBulkMetrics, ftUniqueJoin, ftHpRulePriority, ftFormatBreakpointDescriptions, ftBuildHpTargets };

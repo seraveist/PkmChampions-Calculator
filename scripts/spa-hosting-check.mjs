@@ -93,7 +93,7 @@ check(template.includes('class="site-shell"'), 'template keeps single shell layo
 check(template.includes('class="page page-frame'), 'template keeps tabbed page-frame layout');
 
 const singleAppSourceContracts = [
-  ['bindMainNavigation()', 'main nav binding initializes'],
+  ['bindMainNavigation(ensureMainPageInitialized)', 'main nav binding initializes'],
   ['activateMainPage(tab.dataset.page', 'main nav activates page panels'],
   ['syncUiTabs(document.querySelectorAll(\'.nav-tab\'), tab)', 'main nav syncs tab states'],
   ['syncUiPanels(document.querySelectorAll(\'.page\'), activePage)', 'main nav syncs page panels'],
