@@ -42,7 +42,9 @@ Cloudflare Pages의 Production branch는 `main`, Build command는 `npm run build
 
 전 메뉴에 확정 계산기 샘플의 공통 UI를 적용했다. 메뉴별 개선, HTML 참조·CSS 소유권, 320~1440px 반응형·키보드 검사 결과는 [UI 리모델링 최종 검토](docs/ui-remodel-final-review.md)에 정리했다.
 
-현재 데이터는 M-C(2026-09-09)를 반영한다. [반영 내역과 수동 보완 방법](docs/regulation-mc-update.md)을 참고한다.
+포켓몬 수록 기준은 Showdown의 일반 Champions 모드다. 전국도감 전용 항목과 비공식 종은 포함하지 않으며, 공식 포켓몬의 목록이나 폼을 별도로 고정하지 않는다. 동기화에 사용한 Showdown 커밋은 [data/upstream.json](data/upstream.json)에 기록된다.
+
+`Sync PS data` GitHub Actions는 매주 일요일 11:00 KST에 최신 Showdown 데이터를 가져와 회귀 검사와 브라우저 검증 후 변경분을 게시한다. 수동 실행에서 `dry_run`을 선택하면 게시하지 않고 같은 검증을 수행한다. [M-C 당시 변경 내역](docs/regulation-mc-update.md)은 역사 기록이다.
 
 도감의 학습 기술 분류 필터·PP·계산기 적용·현재 수록 범위 개선은 [도감 개선](docs/dex-improvements.md)을 참고한다. 전용 검사는 `npm run dex:smoke`, 실제 화면 검사는 `npm run dex:browser`로 실행한다. 거다이맥스 기술은 다이맥스 룰 도입 전까지 현재 출력에서 제외한다.
 

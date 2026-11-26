@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTsModule, applyModOverrides } from './ts-loader.mjs';
-import { applyChampionsDataOverrides } from './champions-overrides.mjs';
+import { championsRoster, battleOnlyBaseIds, showdownSpecies } from './champions-roster.mjs';
 
 // Windows 호환: file:// URL → 네이티브 경로 변환을 fileURLToPath 로 처리.
 // (URL.pathname 만 사용하면 Windows 에서 'C:\C:\...' 처럼 드라이브가 중복된다)
@@ -25,7 +25,6 @@ const OVERRIDES = path.join(DATA, 'overrides');
 
 // G-Max moves remain in the upstream files for a future Dynamax ruleset.
 const EXCLUDED_NONSTANDARD = new Set(['CAP', 'Custom', 'Gmax']);
-const ROTOM_LEARNSET_FORM_IDS = new Set(['rotomheat', 'rotomwash', 'rotomfrost', 'rotomfan', 'rotommow']);
 
 function readBase(file, exportName) {
   const mod = loadTsModule(path.join(DATA, file));
@@ -49,30 +48,11 @@ function readJsonFile(fp, fallback = {}) {
   try { return JSON.parse(fs.readFileSync(fp, 'utf8')); }
   catch (e) { console.warn(`  ⚠️ ${fp} parse 실패:`, e.message); return fallback; }
 }
-function normalizeFilterList(raw, kind) {
-  return new Set(Array.isArray(raw?.[kind]) ? raw[kind].filter(Boolean) : []);
-}
-function readDataFilters() {
-  const raw = readJsonFile(path.join(OVERRIDES, 'filters.json'), {});
-  const kinds = ['pokemon', 'moves', 'abilities', 'items'];
-  return {
-    exclude: Object.fromEntries(kinds.map(kind => [kind, normalizeFilterList(raw.exclude, kind)])),
-    include: Object.fromEntries(kinds.map(kind => [kind, normalizeFilterList(raw.include, kind)])),
-  };
-}
-function isAvailable(entry, kind, id, filters) {
-  if (entry?.isNonstandard === 'Gmax') return false;
-  if (filters?.include?.[kind]?.has(id)) return !isPast(entry);
-  if (filters?.exclude?.[kind]?.has(id)) return false;
-  return !isPast(entry) && !isUnofficial(entry);
+function isAvailable(entry) {
+  return !!entry?.name && !isPast(entry) && !isUnofficial(entry);
 }
 function toId(value) {
   return (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-function battleOnlyBaseIds(pokemon) {
-  const value = pokemon?.battleOnly;
-  if (!value) return [];
-  return (Array.isArray(value) ? value : [value]).map(toId).filter(Boolean);
 }
 function normalizeFormGroups(raw) {
   const groups = [];
@@ -115,7 +95,6 @@ export function buildGameData() {
   const Learnsets = readBase('learnsets.ts', 'Learnsets');
   const TypeChart = readBase('typechart.ts', 'TypeChart');
   const Natures = readBase('natures.ts', 'Natures');
-  const FormatsData = readBase('formats-data.ts', 'FormatsData');
 
   console.log('📚 텍스트 설명(text/) 로드');
   const textDir = path.join(DATA, 'text');
@@ -182,16 +161,16 @@ export function buildGameData() {
   const champFormatsData = readChamp('formats-data.ts', 'FormatsData');
 
   console.log('🔀 inherit 병합');
-  const mergedPokedex = applyChampionsDataOverrides('pokemon', applyModOverrides(Pokedex, champPokedex));
-  const mergedMoves = applyChampionsDataOverrides('moves', applyModOverrides(Moves, champMoves));
-  const mergedAbilities = applyChampionsDataOverrides('abilities', applyModOverrides(Abilities, champAbilities));
-  const mergedItems = applyChampionsDataOverrides('items', applyModOverrides(Items, champItems));
-  const mergedLearnsets = applyChampionsDataOverrides('learnsets', applyModOverrides(Learnsets, champLearnsets));
-  // formats-data 는 base 가 9세대 본가 기준이라 champions 쪽이 진실의 원천.
-  // champions formats-data 에 명시된 항목만 사용한다.
-  const mergedFormats = applyChampionsDataOverrides('formats', champFormatsData);
-  const dataFilters = readDataFilters();
-  const formGroups = normalizeFormGroups(readJsonFile(path.join(OVERRIDES, 'form-groups.json'), {}));
+  const mergedPokedex = applyModOverrides(Pokedex, champPokedex);
+  const mergedMoves = applyModOverrides(Moves, champMoves);
+  const mergedAbilities = applyModOverrides(Abilities, champAbilities);
+  const mergedItems = applyModOverrides(Items, champItems);
+  const mergedLearnsets = applyModOverrides(Learnsets, champLearnsets);
+  // The group list only decorates forms already supported by Showdown.
+  const roster = championsRoster(mergedPokedex, champFormatsData);
+  const formGroups = normalizeFormGroups(readJsonFile(path.join(OVERRIDES, 'form-groups.json'), {}))
+    .map(group => ({ ...group, forms: group.forms.filter(id => roster.has(id)) }))
+    .filter(group => group.forms.length > 1 && group.forms.includes(group.key));
   const { byForm: formGroupByForm } = formGroupMaps(formGroups);
   const moveMechanics = readJsonFile(path.join(OVERRIDES, 'move-mechanics.json'), {});
   const itemMechanics = readJsonFile(path.join(OVERRIDES, 'item-mechanics.json'), {});
@@ -216,57 +195,15 @@ export function buildGameData() {
 
   console.log('⚙️ 챔피언스 필터링');
 
-  // 합법 포켓몬: champions formats-data 에 등재되어 있고 tier 가 'Illegal' 이 아닌 항목
-  const legalPokemonIds = new Set();
-  for (const [id, fd] of Object.entries(mergedFormats)) {
-    if (!fd) continue;
-    if (mergedPokedex[id]?.placeholderFor) continue;
-    if (fd.tier === 'Illegal') continue;
-    if (!isAvailable(fd, 'pokemon', id, dataFilters)) continue;
-    legalPokemonIds.add(id);
-  }
-  const battleOnlyBaseById = new Map();
-  for (const [id, fd] of Object.entries(mergedFormats)) {
-    if (legalPokemonIds.has(id)) continue;
-    if (dataFilters?.exclude?.pokemon?.has(id)) continue;
-    if (!fd || fd.tier === 'Illegal' || isUnofficial(fd)) continue;
-    const p = mergedPokedex[id];
-    if (!p?.name || p.placeholderFor) continue;
-    const legalBaseId = battleOnlyBaseIds(p).find(baseId => legalPokemonIds.has(baseId));
-    if (!legalBaseId) continue;
-    legalPokemonIds.add(id);
-    battleOnlyBaseById.set(id, legalBaseId);
-  }
-  const formGroupBaseById = new Map();
-  for (const group of formGroups) {
-    const legalBaseId = group.forms.find(formId => legalPokemonIds.has(formId));
-    if (!legalBaseId) continue;
-    for (const formId of group.forms) {
-      if (legalPokemonIds.has(formId)) continue;
-      if (dataFilters?.exclude?.pokemon?.has(formId)) continue;
-      const p = mergedPokedex[formId];
-      if (!p?.name || isUnofficial(p)) continue;
-      legalPokemonIds.add(formId);
-      formGroupBaseById.set(formId, legalBaseId);
-    }
-  }
-
   const finalPokemon = [];
-  for (const id of Object.keys(mergedPokedex).filter(id => legalPokemonIds.has(id))) {
-    const p = mergedPokedex[id];
-    if (!p) continue;
-    const fd = mergedFormats[id] || {};
-    const inheritedBaseId = battleOnlyBaseById.get(id) || formGroupBaseById.get(id);
-    const inheritedFd = inheritedBaseId ? (mergedFormats[inheritedBaseId] || {}) : {};
+  for (const [id, tier] of roster) {
+    const p = showdownSpecies(mergedPokedex, id);
     const battleOnlyLearnsetId = battleOnlyBaseIds(p)[0];
     const ownLearnset = mergedLearnsets[id]?.learnset;
     const fallbackLearnset = mergedLearnsets[battleOnlyLearnsetId]?.learnset
       || mergedLearnsets[toId(p.baseSpecies)]?.learnset;
-    const rotomBaseLearnset = ROTOM_LEARNSET_FORM_IDS.has(id) ? mergedLearnsets.rotom?.learnset : undefined;
-    const ls = rotomBaseLearnset
-      ? { ...rotomBaseLearnset, ...(ownLearnset || {}) }
-      : (ownLearnset || fallbackLearnset);
-    const learnset = ls ? Object.keys(ls).filter(moveId => isAvailable(mergedMoves[moveId], 'moves', moveId, dataFilters)) : undefined;
+    const ls = ownLearnset || fallbackLearnset;
+    const learnset = ls ? Object.keys(ls).filter(moveId => isAvailable(mergedMoves[moveId])) : undefined;
     const formGroup = formGroupByForm.get(id);
     const spriteId = Number(pokemonSpriteIds[id] || p.num || 0) || undefined;
     const baseSpriteId = Number(p.num || 0) || undefined;
@@ -287,7 +224,7 @@ export function buildGameData() {
       weightkg: p.weightkg,
       mega: /(?:^|-)Mega(?:-|$)/.test(p.forme || '') || undefined,
       primal: /^Primal/.test(p.forme || '') || undefined,
-      tier: fd.tier || inheritedFd.tier,
+      tier,
       requiredItem: p.requiredItem,
       requiredAbility: p.requiredAbility,
       requiredMove: p.requiredMove,
@@ -308,7 +245,7 @@ export function buildGameData() {
   const finalMoves = [];
   for (const [id, m] of Object.entries(mergedMoves)) {
     if (!m || !m.name) continue;
-    if (!isAvailable(m, 'moves', id, dataFilters)) continue;
+    if (!isAvailable(m)) continue;
     if (m.category === 'Status' || (typeof m.basePower === 'number' && m.basePower > 0) || m.category === 'Physical' || m.category === 'Special') {
       const enShort = pickText(m, MovesText[id]);
       const enLong = pickLongText(m, MovesText[id]);
@@ -371,7 +308,7 @@ export function buildGameData() {
   const finalAbilities = [];
   for (const [id, a] of Object.entries(mergedAbilities)) {
     if (!a || !a.name) continue;
-    if (!isAvailable(a, 'abilities', id, dataFilters)) continue;
+    if (!isAvailable(a)) continue;
     const enShort = pickText(a, AbilitiesText[id]);
     const enLong = pickLongText(a, AbilitiesText[id]);
     const ko = koDescAbilities[id];
@@ -393,7 +330,7 @@ export function buildGameData() {
   const finalItems = [];
   for (const [id, it] of Object.entries(mergedItems)) {
     if (!it || !it.name) continue;
-    if (!isAvailable(it, 'items', id, dataFilters)) continue;
+    if (!isAvailable(it)) continue;
     const enShort = pickText(it, ItemsText[id]);
     const enLong = pickLongText(it, ItemsText[id]);
     const ko = koDescItems[id];

@@ -6,7 +6,6 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import { loadTsModule, applyModOverrides } from './ts-loader.mjs';
-import { applyChampionsDataOverrides } from './champions-overrides.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const html = readFileSync(path.join(root, 'pokemon-champions-calculator-v3.html'), 'utf8');
@@ -32,10 +31,10 @@ const api = new Function('document', 'window', `${source}\n
     applyDexAction, calcMoveWithConditions, movePowerLabel, renderMoveDetail,
     renderAbilityDetail, VARIABLE_BP_NOTE };
 `)(document, { innerWidth: 1280, addEventListener() {} });
-const mergedMoves = applyChampionsDataOverrides('moves', applyModOverrides(
+const mergedMoves = applyModOverrides(
   loadTsModule(path.join(root, 'data/moves.ts')).Moves,
   loadTsModule(path.join(root, 'data/mods/champions/moves.ts')).Moves,
-));
+);
 const missing = (entries, predicate) => entries.filter(predicate).map(e => e.id);
 const plain = html => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 const report = {

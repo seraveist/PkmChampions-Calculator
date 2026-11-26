@@ -3,10 +3,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
-import { applyChampionsDataOverrides } from './champions-overrides.mjs';
-import { PS_FILES } from './ps-data-source.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const baseline = 'f1040ecb5f5dba252e0e351e392dc409a5089ace';
+assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'data/upstream.json'), 'utf8')).commit, baseline,
+  'Historical M-C test: use the checkout with the November 22, 2026 Showdown snapshot');
 const html = readFileSync(path.join(root, 'pokemon-champions-calculator-v3.html'), 'utf8');
 const json = Object.fromEntries([...html.matchAll(/<script id="(data-[^"]+)" type="application\/json">([\s\S]*?)<\/script>/g)].map(m => [m[1], m[2]]));
 const element = id => ({ textContent: json[id] || '', value: '', dataset: {}, style: {},
@@ -83,11 +84,4 @@ test('New field item and Leek controls explain the required observation inputs',
 `);
 function test(name, fn) { try { fn(); passed++; console.log(`[PASS] ${name}`); } catch (e) { process.exitCode=1; console.error(`[FAIL] ${name}: ${e.stack}`); } }
 run(document, { innerWidth: 1280, addEventListener() {} }, assert, test);
-test('Manual corrections survive sync and never mutate source data', () => {
-  assert(!PS_FILES.includes('data/overrides/champions-data.json'));
-  const source = { auraguard: { name: 'Aura Guard', isNonstandard: 'Future' } };
-  assert.equal(applyChampionsDataOverrides('abilities', source).auraguard.isNonstandard, null);
-  assert.equal(source.auraguard.isNonstandard, 'Future');
-  assert.throws(() => applyChampionsDataOverrides('abilities', {}), /Missing Champions correction target/);
-});
 console.log(`${passed} M-C checks passed`);

@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTsModule, applyModOverrides } from './ts-loader.mjs';
-import { applyChampionsDataOverrides } from './champions-overrides.mjs';
+import { championsRoster } from './champions-roster.mjs';
 import { PS_FILES, PS_REF, PS_REPOSITORY } from './ps-data-source.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -45,24 +45,8 @@ function cleanManual(name) {
   )));
 }
 
-function filterSets() {
-  const raw = readJson(path.join(DATA, 'overrides', 'filters.json'), {});
-  const toSets = group => Object.fromEntries(KINDS.map(kind => [
-    kind,
-    new Set(Array.isArray(group?.[kind]) ? group[kind].filter(Boolean) : []),
-  ]));
-  return { exclude: toSets(raw.exclude), include: toSets(raw.include) };
-}
-
-function isPast(entry) {
-  return entry?.isNonstandard === 'Past' || entry?.isNonstandard === 'Future';
-}
-
-function isAvailable(entry, kind, id, filters) {
-  if (entry?.isNonstandard === 'Gmax') return false;
-  if (filters.include[kind].has(id)) return !isPast(entry);
-  if (filters.exclude[kind].has(id)) return false;
-  return !isPast(entry) && !EXCLUDED_NONSTANDARD.has(entry?.isNonstandard);
+function isAvailable(entry) {
+  return !['Past', 'Future'].includes(entry?.isNonstandard) && !EXCLUDED_NONSTANDARD.has(entry?.isNonstandard);
 }
 
 const html = readFileSync(HTML_PATH, 'utf8');
@@ -85,8 +69,7 @@ const source = {
   abilities: applyModOverrides(readBase('abilities.ts', 'Abilities'), readChamp('abilities.ts', 'Abilities')),
   items: applyModOverrides(readBase('items.ts', 'Items'), readChamp('items.ts', 'Items')),
 };
-const filters = filterSets();
-for (const kind of KINDS) source[kind] = applyChampionsDataOverrides(kind, source[kind]);
+const roster = championsRoster(source.pokemon, readChamp('formats-data.ts', 'FormatsData'));
 const entryEffects = readJson(path.join(DATA, 'overrides', 'entry-effects.json'), { effects: {}, blockers: {} });
 const formGroupsRaw = readJson(path.join(DATA, 'overrides', 'form-groups.json'), {});
 const formGroups = [];
@@ -143,11 +126,17 @@ for (const [kind, entries] of Object.entries(finalData)) {
   if (Array.isArray(entries) && entries.length === 0) fail(`${kind} is empty`);
 }
 
-for (const kind of KINDS) {
+for (const [id, tier] of roster) {
+  if (byId.pokemon[id]?.tier !== tier) fail(`pokemon.${id} is missing or differs from the regular Champions tier ${tier}`);
+}
+for (const { id } of finalData.pokemon) {
+  if (!roster.has(id)) fail(`pokemon.${id} is not in the regular Champions roster`);
+}
+for (const kind of ['moves', 'abilities', 'items']) {
   for (const [id, entry] of Object.entries(source[kind])) {
     if (!entry?.name) continue;
-    if (!isAvailable(entry, kind, id, filters) && finalSets[kind].has(id)) {
-      fail(`${kind}.${id} should be filtered out (${entry.isNonstandard || 'manual exclude'})`);
+    if (!isAvailable(entry) && finalSets[kind].has(id)) {
+      fail(`${kind}.${id} should be filtered out (${entry.isNonstandard})`);
     }
   }
 }
@@ -187,18 +176,18 @@ for (const pokemon of finalData.pokemon) {
   }
 }
 
-const bannedFormGroupIds = new Set(['greninjabond', 'greninjaash']);
 const regionalFormTokens = ['alola', 'galar', 'hisui', 'paldea'];
 for (const group of formGroups) {
   if (!group.key) fail('form group has empty key');
   if (group.forms.length < 2) fail(`form group ${group.key} must include at least two forms`);
   if (!group.forms.includes(group.key)) fail(`form group ${group.key} must include its base id`);
-  for (const formId of group.forms) {
+  const activeForms = group.forms.filter(id => roster.has(id));
+  if (activeForms.length < 2 || !activeForms.includes(group.key)) continue;
+  for (const formId of activeForms) {
     const sourcePokemon = source.pokemon[formId];
     const builtPokemon = byId.pokemon[formId];
     if (!sourcePokemon) fail(`form group ${group.key} references missing source pokemon ${formId}`);
     if (!finalSets.pokemon.has(formId)) fail(`form group ${group.key} references missing built pokemon ${formId}`);
-    if (bannedFormGroupIds.has(formId)) fail(`form group ${group.key} must not include Battle Bond Greninja form ${formId}`);
     if (/mega|primal/.test(formId) || sourcePokemon?.forme?.startsWith('Mega') || sourcePokemon?.forme?.startsWith('Primal')) {
       fail(`form group ${group.key} must not include Mega/Primal form ${formId}`);
     }
@@ -207,7 +196,7 @@ for (const group of formGroups) {
     }
     if (builtPokemon) {
       if (builtPokemon.formGroup !== group.key) fail(`pokemon.${formId} has mismatched formGroup`);
-      if (!Array.isArray(builtPokemon.formGroupForms) || builtPokemon.formGroupForms.length !== group.forms.length) {
+      if (!Array.isArray(builtPokemon.formGroupForms) || JSON.stringify(builtPokemon.formGroupForms) !== JSON.stringify(activeForms)) {
         fail(`pokemon.${formId} has incomplete formGroupForms`);
       }
       if (!builtPokemon.bs || !builtPokemon.types?.length || !builtPokemon.ab) {
